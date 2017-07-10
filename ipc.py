@@ -1,4 +1,7 @@
 __author__ = 'patras'
+
+'''This is a simple example of multi-threading in python'''
+
 import threading
 import time
 import sys
@@ -76,3 +79,16 @@ def test():
         master1.acquire()
         sem2.release()
         master2.acquire()
+
+def modify(var):
+    var.value = 4
+
+class Var(object):
+    def __init__(self):
+        pass
+
+def passToFunc():
+    var = Var()
+    var.value = 5
+    modify(var)
+    print var.value

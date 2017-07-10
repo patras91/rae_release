@@ -1,4 +1,5 @@
 from __future__ import print_function
+import sys
 """
 File ste.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
@@ -65,74 +66,91 @@ def leave_taxi(a,state):
 		print('agent',a,"isn't in a taxi")
 		return 'Failure'
 
-rae1.declare_commands(walk, call_taxi,enter_taxi,taxi_carry,pay_driver,leave_taxi)
-print('')
-rae1.print_commands()
-
-
-
-def travel_by_foot(a,x,y,state):
+def travel_by_foot(a,x,y,state,ipcArgs):
 	if state.dist[x][y] <= 2:
-		rae1.do_command(walk,a,x,y,state)
+		rae1.do_command(walk,a,x,y,state,ipcArgs)
 		return 'Success'
+	# kluge
+	ipcArgs.master.release()
+	print("%d task done \n" %ipcArgs.id)
+	sys.stdout.flush()
+
 	return 'Failure'
 
-def travel_by_taxi(a,x,y,state):
+def travel_by_taxi(a,x,y,state,ipcArgs):
 	if state.cash[a] >= taxi_rate(state.dist[x][y]):
-		rae1.do_command(call_taxi,a,x,state)
-		rae1.do_task('ride_taxi',a,y,state)
+		rae1.do_command(call_taxi,a,x,state,ipcArgs)
+		rae1.do_task('ride_taxi',a,y,state,ipcArgs)
 		return 'Success'
 	else:
 		print('agent',a,"has too little money for a taxi from",x,'to',y)
+		#kluge
+		ipcArgs.master.release()
+		print("%d task done \n" %ipcArgs.id)
+		sys.stdout.flush()
+
 		return 'Failure'
 
-rae1.declare_methods('travel',travel_by_foot,travel_by_taxi)
-
-def ride_taxi_method(a,y,state):
+def ride_taxi_method(a,y,state, ipcArgs):
 	if state.dist[state.loc[a]][y] < 50:
-		rae1.do_command(enter_taxi,a,state)
-		rae1.do_command(taxi_carry,a,y,state)
-		rae1.do_command(pay_driver,a,state)
-		rae1.do_command(leave_taxi,a,state)
+		rae1.do_command(enter_taxi,a,state,ipcArgs)
+		rae1.do_command(taxi_carry,a,y,state,ipcArgs)
+		rae1.do_command(pay_driver,a,state,ipcArgs)
+		rae1.do_command(leave_taxi,a,state,ipcArgs)
 		return 'Success'
 	else:
 		print('the taxi driver is unwilling to drive to',y)
-		return 'Failure'		
+		#kluge
+		ipcArgs.master.release()
+		print("%d task done \n" %ipcArgs.id)
+		sys.stdout.flush()
 
-rae1.declare_methods('ride_taxi',ride_taxi_method)
+		return 'Failure'
 
-print('')
-rae1.print_methods()
+def ste_init():
+	rae1.declare_commands(walk, call_taxi, enter_taxi, taxi_carry, pay_driver, leave_taxi)
+	print('')
+	rae1.print_commands()
+	rae1.declare_methods('travel', travel_by_foot, travel_by_taxi)
+	rae1.declare_methods('ride_taxi', ride_taxi_method)
+	print('')
+	rae1.print_methods()
+	print('\n*********************************************************')
+	print("* Call rae1 on several problems using verbosity level 1.")
+	print("* For a different amout of printout, try 0 or 2 instead.")
+	print('*********************************************************')
 
-print('\n*********************************************************')
-print("* Call rae1 on several problems using verbosity level 1.")
-print("* For a different amout of printout, try 0 or 2 instead.")
-print('*********************************************************')
+	rae1.verbosity(0)
 
-rae1.verbosity(1)
+def ste_run_travel1(stack):
+	state = rae1.State()
+	state.loc = {'me':'home'}
+	state.cash = {'me':20}
+	state.owe = {'me':0}
+	state.dist = {'home':{'park':8}, 'park':{'home':8}}
 
-state = rae1.State()
-state.loc = {'me':'home'}
-state.cash = {'me':20}
-state.owe = {'me':0}
-state.dist = {'home':{'park':8}, 'park':{'home':8}}
+	print("in travel 1\n")
+	sys.stdout.flush()
+	rae1.rae1('travel','me','home','park',state, stack)
 
-rae1.rae1('travel','me','home','park',state)
+def ste_run_travel2(stack):
+	state = rae1.State()
+	state.loc = {'me':'home'}
+	state.cash = {'me':5}
+	state.owe = {'me':0}
+	state.dist = {'home':{'park':8}, 'park':{'home':8}}
 
+	print("in travel 2\n")
+	sys.stdout.flush()
+	rae1.rae1('travel','me','home','park',state, stack)
 
-state = rae1.State()
-state.loc = {'me':'home'}
-state.cash = {'me':5}
-state.owe = {'me':0}
-state.dist = {'home':{'park':8}, 'park':{'home':8}}
+def ste_run_travel3(stack):
+	state = rae1.State()
+	state.loc = {'me':'home'}
+	state.cash = {'me':100}
+	state.owe = {'me':0}
+	state.dist = {'home':{'park':80}, 'park':{'home':80}}
 
-rae1.rae1('travel','me','home','park',state)
-
-
-state = rae1.State()
-state.loc = {'me':'home'}
-state.cash = {'me':100}
-state.owe = {'me':0}
-state.dist = {'home':{'park':80}, 'park':{'home':80}}
-
-rae1.rae1('travel','me','home','park',state)
+	print("in travel 3\n")
+	sys.stdout.flush()
+	rae1.rae1('travel','me','home','park',state, stack)
