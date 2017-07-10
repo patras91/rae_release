@@ -66,48 +66,31 @@ def leave_taxi(a,state):
 		print('agent',a,"isn't in a taxi")
 		return 'Failure'
 
-def travel_by_foot(a,x,y,state,ipcArgs):
+def travel_by_foot(a,x,y,state,ipcArgs,stackid):
 	if state.dist[x][y] <= 2:
-		rae1.do_command(walk,a,x,y,state,ipcArgs)
+		rae1.do_command(walk,a,x,y,state,ipcArgs,stackid)
 		return 'Success'
-
-	# kluge
-	ipcArgs.sem.acquire()
-	print("%d task done \n" %ipcArgs.id)
-	sys.stdout.flush()
-	ipcArgs.master.release()
 	return 'Failure'
 
-def travel_by_taxi(a,x,y,state,ipcArgs):
+def travel_by_taxi(a,x,y,state,ipcArgs,stackid):
 	if state.cash[a] >= taxi_rate(state.dist[x][y]):
-		rae1.do_command(call_taxi,a,x,state,ipcArgs)
-		rae1.do_task('ride_taxi',a,y,state,ipcArgs)
+		rae1.do_command(call_taxi,a,x,state,ipcArgs,stackid)
+		rae1.do_task('ride_taxi',a,y,state,ipcArgs,stackid)
 		return 'Success'
 	else:
-		ipcArgs.sem.acquire()
 		print('agent',a,"has too little money for a taxi from",x,'to',y)
-		#kluge
-
-		print("%d task done \n" %ipcArgs.id)
-		sys.stdout.flush()
-		ipcArgs.master.release()
 		return 'Failure'
 
-def ride_taxi_method(a,y,state, ipcArgs):
+def ride_taxi_method(a,y,state, ipcArgs,stackid):
 	if state.dist[state.loc[a]][y] < 50:
-		rae1.do_command(enter_taxi,a,state,ipcArgs)
-		rae1.do_command(taxi_carry,a,y,state,ipcArgs)
-		rae1.do_command(pay_driver,a,state,ipcArgs)
-		rae1.do_command(leave_taxi,a,state,ipcArgs)
+		rae1.do_command(enter_taxi,a,state,ipcArgs,stackid)
+		rae1.do_command(taxi_carry,a,y,state,ipcArgs,stackid)
+		rae1.do_command(pay_driver,a,state,ipcArgs,stackid)
+		rae1.do_command(leave_taxi,a,state,ipcArgs,stackid)
 		return 'Success'
 	else:
-		ipcArgs.sem.acquire()
 		print('the taxi driver is unwilling to drive to',y)
-		#kluge
-		ipcArgs.master.release()
-		print("%d task done \n" %ipcArgs.id)
-		sys.stdout.flush()
-
+		print("%d task done \n" %stackid)
 		return 'Failure'
 
 def ste_init():
@@ -125,7 +108,7 @@ def ste_init():
 
 	rae1.verbosity(1)
 
-def ste_run_travel1(stack):
+def ste_run_travel1(ipcArgs, stackid):
 	state = rae1.State()
 	state.loc = {'me':'home'}
 	state.cash = {'me':20}
@@ -134,9 +117,9 @@ def ste_run_travel1(stack):
 
 	print("in travel 1\n")
 	sys.stdout.flush()
-	rae1.rae1('travel','me','home','park',state, stack)
+	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)
 
-def ste_run_travel2(stack):
+def ste_run_travel2(ipcArgs, stackid):
 	state = rae1.State()
 	state.loc = {'me':'home'}
 	state.cash = {'me':5}
@@ -145,9 +128,9 @@ def ste_run_travel2(stack):
 
 	print("in travel 2\n")
 	sys.stdout.flush()
-	rae1.rae1('travel','me','home','park',state, stack)
+	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)
 
-def ste_run_travel3(stack):
+def ste_run_travel3(ipcArgs, stackid):
 	state = rae1.State()
 	state.loc = {'me':'home'}
 	state.cash = {'me':100}
@@ -156,4 +139,4 @@ def ste_run_travel3(stack):
 
 	print("in travel 3\n")
 	sys.stdout.flush()
-	rae1.rae1('travel','me','home','park',state, stack)
+	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)

@@ -144,10 +144,10 @@ def rae1(task,*args):
 	global indent
 	indent = indent_increment
 	if verbose>0: 
-		print('\nRae1: verbose={}, task {}{}'.format(verbose,task,args[0:-2]))
+		print('\nRae1: verbose={}, task {}{}'.format(verbose,task,args[0:-3]))
 	if verbose>0:
 		print('| '*indent + 'Initial state is:')
-		print_state(args[-2])
+		print_state(args[-3])
 	try:
 		retcode = do_task(task,*args)
 	except Failed_command,e:
@@ -162,13 +162,9 @@ def rae1(task,*args):
 		pass
 	if verbose>0:
 		print('| '*indent + 'Final state is:')
-		print_state(args[-2])
+		print_state(args[-3])
 
-	# kluge to keep the RAE stack running
-	while(True):
-		args[-1].sem.acquire()
-		args[-1].master.release()
-	#print(args[-1].master._Semaphore__value)
+	print("Done with %d\n" %args[-1])
 	return retcode
 
 def choose_candidate(candidates):
@@ -182,14 +178,14 @@ def do_task(task,*args):
 	global indent
 	
 	if verbose>0: 
-		print('| '*indent + 'Begin task {}{}'.format(task,args[0:-2]))
+		print('| '*indent + 'Begin task {}{}'.format(task,args[0:-3]))
 	indent = indent + indent_increment
 	retcode = 'Failure'
 	candidates = methods[task]
 	while (retcode == 'Failure' and candidates != []):
 		(m,candidates) = choose_candidate(candidates)
 		if verbose>1:
-			print('| '*indent + 'Try method {}{}'.format(m.__name__,args[0:-2]))
+			print('| '*indent + 'Try method {}{}'.format(m.__name__,args[0:-3]))
 		try:
 			retcode = m(*args)
 		except Failed_command,e:
@@ -202,46 +198,59 @@ def do_task(task,*args):
 			retcode = 'Failure'
 		else:
 			pass
+
 		if verbose>1: 
-			print('| '*indent + '{} for method {}{}'.format(retcode,m.__name__,args[0:-2]))
+			print('| '*indent + '{} for method {}{}'.format(retcode,m.__name__,args[0:-3]))
 	
 	indent = indent - indent_increment
 	if retcode == 'Failure':
-		raise Failed_task('{}{}'.format(task, args[0:-2]))
+		raise Failed_task('{}{}'.format(task, args[0:-3]))
 	elif retcode == 'Success':
 		return retcode
 	else:
-		raise Incorrect_return_code('{} for {}{}'.format(retcode, task, args[0:-2]))
+		raise Incorrect_return_code('{} for {}{}'.format(retcode, task, args[0:-3]))
 
 
 def do_command(cmd,*args):
 	"""
 	Perform command cmd(args). Last arg must be the current state
 	"""
-	args[-1].sem.acquire()
-	global indent
-	
-	indent = indent + indent_increment
-	if verbose>0: 
-		print('| '*indent + 'Begin command {}{}'.format(cmd.__name__,args[0:-2]))
-	retcode = cmd(*args[0:-1])
-	if verbose>1: 
-		print('| '*indent + '{}, current state is:'.format(retcode))
-		print_state(args[-2])
-	indent = indent - indent_increment
-	if retcode == 'Failure':
-		args[-1].master.release()
-		print("%d command done \n" %args[-1].id)
-		sys.stdout.flush()
-		raise Failed_command('{}{}'.format(cmd.__name__, args[0:-2]))
-	elif retcode == 'Success':
-		args[-1].master.release()
-		print("%d command done\n" %args[-1].id)
-		sys.stdout.flush()
-		return retcode
-	else:
-		args[-1].master.release()
-		print("%d command done\n" %args[-1].id)
-		sys.stdout.flush()
-		raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, args[0:-2]))
+	while (True):
+		if args[-2].nextStack == args[-1]:
 
+			args[-2].sem.acquire()
+			#critical region begins
+
+			global indent
+			indent = indent + indent_increment
+
+			if verbose>0:
+				print('| '*indent + 'Begin command {}{}'.format(cmd.__name__,args[0:-3]))
+			retcode = cmd(*args[0:-2])
+
+			if verbose>1:
+				print('| '*indent + '{}, current state is:'.format(retcode))
+				print_state(args[-3])
+			indent = indent - indent_increment
+
+			if retcode == 'Failure':
+				print("%d command done \n" %args[-1])
+				sys.stdout.flush()
+				args[-2].nextStack = 0
+				#critical region ends
+				args[-2].sem.release()
+				raise Failed_command('{}{}'.format(cmd.__name__, args[0:-2]))
+			elif retcode == 'Success':
+				print("%d command done\n" %args[-1])
+				sys.stdout.flush()
+				args[-2].nextStack = 0
+				#critical region ends
+				args[-2].sem.release()
+				return retcode
+			else:
+				print("%d command done\n" %args[-1])
+				sys.stdout.flush()
+				args[-2].nextStack = 0
+				#critical region ends
+				args[-2].sem.release()
+				raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, args[0:-2]))

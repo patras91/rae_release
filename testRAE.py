@@ -6,62 +6,51 @@ import sys
 
 __author__ = 'patras'
 
-class ipcArgs():
-	"""A state is just a collection of variable bindings."""
+class IpcArgs():
+	""" IPCArgs is just a collection of variable bindings to share data among the processes."""
 	def __init__(self):
 		pass
 
 ste.ste_init()
 
-stack1 = ipcArgs()
-stack2 = ipcArgs()
-stack3 = ipcArgs()
+ipcArgs = IpcArgs()
+ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
+ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
 
-stack1.master = threading.Semaphore(0)
-stack2.master = threading.Semaphore(0)
-stack3.master = threading.Semaphore(0)
+threadList = []
+#TODO: move the following to an incoming task stream
+threadList.append(threading.Thread(target = ste.ste_run_travel1, args=(ipcArgs, 1,)))
+threadList[0].start()
+threadList.append(threading.Thread(target = ste.ste_run_travel2, args=(ipcArgs, 2,)))
+threadList[1].start()
+threadList.append(threading.Thread(target = ste.ste_run_travel3, args=(ipcArgs, 3,)))
+threadList[2].start()
 
-stack1.sem = threading.Semaphore(0)
-stack2.sem = threading.Semaphore(0)
-stack3.sem = threading.Semaphore(0)
+nextStack = 1
 
-stack1.id = 1
-stack2.id = 2
-stack3.id = 3
+def GetNextAlive():
+    nextAlive = -1
+    i = 1
+    j = nextStack
+    print("nextStack initialized to %d" %nextStack)
+    while i <=3: #TODO: change this to the number of tasks
+        if threadList[j-1].isAlive() == True:
+            nextAlive = j
+            break
+        i = i + 1
+        j = j % 3 + 1
 
-thread1 = threading.Thread(target = ste.ste_run_travel1, args=(stack1,))
-thread1.start()
-thread2 = threading.Thread(target = ste.ste_run_travel2, args=(stack2,))
-thread2.start()
-thread3 = threading.Thread(target = ste.ste_run_travel3, args=(stack3,))
-thread3.start()
+    return nextAlive
 
-flag = 1
-while(flag == 1):
-    flag = 0
-    if stack2.master._Semaphore__value < 2:
-        stack1.sem.release()
-        #print("waiting for master 1\n")
-        #sys.stdout.flush()
-        stack1.master.acquire()
-        #print("got master 1\n")
-        #sys.stdout.flush()
-        flag = 1
-
-    if stack2.master._Semaphore__value < 2:
-        stack2.sem.release()
-        #print("waiting for master 2\n")
-        sys.stdout.flush()
-        stack2.master.acquire()
-        #print("got master 2\n")
-        #sys.stdout.flush()
-        flag = 1
-
-    if stack2.master._Semaphore__value < 2:
-        stack3.sem.release()
-        #print("waiting for master 3\n")
-        #sys.stdout.flush()
-        stack3.master.acquire()
-        #print("got master 3\n")
-        #sys.stdout.flush()
-        flag = 1
+while (True):
+    # TODO: Create a new thread for every incoming task stream
+    if ipcArgs.nextStack == 0 or threadList[ipcArgs.nextStack-1].isAlive() == False:
+        ipcArgs.sem.acquire()
+        print("Acquired in master\n")
+        res = GetNextAlive()
+        if res != -1:
+            ipcArgs.nextStack = res
+            nextStack = res % 3 + 1
+            ipcArgs.sem.release()
+        else:
+            break
