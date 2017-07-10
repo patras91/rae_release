@@ -163,6 +163,12 @@ def rae1(task,*args):
 	if verbose>0:
 		print('| '*indent + 'Final state is:')
 		print_state(args[-2])
+
+	# kluge to keep the RAE stack running
+	while(True):
+		args[-1].sem.acquire()
+		args[-1].master.release()
+	#print(args[-1].master._Semaphore__value)
 	return retcode
 
 def choose_candidate(candidates):

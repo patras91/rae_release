@@ -36,27 +36,32 @@ thread2.start()
 thread3 = threading.Thread(target = ste.ste_run_travel3, args=(stack3,))
 thread3.start()
 
-for x in range(0, 10):
-    if thread1.is_alive:
+flag = 1
+while(flag == 1):
+    flag = 0
+    if stack2.master._Semaphore__value < 2:
         stack1.sem.release()
-        print("waiting for master 1\n")
-        sys.stdout.flush()
+        #print("waiting for master 1\n")
+        #sys.stdout.flush()
         stack1.master.acquire()
-        print("got master 1\n")
-        sys.stdout.flush()
+        #print("got master 1\n")
+        #sys.stdout.flush()
+        flag = 1
 
-    if thread2.is_alive:
+    if stack2.master._Semaphore__value < 2:
         stack2.sem.release()
-        print("waiting for master 2\n")
+        #print("waiting for master 2\n")
         sys.stdout.flush()
         stack2.master.acquire()
-        print("got master 2\n")
-        sys.stdout.flush()
+        #print("got master 2\n")
+        #sys.stdout.flush()
+        flag = 1
 
-    if thread3.is_alive:
+    if stack2.master._Semaphore__value < 2:
         stack3.sem.release()
-        print("waiting for master 3\n")
-        sys.stdout.flush()
+        #print("waiting for master 3\n")
+        #sys.stdout.flush()
         stack3.master.acquire()
-        print("got master 3\n")
-        sys.stdout.flush()
+        #print("got master 3\n")
+        #sys.stdout.flush()
+        flag = 1

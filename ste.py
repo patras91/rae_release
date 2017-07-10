@@ -70,11 +70,12 @@ def travel_by_foot(a,x,y,state,ipcArgs):
 	if state.dist[x][y] <= 2:
 		rae1.do_command(walk,a,x,y,state,ipcArgs)
 		return 'Success'
+
 	# kluge
-	ipcArgs.master.release()
+	ipcArgs.sem.acquire()
 	print("%d task done \n" %ipcArgs.id)
 	sys.stdout.flush()
-
+	ipcArgs.master.release()
 	return 'Failure'
 
 def travel_by_taxi(a,x,y,state,ipcArgs):
@@ -83,12 +84,13 @@ def travel_by_taxi(a,x,y,state,ipcArgs):
 		rae1.do_task('ride_taxi',a,y,state,ipcArgs)
 		return 'Success'
 	else:
+		ipcArgs.sem.acquire()
 		print('agent',a,"has too little money for a taxi from",x,'to',y)
 		#kluge
-		ipcArgs.master.release()
+
 		print("%d task done \n" %ipcArgs.id)
 		sys.stdout.flush()
-
+		ipcArgs.master.release()
 		return 'Failure'
 
 def ride_taxi_method(a,y,state, ipcArgs):
@@ -99,6 +101,7 @@ def ride_taxi_method(a,y,state, ipcArgs):
 		rae1.do_command(leave_taxi,a,state,ipcArgs)
 		return 'Success'
 	else:
+		ipcArgs.sem.acquire()
 		print('the taxi driver is unwilling to drive to',y)
 		#kluge
 		ipcArgs.master.release()
@@ -120,7 +123,7 @@ def ste_init():
 	print("* For a different amout of printout, try 0 or 2 instead.")
 	print('*********************************************************')
 
-	rae1.verbosity(0)
+	rae1.verbosity(1)
 
 def ste_run_travel1(stack):
 	state = rae1.State()
