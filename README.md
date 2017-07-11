@@ -9,7 +9,7 @@ We have the following domains
 1. simpleFetch: Robot collecting objects in a harbour
    --- developed, not integrated with RAE
 2. simpleOpenDoor: Robot opening a door
-   --- in development stage
+   --- developed: fine tuning needed, not integrated with RAE
 3. ste: Robot travelling from one location to another by foot or taxi
    --- developed and integrated with RAE
 4. ChargeableRobot: A chargeable robot collecting different objects

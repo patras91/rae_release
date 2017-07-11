@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys
+from constants import *
 """
 File ste.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
@@ -15,71 +16,71 @@ def taxi_rate(dist):
 
 def walk(a,x,y,state):
 	if state.loc[a] == x:
-		print('agent',a,'walks from',x,'to',y)
+		print('agent',a,'walks from',x,'to',y,'\n')
 		state.loc[a] = y
-		return 'Success'
+		return SUCCESS
 	else:
-		print('agent',a,"isn't at location",x)
-	return 'Failure'
+		print('agent',a,"isn't at location",x,'\n')
+	return FAILURE
 
 def call_taxi(a,x,state):
-	print('a taxi appears at location',x)
+	print('a taxi appears at location',x,'\n')
 	state.loc['taxi'] = x
-	return 'Success'
+	return SUCCESS
 
 def enter_taxi(a,state):
 	if state.loc['taxi'] == state.loc[a]:
-		print('agent',a,'enters taxi at location',state.loc[a])
+		print('agent',a,'enters taxi at location',state.loc[a],'\n')
 		state.loc[a] = 'taxi'
-		return 'Success'
+		return SUCCESS
 	else:
-		print("there's no taxi for agent",a,'to enter')
-		return 'Failure'
+		print("there's no taxi for agent",a,'to enter','\n')
+		return FAILURE
 
 def taxi_carry(a,y,state):
 	if state.loc[a]=='taxi':
 		x = state.loc['taxi']
-		print('taxi carries agent',a,'from',x,'to',y)
+		print('taxi carries agent',a,'from',x,'to',y,'\n')
 		state.loc['taxi'] = y
 		state.owe[a] = taxi_rate(state.dist[x][y])
-		return 'Success'
+		return SUCCESS
 	else:
-		print('agent',a,"isn't in a taxi")
-		return 'Failure'
+		print('agent',a,"isn't in a taxi",'\n')
+		return FAILURE
 
 def pay_driver(a,state):
 	if state.cash[a] >= state.owe[a]:
-		print('agent',a,'pays',state.owe[a],'to the taxi driver')
+		print('agent',a,'pays',state.owe[a],'to the taxi driver','\n')
 		state.cash[a] = state.cash[a] - state.owe[a]
 		state.owe[a] = 0
-		return 'Success'
+		return SUCCESS
 	else:
-		print('agent',a,'cannot pay',state.owe[a],'to the taxi driver')
-		return 'Failure'
+		print('agent',a,'cannot pay',state.owe[a],'to the taxi driver','\n')
+		return FAILURE
 
 def leave_taxi(a,state):
 	if state.loc[a]=='taxi':
-		print('agent',a,'leaves taxi at location',state.loc['taxi'])
+		print('agent',a,'leaves taxi at location',state.loc['taxi'],'\n')
 		state.loc[a] = state.loc['taxi']
-		return 'Success'
+		return SUCCESS
 	else:
-		print('agent',a,"isn't in a taxi")
-		return 'Failure'
+		print('agent',a,"isn't in a taxi",'\n')
+		return FAILURE
 
 def travel_by_foot(a,x,y,state,ipcArgs,stackid):
 	if state.dist[x][y] <= 2:
 		rae1.do_command(walk,a,x,y,state,ipcArgs,stackid)
-		return 'Success'
-	return 'Failure'
+		return SUCCESS
+	return FAILURE
 
 def travel_by_taxi(a,x,y,state,ipcArgs,stackid):
 	if state.cash[a] >= taxi_rate(state.dist[x][y]):
 		rae1.do_command(call_taxi,a,x,state,ipcArgs,stackid)
 		rae1.do_task('ride_taxi',a,y,state,ipcArgs,stackid)
-		return 'Success'
+		return SUCCESS
 	else:
-		print('agent',a,"has too little money for a taxi from",x,'to',y)
-		return 'Failure'
+		print('agent',a,"has too little money for a taxi from",x,'to',y,'\n')
+		return FAILURE
 
 def ride_taxi_method(a,y,state, ipcArgs,stackid):
 	if state.dist[state.loc[a]][y] < 50:
@@ -87,11 +88,11 @@ def ride_taxi_method(a,y,state, ipcArgs,stackid):
 		rae1.do_command(taxi_carry,a,y,state,ipcArgs,stackid)
 		rae1.do_command(pay_driver,a,state,ipcArgs,stackid)
 		rae1.do_command(leave_taxi,a,state,ipcArgs,stackid)
-		return 'Success'
+		return SUCCESS
 	else:
-		print('the taxi driver is unwilling to drive to',y)
+		print('the taxi driver is unwilling to drive to',y,'\n')
 		print("%d task done \n" %stackid)
-		return 'Failure'
+		return FAILURE
 
 def ste_init():
 	rae1.declare_commands(walk, call_taxi, enter_taxi, taxi_carry, pay_driver, leave_taxi)
