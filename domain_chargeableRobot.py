@@ -200,7 +200,7 @@ def chargeableRobot_init():
     rae1.print_methods()
 
     print('\n*********************************************************')
-    print("* Call rae1 on simple fetch using verbosity level 1.")
+    print("* Call rae1 on chargeable robot using verbosity level 1.")
     print("* For a different amout of printout, try 0 or 2 instead.")
     print('*********************************************************\n')
 

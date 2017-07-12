@@ -67,14 +67,14 @@ def getStatus(r, d, state):
     state.doorStatus[d] = stat
     return SUCCESS
 
-def Unlatch(r, d, l, o, state):
+def Unlatch_Method1(r, d, l, o, state, ipcArgs, stackid):
     if (state.loc[r] == l and (l,d) in TOWARDSIDE and (d,'left') in SIDE  and (d, 'rotates') in TYPE and (d, o) in HANDLE):
-        grasp(r, o, state)
-        turn(r, o, 'alpha1', state)
-        pull(r, 'val1', state)
-        getStatus(r, d, state)
+        rae1.do_command(grasp, r, o, state, ipcArgs, stackid)
+        rae1.do_command(turn, r, o, 'alpha1', state, ipcArgs, stackid)
+        rae1.do_command(pull, r, 'val1', state, ipcArgs, stackid)
+        rae1.do_command(getStatus, r, d, state, ipcArgs, stackid)
         if state.doorStatus[d] == 'cracked':
-            ungrasp(r, o, state)
+            rae1.do_command(ungrasp, r, o, state, ipcArgs, stackid)
             res = SUCCESS
         else:
             res = FAILURE
@@ -84,24 +84,24 @@ def Unlatch(r, d, l, o, state):
         res = FAILURE
     return res
 
-def ThrowWide(r, d, l, o, state):
+def ThrowWide_Method1(r, d, l, o, state, ipcArgs, stackid):
     if (state.loc[r] == l and (l, d) in TOWARDSIDE and (d, 'left') in SIDE and (d, 'rotates') in TYPE and (d, o) in HANDLE):
-        grasp(r, o, state)
-        pull(r, 'val1', state)
-        moveBy(r, 'val2', state)
+        rae1.do_command(grasp, r, o, state, ipcArgs, stackid)
+        rae1.do_command(pull, r, 'val1', state, ipcArgs, stackid)
+        rae1.do_command(moveBy, r, 'val2', state, ipcArgs, stackid)
         res = SUCCESS
     else:
         print("Robot %s is not in right position and orientation to unlatch %s using this method\n" %(r, d))
         res = FAILURE
     return res
 
-def OpenDoor(r, d, l, o, state):
+def OpenDoor_Method1(r, d, l, o, state, ipcArgs, stackid):
     if state.loc[r] == l and (l, d) in ADJACENT and (d, o) in HANDLE:
         if state.reachable[r, o] == False:
-            moveClose(r, o, state)
+            rae1.do_command(moveClose, r, o, state, ipcArgs, stackid)
         if state.doorStatus[d] == 'unknown' or state.doorStatus[d] == 'closed' :
-            Unlatch(r, d, l, o, state)
-        ThrowWide(r, d, l, o, state)
+            rae1.do_task('unlatch', r, d, l, o, state, ipcArgs, stackid)
+        rae1.do_task('throwWide', r, d, l, o, state, ipcArgs, stackid)
         res = SUCCESS
     else:
         print("%s not in right position to open door %s" %(r,d))
@@ -109,9 +109,28 @@ def OpenDoor(r, d, l, o, state):
 
     return res
 
-def RunOpenDoor1():
+def simpleOpenDoor_init():
+    rae1.declare_commands(moveBy, pull, push, grasp, ungrasp, turn, moveClose, getStatus)
+    print('\n')
+    rae1.print_commands()
+
+    rae1.declare_methods('unlatch', Unlatch_Method1)
+    rae1.declare_methods('throwWide', ThrowWide_Method1)
+    rae1.declare_methods('openDoor', OpenDoor_Method1)
+    print('\n')
+    rae1.print_methods()
+
+    print('\n*********************************************************')
+    print("* Call rae1 on simple open door using verbosity level 1.")
+    print("* For a different amout of printout, try 0 or 2 instead.")
+    print('*********************************************************\n')
+
+    rae1.verbosity(1)
+
+def simpleOpenDoor_run_1(ipcArgs, stackid):
     state = rae1.State()
     state.doorStatus = { 'd2':'unknown'}
     state.loc = {'r1':3}
     state.reachable = {('r1','o2'):False}
-    OpenDoor('r1', 'd2', 3, 'o2', state)
+
+    rae1.do_task('openDoor', 'r1', 'd2', 3, 'o2', state, ipcArgs, stackid)

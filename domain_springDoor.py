@@ -93,30 +93,30 @@ def take(r, o, state):
         print("Robot %s is not free to take anything\n" %r)
     return res
 
-def MoveThroughDoorway_Method1(r, d, l, state):
+def MoveThroughDoorway_Method1(r, d, l, state, ipcArgs, stackid):
     if state.load[r] == NIL:
-        openDoor(r, d, state)
-        holdDoor(r, d, state)
-        passDoor(r, d, l, state)
-        releaseDoor(r, d, state)
+        rae1.do_command(openDoor, r, d, state, ipcArgs, stackid)
+        rae1.do_command(holdDoor, r, d, state, ipcArgs, stackid)
+        rae1.do_command(passDoor, r, d, l, state, ipcArgs, stackid)
+        rae1.do_command(releaseDoor, r, d, state, ipcArgs, stackid)
         res = SUCCESS
     else:
         res = FAILURE
     return res
 
-def MoveThroughDoorway_Method2(r, d, l, state):
+def MoveThroughDoorway_Method2(r, d, l, state, ipcArgs, stackid):
     if state.load[r] != NIL:
-        GetHelp_Method1(r, state)
-        openDoor('r2', d, state)
-        holdDoor('r2', d, state)
-        passDoor(r, d, l, state)
-        releaseDoor('r2', d, state)
+        rae1.do_task('getHelp', r, state, ipcArgs, stackid)
+        rae1.do_command(openDoor, 'r2', d, state, ipcArgs, stackid)
+        rae1.do_command(holdDoor, 'r2', d, state, ipcArgs, stackid)
+        rae1.do_command(passDoor, r, d, l, state, ipcArgs, stackid)
+        rae1.do_command(releaseDoor, 'r2', d, state, ipcArgs, stackid)
         res = SUCCESS
     else:
         res = FAILURE
     return res
 
-def MoveTo_Method1(r, l, state):
+def MoveTo_Method1(r, l, state, ipcArgs, stackid):
     res = SUCCESS
 
     path = GETPATH_SPRINGDOOR(state.loc[r], l)
@@ -126,9 +126,9 @@ def MoveTo_Method1(r, l, state):
         lNext = path[lTemp]
         if (lTemp, lNext) in DOORLOCATIONS_SPRINGDOOR or (lNext, lTemp) in DOORLOCATIONS_SPRINGDOOR:
             d = GETDOOR_SPRINGDOOR(lTemp, lNext)
-            MoveThroughDoorway_Method1(r, d, lNext, state)
+            rae1.do_task('moveThroughDoorway', r, d, lNext, state, ipcArgs, stackid)
         else:
-            move(r, lTemp, lNext, state)
+            rae1.do_command(move, r, lTemp, lNext, state, ipcArgs, stackid)
         if lTemp == state.loc[r]:
             print("MoveTo method has failed\n")
             res = FAILURE
@@ -138,25 +138,44 @@ def MoveTo_Method1(r, l, state):
 
     return res
 
-def GetHelp_Method1(r, state):
+def GetHelp_Method1(r, state, ipcArgs, stackid):
     if state.load['r2'] != NIL:
-        put('r2', state.load['r2'], state)
-    MoveTo_Method1('r2', state.loc[r], state)
+        rae1.do_command(put, 'r2', state.load['r2'], state, ipcArgs, stackid)
+    rae1.do_task('moveTo', 'r2', state.loc[r], state, ipcArgs, stackid)
     return SUCCESS
 
-def Fetch_Method1(r, o, l, state):
-    MoveTo_Method1(r, state.pos[o], state)
+def Fetch_Method1(r, o, l, state, ipcArgs, stackid):
+    rae1.do_task('moveTo', r, state.pos[o], state, ipcArgs, stackid)
     if state.load[r] != NIL:
-        put(r, o, state)
-    take(r, o, state)
-    MoveTo_Method1(r, l, state)
+        rae1.do_command(put, r, o, state, ipcArgs, stackid)
+    rae1.do_command(take, r, o, state, ipcArgs, stackid)
+    rae1.do_task('moveTo', r, l, state, ipcArgs, stackid)
 
-def RunSpringDoor1():
+def springDoor_run_1(ipcArgs, stackid):
     state = rae1.State()
-    state.load = {}
-    state.load['r1'] = NIL
+    state.load = {'r1': NIL, 'r2': NIL}
     state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed' }
     state.loc = {'r1': 1, 'r2': 2}
     state.pos = {'o1': 3}
 
-    Fetch_Method1('r1', 'o1', 5, state)
+    rae1.do_task('fetch', 'r1', 'o1', 5, state, ipcArgs, stackid)
+
+def springDoor_init():
+    rae1.declare_commands(openDoor, holdDoor, passDoor, releaseDoor, move, put, take)
+    print('\n')
+    rae1.print_commands()
+
+    rae1.declare_methods('fetch', Fetch_Method1)
+    rae1.declare_methods('getHelp', GetHelp_Method1)
+    rae1.declare_methods('moveTo', MoveTo_Method1)
+    rae1.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroughDoorway_Method2)
+
+    print('\n')
+    rae1.print_methods()
+
+    print('\n*********************************************************')
+    print("* Call rae1 on spring door using verbosity level 1.")
+    print("* For a different amout of printout, try 0 or 2 instead.")
+    print('*********************************************************\n')
+
+    rae1.verbosity(1)

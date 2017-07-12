@@ -1,8 +1,11 @@
 
 from __future__ import print_function
-#import domain_ste
+import domain_ste
 import domain_simpleFetch
 import domain_chargeableRobot
+import domain_simpleOpenDoor
+import domain_springDoor
+
 import threading
 import sys
 
@@ -17,7 +20,9 @@ class IpcArgs():
 
 #ste.ste_init()
 #domain_simpleFetch.simpleFetch_init()
-domain_chargeableRobot.chargeableRobot_init()
+#domain_chargeableRobot.chargeableRobot_init()
+#domain_simpleOpenDoor.simpleOpenDoor_init()
+domain_springDoor.springDoor_init()
 
 ipcArgs = IpcArgs()
 ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
@@ -27,7 +32,8 @@ threadList = []
 #TODO: move the following to an incoming task stream
 #threadList.append(threading.Thread(target = ste.ste_run_travel1, args=(ipcArgs, 1,)))
 #threadList.append(threading.Thread(target = domain_simpleFetch.simpleFetch_run_1, args=(ipcArgs, 1,)))
-threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_1, args=(ipcArgs, 1,)))
+#threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_1, args=(ipcArgs, 1,)))
+threadList.append(threading.Thread(target = domain_springDoor.springDoor_run_1, args=(ipcArgs, 1,)))
 threadList[0].start()
 #threadList.append(threading.Thread(target = ste.ste_run_travel2, args=(ipcArgs, 2,)))
 #threadList[1].start()
