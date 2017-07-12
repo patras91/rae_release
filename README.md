@@ -15,5 +15,5 @@ We have the following domains
 4. domain_chargeableRobot: A chargeable robot collecting different objects
    --- developed but not integrated with RAE
 5. domain_springDoor: Robot needs to collect objects in an environment with spring doors
-   --- in development stage
+   --- developed but not integrated with RAE
 

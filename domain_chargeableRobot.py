@@ -5,7 +5,7 @@ It has a battery that needs to be recharged after some moves.
 A move consumes 1/4 of the battery capacity.
 Recharger is only at one location'''
 
-from constants import *
+from domain_constants import *
 import rae1
 
 def take(r, o, state):
@@ -101,7 +101,7 @@ def Recharge_Method2(r, c, state):
 def Search_Method1(r, o, state):
     if state.pos[o] == UNK:
         toBePerceived = NIL
-        for l in LOCATIONS2:
+        for l in LOCATIONS_CHARGEABLEROBOT:
             if state.view[l] == False:
                 toBePerceived = l
                 break
@@ -127,7 +127,7 @@ def Search_Method1(r, o, state):
 def Search_Method2(r, o, state):
     if state.pos[o] == UNK:
         toBePerceived = NIL
-        for l in LOCATIONS2:
+        for l in LOCATIONS_CHARGEABLEROBOT:
             if state.view[l] == False:
                 toBePerceived = l
                 break
@@ -181,7 +181,7 @@ def RunChargeableRobot1():
     state.containers = {1:[], 2:[], 3:[], 4:[], 5:['o1'], 6:[], 7:[], 8:[]}
 
     state.view = {}
-    for l in LOCATIONS2:
+    for l in LOCATIONS_CHARGEABLEROBOT:
         state.view[l] = False
 
     #Fetch_Method1('r1', 'o1', state)
