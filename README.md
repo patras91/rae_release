@@ -7,13 +7,13 @@ Some issues to be resolved:
 We have the following domains
 
 1. domain_simpleFetch: Robot collecting objects in a harbour
-   --- developed, not integrated with RAE
+   --- developed and integrated with RAE
 2. domain_simpleOpenDoor: Robot opening a door
    --- developed: fine tuning needed, not integrated with RAE
 3. domain_ste: Robot travelling from one location to another by foot or taxi
    --- developed and integrated with RAE
 4. domain_chargeableRobot: A chargeable robot collecting different objects
-   --- developed but not integrated with RAE
+   --- developed and integrated with RAE: with some bugs
 5. domain_springDoor: Robot needs to collect objects in an environment with spring doors
    --- developed but not integrated with RAE
 

@@ -50,14 +50,14 @@ def addressEmergency(r, l, i, state):
         res = FAILURE
     return res
 
-def Search(r, o, state):
+def Search_Method1(r, o, state, ipcArgs, stackid):
     if state.pos[o] == UNK:
         for l in LOCATIONS:
             if state.view[l] == False:
-                moveTo(r, l, state)
-                perceive(l, state)
+                rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
+                rae1.do_command(perceive, l, state, ipcArgs, stackid)
                 if state.pos[o] == l:
-                    take(r, o, l, state)
+                    rae1.do_command(take, r, o, l, state, ipcArgs, stackid)
                     break
         res = SUCCESS
     else:
@@ -65,30 +65,30 @@ def Search(r, o, state):
         res = FAILURE
     return res
 
-def Fetch(r, o, state):
+def Fetch_Method1(r, o, state, ipcArgs, stackid):
     if state.pos[o] == UNK:
-        Search(r, o, state)
+        rae1.do_task('search', r, o, state, ipcArgs, stackid)
     elif state.loc[r] == state.pos[o]:
-        take(r, o, state.pos[o], state)
+        rae1.do_command(take, r, o, state.pos[o], state, ipcArgs, stackid)
     else:
-        moveTo(r, state.pos[o], state)
-        take(r, o, state.pos[o], state)
+        rae1.do_command(moveTo, r, state.pos[o], state, ipcArgs, stackid)
+        rae1.do_command(take, r, o, state.pos[o], state, ipcArgs, stackid)
     return SUCCESS
 
-def Emergency(r, l, i, state):
+def Emergency_Method1(r, l, i, state, ipcArgs, stackid):
     if state.emergencyHandling[r] == False:
         state.emergencyHandling[r] = True
         if state.load[r] != NIL:
-            put(r, state.load[r], state.loc[r], state)
-            moveTo(r, l, state)
-            addressEmergency(r, l, i, state)
+            rae1.do_command(put, r, state.load[r], state.loc[r], state, ipcArgs, stackid)
+            rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
+            rae1.do_command(addressEmergency, r, l, i, state, ipcArgs, stackid)
             res = SUCCESS
     else:
         print("%r is already busy handling another emergency\n" %r)
         res = FAILURE
     return res
 
-def Harbour1():
+def simpleFetch_run_1(ipcArgs, stackid):
     state = rae1.State()
     state.loc = {'r1' : 1}
     state.pos = {'o1' : UNK}
@@ -100,6 +100,25 @@ def Harbour1():
         state.view[l] = False
     state.emergencyHandling = {'r1' : False}
 
-    Fetch('r1', 'o1', state)
-    Emergency('r1', 2, 1, state)
-    Fetch('r1', 'o1', state)
+    rae1.do_task('fetch', 'r1', 'o1', state, ipcArgs, stackid)
+    rae1.do_task('emergency', 'r1', 2, 1, state, ipcArgs, stackid)
+    rae1.do_task('fetch', 'r1', 'o1', state, ipcArgs, stackid)
+
+def simpleFetch_init():
+
+	rae1.declare_commands(moveTo, take, perceive, addressEmergency)
+	print('\n')
+	rae1.print_commands()
+
+	rae1.declare_methods('search', Search_Method1)
+	rae1.declare_methods('fetch', Fetch_Method1)
+	rae1.declare_methods('emergency', Emergency_Method1)
+	print('\n')
+	rae1.print_methods()
+
+	print('\n*********************************************************')
+	print("* Call rae1 on simple fetch using verbosity level 1.")
+	print("* For a different amout of printout, try 0 or 2 instead.")
+	print('*********************************************************\n')
+
+	rae1.verbosity(1)

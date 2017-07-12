@@ -74,31 +74,31 @@ def perceive(l, state):
         print("Already perceived\n")
     return SUCCESS
 
-def MoveTo_Method1(r, l, state):
+def MoveTo_Method1(r, l, state, ipcArgs, stackid):
     dist = GETDISTANCE(state.loc[r], l)
     if state.charge[r] >= dist:
-        move(r, state.loc[r], l, dist, state)
+        rae1.do_command(move, r, state.loc[r], l, dist, state, ipcArgs, stackid)
         res = SUCCESS
     else:
         print("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(state.charge[r] * 100 / 4, r))
         res = FAILURE
     return res
 
-def Recharge_Method1(r, c, state):
+def Recharge_Method1(r, c, state, ipcArgs, stackid):
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
-        MoveTo_Method1(r, state.pos[c], state)
-    charge(r, c, state)
+        rae1.do_task('moveTo', r, state.pos[c], state, ipcArgs, stackid)
+    rae1.do_command(charge, r, c, state, ipcArgs, stackid)
     return SUCCESS
 
-def Recharge_Method2(r, c, state):
+def Recharge_Method2(r, c, state, ipcArgs, stackid):
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
-        MoveTo_Method1(r, state.pos[c], state)
+        rae1.do_task('moveTo', r, state.pos[c], state, ipcArgs, stackid)
 
-    charge(r, c, state)
-    take(r, c, state)
+    rae1.do_command(charge, r, c, state, ipcArgs, stackid)
+    rae1.do_command(take, r, c, state, ipcArgs, stackid)
     return SUCCESS
 
-def Search_Method1(r, o, state):
+def Search_Method1(r, o, state, ipcArgs, stackid):
     if state.pos[o] == UNK:
         toBePerceived = NIL
         for l in LOCATIONS_CHARGEABLEROBOT:
@@ -107,14 +107,14 @@ def Search_Method1(r, o, state):
                 break
 
         if toBePerceived != NIL:
-            MoveTo_Method1(r, toBePerceived, state)
-            perceive(toBePerceived, state)
+            rae1.do_task('moveTo', r, toBePerceived, state, ipcArgs, stackid)
+            rae1.do_command(perceive, toBePerceived, state, ipcArgs, stackid)
             if state.pos[o] == toBePerceived:
                 if state.load[r] != NIL:
-                    put(r, o, state)
+                    rae1.do_command(put, r, o, state, ipcArgs, stackid)
                 take(r, o, state)
             else:
-                Search_Method2(r, o, state)
+                rae1.do_task('search', r, o, state, ipcArgs, stackid)
             res = SUCCESS
         else:
             print("Failed to search %s" %o)
@@ -124,7 +124,7 @@ def Search_Method1(r, o, state):
         res = FAILURE
     return res
 
-def Search_Method2(r, o, state):
+def Search_Method2(r, o, state, ipcArgs, stackid):
     if state.pos[o] == UNK:
         toBePerceived = NIL
         for l in LOCATIONS_CHARGEABLEROBOT:
@@ -133,15 +133,15 @@ def Search_Method2(r, o, state):
                 break
 
         if toBePerceived != NIL:
-            Recharge_Method1(r, 'c1', state) # is this allowed?
-            MoveTo_Method1(r, toBePerceived, state)
-            perceive(toBePerceived, state)
+            Recharge_Method1(r, 'c1', state, ipcArgs, stackid) # is this allowed?
+            rae1.do_task('moveTo', r, toBePerceived, state, ipcArgs, stackid)
+            rae1.do_command(perceive, toBePerceived, state, ipcArgs, stackid)
             if state.pos[o] == toBePerceived:
                 if state.load[r] != NIL:
-                    put(r, o, state)
-                take(r, o, state)
+                    rae1.do_command(put, r, o, state, ipcArgs, stackid)
+                rae1.do_command(take, r, o, state, ipcArgs, stackid)
             else:
-                Search_Method1(r, o, state)
+                rae1.do_task('search', r, o, state, ipcArgs, stackid)
             res = SUCCESS
         else:
             print("Failed to search %s" %o)
@@ -151,28 +151,28 @@ def Search_Method2(r, o, state):
         res = FAILURE
     return res
 
-def Fetch_Method1(r, o, state):
+def Fetch_Method1(r, o, state, ipcArgs, stackid):
     if state.pos[o] == UNK:
-        Search_Method1(r, o, state)
+        rae1.do_task('search', r, o, state, ipcArgs, stackid)
     elif state.loc[r] == state.pos[o]:
-        take(r, o, state.pos[o], state)
+        rae1.do_command(take, r, o, state.pos[o], state, ipcArgs, stackid)
     else:
-        MoveTo_Method1(r, state.pos[o], state)
-        take(r, o, state.pos[o], state)
+        rae1.do_task('moveTo', r, state.pos[o], state, ipcArgs, stackid)
+        rae1.do_command(take, r, o, state.pos[o], state, ipcArgs, stackid)
     return SUCCESS
 
-def Fetch_Method2(r, o, state):
+def Fetch_Method2(r, o, state, ipcArgs, stackid):
     if state.pos[o] == UNK:
-        Search_Method1(r, o, state)
+        rae1.do_task('search', r, o, state, ipcArgs, stackid)
     elif state.loc[r] == state.pos[o]:
-        take(r, o, state.pos[o], state)
+        rae1.do_command(take, r, o, state.pos[o], state, ipcArgs, stackid)
     else:
-        Recharge_Method1(r, 'c1', state)
-        MoveTo_Method1(r, state.pos[o], state)
-        take(r, o, state.pos[o], state)
+        rae1.do_task('recharge', r, 'c1', state, ipcArgs, stackid)
+        rae1.do_task('moveTo', r, state.pos[o], state, ipcArgs, stackid)
+        rae1.do_command(take, r, o, state.pos[o], state, ipcArgs, stackid)
     return SUCCESS
 
-def RunChargeableRobot1():
+def chargeableRobot_run_1(ipcArgs, stackid):
     state = rae1.State()
     state.loc = {'r1': 1}
     state.charge = {'r1':4}
@@ -185,4 +185,23 @@ def RunChargeableRobot1():
         state.view[l] = False
 
     #Fetch_Method1('r1', 'o1', state)
-    Fetch_Method2('r1', 'o1', state)
+    rae1.do_task('fetch', 'r1', 'o1', state, ipcArgs, stackid)
+
+def chargeableRobot_init():
+    rae1.declare_commands(put, take, perceive, charge, move, perceive)
+    print('\n')
+    rae1.print_commands()
+
+    rae1.declare_methods('search', Search_Method1, Search_Method2)
+    rae1.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
+    rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
+    rae1.declare_methods('moveTo', MoveTo_Method1)
+    print('\n')
+    rae1.print_methods()
+
+    print('\n*********************************************************')
+    print("* Call rae1 on simple fetch using verbosity level 1.")
+    print("* For a different amout of printout, try 0 or 2 instead.")
+    print('*********************************************************\n')
+
+    rae1.verbosity(1)
