@@ -50,29 +50,29 @@ def addressEmergency(r, l, i, state):
         res = FAILURE
     return res
 
-def Search(r, c, state):
-    if state.pos[c] == UNK:
+def Search(r, o, state):
+    if state.pos[o] == UNK:
         for l in LOCATIONS:
             if state.view[l] == False:
                 moveTo(r, l, state)
                 perceive(l, state)
-                if state.pos[c] == l:
-                    take(r, c, l, state)
+                if state.pos[o] == l:
+                    take(r, o, l, state)
                     break
         res = SUCCESS
     else:
-        print("Failed to search %s" %c)
+        print("Failed to search %s" %o)
         res = FAILURE
     return res
 
-def Fetch(r, c, state):
-    if state.pos[c] == UNK:
-        Search(r, c, state)
-    elif state.loc[r] == state.pos[c]:
-        take(r, c, state.pos[c], state)
+def Fetch(r, o, state):
+    if state.pos[o] == UNK:
+        Search(r, o, state)
+    elif state.loc[r] == state.pos[o]:
+        take(r, o, state.pos[o], state)
     else:
-        moveTo(r, state.pos[c], state)
-        take(r, c, state.pos[c], state)
+        moveTo(r, state.pos[o], state)
+        take(r, o, state.pos[o], state)
     return SUCCESS
 
 def Emergency(r, l, i, state):

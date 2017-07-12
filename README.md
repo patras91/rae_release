@@ -13,7 +13,7 @@ We have the following domains
 3. ste: Robot travelling from one location to another by foot or taxi
    --- developed and integrated with RAE
 4. ChargeableRobot: A chargeable robot collecting different objects
-   --- in development stage
+   --- developed but not integrated with RAE
 5. SpringDoor: Robot needs to collect objects in an environment with spring doors
    --- in development stage
 

@@ -23,3 +23,33 @@ AWAYSIDE = [(1, 'd1'), (4, 'd2')]
 HANDLE = [('d1', 'o1'), ('d2', 'o2')]
 TYPE = [('d1', 'slides'), ('d2', 'rotates')]
 SIDE = [('d1', 'right'), ('d2', 'left')]
+
+#chargeable robot location, ChargeableRobot.py
+LOCATIONS2 = [1, 2, 3, 4, 5, 6, 7, 8]
+EDGES = {1: [7], 2: [8], 3: [8], 4: [8], 5: [7], 6: [7], 7:[1, 5, 6, 8], 8: [2, 3, 4, 7]}
+
+def GETDISTANCE(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(LOCATIONS2)
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in EDGES[min_loc]:
+            dist = current_dist + 1
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+
+    return visitedDistances[l1]
