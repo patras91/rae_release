@@ -6,16 +6,16 @@ __author__ = 'patras'
 SUCCESS = 'Success'
 FAILURE = 'Failure'
 
-#for simple harbour domain, simpleFetch.py
+#for simple harbour domain, domain_simpleFetch.py
 UNK = 'Unknown'
 NIL = 'nil'
 OBJECTS = ['o1']
 
-#for simple harbour domain, simpleFetch.py and simple opendoor domain, simpleOpenDoor.py
+#for simple harbour domain, domain_simpleFetch.py and simple opendoor domain, domain_simpleOpenDoor.py
 LOCATIONS = [1, 2, 3, 4, 5, 6]
 ROBOTS = ['r1']
 
-#for thesimpleOpendoor domain, simpleOpenDoor.py
+#for the simple Open door domain, domain_simpleOpenDoor.py
 #rigid relations
 ADJACENT = [(1, 'd1'), (2, 'd1'),(3, 'd2'), (4, 'd2')]
 TOWARDSIDE = [(2, 'd1'), (3, 'd2')]
@@ -24,7 +24,7 @@ HANDLE = [('d1', 'o1'), ('d2', 'o2')]
 TYPE = [('d1', 'slides'), ('d2', 'rotates')]
 SIDE = [('d1', 'right'), ('d2', 'left')]
 
-#chargeable robot domain, ChargeableRobot.py
+#chargeable robot domain, domain_chargeableRobot.py
 LOCATIONS2 = [1, 2, 3, 4, 5, 6, 7, 8]
 EDGES = {1: [7], 2: [8], 3: [8], 4: [8], 5: [7], 6: [7], 7:[1, 5, 6, 8], 8: [2, 3, 4, 7]}
 
@@ -54,4 +54,4 @@ def GETDISTANCE(l0, l1):
 
     return visitedDistances[l1]
 
-#spring door example, with dynamic environment, SpringDoor.py
+#spring door example, with dynamic environment, domain_springDoor.py

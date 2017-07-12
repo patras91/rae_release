@@ -1,6 +1,6 @@
 from __future__ import print_function
 import sys
-from constants import *
+from domain_constants import *
 """
 File ste.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017

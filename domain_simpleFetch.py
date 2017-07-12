@@ -1,6 +1,6 @@
 __author__ = 'patras'
 import rae1
-from constants import *
+from domain_constants import *
 
 '''A simple example where a robot has to fetch an object in a harbor and handle emergencies. From Ch 3'''
 

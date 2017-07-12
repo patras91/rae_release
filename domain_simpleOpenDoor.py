@@ -1,5 +1,5 @@
 __author__ = 'patras'
-from constants import *
+from domain_constants import *
 import rae1
 import random
 
