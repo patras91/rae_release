@@ -76,7 +76,7 @@ def testRAE(domain):
         # TODO: Create a new thread for every incoming task stream
         if ipcArgs.nextStack == 0 or threadList[ipcArgs.nextStack-1].isAlive() == False:
             ipcArgs.sem.acquire()
-            print("semaphore acquired by master\n")
+            print("Control acquired by master\n")
             res = GetNextAlive(nextStack, NUMSTACKS, threadList)
             if res != -1:
                 ipcArgs.nextStack = res

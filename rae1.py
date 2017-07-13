@@ -141,6 +141,10 @@ def rae1(task,*args):
 	should be a string) of the task to accomplish, and args[0:-1] are the arguments for the task. 
 	The last argument, args[-1], must be the initial state.
 	"""
+	while(args[-2].nextStack != args[-1]):
+		pass
+	args[-2].sem.acquire()
+	#critical region begins
 	global indent
 	indent = indent_increment
 	if verbose>0: 
@@ -165,6 +169,9 @@ def rae1(task,*args):
 		print_state(args[-3])
 
 	print("Done with stack %d\n" %args[-1])
+	args[-2].nextStack = 0
+	#critical region ends
+	args[-2].sem.release()
 	return retcode
 
 def choose_candidate(candidates):
@@ -176,7 +183,7 @@ def do_task(task,*args):
 	current state (e.g., after some commands have been executed).
 	"""
 	global indent
-	
+
 	if verbose>0: 
 		print('| '*indent + 'Begin task {}{}'.format(task,args[0:-3]))
 	indent = indent + indent_increment
@@ -187,6 +194,14 @@ def do_task(task,*args):
 		if verbose>1:
 			print('| '*indent + 'Try method {}{}'.format(m.__name__,args[0:-3]))
 		try:
+			args[-2].nextStack = 0
+			#critical region ends
+			args[-2].sem.release()
+			while args[-2].nextStack != args[-1]:
+				#print("waiting in stack %d for a task to start \n" %args[-1])
+				pass
+			args[-2].sem.acquire()
+			#critical region begins
 			retcode = m(*args)
 		except Failed_command,e:
 			if verbose>0: 
@@ -215,42 +230,34 @@ def do_command(cmd,*args):
 	"""
 	Perform command cmd(args). Last arg must be the current state
 	"""
-	while (True):
-		if args[-2].nextStack == args[-1]:
+	global indent
+	indent = indent + indent_increment
 
-			args[-2].sem.acquire()
-			#critical region begins
+	if verbose>0:
+		print('| '*indent + 'Begin command {}{}'.format(cmd.__name__,args[0:-3]))
+	retcode = cmd(*args[0:-2])
 
-			global indent
-			indent = indent + indent_increment
+	if verbose>1:
+		print('| '*indent + '{}, current state is:'.format(retcode))
+		print_state(args[-3])
+	indent = indent - indent_increment
 
-			if verbose>0:
-				print('| '*indent + 'Begin command {}{}'.format(cmd.__name__,args[0:-3]))
-			retcode = cmd(*args[0:-2])
-
-			if verbose>1:
-				print('| '*indent + '{}, current state is:'.format(retcode))
-				print_state(args[-3])
-			indent = indent - indent_increment
-
-			if retcode == 'Failure':
-				print("%d command done \n" %args[-1])
-				sys.stdout.flush()
-				args[-2].nextStack = 0
-				#critical region ends
-				args[-2].sem.release()
-				raise Failed_command('{}{}'.format(cmd.__name__, args[0:-2]))
-			elif retcode == 'Success':
-				print("%d command done\n" %args[-1])
-				sys.stdout.flush()
-				args[-2].nextStack = 0
-				#critical region ends
-				args[-2].sem.release()
-				return retcode
-			else:
-				print("%d command done\n" %args[-1])
-				sys.stdout.flush()
-				args[-2].nextStack = 0
-				#critical region ends
-				args[-2].sem.release()
-				raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, args[0:-2]))
+	if retcode == 'Failure':
+		print("%d command failed \n" %args[-1])
+		sys.stdout.flush()
+		raise Failed_command('{}{}'.format(cmd.__name__, args[0:-2]))
+	elif retcode == 'Success':
+		print("Command executed successfully in stack %d\n" %args[-1])
+		sys.stdout.flush()
+		args[-2].nextStack = 0
+		#critical region ends
+		args[-2].sem.release()
+		while args[-2].nextStack != args[-1]:
+			#print("waiting in stack %d for a task to start \n" %args[-1])
+			pass
+		args[-2].sem.acquire()
+		#critical region begins
+		return retcode
+	else:
+		sys.stdout.flush()
+		raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, args[0:-2]))
