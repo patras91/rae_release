@@ -17,3 +17,18 @@ We have the following domains
 5. domain_springDoor: Robot needs to collect objects in an environment with spring doors
    --- developed and integrated with RAE: testing needed
 
+HOW TO USE?
+To test on any domain, use the following commands in python
+
+from testRAE import *
+testRAE(domainCode)
+
+domain codes are as follows:
+domain_simpleFetch: 'SF'
+domain_simpleOpenDoor: 'SOD'
+domain_ste: 'STE'
+domain_chargeableRobot: 'CR'
+domain_springDoor: 'SD'
+
+for example, to test Spring door, type
+testRAE('SD')
