@@ -11,7 +11,7 @@ import rae1
 def take(r, o, state):
     if state.load[r] == NIL:
         if state.loc[r] == state.pos[o]:
-            print("Robot %s has picked up object %d" %(r, o))
+            print("Robot %s has picked up object %s" %(r, o))
             state.pos[o] = r
             state.load[r] = o
             res = SUCCESS
@@ -184,8 +184,21 @@ def chargeableRobot_run_1(ipcArgs, stackid):
     for l in LOCATIONS_CHARGEABLEROBOT:
         state.view[l] = False
 
-    #Fetch_Method1('r1', 'o1', state)
-    rae1.do_task('fetch', 'r1', 'o1', state, ipcArgs, stackid)
+    rae1.rae1('fetch', 'r1', 'o1', state, ipcArgs, stackid)
+
+def chargeableRobot_run_2(ipcArgs, stackid):
+    state = rae1.State()
+    state.loc = {'r1': 1}
+    state.charge = {'r1':2}
+    state.load = {'r1': NIL}
+    state.pos = {'c1': 7, 'o2': UNK}
+    state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:['o1'], 6:[], 7:[], 8:[]}
+
+    state.view = {}
+    for l in LOCATIONS_CHARGEABLEROBOT:
+        state.view[l] = False
+
+    rae1.rae1('fetch', 'r1', 'o2', state, ipcArgs, stackid)
 
 def chargeableRobot_init():
     rae1.declare_commands(put, take, perceive, charge, move, perceive)
@@ -204,4 +217,4 @@ def chargeableRobot_init():
     print("* For a different amout of printout, try 0 or 2 instead.")
     print('*********************************************************\n')
 
-    rae1.verbosity(1)
+    rae1.verbosity(0)

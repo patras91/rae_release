@@ -164,7 +164,7 @@ def rae1(task,*args):
 		print('| '*indent + 'Final state is:')
 		print_state(args[-3])
 
-	print("Done with %d\n" %args[-1])
+	print("Done with stack %d\n" %args[-1])
 	return retcode
 
 def choose_candidate(candidates):

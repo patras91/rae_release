@@ -17,54 +17,65 @@ def taxi_rate(dist):
 def walk(a,x,y,state):
 	if state.loc[a] == x:
 		print('agent',a,'walks from',x,'to',y,'\n')
+		sys.stdout.flush()
 		state.loc[a] = y
 		return SUCCESS
 	else:
 		print('agent',a,"isn't at location",x,'\n')
+		sys.stdout.flush()
 	return FAILURE
 
 def call_taxi(a,x,state):
 	print('a taxi appears at location',x,'\n')
+	sys.stdout.flush()
 	state.loc['taxi'] = x
 	return SUCCESS
 
 def enter_taxi(a,state):
 	if state.loc['taxi'] == state.loc[a]:
 		print('agent',a,'enters taxi at location',state.loc[a],'\n')
+		sys.stdout.flush()
 		state.loc[a] = 'taxi'
 		return SUCCESS
 	else:
 		print("there's no taxi for agent",a,'to enter','\n')
+		sys.stdout.flush()
 		return FAILURE
 
 def taxi_carry(a,y,state):
 	if state.loc[a]=='taxi':
 		x = state.loc['taxi']
 		print('taxi carries agent',a,'from',x,'to',y,'\n')
+		sys.stdout.flush()
 		state.loc['taxi'] = y
 		state.owe[a] = taxi_rate(state.dist[x][y])
 		return SUCCESS
 	else:
 		print('agent',a,"isn't in a taxi",'\n')
+		sys.stdout.flush()
 		return FAILURE
 
 def pay_driver(a,state):
 	if state.cash[a] >= state.owe[a]:
 		print('agent',a,'pays',state.owe[a],'to the taxi driver','\n')
+		sys.stdout.flush()
 		state.cash[a] = state.cash[a] - state.owe[a]
 		state.owe[a] = 0
 		return SUCCESS
 	else:
 		print('agent',a,'cannot pay',state.owe[a],'to the taxi driver','\n')
+		sys.stdout.flush()
 		return FAILURE
 
 def leave_taxi(a,state):
 	if state.loc[a]=='taxi':
 		print('agent',a,'leaves taxi at location',state.loc['taxi'],'\n')
+		sys.stdout.flush()
 		state.loc[a] = state.loc['taxi']
 		return SUCCESS
 	else:
 		print('agent',a,"isn't in a taxi",'\n')
+		sys.stdout.flush()
 		return FAILURE
 
 def travel_by_foot(a,x,y,state,ipcArgs,stackid):
@@ -80,6 +91,7 @@ def travel_by_taxi(a,x,y,state,ipcArgs,stackid):
 		return SUCCESS
 	else:
 		print('agent',a,"has too little money for a taxi from",x,'to',y,'\n')
+		sys.stdout.flush()
 		return FAILURE
 
 def ride_taxi_method(a,y,state, ipcArgs,stackid):
@@ -92,6 +104,7 @@ def ride_taxi_method(a,y,state, ipcArgs,stackid):
 	else:
 		print('the taxi driver is unwilling to drive to',y,'\n')
 		print("%d task done \n" %stackid)
+		sys.stdout.flush()
 		return FAILURE
 
 def ste_init():
@@ -103,11 +116,12 @@ def ste_init():
 	print('')
 	rae1.print_methods()
 	print('\n*********************************************************')
-	print("* Call rae1 on several problems using verbosity level 1.")
+	print("* Call rae1 on simple travel using verbosity level 1.")
 	print("* For a different amout of printout, try 0 or 2 instead.")
 	print('*********************************************************')
+	sys.stdout.flush()
 
-	rae1.verbosity(1)
+	rae1.verbosity(0)
 
 def ste_run_travel1(ipcArgs, stackid):
 	state = rae1.State()
@@ -116,7 +130,7 @@ def ste_run_travel1(ipcArgs, stackid):
 	state.owe = {'me':0}
 	state.dist = {'home':{'park':8}, 'park':{'home':8}}
 
-	print("in travel 1\n")
+	print("Ready to start stack %d\n" %stackid)
 	sys.stdout.flush()
 	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)
 
@@ -127,7 +141,7 @@ def ste_run_travel2(ipcArgs, stackid):
 	state.owe = {'me':0}
 	state.dist = {'home':{'park':8}, 'park':{'home':8}}
 
-	print("in travel 2\n")
+	print("Ready to start stack %d\n" %stackid)
 	sys.stdout.flush()
 	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)
 
@@ -138,6 +152,6 @@ def ste_run_travel3(ipcArgs, stackid):
 	state.owe = {'me':0}
 	state.dist = {'home':{'park':80}, 'park':{'home':80}}
 
-	print("in travel 3\n")
+	print("Ready to start stack %d\n" %stackid)
 	sys.stdout.flush()
 	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)

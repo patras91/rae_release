@@ -8,6 +8,16 @@ to carry objects and open doors. Each robot has only one arm with which it can
 either hold the door or carry the object. The goal for the main robot is to find
 an object and bring it to the hallway.'''
 
+# The domain is as follows:
+#_________________________
+#|       |       |       |
+#|   1   |   2   |   3   |
+#|       |       |       |
+#|--d1---|--d2---|--d3---|
+#|       |       |       |
+#|   4       5       6   |
+#|_______|_______|_______|
+
 def openDoor(r, d, state):
     if state.load[r] == NIL:
         print("Robot %s has opened door %s\n" %(r, d))
@@ -120,21 +130,24 @@ def MoveTo_Method1(r, l, state, ipcArgs, stackid):
     res = SUCCESS
 
     path = GETPATH_SPRINGDOOR(state.loc[r], l)
-    lTemp = state.loc[r]
-    lNext = path[lTemp]
-    while(lTemp != l):
+    if path == {}:
+        print("Robot %s is already at location %s \n" %(r, l))
+    else:
+        lTemp = state.loc[r]
         lNext = path[lTemp]
-        if (lTemp, lNext) in DOORLOCATIONS_SPRINGDOOR or (lNext, lTemp) in DOORLOCATIONS_SPRINGDOOR:
-            d = GETDOOR_SPRINGDOOR(lTemp, lNext)
-            rae1.do_task('moveThroughDoorway', r, d, lNext, state, ipcArgs, stackid)
-        else:
-            rae1.do_command(move, r, lTemp, lNext, state, ipcArgs, stackid)
-        if lTemp == state.loc[r]:
-            print("MoveTo method has failed\n")
-            res = FAILURE
-            break
-        else:
-            lTemp = state.loc[r]
+        while(lTemp != l):
+            lNext = path[lTemp]
+            if (lTemp, lNext) in DOORLOCATIONS_SPRINGDOOR or (lNext, lTemp) in DOORLOCATIONS_SPRINGDOOR:
+                d = GETDOOR_SPRINGDOOR(lTemp, lNext)
+                rae1.do_task('moveThroughDoorway', r, d, lNext, state, ipcArgs, stackid)
+            else:
+                rae1.do_command(move, r, lTemp, lNext, state, ipcArgs, stackid)
+            if lTemp == state.loc[r]:
+                print("MoveTo method has failed\n")
+                res = FAILURE
+                break
+            else:
+                lTemp = state.loc[r]
 
     return res
 
@@ -150,6 +163,7 @@ def Fetch_Method1(r, o, l, state, ipcArgs, stackid):
         rae1.do_command(put, r, o, state, ipcArgs, stackid)
     rae1.do_command(take, r, o, state, ipcArgs, stackid)
     rae1.do_task('moveTo', r, l, state, ipcArgs, stackid)
+    return SUCCESS
 
 def springDoor_run_1(ipcArgs, stackid):
     state = rae1.State()
@@ -158,7 +172,16 @@ def springDoor_run_1(ipcArgs, stackid):
     state.loc = {'r1': 1, 'r2': 2}
     state.pos = {'o1': 3}
 
-    rae1.do_task('fetch', 'r1', 'o1', 5, state, ipcArgs, stackid)
+    rae1.rae1('fetch', 'r1', 'o1', 5, state, ipcArgs, stackid)
+
+def springDoor_run_2(ipcArgs, stackid):
+    state = rae1.State()
+    state.load = {'r1': NIL, 'r2': NIL, 'r3': NIL}
+    state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed' }
+    state.loc = {'r1': 1, 'r2': 2, 'r3': 3}
+    state.pos = {'o1': 3, 'o2': 2}
+
+    rae1.rae1('fetch', 'r3', 'o2', 1, state, ipcArgs, stackid)
 
 def springDoor_init():
     rae1.declare_commands(openDoor, holdDoor, passDoor, releaseDoor, move, put, take)
@@ -178,4 +201,4 @@ def springDoor_init():
     print("* For a different amout of printout, try 0 or 2 instead.")
     print('*********************************************************\n')
 
-    rae1.verbosity(1)
+    rae1.verbosity(0)

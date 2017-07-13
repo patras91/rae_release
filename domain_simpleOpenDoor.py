@@ -125,12 +125,20 @@ def simpleOpenDoor_init():
     print("* For a different amout of printout, try 0 or 2 instead.")
     print('*********************************************************\n')
 
-    rae1.verbosity(1)
+    rae1.verbosity(0)
 
 def simpleOpenDoor_run_1(ipcArgs, stackid):
     state = rae1.State()
-    state.doorStatus = { 'd2':'unknown'}
+    state.doorStatus = { 'd1':'unknown'}
     state.loc = {'r1':3}
-    state.reachable = {('r1','o2'):False}
+    state.reachable = {('r1','o1'):False}
 
-    rae1.do_task('openDoor', 'r1', 'd2', 3, 'o2', state, ipcArgs, stackid)
+    rae1.rae1('openDoor', 'r1', 'd1', 3, 'o1', state, ipcArgs, stackid)
+
+def simpleOpenDoor_run_2(ipcArgs, stackid):
+    state = rae1.State()
+    state.doorStatus = { 'd2':'unknown'}
+    state.loc = {'r2':3}
+    state.reachable = {('r2','o2'):False}
+
+    rae1.rae1('openDoor', 'r2', 'd2', 3, 'o2', state, ipcArgs, stackid)

@@ -80,13 +80,41 @@ def Emergency_Method1(r, l, i, state, ipcArgs, stackid):
         state.emergencyHandling[r] = True
         if state.load[r] != NIL:
             rae1.do_command(put, r, state.load[r], state.loc[r], state, ipcArgs, stackid)
-            rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
-            rae1.do_command(addressEmergency, r, l, i, state, ipcArgs, stackid)
-            res = SUCCESS
+        rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
+        rae1.do_command(addressEmergency, r, l, i, state, ipcArgs, stackid)
+        res = SUCCESS
     else:
         print("%r is already busy handling another emergency\n" %r)
         res = FAILURE
     return res
+
+def simpleFetch_run_3(ipcArgs, stackid):
+    state = rae1.State()
+    state.loc = {'r1' : 1}
+    state.pos = {'o1' : UNK, 'o2': UNK}
+    state.load = {'r1' : NIL}
+    state.view = {}
+    state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:[], 6:['o1']}
+
+    for l in LOCATIONS:
+        state.view[l] = False
+    state.emergencyHandling = {'r1' : False}
+
+    rae1.rae1('emergency', 'r1', 2, 1, state, ipcArgs, stackid)
+
+def simpleFetch_run_2(ipcArgs, stackid):
+    state = rae1.State()
+    state.loc = {'r1' : 1}
+    state.pos = {'o1' : UNK, 'o2': UNK}
+    state.load = {'r1' : NIL}
+    state.view = {}
+    state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:[], 6:['o1']}
+
+    for l in LOCATIONS:
+        state.view[l] = False
+    state.emergencyHandling = {'r1' : False}
+
+    rae1.rae1('fetch', 'r1', 'o2', state, ipcArgs, stackid)
 
 def simpleFetch_run_1(ipcArgs, stackid):
     state = rae1.State()
@@ -100,9 +128,7 @@ def simpleFetch_run_1(ipcArgs, stackid):
         state.view[l] = False
     state.emergencyHandling = {'r1' : False}
 
-    rae1.do_task('fetch', 'r1', 'o1', state, ipcArgs, stackid)
-    rae1.do_task('emergency', 'r1', 2, 1, state, ipcArgs, stackid)
-    rae1.do_task('fetch', 'r1', 'o1', state, ipcArgs, stackid)
+    rae1.rae1('fetch', 'r1', 'o1', state, ipcArgs, stackid)
 
 def simpleFetch_init():
 
@@ -121,4 +147,4 @@ def simpleFetch_init():
 	print("* For a different amout of printout, try 0 or 2 instead.")
 	print('*********************************************************\n')
 
-	rae1.verbosity(1)
+	rae1.verbosity(0)
