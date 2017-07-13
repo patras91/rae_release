@@ -18,16 +18,15 @@ We have the following domains
    --- developed and integrated with RAE: testing needed
 
 HOW TO USE?
-To test on any domain, use the following commands in python
+To test on any domain, import testRAE and use the following command in python
 
-from testRAE import *
 testRAE(domainCode)
 
 domain codes are as follows:
-domain_simpleFetch: 'SF'
-domain_simpleOpenDoor: 'SOD'
-domain_ste: 'STE'
-domain_chargeableRobot: 'CR'
+domain_simpleFetch: 'SF',
+domain_simpleOpenDoor: 'SOD',
+domain_ste: 'STE',
+domain_chargeableRobot: 'CR',
 domain_springDoor: 'SD'
 
 for example, to test Spring door, type
