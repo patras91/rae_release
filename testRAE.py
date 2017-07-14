@@ -46,7 +46,8 @@ def testRAE(domain):
         state = domain_chargeableRobot.chargeableRobot_init()
         threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_1, args=(state, ipcArgs, 1,)))
         threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_2, args=(state, ipcArgs, 2,)))
-        NUMSTACKS = 2
+        threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_3, args=(state, ipcArgs, 3,)))
+        NUMSTACKS = 3
     elif domain == 'STE':
         state = domain_ste.ste_init()
         #TODO: move the following to an incoming task stream

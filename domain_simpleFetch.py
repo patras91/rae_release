@@ -5,7 +5,17 @@ from domain_constants import *
 '''A simple example where a robot has to fetch an object in a harbor and handle emergencies. From Ch 3'''
 
 def moveTo(r, l, state):
-    print("Robot %s has gone to location %d\n" %(r,l))
+    if state.emergencyHandling[r] == False:
+        print("Robot %s has gone to location %d\n" %(r,l))
+        state.loc[r] = l
+        res = SUCCESS
+    else:
+        print("Cannot move robot %s because it is handling emergency\n" %r)
+        res = FAILURE
+    return res
+
+def moveToEmergency(r, l, state):
+    print("Robot %s has gone to location %d to handle emergency\n" %(r,l))
     state.loc[r] = l
     return SUCCESS
 
@@ -48,13 +58,14 @@ def addressEmergency(r, l, i, state):
     else:
         print("Robot %s has failed to address emergency %d" %(r, i))
         res = FAILURE
+    state.emergencyHandling[r] = False
     return res
 
 def Search_Method1(r, o, state, ipcArgs, stackid):
     if state.pos[o] == UNK:
         for l in LOCATIONS:
             if state.view[l] == False:
-                rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
+                rae1.do_task('nonEmergencyMove', r, l, state, ipcArgs, stackid)
                 rae1.do_command(perceive, l, state, ipcArgs, stackid)
                 if state.pos[o] == l:
                     rae1.do_command(take, r, o, l, state, ipcArgs, stackid)
@@ -71,7 +82,7 @@ def Fetch_Method1(r, o, state, ipcArgs, stackid):
     elif state.loc[r] == state.pos[o]:
         rae1.do_command(take, r, o, state.pos[o], state, ipcArgs, stackid)
     else:
-        rae1.do_command(moveTo, r, state.pos[o], state, ipcArgs, stackid)
+        rae1.do_task('nonEmergencyMove', r, state.pos[o], state, ipcArgs, stackid)
         rae1.do_command(take, r, o, state.pos[o], state, ipcArgs, stackid)
     return SUCCESS
 
@@ -80,7 +91,7 @@ def Emergency_Method1(r, l, i, state, ipcArgs, stackid):
         state.emergencyHandling[r] = True
         if state.load[r] != NIL:
             rae1.do_command(put, r, state.load[r], state.loc[r], state, ipcArgs, stackid)
-        rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
+        rae1.do_command(moveToEmergency, r, l, state, ipcArgs, stackid)
         rae1.do_command(addressEmergency, r, l, i, state, ipcArgs, stackid)
         res = SUCCESS
     else:
@@ -88,63 +99,60 @@ def Emergency_Method1(r, l, i, state, ipcArgs, stackid):
         res = FAILURE
     return res
 
-def simpleFetch_run_3(ipcArgs, stackid):
-    state = rae1.State()
-    state.loc = {'r1' : 1}
-    state.pos = {'o1' : UNK, 'o2': UNK}
-    state.load = {'r1' : NIL}
-    state.view = {}
-    state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:[], 6:['o1']}
+def NonEmergencyMove_Method1(r, l, state, ipcArgs, stackid):
+    if state.emergencyHandling[r] == False:
+        rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
+        res = SUCCESS
+    else:
+        print("Move failed, trying to do a non emergency move for a robot handling emergency\n")
+        res = FAILURE
+    return res
 
-    for l in LOCATIONS:
-        state.view[l] = False
-    state.emergencyHandling = {'r1' : False}
+def NonEmergencyMove_Method2(r, l, state, ipcArgs, stackid):
+    if state.emergencyHandling[r] == False:
+        rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
+    else:
+        while(state.emergencyHandling[r] == True):
+            pass
+        rae1.do_command(moveTo, r, l, state, ipcArgs, stackid)
+    return SUCCESS
 
+def simpleFetch_run_3(state, ipcArgs, stackid):
     rae1.rae1('emergency', 'r1', 2, 1, state, ipcArgs, stackid)
 
-def simpleFetch_run_2(ipcArgs, stackid):
-    state = rae1.State()
-    state.loc = {'r1' : 1}
-    state.pos = {'o1' : UNK, 'o2': UNK}
-    state.load = {'r1' : NIL}
-    state.view = {}
-    state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:[], 6:['o1']}
-
-    for l in LOCATIONS:
-        state.view[l] = False
-    state.emergencyHandling = {'r1' : False}
-
+def simpleFetch_run_2(state, ipcArgs, stackid):
     rae1.rae1('fetch', 'r1', 'o2', state, ipcArgs, stackid)
 
-def simpleFetch_run_1(ipcArgs, stackid):
-    state = rae1.State()
-    state.loc = {'r1' : 1}
-    state.pos = {'o1' : UNK}
-    state.load = {'r1' : NIL}
-    state.view = {}
-    state.containers = {1:[], 2:[], 3:[], 4:[], 5:['o1'], 6:[]}
-
-    for l in LOCATIONS:
-        state.view[l] = False
-    state.emergencyHandling = {'r1' : False}
-
+def simpleFetch_run_1(state, ipcArgs, stackid):
     rae1.rae1('fetch', 'r1', 'o1', state, ipcArgs, stackid)
 
 def simpleFetch_init():
 
-	rae1.declare_commands(moveTo, take, perceive, addressEmergency)
-	print('\n')
-	rae1.print_commands()
+    rae1.declare_commands(moveTo, take, perceive, addressEmergency, moveToEmergency)
+    print('\n')
+    rae1.print_commands()
 
-	rae1.declare_methods('search', Search_Method1)
-	rae1.declare_methods('fetch', Fetch_Method1)
-	rae1.declare_methods('emergency', Emergency_Method1)
-	print('\n')
-	rae1.print_methods()
+    rae1.declare_methods('search', Search_Method1)
+    rae1.declare_methods('fetch', Fetch_Method1)
+    rae1.declare_methods('emergency', Emergency_Method1)
+    rae1.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1, NonEmergencyMove_Method2)
+    print('\n')
+    rae1.print_methods()
 
-	print('\n*********************************************************')
-	print("* Call rae1 on simple fetch using verbosity level 1.")
-	print("* For a different amout of printout, try 0 or 2 instead.")
-	print('*********************************************************\n')
+    print('\n*********************************************************')
+    print("* Call rae1 on simple fetch using verbosity level 1.")
+    print("* For a different amout of printout, try 0 or 2 instead.")
+    print('*********************************************************\n')
 
-	rae1.verbosity(0)
+    state = rae1.State()
+    state.loc = {'r1' : 1}
+    state.pos = {'o1' : UNK, 'o2': UNK}
+    state.load = {'r1' : NIL}
+    state.view = {}
+    state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:[], 6:['o1']}
+
+    for l in LOCATIONS:
+        state.view[l] = False
+    state.emergencyHandling = {'r1' : False}
+    rae1.verbosity(0)
+    return state
