@@ -39,7 +39,7 @@ def passDoor(r, d, l, state):
     return res
 
 def holdDoor(r, d, state):
-    if state.doorStatus[d] == 'opened' and state.load[r] == NIL:
+    if (state.doorStatus[d] == 'opened' or state.doorStatus[d] == 'closing') and state.load[r] == NIL:
         print("Robot %s is holding the door %s\n" %(r, d))
         state.load[r] = 'H'
         state.doorStatus[d] = 'held'
@@ -55,7 +55,7 @@ def holdDoor(r, d, state):
 def releaseDoor(r, d, state):
     if state.doorStatus[d] == 'held' and state.load[r] == 'H':
         print("Robot %s has released the the door %s\n" %(r, d))
-        state.doorStatus[d] = 'closed'
+        state.doorStatus[d] = 'closing'
         state.load[r] = NIL
     else:
         print("Robot %s is not holding door %s\n" %(r, d))
@@ -103,7 +103,19 @@ def take(r, o, state):
         print("Robot %s is not free to take anything\n" %r)
     return res
 
-def MoveThroughDoorway_Method1(r, d, l, state, ipcArgs, stackid):
+def closeDoors(state):
+    for d in ['d1', 'd2', 'd3']:
+        if state.doorStatus[d] == 'opened':
+            state.doorStatus[d] = 'closing'
+            print("Door %s is closing\n" %d)
+        elif state.doorStatus[d] == 'closing' or state.doorStatus[d] == 'closed':
+            state.doorStatus[d] = 'closed'
+            print("Door %s is closed\n" %d)
+        elif state.doorStatus[d] == 'held':
+            print("Door %s is %s, so it cannot be closed\n" %(d, state.doorStatus[d]))
+    return SUCCESS
+
+def MoveThroughDoorway_Method3(r, d, l, state, ipcArgs, stackid):
     if state.load[r] == NIL:
         rae1.do_command(openDoor, r, d, state, ipcArgs, stackid)
         rae1.do_command(holdDoor, r, d, state, ipcArgs, stackid)
@@ -126,9 +138,17 @@ def MoveThroughDoorway_Method2(r, d, l, state, ipcArgs, stackid):
         res = FAILURE
     return res
 
+def MoveThroughDoorway_Method1(r, d, l, state, ipcArgs, stackid):
+    if state.load[r] == NIL:
+        rae1.do_command(openDoor, r, d, state, ipcArgs, stackid)
+        rae1.do_command(passDoor, r, d, l, state, ipcArgs, stackid)
+        res = SUCCESS
+    else:
+        res = FAILURE
+    return res
+
 def MoveTo_Method1(r, l, state, ipcArgs, stackid):
     res = SUCCESS
-
     path = GETPATH_SPRINGDOOR(state.loc[r], l)
     if path == {}:
         print("Robot %s is already at location %s \n" %(r, l))
@@ -143,7 +163,6 @@ def MoveTo_Method1(r, l, state, ipcArgs, stackid):
             else:
                 rae1.do_command(move, r, lTemp, lNext, state, ipcArgs, stackid)
             if lTemp == state.loc[r]:
-                print("MoveTo method has failed\n")
                 res = FAILURE
                 break
             else:
@@ -163,35 +182,30 @@ def Fetch_Method1(r, o, l, state, ipcArgs, stackid):
         rae1.do_command(put, r, o, state, ipcArgs, stackid)
     rae1.do_command(take, r, o, state, ipcArgs, stackid)
     rae1.do_task('moveTo', r, l, state, ipcArgs, stackid)
+    state.done = True
     return SUCCESS
 
-def springDoor_run_1(ipcArgs, stackid):
-    state = rae1.State()
-    state.load = {'r1': NIL, 'r2': NIL}
-    state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed' }
-    state.loc = {'r1': 1, 'r2': 2}
-    state.pos = {'o1': 3}
+def CloseDoors_Method1(state, ipcArgs, stackid):
+    while state.done == False:
+        rae1.do_command(closeDoors, state, ipcArgs, stackid)
+    return SUCCESS
 
+def springDoor_run_1(state, ipcArgs, stackid):
     rae1.rae1('fetch', 'r1', 'o1', 5, state, ipcArgs, stackid)
 
-def springDoor_run_2(ipcArgs, stackid):
-    state = rae1.State()
-    state.load = {'r1': NIL, 'r2': NIL, 'r3': NIL}
-    state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed' }
-    state.loc = {'r1': 1, 'r2': 2, 'r3': 3}
-    state.pos = {'o1': 3, 'o2': 2}
-
-    rae1.rae1('fetch', 'r3', 'o2', 1, state, ipcArgs, stackid)
+def springDoor_run_3(state, ipcArgs, stackid):
+    rae1.rae1('closeDoors', state, ipcArgs, stackid)
 
 def springDoor_init():
-    rae1.declare_commands(openDoor, holdDoor, passDoor, releaseDoor, move, put, take)
+    rae1.declare_commands(openDoor, holdDoor, passDoor, releaseDoor, move, put, take, closeDoors)
     print('\n')
     rae1.print_commands()
 
     rae1.declare_methods('fetch', Fetch_Method1)
     rae1.declare_methods('getHelp', GetHelp_Method1)
     rae1.declare_methods('moveTo', MoveTo_Method1)
-    rae1.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroughDoorway_Method2)
+    rae1.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroughDoorway_Method2, MoveThroughDoorway_Method3)
+    rae1.declare_methods('closeDoors', CloseDoors_Method1)
 
     print('\n')
     rae1.print_methods()
@@ -202,3 +216,12 @@ def springDoor_init():
     print('*********************************************************\n')
 
     rae1.verbosity(0)
+
+    state = rae1.State()
+    state.load = {'r1': NIL, 'r2': NIL}
+    state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed' }
+    state.loc = {'r1': 1, 'r2': 2}
+    state.pos = {'o1': 3}
+    state.done = False
+
+    return state

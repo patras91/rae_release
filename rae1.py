@@ -167,8 +167,7 @@ def rae1(task,*args):
 	if verbose>0:
 		print('| '*indent + 'Final state is:')
 		print_state(args[-3])
-
-	print("Done with stack %d\n" %args[-1])
+		print("Done with stack %d\n" %args[-1])
 	args[-2].nextStack = 0
 	#critical region ends
 	args[-2].sem.release()
@@ -193,6 +192,7 @@ def do_task(task,*args):
 		(m,candidates) = choose_candidate(candidates)
 		if verbose>1:
 			print('| '*indent + 'Try method {}{}'.format(m.__name__,args[0:-3]))
+
 		try:
 			args[-2].nextStack = 0
 			#critical region ends
@@ -202,6 +202,10 @@ def do_task(task,*args):
 				pass
 			args[-2].sem.acquire()
 			#critical region begins
+
+			if verbose>1:
+				print('| '*indent + 'current state is:')
+				print_state(args[-3])
 			retcode = m(*args)
 		except Failed_command,e:
 			if verbose>0: 
@@ -243,12 +247,14 @@ def do_command(cmd,*args):
 	indent = indent - indent_increment
 
 	if retcode == 'Failure':
-		print("%d command failed \n" %args[-1])
-		sys.stdout.flush()
+		if verbose > 0:
+			print("Command failed in Stack %d\n" %args[-1])
+			sys.stdout.flush()
 		raise Failed_command('{}{}'.format(cmd.__name__, args[0:-2]))
 	elif retcode == 'Success':
-		print("Command executed successfully in stack %d\n" %args[-1])
-		sys.stdout.flush()
+		if verbose > 0:
+			print("Command executed successfully in stack %d\n" %args[-1])
+			sys.stdout.flush()
 		args[-2].nextStack = 0
 		#critical region ends
 		args[-2].sem.release()

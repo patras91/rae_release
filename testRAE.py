@@ -5,7 +5,7 @@ import domain_simpleFetch
 import domain_chargeableRobot
 import domain_simpleOpenDoor
 import domain_springDoor
-
+from rae1 import verbose
 import threading
 import sys
 
@@ -60,9 +60,10 @@ def testRAE(domain):
         threadList.append(threading.Thread(target = domain_simpleOpenDoor.simpleOpenDoor_run_2, args=(ipcArgs, 2,)))
         NUMSTACKS = 2
     elif domain == 'SD':
-        domain_springDoor.springDoor_init()
-        threadList.append(threading.Thread(target = domain_springDoor.springDoor_run_1, args=(ipcArgs, 1,)))
-        threadList.append(threading.Thread(target = domain_springDoor.springDoor_run_2, args=(ipcArgs, 2,)))
+        state = domain_springDoor.springDoor_init()
+        threadList.append(threading.Thread(target = domain_springDoor.springDoor_run_1, args=(state, ipcArgs, 1,)))
+        #threadList.append(threading.Thread(target = domain_springDoor.springDoor_run_2, args=(ipcArgs, 2,)))
+        threadList.append(threading.Thread(target = domain_springDoor.springDoor_run_3, args=(state, ipcArgs, 2,)))
         NUMSTACKS = 2
     else:
         print("Invalid domain\n")
@@ -76,7 +77,8 @@ def testRAE(domain):
         # TODO: Create a new thread for every incoming task stream
         if ipcArgs.nextStack == 0 or threadList[ipcArgs.nextStack-1].isAlive() == False:
             ipcArgs.sem.acquire()
-            print("Control acquired by master\n")
+            if verbose > 0:
+                print("Control acquired by master\n")
             res = GetNextAlive(nextStack, NUMSTACKS, threadList)
             if res != -1:
                 ipcArgs.nextStack = res
