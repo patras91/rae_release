@@ -6,6 +6,8 @@ File ste.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
 Based roughly on the "travel from home to the park" example in my lectures,
 but modified to have multiple levels of tasks.
+
+Sunandita: Updated the test cases to test RAE
 """
 
 import copy
@@ -103,7 +105,6 @@ def ride_taxi_method(a,y,state, ipcArgs,stackid):
 		return SUCCESS
 	else:
 		print('the taxi driver is unwilling to drive to',y,'\n')
-		print("%d task done \n" %stackid)
 		sys.stdout.flush()
 		return FAILURE
 
@@ -121,37 +122,20 @@ def ste_init():
 	print('*********************************************************')
 	sys.stdout.flush()
 
+	state = rae1.State()
+	state.loc = {'Dana':'home', 'Paolo':'home', 'Malik':'home2'}
+	state.cash = {'Dana':20, 'Paolo': 5, 'Malik': 100}
+	state.owe = {'Dana':0, 'Paolo': 0, 'Malik': 0}
+	state.dist = {'home':{'park':8}, 'park':{'home':8}, 'home2':{'park2':80}, 'park2':{'home2':80}}
 	rae1.verbosity(0)
 
-def ste_run_travel1(ipcArgs, stackid):
-	state = rae1.State()
-	state.loc = {'me':'home'}
-	state.cash = {'me':20}
-	state.owe = {'me':0}
-	state.dist = {'home':{'park':8}, 'park':{'home':8}}
+	return state
 
-	print("Ready to start stack %d\n" %stackid)
-	sys.stdout.flush()
-	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)
+def ste_run_travel1(state, ipcArgs, stackid):
+	rae1.rae1('travel','Dana','home','park',state, ipcArgs, stackid)
 
-def ste_run_travel2(ipcArgs, stackid):
-	state = rae1.State()
-	state.loc = {'me':'home'}
-	state.cash = {'me':5}
-	state.owe = {'me':0}
-	state.dist = {'home':{'park':8}, 'park':{'home':8}}
+def ste_run_travel2(state, ipcArgs, stackid):
+	rae1.rae1('travel','Paolo','home','park',state, ipcArgs, stackid)
 
-	print("Ready to start stack %d\n" %stackid)
-	sys.stdout.flush()
-	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)
-
-def ste_run_travel3(ipcArgs, stackid):
-	state = rae1.State()
-	state.loc = {'me':'home'}
-	state.cash = {'me':100}
-	state.owe = {'me':0}
-	state.dist = {'home':{'park':80}, 'park':{'home':80}}
-
-	print("Ready to start stack %d\n" %stackid)
-	sys.stdout.flush()
-	rae1.rae1('travel','me','home','park',state, ipcArgs, stackid)
+def ste_run_travel3(state, ipcArgs, stackid):
+	rae1.rae1('travel','Malik','home2','park2',state, ipcArgs, stackid)

@@ -37,27 +37,27 @@ def testRAE(domain):
 
     threadList = []
     if domain == 'SF':
-        domain_simpleFetch.simpleFetch_init()
-        threadList.append(threading.Thread(target = domain_simpleFetch.simpleFetch_run_1, args=(ipcArgs, 1,)))
-        threadList.append(threading.Thread(target = domain_simpleFetch.simpleFetch_run_2, args=(ipcArgs, 2,)))
-        threadList.append(threading.Thread(target = domain_simpleFetch.simpleFetch_run_3, args=(ipcArgs, 3,)))
+        state = domain_simpleFetch.simpleFetch_init()
+        threadList.append(threading.Thread(target = domain_simpleFetch.simpleFetch_run_1, args=(state, ipcArgs, 1,)))
+        threadList.append(threading.Thread(target = domain_simpleFetch.simpleFetch_run_2, args=(state, ipcArgs, 2,)))
+        threadList.append(threading.Thread(target = domain_simpleFetch.simpleFetch_run_3, args=(state, ipcArgs, 3,)))
         NUMSTACKS = 3
     elif domain == 'CR':
-        domain_chargeableRobot.chargeableRobot_init()
-        threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_1, args=(ipcArgs, 1,)))
-        threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_2, args=(ipcArgs, 2,)))
+        state = domain_chargeableRobot.chargeableRobot_init()
+        threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_1, args=(state, ipcArgs, 1,)))
+        threadList.append(threading.Thread(target = domain_chargeableRobot.chargeableRobot_run_2, args=(state, ipcArgs, 2,)))
         NUMSTACKS = 2
     elif domain == 'STE':
-        domain_ste.ste_init()
+        state = domain_ste.ste_init()
         #TODO: move the following to an incoming task stream
-        threadList.append(threading.Thread(target = domain_ste.ste_run_travel1, args=(ipcArgs, 1,)))
-        threadList.append(threading.Thread(target = domain_ste.ste_run_travel2, args=(ipcArgs, 2,)))
-        threadList.append(threading.Thread(target = domain_ste.ste_run_travel3, args=(ipcArgs, 3,)))
+        threadList.append(threading.Thread(target = domain_ste.ste_run_travel1, args=(state, ipcArgs, 1,)))
+        threadList.append(threading.Thread(target = domain_ste.ste_run_travel2, args=(state, ipcArgs, 2,)))
+        threadList.append(threading.Thread(target = domain_ste.ste_run_travel3, args=(state, ipcArgs, 3,)))
         NUMSTACKS = 3
     elif domain == 'SOD':
-        domain_simpleOpenDoor.simpleOpenDoor_init()
-        threadList.append(threading.Thread(target = domain_simpleOpenDoor.simpleOpenDoor_run_1, args=(ipcArgs, 1,)))
-        threadList.append(threading.Thread(target = domain_simpleOpenDoor.simpleOpenDoor_run_2, args=(ipcArgs, 2,)))
+        state = domain_simpleOpenDoor.simpleOpenDoor_init()
+        threadList.append(threading.Thread(target = domain_simpleOpenDoor.simpleOpenDoor_run_1, args=(state, ipcArgs, 1,)))
+        threadList.append(threading.Thread(target = domain_simpleOpenDoor.simpleOpenDoor_run_2, args=(state, ipcArgs, 2,)))
         NUMSTACKS = 2
     elif domain == 'SD':
         state = domain_springDoor.springDoor_init()

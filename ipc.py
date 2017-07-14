@@ -16,6 +16,8 @@ import sys
     def push(self, item):
         self.list.append(item)'''
 
+var = 'c'
+
 def a():
     a_1()
     execute("a_2", 1)
@@ -53,6 +55,11 @@ def execute(command, stackid):
 
     sem.acquire()
     print "Executing %s %d %d\n" % (command, sem._Semaphore__value, master._Semaphore__value)
+    print ipc.var
+    var = {
+        1: 'a',
+        2: 'b',
+    }[stackid]
     sys.stdout.flush()
     #time.sleep(2)
     master.release()

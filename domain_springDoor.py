@@ -19,17 +19,17 @@ an object and bring it to the hallway.'''
 #|_______|_______|_______|
 
 def openDoor(r, d, state):
-    if state.load[r] == NIL:
+    if state.load[r] == NIL and (state.doorStatus[d] == 'closed' or state.doorStatus):
         print("Robot %s has opened door %s\n" %(r, d))
         state.doorStatus[d] = 'opened'
         res = SUCCESS
     else:
-        print("Robot %s is not free to open door %s\n" %(r, d))
+        print("Robot %s is not free to open door %s or the door is not closed\n" %(r, d))
         res = FAILURE
     return res
 
 def passDoor(r, d, l, state):
-    if state.doorStatus[d] == 'held':
+    if state.doorStatus[d] == 'opened' or state.doorStatus[d] == 'held':
         print("Robot %s has passed the door %s\n" %(r, d))
         state.loc[r] = l
         res = SUCCESS
