@@ -1,10 +1,6 @@
-RAE is working with multiple stacks. Each stack is implemented a Python thread.
-Some issues to be resolved:
-    1. Sharing the state variables globally instead of always passing them as a parameter to the tasks and commands
-    2. Review in the code which portions are critical sections and which are not. Match this with the pseudocode
-    3. Handle incoming sequence of tasks as another thread instead of assuming a predefined list of tasks
+RAE is working with multiple stacks. Each stack is implemented as a Python thread.
 
-We have the following domains
+We have the following domains.
 
 1. domain_simpleFetch: Robot collecting objects in a harbour
    --- developed and integrated with RAE: testing needed
