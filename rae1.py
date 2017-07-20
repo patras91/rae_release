@@ -26,8 +26,9 @@ class Goal():
 		pass
 
 
-def print_state(state):
+def print_state():
 	"""Print each variable in state, indented by indent spaces."""
+	global state
 	if state != False:
 		for (name,val) in vars(state).items():
 			print('| '*indent + '  state.' + name + ' =', val)
@@ -45,7 +46,7 @@ def print_goal(goal):
 ### for debugging
 
 verbose = 0
-
+state = State()
 
 def verbosity(level):
 	"""
@@ -132,137 +133,154 @@ class Failed_task(Exception):
 class Incorrect_return_code(Exception):
 	pass
 
+#****************************************************************
+#Functions to control Progress of each stack step by step
+class IpcArgs():
+	""" IPCArgs is just a collection of variable bindings to share data among the processes."""
+	def __init__(self):
+		pass
+
+ipcArgs = IpcArgs()
+
+def BeginCriticalRegion(stackid):
+	while(ipcArgs.nextStack != stackid):
+		pass
+	ipcArgs.sem.acquire()
+
+def EndCriticalRegion():
+	ipcArgs.nextStack = 0
+	ipcArgs.sem.release()
+#****************************************************************
+
 ############################################################
 # The actual acting engine
 
-def rae1(task,*args):
+def rae1(task, *args):
 	"""
 	Rae1 is the Rae actor with a single execution stack. The first argument is the name (which
-	should be a string) of the task to accomplish, and args[0:-3] are the arguments for the task. 
-	The current state is args[-3], current stack is args[-1], and I'm not sure what args[-2] is.
+	should be a string) of the task to accomplish, and args[0:-1] are the arguments for the task.
+	The current stack is args[-1].
 	"""
 	# To Sunandita: I think it's getting unwieldy to have multiple unnamed args at the end of
 	# the arglist. Perhaps put them before the args variable and give them names? --Dana
 	#
-	while(args[-2].nextStack != args[-1]):
-		pass
-	args[-2].sem.acquire()
-	#critical region begins
+	# To Dana: Only using the stackid at the end now. Removed other arguments which consisted of state
+	# and thread communication parameters. They are now global variables --Sunandita
+
+	stackid = args[-1]
+	taskArgs = args[0:-1]
+	BeginCriticalRegion(stackid)
+
 	global indent
 	indent = indent_increment
-	if verbose>0: 
-		print('---- Rae1: Create stack {}, task {}{}'.format(args[-1],task,args[0:-3]))
-	if verbose>1:
+	if verbose > 0:
+		print('---- Rae1: Create stack {}, task {}{}'.format(stackid,task,taskArgs))
+	if verbose > 1:
 		print('| '*indent + 'Initial state is:')
-		print_state(args[-3])
+		print_state()
 	try:
 		retcode = do_task(task,*args)
 	except Failed_command,e:
-		if verbose>0: 
+		if verbose > 0:
 			print('| '*indent + 'Failed command {}'.format(e))
 		retcode = 'Failure'
 	except Failed_task,e:
-		if verbose>0: 
+		if verbose > 0:
 			print('| '*indent + 'Failed task {}'.format(e))
 		retcode = 'Failure'
 	else:
 		pass
 	if verbose > 1:
 		print('| '*indent + 'Final state is:')
-		print_state(args[-3])
+		print_state()
 	if verbose > 0:
-		print("Done with stack %d" %args[-1])
-	args[-2].nextStack = 0
-	#critical region ends
-	args[-2].sem.release()
+		print("Done with stack %d" %stackid)
+
+	EndCriticalRegion()
 	return retcode
 
 def choose_candidate(candidates):
 	return(candidates[0],candidates[1:])
 
-def do_task(task,*args):
+def do_task(task, *args):
 	"""
 	This is the workhorse for rae1. The arguments are the same as for rae1.
 	"""
+	stackid = args[-1]
+	taskArgs = args[0:-1]
 	global indent
 
-	if verbose>0:
-		print('| '*indent + 'Begin task {}{}'.format(task,args[0:-3]))
+	if verbose > 0:
+		print('| '*indent + 'Begin task {}{}'.format(task,taskArgs))
 	indent = indent + indent_increment
 	retcode = 'Failure'
 	candidates = methods[task]
 	while (retcode == 'Failure' and candidates != []):
 		(m,candidates) = choose_candidate(candidates)
 		if verbose > 0:
-			print('| '*indent + 'Try method {}{}'.format(m.__name__,args[0:-3]))
+			print('| '*indent + 'Try method {}{}'.format(m.__name__,taskArgs))
 
 		try:
-			args[-2].nextStack = 0
-			#critical region ends
-			args[-2].sem.release()
-			while args[-2].nextStack != args[-1]:
-				pass
-			args[-2].sem.acquire()
-			#critical region begins
+			EndCriticalRegion()
+			BeginCriticalRegion(stackid)
 
 			if verbose > 0:
-				print('---- In stack {}:'.format(args[-1]))		# this means we've gone to the next stack
+				print('---- In stack {}:'.format(stackid))		# this means we've gone to the next stack
 			if verbose > 1:
-				print('| '*indent + 'Current state is:'.format(args[-1]))
-				print_state(args[-3])
+				print('| '*indent + 'Current state is:'.format(stackid))
+				print_state()
 			retcode = m(*args)
 		except Failed_command,e:
-			if verbose>0: 
+			if verbose > 0:
 				print('| '*indent + 'Failed command {}'.format(e))
 			retcode = 'Failure'
 		except Failed_task,e:
-			if verbose>0: 
+			if verbose > 0:
 				print('| '*indent + 'Failed task {}'.format(e))
 			retcode = 'Failure'
 		else:
 			pass
 
-		if verbose>1: 
-			print('| '*indent + '{} for method {}{}'.format(retcode,m.__name__,args[0:-3]))
+		if verbose > 1:
+			print('| '*indent + '{} for method {}{}'.format(retcode,m.__name__,taskArgs))
 	
 	indent = indent - indent_increment
 	if retcode == 'Failure':
-		raise Failed_task('{}{}'.format(task, args[0:-3]))
+		raise Failed_task('{}{}'.format(task, taskArgs))
 	elif retcode == 'Success':
 		return retcode
 	else:
-		raise Incorrect_return_code('{} for {}{}'.format(retcode, task, args[0:-3]))
+		raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
 
 
-def do_command(cmd,*args):
+def do_command(cmd, *args):
 	"""
 	Perform command cmd(args). Last arg must be the current state
 	"""
+
+	stackid = args[-1]
+	cmdArgs = args[0:-1]
+
 	global indent
 	indent = indent + indent_increment
 
-	if verbose>0:
-		print('| '*indent + 'Begin command {}{}'.format(cmd.__name__,args[0:-3]))
-	retcode = cmd(*args[0:-2])
+	if verbose > 0:
+		print('| '*indent + 'Begin command {}{}'.format(cmd.__name__,cmdArgs))
+	retcode = cmd(*cmdArgs)
 
-	if verbose>1:
+	if verbose > 1:
 		print('| '*indent + '{}, current state is:'.format(retcode))
-		print_state(args[-3])
+		print_state()
 	indent = indent - indent_increment
 
 	if retcode == 'Failure':
-		raise Failed_command('{}{}'.format(cmd.__name__, args[0:-3]))
+		raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
 	elif retcode == 'Success':
-		#critical region ends
-		args[-2].nextStack = 0
-		args[-2].sem.release()
-		while args[-2].nextStack != args[-1]:
-			pass
-		args[-2].sem.acquire()
-		#critical region begins
+
+		EndCriticalRegion()
+		BeginCriticalRegion(stackid)
 		if verbose > 0:
-			print('---- In stack {}:'.format(args[-1]))		# this means we've gone to the next stack
+			print('---- In stack {}:'.format(stackid))		# this means we've gone to the next stack
 		return retcode
 	else:
-		sys.stdout.flush()
-		raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, args[0:-3]))
+		raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))
