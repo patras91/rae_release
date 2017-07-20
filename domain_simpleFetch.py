@@ -140,8 +140,8 @@ def simpleFetch_init():
     rae1.print_methods()
 
     print('\n*********************************************************')
-    print("* Call rae1 on simple fetch using verbosity level 1.")
-    print("* For a different amout of printout, try 0 or 2 instead.")
+    print("* Call rae1 on simple fetch domain.")
+    print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
     print('*********************************************************\n')
 
     state = rae1.State()
@@ -154,5 +154,4 @@ def simpleFetch_init():
     for l in LOCATIONS:
         state.view[l] = False
     state.emergencyHandling = {'r1' : False}
-    rae1.verbosity(0)
     return state

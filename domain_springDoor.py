@@ -211,11 +211,9 @@ def springDoor_init():
     rae1.print_methods()
 
     print('\n*********************************************************')
-    print("* Call rae1 on spring door using verbosity level 1.")
-    print("* For a different amout of printout, try 0 or 2 instead.")
+    print("* Call rae1 on spring door domain.")
+    print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
     print('*********************************************************\n')
-
-    rae1.verbosity(0)
 
     state = rae1.State()
     state.load = {'r1': NIL, 'r2': NIL}

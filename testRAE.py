@@ -5,7 +5,7 @@ import domain_simpleFetch
 import domain_chargeableRobot
 import domain_simpleOpenDoor
 import domain_springDoor
-from rae1 import verbose
+from rae1 import verbose, verbosity
 import threading
 import sys
 

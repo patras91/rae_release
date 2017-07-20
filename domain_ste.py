@@ -8,6 +8,7 @@ Based roughly on the "travel from home to the park" example in my lectures,
 but modified to have multiple levels of tasks.
 
 Sunandita: Updated the test cases to test RAE
+Dana: tweaks to how verbosity is handled.
 """
 
 import copy
@@ -117,8 +118,8 @@ def ste_init():
 	print('')
 	rae1.print_methods()
 	print('\n*********************************************************')
-	print("* Call rae1 on simple travel using verbosity level 1.")
-	print("* For a different amout of printout, try 0 or 2 instead.")
+	print("* Call rae1 on simple travel domain. For different amounts of")
+	print("* printout, try verbosity(0), verbosity(1), or verbosity(2).")
 	print('*********************************************************')
 	sys.stdout.flush()
 
@@ -127,7 +128,6 @@ def ste_init():
 	state.cash = {'Dana':20, 'Paolo': 5, 'Malik': 100}
 	state.owe = {'Dana':0, 'Paolo': 0, 'Malik': 0}
 	state.dist = {'home':{'park':8}, 'park':{'home':8}, 'home2':{'park2':80}, 'park2':{'home2':80}}
-	rae1.verbosity(0)
 
 	return state
 
