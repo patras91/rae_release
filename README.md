@@ -27,3 +27,6 @@ domain_springDoor: 'SD'
 
 for example, to test Spring door, type
 testRAE('SD')
+
+You can see different amount of output by changing the verbosity as follows:
+verbosity(0), verbosity(1) or verbosity(2)
