@@ -192,7 +192,7 @@ def RelocateCharger_Method1(c, l, stackid):
     return res
 
 def chargeableRobot_init():
-    rae1.declare_commands(put, take, perceive, charge, move, perceive)
+    rae1.declare_commands(put, take, perceive, charge, move, moveCharger)
     print('\n')
     rae1.print_commands()
 

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from timer import globalTimer
 """
 File rae1.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
@@ -150,6 +151,7 @@ def BeginCriticalRegion(stackid):
 def EndCriticalRegion():
 	ipcArgs.nextStack = 0
 	ipcArgs.sem.release()
+
 #****************************************************************
 
 ############################################################
@@ -266,6 +268,21 @@ def do_command(cmd, *args):
 
 	if verbose > 0:
 		print('| '*indent + 'Begin command {}{}'.format(cmd.__name__,cmdArgs))
+
+	start = globalTimer.GetTime()
+
+	EndCriticalRegion()
+	BeginCriticalRegion(stackid)
+
+	while (globalTimer.IsCommandExecutionOver(cmd.__name__, start) == False):
+		if verbose > 0:
+			print('---- In stack {}:'.format(stackid))
+			print('| '*indent + 'Command {}{} is running'.format( cmd.__name__, cmdArgs))
+		EndCriticalRegion()
+		BeginCriticalRegion(stackid)
+
+	if verbose > 0:
+		print('---- In stack {}:'.format(stackid))
 	retcode = cmd(*cmdArgs)
 
 	if verbose > 1:

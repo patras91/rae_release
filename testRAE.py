@@ -8,6 +8,7 @@ import domain_springDoor
 from rae1 import ipcArgs, verbosity, rae1
 import threading
 import sys
+from timer import globalTimer, SetMode
 
 __author__ = 'patras'
 
@@ -91,6 +92,7 @@ def testRAE(domain):
                     threadList.append(threading.Thread(target=rae1, args = taskArgs))
                     threadList[NUMSTACKS-1].start()
 
+            globalTimer.IncrementTime()
             res = GetNextAlive(nextStack, NUMSTACKS, threadList)
             if res != -1:
                 ipcArgs.nextStack = res

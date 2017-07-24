@@ -123,7 +123,7 @@ def NonEmergencyMove_Method2(r, l, stackid):
 
 def simpleFetch_init():
 
-    rae1.declare_commands(moveTo, take, perceive, addressEmergency, moveToEmergency)
+    rae1.declare_commands(moveTo, take, perceive, addressEmergency, moveToEmergency, wait)
     print('\n')
     rae1.print_commands()
 

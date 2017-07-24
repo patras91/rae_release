@@ -112,3 +112,77 @@ def GETPATH_SPRINGDOOR(l0, l1):
 
     return path2
 #****************************************************************
+
+DURATION_TIME = {
+    'walk': 60, #for domain STE
+    'call_taxi': 5,
+    'enter_taxi': 5,
+    'taxi_carry': 10,
+    'pay_driver': 5,
+    'leave_taxi': 5,
+
+    'put': 2, #for domain CR
+    'take': 2,
+    'perceive': 3,
+    'charge': 5,
+    'move': 10,
+    'moveCharger': 5,
+
+    'moveBy': 3, # for domain SOD
+    'pull': 2,
+    'push': 3,
+    'grasp': 1,
+    'ungrasp': 1,
+    'turn': 2,
+    'moveClose': 3,
+    'getStatus': 2,
+
+    'moveTo': 10, # for domain SF
+    'addressEmergency': 15,
+    'moveToEmergency': 5,
+    'wait': 5,
+
+    'openDoor': 5, #for domain SD
+    'holdDoor': 2,
+    'passDoor': 3,
+    'releaseDoor': 2,
+    'closeDoors': 3
+
+}
+
+
+DURATION_COUNTER = {
+    'walk': 60, #for domain STE
+    'call_taxi': 5,
+    'enter_taxi': 5,
+    'taxi_carry': 10,
+    'pay_driver': 5,
+    'leave_taxi': 5,
+
+    'put': 2, #for domain CR
+    'take': 2,
+    'perceive': 3,
+    'charge': 5,
+    'move': 10,
+    'moveCharger': 5,
+
+    'moveBy': 3, # for domain SOD
+    'pull': 2,
+    'push': 3,
+    'grasp': 1,
+    'ungrasp': 1,
+    'turn': 2,
+    'moveClose': 3,
+    'getStatus': 2,
+
+    'moveTo': 10, # for domain SF
+    'addressEmergency': 15,
+    'moveToEmergency': 5,
+    'wait': 5,
+
+    'openDoor': 5, #for domain SD
+    'holdDoor': 2,
+    'passDoor': 3,
+    'releaseDoor': 2,
+    'closeDoors': 3
+}
