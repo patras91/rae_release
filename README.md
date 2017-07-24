@@ -30,3 +30,9 @@ testRAE('SD')
 
 You can see different amount of output by changing the verbosity as follows:
 verbosity(0), verbosity(1) or verbosity(2)
+
+The commands can be executed in two modes: 'Clock' or 'Counter'.
+By default, the mode is set to 'Counter'.
+To change mode, use:
+
+SetMode('Counter') or SetMode('Clock')
