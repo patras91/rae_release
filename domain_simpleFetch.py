@@ -61,6 +61,10 @@ def addressEmergency(r, l, i):
     rae1.state.emergencyHandling[r] = False
     return res
 
+def wait(r):
+    print("Robot %s is waiting for emergency to be over" %r)
+    return SUCCESS
+
 def Search_Method1(r, o, stackid):
     if rae1.state.pos[o] == UNK:
         for l in LOCATIONS:
@@ -113,18 +117,9 @@ def NonEmergencyMove_Method2(r, l, stackid):
         rae1.do_command(moveTo, r, l, stackid)
     else:
         while(rae1.state.emergencyHandling[r] == True):
-            pass
+            rae1.do_command(wait, r, stackid)
         rae1.do_command(moveTo, r, l, stackid)
     return SUCCESS
-
-def simpleFetch_run_3(stackid):
-    rae1.rae1('emergency', 'r1', 2, 1, stackid)
-
-def simpleFetch_run_2(stackid):
-    rae1.rae1('fetch', 'r1', 'o2', stackid)
-
-def simpleFetch_run_1(stackid):
-    rae1.rae1('fetch', 'r1', 'o1', stackid)
 
 def simpleFetch_init():
 

@@ -190,12 +190,6 @@ def CloseDoors_Method1(stackid):
         rae1.do_command(closeDoors, stackid)
     return SUCCESS
 
-def springDoor_run_1(stackid):
-    rae1.rae1('fetch', 'r1', 'o1', 5, stackid)
-
-def springDoor_run_3(stackid):
-    rae1.rae1('closeDoors', stackid)
-
 def springDoor_init():
     rae1.declare_commands(openDoor, holdDoor, passDoor, releaseDoor, move, put, take, closeDoors)
     print('\n')

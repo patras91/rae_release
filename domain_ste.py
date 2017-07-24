@@ -30,16 +30,23 @@ def walk(a,x,y):
 	return FAILURE
 
 def call_taxi(a,x):
-	print('a taxi appears at location',x,'\n')
-	sys.stdout.flush()
-	rae1.state.loc['taxi'] = x
-	return SUCCESS
+	if rae1.state.occupied['taxi'] == False:
+		print('a taxi appears at location',x,'\n')
+		sys.stdout.flush()
+		rae1.state.loc['taxi'] = x
+		res = SUCCESS
+	else:
+		print('Taxi is occupied \n')
+		sys.stdout.flush()
+		res = FAILURE
+	return res
 
 def enter_taxi(a):
 	if rae1.state.loc['taxi'] == rae1.state.loc[a]:
 		print('agent',a,'enters taxi at location',rae1.state.loc[a],'\n')
 		sys.stdout.flush()
 		rae1.state.loc[a] = 'taxi'
+		rae1.state.occupied['taxi'] = True
 		return SUCCESS
 	else:
 		print("there's no taxi for agent",a,'to enter','\n')
@@ -76,6 +83,7 @@ def leave_taxi(a):
 		print('agent',a,'leaves taxi at location',rae1.state.loc['taxi'],'\n')
 		sys.stdout.flush()
 		rae1.state.loc[a] = rae1.state.loc['taxi']
+		rae1.state.occupied['taxi'] = False
 		return SUCCESS
 	else:
 		print('agent',a,"isn't in a taxi",'\n')
@@ -128,12 +136,4 @@ def ste_init():
 	rae1.state.cash = {'Dana':20, 'Paolo': 5, 'Malik': 100}
 	rae1.state.owe = {'Dana':0, 'Paolo': 0, 'Malik': 0}
 	rae1.state.dist = {'home':{'park':8}, 'park':{'home':8}, 'home2':{'park2':80}, 'park2':{'home2':80}}
-
-def ste_run_travel1(stackid):
-	rae1.rae1('travel','Dana','home','park', stackid)
-
-def ste_run_travel2(stackid):
-	rae1.rae1('travel','Paolo','home','park', stackid)
-
-def ste_run_travel3(stackid):
-	rae1.rae1('travel','Malik','home2','park2', stackid)
+	rae1.state.occupied = {'taxi':False}

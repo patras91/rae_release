@@ -191,15 +191,6 @@ def RelocateCharger_Method1(c, l, stackid):
 
     return res
 
-def chargeableRobot_run_1(stackid):
-    rae1.rae1(stackid, 'fetch', 'r1', 'o1')
-
-def chargeableRobot_run_2(stackid):
-    rae1.rae1(stackid, 'fetch', 'r1', 'o2')
-
-def chargeableRobot_run_3(stackid):
-    rae1.rae1(stackid, 'relocateCharger', 'c1', 8)
-
 def chargeableRobot_init():
     rae1.declare_commands(put, take, perceive, charge, move, perceive)
     print('\n')

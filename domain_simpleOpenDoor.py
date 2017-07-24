@@ -128,9 +128,3 @@ def simpleOpenDoor_init():
     rae1.state.doorStatus = { 'd1':'unknown', 'd2':'unknown'}
     rae1.state.loc = {'r1':2, 'r2':3}
     rae1.state.reachable = {('r1','o1'):False, ('r2','o2'):False}
-
-def simpleOpenDoor_run_1(stackid):
-    rae1.rae1('openDoor', 'r1', 'd1', 'o1', stackid)
-
-def simpleOpenDoor_run_2(stackid):
-    rae1.rae1('openDoor', 'r2', 'd2', 'o2', stackid)
