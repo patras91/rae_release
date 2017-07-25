@@ -27,21 +27,25 @@ class Goal():
 		pass
 
 
-def print_state():
-	"""Print each variable in state, indented by indent spaces."""
+def print_state(depth=0):
+	"""Print each variable in state, indented by depth spaces."""
 	global state
 	if state != False:
 		for (name,val) in vars(state).items():
-			print('| '*indent + '  state.' + name + ' =', val)
+			print('   state.' + name + ' =', val)
 	else: print('False')
+
+def print_stack(stackid, depth):
+	stackdepth = depth[stackid]
+	print(' stack {}.{}:'.format(stackid,stackdepth),end=' '*stackdepth)
 
 ### Print_goal is identical to print_state except for the word 'goal'
 
-def print_goal(goal):
+def print_goal(goal, depth=0):
 	"""Print each variable in goal, indented by indent spaces."""
 	if goal != False:
 		for (name,val) in vars(goal).items():
-			print('| '*indent + '	goal.' + name + ' =', val)
+			print('	goal.' + name + ' =', val)
 	else: print('False')
 
 ### for debugging
@@ -122,8 +126,8 @@ def print_methods(mlist=methods):
 ############################################################
 # Stuff for debugging printout
 
-indent = 0
-indent_increment = 1
+depth = {}
+depth_increment = 1
 
 class Failed_command(Exception):
 	pass
@@ -171,32 +175,40 @@ def rae1(task, *args):
 
 	stackid = args[-1]
 	taskArgs = args[0:-1]
+
+	global depth
+	depth.update({stackid: 1})
+
+	if verbose > 0:
+		print('\n---- Rae1: Create stack {}, task {}{}\n'.format(stackid, task, taskArgs))
+
 	BeginCriticalRegion(stackid)
 
-	global indent
-	indent = indent_increment
-	if verbose > 0:
-		print('---- Rae1: Create stack {}, task {}{}'.format(stackid,task,taskArgs))
 	if verbose > 1:
-		print('| '*indent + 'Initial state is:')
-		print_state()
+		print_stack(stackid,depth)
+		print('Initial state is:')
+		print_state(depth[stackid])
+
 	try:
-		retcode = do_task(task,*args)
+		retcode = do_task(task, *args)
 	except Failed_command,e:
 		if verbose > 0:
-			print('| '*indent + 'Failed command {}'.format(e))
+			print_stack(stackid, depth)
+			print('Failed command {}'.format(e))
 		retcode = 'Failure'
-	except Failed_task,e:
+	except Failed_task, e:
 		if verbose > 0:
-			print('| '*indent + 'Failed task {}'.format(e))
+			print_stack(stackid, depth)
+			print('Failed task {}'.format(e))
 		retcode = 'Failure'
 	else:
 		pass
 	if verbose > 1:
-		print('| '*indent + 'Final state is:')
-		print_state()
+		print_stack(stackid, depth)
+		print('Final state is:')
+		print_state(depth[stackid])
 	if verbose > 0:
-		print("Done with stack %d" %stackid)
+		print("\n---- Rae1: Done with stack %d\n" %stackid)
 
 	EndCriticalRegion()
 	return retcode
@@ -210,43 +222,49 @@ def do_task(task, *args):
 	"""
 	stackid = args[-1]
 	taskArgs = args[0:-1]
-	global indent
+	global depth
 
 	if verbose > 0:
-		print('| '*indent + 'Begin task {}{}'.format(task,taskArgs))
-	indent = indent + indent_increment
+		print_stack(stackid,depth)
+		print('Begin task {}{}'.format(task,taskArgs))
+	depth.update({stackid: depth[stackid]+1})
 	retcode = 'Failure'
 	candidates = methods[task]
 	while (retcode == 'Failure' and candidates != []):
 		(m,candidates) = choose_candidate(candidates)
 		if verbose > 0:
-			print('| '*indent + 'Try method {}{}'.format(m.__name__,taskArgs))
+			print_stack(stackid, depth)
+			print('Try method {}{}'.format(m.__name__,taskArgs))
 
 		try:
 			EndCriticalRegion()
 			BeginCriticalRegion(stackid)
-
 			if verbose > 0:
-				print('---- In stack {}:'.format(stackid))		# this means we've gone to the next stack
+				print_stack(stackid, depth)
+				print("Executing method {}{}".format(m.__name__, taskArgs))
 			if verbose > 1:
-				print('| '*indent + 'Current state is:'.format(stackid))
-				print_state()
+				print_stack(stackid, depth)
+				print('Current state is:'.format(stackid))
+				print_state(depth[stackid])
 			retcode = m(*args)
 		except Failed_command,e:
 			if verbose > 0:
-				print('| '*indent + 'Failed command {}'.format(e))
+				print_stack(stackid,depth)
+				print('Failed command {}'.format(e))
 			retcode = 'Failure'
 		except Failed_task,e:
 			if verbose > 0:
-				print('| '*indent + 'Failed task {}'.format(e))
+				print_stack(stackid,depth)
+				print('Failed task {}'.format(e))
 			retcode = 'Failure'
 		else:
 			pass
 
 		if verbose > 1:
-			print('| '*indent + '{} for method {}{}'.format(retcode,m.__name__,taskArgs))
-	
-	indent = indent - indent_increment
+			print_stack(stackid,depth)
+			print('{} for method {}{}'.format(retcode,m.__name__,taskArgs))
+
+	depth.update({stackid: depth[stackid]-1})
 	if retcode == 'Failure':
 		raise Failed_task('{}{}'.format(task, taskArgs))
 	elif retcode == 'Success':
@@ -263,11 +281,12 @@ def do_command(cmd, *args):
 	stackid = args[-1]
 	cmdArgs = args[0:-1]
 
-	global indent
-	indent = indent + indent_increment
+	global depth
+	depth.update({stackid: depth[stackid]+1})
 
 	if verbose > 0:
-		print('| '*indent + 'Begin command {}{}'.format(cmd.__name__,cmdArgs))
+		print_stack(stackid,depth)
+		print('Begin command {}{}'.format(cmd.__name__,cmdArgs))
 
 	start = globalTimer.GetTime()
 
@@ -276,19 +295,23 @@ def do_command(cmd, *args):
 
 	while (globalTimer.IsCommandExecutionOver(cmd.__name__, start) == False):
 		if verbose > 0:
-			print('---- In stack {}:'.format(stackid))
-			print('| '*indent + 'Command {}{} is running'.format( cmd.__name__, cmdArgs))
+			print_stack(stackid, depth)
+			print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
 		EndCriticalRegion()
 		BeginCriticalRegion(stackid)
 
 	if verbose > 0:
-		print('---- In stack {}:'.format(stackid))
+		print_stack(stackid, depth)
 	retcode = cmd(*cmdArgs)
 
 	if verbose > 1:
-		print('| '*indent + '{}, current state is:'.format(retcode))
-		print_state()
-	indent = indent - indent_increment
+		print_stack(stackid, depth)
+		print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
+		print_stack(stackid, depth)
+		print('Current state is')
+		print_state(depth[stackid])
+
+	depth.update({stackid: depth[stackid]-1})
 
 	if retcode == 'Failure':
 		raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
@@ -296,8 +319,6 @@ def do_command(cmd, *args):
 
 		EndCriticalRegion()
 		BeginCriticalRegion(stackid)
-		if verbose > 0:
-			print('---- In stack {}:'.format(stackid))		# this means we've gone to the next stack
 		return retcode
 	else:
 		raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))
