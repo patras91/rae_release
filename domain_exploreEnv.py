@@ -16,7 +16,7 @@ def survey(r, l):
         print("%s does not have any equipment\n" %r)
         res = FAILURE
     elif rae1.state.loc[r] == l and EE_TYPE[e] == 'survey' and rae1.state.data[r] < 4:
-        print("%s has surveyed the location\n")
+        print("%s has surveyed the location %s\n" %(r, l))
         res = SUCCESS
         rae1.state.data[r] += 1
     elif rae1.state.loc[r] != l:
@@ -36,7 +36,7 @@ def monitor(r, l):
         print("%s does not have any equipment\n" %r)
         res = FAILURE
     elif rae1.state.loc[r] == l and EE_TYPE[e] == 'monitor' and r != 'UAV' and rae1.state.data[r] < 4:
-        print("%s has monitored the location\n")
+        print("%s has monitored the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
     elif rae1.state.loc[r] != l:
@@ -59,7 +59,7 @@ def screen(r, l):
         print("%s does not have any equipment\n" %r)
         res = FAILURE
     elif rae1.state.loc[r] == l and EE_TYPE[e] == 'screen' and r != 'UAV' and rae1.state.data[r] < 4:
-        print("%s has screened the location\n")
+        print("%s has screened the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
     elif rae1.state.loc[r] != l:
@@ -81,8 +81,8 @@ def sample(r, l):
     if e not in EE_TYPE:
         print("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'screen' and r != 'UAV' and rae1.state.data[r] < 4:
-        print("%s has sampled the location\n")
+    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'sample' and r != 'UAV' and rae1.state.data[r] < 4:
+        print("%s has sampled the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
     elif rae1.state.loc[r] != l:
@@ -104,8 +104,8 @@ def process(r, l):
     if e not in EE_TYPE:
         print("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'screen' and r != 'UAV' and rae1.state.data[r] < 4:
-        print("%s has processed the location\n")
+    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'process' and r != 'UAV' and rae1.state.data[r] < 4:
+        print("%s has processed the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
     elif rae1.state.loc[r] != l:
@@ -217,35 +217,48 @@ def transferData(r1, r2):
     if rae1.state.loc[r1] != rae1.state.loc[r2]:
         print("%s and %s are not in same location.\n" %(r1, r2))
         res = FAILURE
-    else:
-
+    elif rae1.state.data[r2] + rae1.state.data[r1] <= 4:
+        print("%s transfered data to %s\n" %(r1, r2))
+        rae1.state.data[r2] += rae1.state.data[r1]
+        rae1.state.data[r1] = 0
         res = SUCCESS
+    elif rae1.state.data[r2] < 4:
+        t = 4 - rae1.state.data[r2]
+        rae1.state.data[r2] = 4
+        rae1.state.data[r1] -= t
+        res = SUCCESS
+    return res
 
 def Explore_Method2(r, activity, l, stackid):
     rae1.do_task('getEquipment', r, activity, stackid)
     rae1.do_task('moveTo', r, l, stackid)
-    res = {
-        'survey': rae1.do_command(survey, r, l, stackid),
-        'monitor': rae1.do_command(monitor, r, l, stackid),
-        'screen': rae1.do_command(screen, r, l, stackid),
-        'sample': rae1.do_command(sample, r, l, stackid),
-        'process': rae1.do_command(process, r, l, stackid)
-    }[activity]
-    if res == SUCCESS:
-        rae1.do_task('depositData', r, 'base', stackid)
-    return res
+    if activity == 'survey':
+        rae1.do_command(survey, r, l, stackid)
+    elif activity == 'monitor':
+        rae1.do_command(monitor, r, l, stackid)
+    elif activity == 'screen':
+        rae1.do_command(screen, r, l, stackid)
+    elif activity == 'sample':
+        rae1.do_command(sample, r, l, stackid)
+    elif activity == 'process':
+        rae1.do_command(process, r, l, stackid)
+    rae1.do_task('depositData', r, 'base', stackid)
+    return SUCCESS
 
 def Explore_Method1(r, activity, l, stackid):
     rae1.do_task('getEquipment', r, activity, stackid)
     rae1.do_task('moveTo', r, l, stackid)
-    res = {
-        'survey': rae1.do_command(survey, r, l, stackid),
-        'monitor': rae1.do_command(monitor, r, l, stackid),
-        'screen': rae1.do_command(screen, r, l, stackid),
-        'sample': rae1.do_command(sample, r, l, stackid),
-        'process': rae1.do_command(process, r, l, stackid)
-    }[activity]
-    return res
+    if activity == 'survey':
+        rae1.do_command(survey, r, l, stackid)
+    elif activity == 'monitor':
+        rae1.do_command(monitor, r, l, stackid)
+    elif activity == 'screen':
+        rae1.do_command(screen, r, l, stackid)
+    elif activity == 'sample':
+        rae1.do_command(sample, r, l, stackid)
+    elif activity == 'process':
+        rae1.do_command(process, r, l, stackid)
+    return SUCCESS
 
 def GetEquipment_Method1(r, activity, stackid):
     if rae1.state.load[r] != EE_EQUIPMENT[activity]:
