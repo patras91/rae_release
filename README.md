@@ -23,7 +23,8 @@ domain_simpleFetch: 'SF',
 domain_simpleOpenDoor: 'SOD',
 domain_ste: 'STE',
 domain_chargeableRobot: 'CR',
-domain_springDoor: 'SD'
+domain_springDoor: 'SD',
+domain_exploreEnv: 'EE'
 
 for example, to test Spring door, type
 testRAE('SD')

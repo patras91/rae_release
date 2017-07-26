@@ -184,5 +184,116 @@ DURATION_COUNTER = {
     'holdDoor': 2,
     'passDoor': 3,
     'releaseDoor': 2,
-    'closeDoors': 3
+    'closeDoors': 3,
+
+    'survey': 5, # for domain EE
+    'monitor': 5,
+    'screen': 5,
+    'sample': 5,
+    'process': 5,
+    'fly': 3,
+    'deposit': 1,
+    'transferData': 1
 }
+
+#*******************************************************
+# Constants for explore environment domain
+
+EE_TYPE = {'e1': 'survey', 'e2': 'monitor', 'e3': 'screen', 'e4': 'sample', 'e5':'process'}
+EE_EQUIPMENT = {'survey': 'e1', 'monitor': 'e2', 'screen': 'e3', 'sample': 'e4', 'process': 'e5'}
+EE_LOCATIONS = ['base', 'z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7']
+EE_EDGES = {
+    'base': {
+        'z1': 15,
+        'z4': 15,
+        'z5': 35,
+        'z6': 35,
+        'z7': 35
+    },
+    'z1': {
+        'base': 15,
+        'z2': 30
+    },
+    'z2': {
+        'z1': 30,
+        'z3': 30
+    },
+    'z3': {
+        'z2': 30,
+        'z4': 30
+    },
+    'z4': {
+        'z3': 30,
+        'base': 15
+    },
+    'z5': {
+        'base': 35
+    },
+    'z6': {
+        'base': 35
+    },
+    'z7': {
+        'base': 35
+    }
+}
+# Using Dijsktra's algorithm
+def EE_GETPATH(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(EE_LOCATIONS)
+    path = {}
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in EE_EDGES[min_loc]:
+            dist = current_dist + EE_EDGES[min_loc][l]
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+                path[l] = min_loc
+    l = l1
+    path2 = {}
+    while l != l0:
+        path2[path[l]] = l
+        l = path[l]
+
+    return path2
+
+# Using Dijsktra's algorithm
+def EE_GETDISTANCE(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(EE_LOCATIONS)
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in EE_EDGES[min_loc]:
+            dist = current_dist + EE_EDGES[min_loc][l]
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+
+    return visitedDistances[l1]
+#*******************************************************

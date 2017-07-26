@@ -54,7 +54,7 @@ def move(r, l1, l2, dist):
         print("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
-        print("Robot has moved from %d to %d\n" %(l1, l2))
+        print("Robot %s has moved from %d to %d\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
         res = SUCCESS
