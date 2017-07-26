@@ -1,5 +1,7 @@
 from __future__ import print_function
 from timer import globalTimer
+import types
+
 """
 File rae1.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
@@ -27,7 +29,7 @@ class Goal():
 		pass
 
 
-def print_state(depth=0):
+def print_state():
 	"""Print each variable in state, indented by depth spaces."""
 	global state
 	if state != False:
@@ -35,18 +37,24 @@ def print_state(depth=0):
 			print('   state.' + name + ' =', val)
 	else: print('False')
 
-def print_stack(stackid, depth):
-	stackdepth = depth[stackid]
-	print(' stack {}.{}:'.format(stackid,stackdepth),end=' '*stackdepth)
+def print_stack_size(stackid, path):
+	stacksize = len(path[stackid])
+	print('stack {}.{}: '.format(stackid,stacksize),end=' '*stacksize)
 
-### Print_goal is identical to print_state except for the word 'goal'
+def print_entire_stack(stackid, path):
+	if len(path[stackid]) == 0:
+		print('stack {} = []\n'.format(stackid), end='')
+		return
 
-def print_goal(goal, depth=0):
-	"""Print each variable in goal, indented by indent spaces."""
-	if goal != False:
-		for (name,val) in vars(goal).items():
-			print('	goal.' + name + ' =', val)
-	else: print('False')
+	print('stack {} = ['.format(stackid), end='')
+	punctuation = ', '
+	for i in range(0,len(path[stackid])):
+		(name,args) = path[stackid][i]
+		if type(name) is types.FunctionType:
+			name = name.__name__
+		if i >= len(path[stackid]) - 1:
+			punctuation = ']\n'
+		print('{}{}'.format(name, args), end=punctuation)
 
 ### for debugging
 
@@ -126,8 +134,7 @@ def print_methods(mlist=methods):
 ############################################################
 # Stuff for debugging printout
 
-depth = {}
-depth_increment = 1
+path = {}
 
 class Failed_command(Exception):
 	pass
@@ -176,8 +183,8 @@ def rae1(task, *args):
 	stackid = args[-1]
 	taskArgs = args[0:-1]
 
-	global depth
-	depth.update({stackid: 1})
+	global path
+	path.update({stackid: []})
 
 	if verbose > 0:
 		print('\n---- Rae1: Create stack {}, task {}{}\n'.format(stackid, task, taskArgs))
@@ -185,28 +192,28 @@ def rae1(task, *args):
 	BeginCriticalRegion(stackid)
 
 	if verbose > 1:
-		print_stack(stackid,depth)
+		print_stack_size(stackid, path)
 		print('Initial state is:')
-		print_state(depth[stackid])
+		print_state()
 
 	try:
 		retcode = do_task(task, *args)
 	except Failed_command,e:
 		if verbose > 0:
-			print_stack(stackid, depth)
+			print_stack_size(stackid, path)
 			print('Failed command {}'.format(e))
 		retcode = 'Failure'
 	except Failed_task, e:
 		if verbose > 0:
-			print_stack(stackid, depth)
+			print_stack_size(stackid, path)
 			print('Failed task {}'.format(e))
 		retcode = 'Failure'
 	else:
 		pass
 	if verbose > 1:
-		print_stack(stackid, depth)
+		print_stack_size(stackid, path)
 		print('Final state is:')
-		print_state(depth[stackid])
+		print_state()
 	if verbose > 0:
 		print("\n---- Rae1: Done with stack %d\n" %stackid)
 
@@ -222,49 +229,56 @@ def do_task(task, *args):
 	"""
 	stackid = args[-1]
 	taskArgs = args[0:-1]
-	global depth
+	global path
 
+	path[stackid].append([task, taskArgs])
 	if verbose > 0:
-		print_stack(stackid,depth)
-		print('Begin task {}{}'.format(task,taskArgs))
-	depth.update({stackid: depth[stackid]+1})
+		print_stack_size(stackid, path)
+		print('Begin task {}{}'.format(task, taskArgs))
+
+	if verbose > 1:
+		print_entire_stack(stackid, path)
+
 	retcode = 'Failure'
 	candidates = methods[task]
 	while (retcode == 'Failure' and candidates != []):
 		(m,candidates) = choose_candidate(candidates)
 		if verbose > 0:
-			print_stack(stackid, depth)
+			print_stack_size(stackid, path)
 			print('Try method {}{}'.format(m.__name__,taskArgs))
 
 		try:
 			EndCriticalRegion()
 			BeginCriticalRegion(stackid)
 			if verbose > 0:
-				print_stack(stackid, depth)
+				print_stack_size(stackid, path)
 				print("Executing method {}{}".format(m.__name__, taskArgs))
 			if verbose > 1:
-				print_stack(stackid, depth)
+				print_stack_size(stackid, path)
 				print('Current state is:'.format(stackid))
-				print_state(depth[stackid])
+				print_state()
 			retcode = m(*args)
-		except Failed_command,e:
+		except Failed_command, e:
 			if verbose > 0:
-				print_stack(stackid,depth)
+				print_stack_size(stackid, path)
 				print('Failed command {}'.format(e))
 			retcode = 'Failure'
 		except Failed_task,e:
 			if verbose > 0:
-				print_stack(stackid,depth)
+				print_stack_size(stackid, path)
 				print('Failed task {}'.format(e))
 			retcode = 'Failure'
 		else:
 			pass
 
 		if verbose > 1:
-			print_stack(stackid,depth)
+			print_stack_size(stackid, path)
 			print('{} for method {}{}'.format(retcode,m.__name__,taskArgs))
 
-	depth.update({stackid: depth[stackid]-1})
+	path[stackid].pop()
+	if verbose > 1:
+		print_entire_stack(stackid, path)
+
 	if retcode == 'Failure':
 		raise Failed_task('{}{}'.format(task, taskArgs))
 	elif retcode == 'Success':
@@ -281,11 +295,14 @@ def do_command(cmd, *args):
 	stackid = args[-1]
 	cmdArgs = args[0:-1]
 
-	global depth
-	depth.update({stackid: depth[stackid]+1})
+	global path
+	path[stackid].append([cmd, cmdArgs])
+
+	if verbose > 1:
+		print_entire_stack(stackid, path)
 
 	if verbose > 0:
-		print_stack(stackid,depth)
+		print_stack_size(stackid, path)
 		print('Begin command {}{}'.format(cmd.__name__,cmdArgs))
 
 	start = globalTimer.GetTime()
@@ -295,23 +312,26 @@ def do_command(cmd, *args):
 
 	while (globalTimer.IsCommandExecutionOver(cmd.__name__, start) == False):
 		if verbose > 0:
-			print_stack(stackid, depth)
+			print_stack_size(stackid, path)
 			print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
 		EndCriticalRegion()
 		BeginCriticalRegion(stackid)
 
 	if verbose > 0:
-		print_stack(stackid, depth)
+		print_stack_size(stackid, path)
+		print('Command {}{} is finishing'.format( cmd.__name__, cmdArgs))
 	retcode = cmd(*cmdArgs)
 
 	if verbose > 1:
-		print_stack(stackid, depth)
+		print_stack_size(stackid, path)
 		print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
-		print_stack(stackid, depth)
+		print_stack_size(stackid, path)
 		print('Current state is')
-		print_state(depth[stackid])
+		print_state()
 
-	depth.update({stackid: depth[stackid]-1})
+	path[stackid].pop()
+	if verbose > 1:
+		print_entire_stack(stackid, path)
 
 	if retcode == 'Failure':
 		raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
