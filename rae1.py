@@ -30,7 +30,7 @@ class Goal():
 
 
 def print_state():
-	"""Print each variable in state, indented by depth spaces."""
+	"""Print each variable in state"""
 	global state
 	if state != False:
 		for (name,val) in vars(state).items():
@@ -39,14 +39,14 @@ def print_state():
 
 def print_stack_size(stackid, path):
 	stacksize = len(path[stackid])
-	print('stack {}.{}: '.format(stackid,stacksize),end=' '*stacksize)
+	print(' stack {}.{}: '.format(stackid,stacksize),end=' '*stacksize)
 
 def print_entire_stack(stackid, path):
 	if len(path[stackid]) == 0:
-		print('stack {} = []\n'.format(stackid), end='')
+		print(' stack {} = []\n'.format(stackid), end='')
 		return
 
-	print('stack {} = ['.format(stackid), end='')
+	print(' stack {} = ['.format(stackid), end='')
 	punctuation = ', '
 	for i in range(0,len(path[stackid])):
 		(name,args) = path[stackid][i]
