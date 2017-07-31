@@ -2,21 +2,22 @@ __author__ = 'patras'
 from domain_constants import *
 import rae1
 import random
+import gui
 
 '''A simple example where a robot has to open a door. From Ch 3'''
 
 #******************************************************
 #commands controlling motion of the robot
 def moveBy(r, lamda):
-    print("Robot %s performs a motion defined by vector %s\n" %(r, lamda))
+    gui.Simulate("Robot %s performs a motion defined by vector %s\n" %(r, lamda))
     return SUCCESS
 
 def pull(r, lamda):
-    print("Robot %s pulls its arm by vector %s\n" %(r, lamda))
+    gui.Simulate("Robot %s pulls its arm by vector %s\n" %(r, lamda))
     return SUCCESS
 
 def push(r, lamda):
-    print("Robot %s pushes its arm vector %s\n" %(r, lamda))
+    gui.Simulate("Robot %s pushes its arm vector %s\n" %(r, lamda))
     return SUCCESS
 #******************************************************
 
@@ -24,46 +25,46 @@ def push(r, lamda):
 #commands controlling movement of door handle by robot
 def grasp(r, o):
     if rae1.state.reachable[r,o] == True:
-        print("Robot %s has grasped handle %s\n" %(r, o))
+        gui.Simulate("Robot %s has grasped handle %s\n" %(r, o))
         res = SUCCESS
     else:
-        print("Robot %s cannot grasp handle %s because it is unreachable\n" %(r, o))
+        gui.Simulate("Robot %s cannot grasp handle %s because it is unreachable\n" %(r, o))
         res = FAILURE
     return res
 
 def ungrasp(r, o):
     if rae1.state.reachable[r,o] == True:
-        print("Robot %s has ungrasped handle %s\n" %(r, o))
+        gui.Simulate("Robot %s has ungrasped handle %s\n" %(r, o))
         res = SUCCESS
     else:
-        print("Robot %s cannot ungrasp handle %s because it is unreachable\n" %(r, o))
+        gui.Simulate("Robot %s cannot ungrasp handle %s because it is unreachable\n" %(r, o))
         res = FAILURE
     return res
 
 def turn(r, o, alpha):
     if rae1.state.reachable[r,o] == True:
-        print("Robot %s turns %s by %s\n" %(r, o, alpha))
+        gui.Simulate("Robot %s turns %s by %s\n" %(r, o, alpha))
         res = SUCCESS
     else:
-        print("Robot %s cannot turn handle %s because it is unreachable\n" %(r, o))
+        gui.Simulate("Robot %s cannot turn handle %s because it is unreachable\n" %(r, o))
         res = FAILURE
     return res
 #******************************************************
 
 def moveClose(r, o):
     if rae1.state.reachable[r,o] == False:
-        print("Robot %s moves close to door handle %s\n" %(r, o))
+        gui.Simulate("Robot %s moves close to door handle %s\n" %(r, o))
         rae1.state.reachable[r,o] = True
         res = SUCCESS
     else:
-        print("Robot %s is already close to handle %s\n" %(r, o))
+        gui.Simulate("Robot %s is already close to handle %s\n" %(r, o))
         res = SUCCESS
     return res
 
 def getStatus(r, d):
-    print("Robot %s is monitoring the status of door %s\n" %(r, d))
+    gui.Simulate("Robot %s is monitoring the status of door %s\n" %(r, d))
     stat = random.choice(['closed', 'cracked'])
-    print("Robot %s found it to be %s" %(r, stat))
+    gui.Simulate("Robot %s found it to be %s" %(r, stat))
     rae1.state.doorStatus[d] = stat
     return SUCCESS
 
@@ -78,9 +79,9 @@ def Unlatch_Method1(r, d, o, stackid):
             res = SUCCESS
         else:
             res = FAILURE
-            print("Robot %s is not able to unlatch %s\n" %(r, d))
+            gui.Simulate("Robot %s is not able to unlatch %s\n" %(r, d))
     else:
-        print("Robot %s is not in right position and orientation to unlatch %s\n" %(r, d))
+        gui.Simulate("Robot %s is not in right position and orientation to unlatch %s\n" %(r, d))
         res = FAILURE
     return res
 
@@ -91,7 +92,7 @@ def ThrowWide_Method1(r, d, o, stackid):
         rae1.do_command(moveBy, r, 'val2', stackid)
         res = SUCCESS
     else:
-        print("Robot %s is not in right position and orientation to throw wide %s\n" %(r, d))
+        gui.Simulate("Robot %s is not in right position and orientation to throw wide %s\n" %(r, d))
         res = FAILURE
     return res
 
@@ -104,7 +105,7 @@ def OpenDoor_Method1(r, d, o, stackid):
         rae1.do_task('throwWide', r, d, o, stackid)
         res = SUCCESS
     else:
-        print("%s not in right position to open door %s" %(r,d))
+        gui.Simulate("%s not in right position to open door %s" %(r,d))
         res = FAILURE
 
     return res

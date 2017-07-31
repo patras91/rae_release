@@ -13,6 +13,7 @@ Dana: tweaks to how verbosity is handled.
 
 import copy
 import rae1
+import gui
 
 def taxi_rate(dist):
 	return (1.5 + 0.5 * dist)
@@ -20,73 +21,73 @@ def taxi_rate(dist):
 def walk(a,x,y):
 
 	if rae1.state.loc[a] == x:
-		print('agent',a,'walks from',x,'to',y,'\n')
+		gui.Simulate('agent',a,'walks from',x,'to',y,'\n')
 		sys.stdout.flush()
 		rae1.state.loc[a] = y
 		return SUCCESS
 	else:
-		print('agent',a,"isn't at location",x,'\n')
+		gui.Simulate('agent',a,"isn't at location",x,'\n')
 		sys.stdout.flush()
 	return FAILURE
 
 def call_taxi(a,x):
 	if rae1.state.occupied['taxi'] == False:
-		print('a taxi appears at location',x,'\n')
+		gui.Simulate('a taxi appears at location',x,'\n')
 		sys.stdout.flush()
 		rae1.state.loc['taxi'] = x
 		res = SUCCESS
 	else:
-		print('Taxi is occupied \n')
+		gui.Simulate('Taxi is occupied \n')
 		sys.stdout.flush()
 		res = FAILURE
 	return res
 
 def enter_taxi(a):
 	if rae1.state.loc['taxi'] == rae1.state.loc[a]:
-		print('agent',a,'enters taxi at location',rae1.state.loc[a],'\n')
+		gui.Simulate('agent',a,'enters taxi at location',rae1.state.loc[a],'\n')
 		sys.stdout.flush()
 		rae1.state.loc[a] = 'taxi'
 		rae1.state.occupied['taxi'] = True
 		return SUCCESS
 	else:
-		print("there's no taxi for agent",a,'to enter','\n')
+		gui.Simulate("there's no taxi for agent",a,'to enter','\n')
 		sys.stdout.flush()
 		return FAILURE
 
 def taxi_carry(a,y):
 	if rae1.state.loc[a]=='taxi':
 		x = rae1.state.loc['taxi']
-		print('taxi carries agent',a,'from',x,'to',y,'\n')
+		gui.Simulate('taxi carries agent',a,'from',x,'to',y,'\n')
 		sys.stdout.flush()
 		rae1.state.loc['taxi'] = y
 		rae1.state.owe[a] = taxi_rate(rae1.state.dist[x][y])
 		return SUCCESS
 	else:
-		print('agent',a,"isn't in a taxi",'\n')
+		gui.Simulate('agent',a,"isn't in a taxi",'\n')
 		sys.stdout.flush()
 		return FAILURE
 
 def pay_driver(a):
 	if rae1.state.cash[a] >= rae1.state.owe[a]:
-		print('agent',a,'pays',rae1.state.owe[a],'to the taxi driver','\n')
+		gui.Simulate('agent',a,'pays',rae1.state.owe[a],'to the taxi driver','\n')
 		sys.stdout.flush()
 		rae1.state.cash[a] = rae1.state.cash[a] - rae1.state.owe[a]
 		rae1.state.owe[a] = 0
 		return SUCCESS
 	else:
-		print('agent',a,'cannot pay',rae1.state.owe[a],'to the taxi driver','\n')
+		gui.Simulate('agent',a,'cannot pay',rae1.state.owe[a],'to the taxi driver','\n')
 		sys.stdout.flush()
 		return FAILURE
 
 def leave_taxi(a):
 	if rae1.state.loc[a]=='taxi':
-		print('agent',a,'leaves taxi at location',rae1.state.loc['taxi'],'\n')
+		gui.Simulate('agent',a,'leaves taxi at location',rae1.state.loc['taxi'],'\n')
 		sys.stdout.flush()
 		rae1.state.loc[a] = rae1.state.loc['taxi']
 		rae1.state.occupied['taxi'] = False
 		return SUCCESS
 	else:
-		print('agent',a,"isn't in a taxi",'\n')
+		gui.Simulate('agent',a,"isn't in a taxi",'\n')
 		sys.stdout.flush()
 		return FAILURE
 
@@ -102,7 +103,7 @@ def travel_by_taxi(a,x,y,stackid):
 		rae1.do_task('ride_taxi',a,y,stackid)
 		return SUCCESS
 	else:
-		print('agent',a,"has too little money for a taxi from",x,'to',y,'\n')
+		gui.Simulate('agent',a,"has too little money for a taxi from",x,'to',y,'\n')
 		sys.stdout.flush()
 		return FAILURE
 
@@ -114,7 +115,7 @@ def ride_taxi_method(a,y,stackid):
 		rae1.do_command(leave_taxi,a,stackid)
 		return SUCCESS
 	else:
-		print('the taxi driver is unwilling to drive to',y,'\n')
+		gui.Simulate('the taxi driver is unwilling to drive to',y,'\n')
 		sys.stdout.flush()
 		return FAILURE
 

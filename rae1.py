@@ -1,6 +1,6 @@
 from __future__ import print_function
-from timer import globalTimer
 import types
+import threading
 
 """
 File rae1.py
@@ -286,6 +286,8 @@ def do_task(task, *args):
 	else:
 		raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
 
+def beginCommand(cmd, cmdRet, cmdArgs):
+    cmdRet['state'] = cmd(*cmdArgs)
 
 def do_command(cmd, *args):
 	"""
@@ -305,12 +307,14 @@ def do_command(cmd, *args):
 		print_stack_size(stackid, path)
 		print('Begin command {}{}'.format(cmd.__name__,cmdArgs))
 
-	start = globalTimer.GetTime()
+	cmdRet = {'state':'running'}
+	cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
+	cmdThread.start()
 
 	EndCriticalRegion()
 	BeginCriticalRegion(stackid)
 
-	while (globalTimer.IsCommandExecutionOver(cmd.__name__, start) == False):
+	while (cmdRet['state'] == 'running'):
 		if verbose > 0:
 			print_stack_size(stackid, path)
 			print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
@@ -319,9 +323,9 @@ def do_command(cmd, *args):
 
 	if verbose > 0:
 		print_stack_size(stackid, path)
-		print('Command {}{} is finishing'.format( cmd.__name__, cmdArgs))
-	retcode = cmd(*cmdArgs)
+		print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
 
+	retcode = cmdRet['state']
 	if verbose > 1:
 		print_stack_size(stackid, path)
 		print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
@@ -336,9 +340,6 @@ def do_command(cmd, *args):
 	if retcode == 'Failure':
 		raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
 	elif retcode == 'Success':
-
-		EndCriticalRegion()
-		BeginCriticalRegion(stackid)
 		return retcode
 	else:
 		raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))

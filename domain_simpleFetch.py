@@ -1,21 +1,22 @@
 __author__ = 'patras'
 import rae1
 from domain_constants import *
+import gui
 
 '''A simple example where a robot has to fetch an object in a harbor and handle emergencies. From Ch 3'''
 
 def moveTo(r, l):
     if rae1.state.emergencyHandling[r] == False:
-        print("Robot %s has gone to location %d\n" %(r,l))
+        gui.Simulate("Robot %s has gone to location %d\n" %(r,l))
         rae1.state.loc[r] = l
         res = SUCCESS
     else:
-        print("Cannot move robot %s because it is handling emergency\n" %r)
+        gui.Simulate("Cannot move robot %s because it is handling emergency\n" %r)
         res = FAILURE
     return res
 
 def moveToEmergency(r, l):
-    print("Robot %s has gone to location %d to handle emergency\n" %(r,l))
+    gui.Simulate("Robot %s has gone to location %d to handle emergency\n" %(r,l))
     rae1.state.loc[r] = l
     return SUCCESS
 
@@ -23,10 +24,10 @@ def take(r, o, l):
     if rae1.state.pos[o] == l:
         rae1.state.pos[o] = r
         rae1.state.load[r] = o
-        print("Robot %s has taken object %s at location %d\n" %(r,o,l))
+        gui.Simulate("Robot %s has taken object %s at location %d\n" %(r,o,l))
         res = SUCCESS
     else:
-        print("Object %s is not at location %d\n" %(o,l))
+        gui.Simulate("Object %s is not at location %d\n" %(o,l))
         res = FAILURE
     return res
 
@@ -34,10 +35,10 @@ def put(r, o, l):
     if rae1.state.pos[o] == r:
         rae1.state.pos[o] = l
         rae1.state.load[r] = NIL
-        print("Robot %s has put object %s at location %d\n" %(r,o,l))
+        gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,l))
         res = SUCCESS
     else:
-        print("Object %s is not with robot %s\n" %(o,r))
+        gui.Simulate("Object %s is not with robot %s\n" %(o,r))
         res = FAILURE
     return res
 
@@ -46,23 +47,23 @@ def perceive(l):
         for c in rae1.state.containers[l]:
             rae1.state.pos[c] = l
         rae1.state.view[l] = True
-        print("Perceived location %d" %l)
+        gui.Simulate("Perceived location %d" %l)
     else:
-        print("Already perceived\n")
+        gui.Simulate("Already perceived\n")
     return SUCCESS
 
 def addressEmergency(r, l, i):
     if rae1.state.loc[r] == l:
-        print("Robot %s has addressed emergency %d" %(r, i))
+        gui.Simulate("Robot %s has addressed emergency %d" %(r, i))
         res = SUCCESS
     else:
-        print("Robot %s has failed to address emergency %d" %(r, i))
+        gui.Simulate("Robot %s has failed to address emergency %d" %(r, i))
         res = FAILURE
     rae1.state.emergencyHandling[r] = False
     return res
 
 def wait(r):
-    print("Robot %s is waiting for emergency to be over" %r)
+    gui.Simulate("Robot %s is waiting for emergency to be over" %r)
     return SUCCESS
 
 def Search_Method1(r, o, stackid):
@@ -76,7 +77,7 @@ def Search_Method1(r, o, stackid):
                     break
         res = SUCCESS
     else:
-        print("Failed to search %s" %o)
+        gui.Simulate("Failed to search %s" %o)
         res = FAILURE
     return res
 
@@ -99,7 +100,7 @@ def Emergency_Method1(r, l, i, stackid):
         rae1.do_command(addressEmergency, r, l, i, stackid)
         res = SUCCESS
     else:
-        print("%r is already busy handling another emergency\n" %r)
+        gui.Simulate("%r is already busy handling another emergency\n" %r)
         res = FAILURE
     return res
 
@@ -108,7 +109,7 @@ def NonEmergencyMove_Method1(r, l, stackid):
         rae1.do_command(moveTo, r, l, stackid)
         res = SUCCESS
     else:
-        print("Move failed, trying to do a non emergency move for a robot handling emergency\n")
+        gui.Simulate("Move failed, trying to do a non emergency move for a robot handling emergency\n")
         res = FAILURE
     return res
 

@@ -7,19 +7,20 @@ Recharger is only at one location'''
 
 from domain_constants import *
 import rae1
+import gui
 
 def take(r, o):
     if rae1.state.load[r] == NIL:
         if rae1.state.loc[r] == rae1.state.pos[o]:
-            print("Robot %s has picked up object %s" %(r, o))
+            gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
             rae1.state.pos[o] = r
             rae1.state.load[r] = o
             res = SUCCESS
         elif rae1.state.loc[r] != rae1.state.pos[o]:
-            print("Robot %s is not at object %s's location\n" %(r, o))
+            gui.Simulate("Robot %s is not at object %s's location\n" %(r, o))
             res = FAILURE
     else:
-        print("Robot %s is not free to take anything\n" %r)
+        gui.Simulate("Robot %s is not free to take anything\n" %r)
         res = FAILURE
     return res
 
@@ -27,46 +28,46 @@ def put(r, o):
     if rae1.state.pos[o] == r:
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
-        print("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
+        gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
         res = SUCCESS
     else:
-        print("Object %s is not with robot %s\n" %(o,r))
+        gui.Simulate("Object %s is not with robot %s\n" %(o,r))
         res = FAILURE
     return res
 
 def charge(r, c):
     if rae1.state.loc[r] == rae1.state.pos[c] or rae1.state.pos[c] == r:
         rae1.state.charge[r] = 4
-        print("Robot %s is fully charged\n" %r)
+        gui.Simulate("Robot %s is fully charged\n" %r)
         res = SUCCESS
     else:
-        print("Robot %s is not in the charger's location or it doesn't have the charger with it\n" %r)
+        gui.Simulate("Robot %s is not in the charger's location or it doesn't have the charger with it\n" %r)
         res = FAILURE
     return res
 
 def moveCharger(c, l):
-    print ("Charger %s is moved to location %s\n" %(c,l))
+    gui.Simulate("Charger %s is moved to location %s\n" %(c,l))
     rae1.state.pos[c] = l
     return SUCCESS
 
 def move(r, l1, l2, dist):
     if l1 == l2:
-        print("Robot %s is already at location %s\n" %(r, l2))
+        gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
-        print("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+        gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
         res = SUCCESS
     elif rae1.state.loc[r] != l1 and rae1.state.charge[r] >= dist:
-        print("Robot %s is not in location %d\n" %(r, l1))
+        gui.Simulate("Robot %s is not in location %d\n" %(r, l1))
         res = FAILURE
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] < dist:
-        print("Robot %s does not have enough charge to move :(\n" %r)
+        gui.Simulate("Robot %s does not have enough charge to move :(\n" %r)
         rae1.state.charge[r] = 0 # should we do this?
         res = FAILURE
     else:
-        print("Robot %s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
+        gui.Simulate("Robot %s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
         res = FAILURE
     return res
 
@@ -75,9 +76,9 @@ def perceive(l):
         for c in rae1.state.containers[l]:
             rae1.state.pos[c] = l
         rae1.state.view[l] = True
-        print("Perceived location %d" %l)
+        gui.Simulate("Perceived location %d\n" %l)
     else:
-        print("Already perceived\n")
+        gui.Simulate("Already perceived\n")
     return SUCCESS
 
 def MoveTo_Method1(r, l, stackid):
@@ -86,7 +87,7 @@ def MoveTo_Method1(r, l, stackid):
         rae1.do_command(move, r, rae1.state.loc[r], l, dist, stackid)
         res = SUCCESS
     else:
-        print("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(rae1.state.charge[r] * 100 / 4, r))
+        gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(rae1.state.charge[r] * 100 / 4, r))
         res = FAILURE
     return res
 
@@ -123,10 +124,10 @@ def Search_Method1(r, o, stackid):
                 rae1.do_task('search', r, o, stackid)
             res = SUCCESS
         else:
-            print("Failed to search %s" %o)
+            gui.Simulate("Failed to search %s" %o)
             res = FAILURE
     else:
-        print("Position of %s is already known\n" %o)
+        gui.Simulate("Position of %s is already known\n" %o)
         res = SUCCESS
     return res
 
@@ -150,10 +151,10 @@ def Search_Method2(r, o, stackid):
                 rae1.do_task('search', r, o, stackid)
             res = SUCCESS
         else:
-            print("Failed to search %s" %o)
+            gui.Simulate("Failed to search %s" %o)
             res = FAILURE
     else:
-        print("Position of %s is already known\n" %o)
+        gui.Simulate("Position of %s is already known\n" %o)
         res = SUCCESS
     return res
 
@@ -187,7 +188,7 @@ def RelocateCharger_Method1(c, l, stackid):
     if res == SUCCESS:
         rae1.do_command(moveCharger, c, l, stackid)
     else:
-        print("Cannot move charger now, robots might need it\n")
+        gui.Simulate("Cannot move charger now, robots might need it\n")
 
     return res
 

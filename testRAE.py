@@ -10,6 +10,7 @@ from rae1 import ipcArgs, verbosity, rae1
 import threading
 import sys
 from timer import globalTimer, SetMode
+import gui
 
 __author__ = 'patras'
 
@@ -64,11 +65,6 @@ def GetNewTask(domain):
         return []
 
 def testRAE(domain):
-
-    ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
-    ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
-
-    threadList = []
     if domain == 'SF':
         domain_simpleFetch.simpleFetch_init()
     elif domain == 'CR':
@@ -85,6 +81,16 @@ def testRAE(domain):
         print("Invalid domain\n")
         return
 
+    rM = threading.Thread(target=raeMult, args=[domain])
+    rM.start()
+    gui.start()
+    rM.join()
+
+def raeMult(domain):
+    ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
+    ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
+
+    threadList = []
     nextStack = 1
     NUMSTACKS = 0
     GetNewTask.counter = 0
@@ -99,8 +105,8 @@ def testRAE(domain):
                     taskArgs.append(NUMSTACKS)
                     threadList.append(threading.Thread(target=rae1, args = taskArgs))
                     threadList[NUMSTACKS-1].start()
+                globalTimer.IncrementTime()
 
-            globalTimer.IncrementTime()
             res = GetNextAlive(nextStack, NUMSTACKS, threadList)
             if res != -1:
                 ipcArgs.nextStack = res
@@ -108,3 +114,4 @@ def testRAE(domain):
                 ipcArgs.sem.release()
             else:
                 break
+    print("----Done with RAE----\n")
