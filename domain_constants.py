@@ -146,7 +146,16 @@ DURATION_TIME = {
     'holdDoor': 2,
     'passDoor': 3,
     'releaseDoor': 2,
-    'closeDoors': 3
+    'closeDoors': 3,
+
+    'survey': 5, # for domain EE
+    'monitor': 5,
+    'screen': 5,
+    'sample': 5,
+    'process': 5,
+    'fly': 3,
+    'deposit': 1,
+    'transferData': 1
 
 }
 

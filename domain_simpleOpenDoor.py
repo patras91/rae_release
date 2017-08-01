@@ -3,20 +3,30 @@ from domain_constants import *
 import rae1
 import random
 import gui
+from timer import globalTimer
 
 '''A simple example where a robot has to open a door. From Ch 3'''
 
 #******************************************************
 #commands controlling motion of the robot
 def moveBy(r, lamda):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('moveBy', start) == False):
+	    pass
     gui.Simulate("Robot %s performs a motion defined by vector %s\n" %(r, lamda))
     return SUCCESS
 
 def pull(r, lamda):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('pull', start) == False):
+	    pass
     gui.Simulate("Robot %s pulls its arm by vector %s\n" %(r, lamda))
     return SUCCESS
 
 def push(r, lamda):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('push', start) == False):
+	    pass
     gui.Simulate("Robot %s pushes its arm vector %s\n" %(r, lamda))
     return SUCCESS
 #******************************************************
@@ -25,6 +35,9 @@ def push(r, lamda):
 #commands controlling movement of door handle by robot
 def grasp(r, o):
     if rae1.state.reachable[r,o] == True:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('grasp', start) == False):
+	        pass
         gui.Simulate("Robot %s has grasped handle %s\n" %(r, o))
         res = SUCCESS
     else:
@@ -34,6 +47,9 @@ def grasp(r, o):
 
 def ungrasp(r, o):
     if rae1.state.reachable[r,o] == True:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('ungrasp', start) == False):
+	        pass
         gui.Simulate("Robot %s has ungrasped handle %s\n" %(r, o))
         res = SUCCESS
     else:
@@ -43,6 +59,9 @@ def ungrasp(r, o):
 
 def turn(r, o, alpha):
     if rae1.state.reachable[r,o] == True:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('turn', start) == False):
+	        pass
         gui.Simulate("Robot %s turns %s by %s\n" %(r, o, alpha))
         res = SUCCESS
     else:
@@ -53,6 +72,9 @@ def turn(r, o, alpha):
 
 def moveClose(r, o):
     if rae1.state.reachable[r,o] == False:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('moveClose', start) == False):
+	        pass
         gui.Simulate("Robot %s moves close to door handle %s\n" %(r, o))
         rae1.state.reachable[r,o] = True
         res = SUCCESS
@@ -62,9 +84,12 @@ def moveClose(r, o):
     return res
 
 def getStatus(r, d):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('getStatus', start) == False):
+        pass
     gui.Simulate("Robot %s is monitoring the status of door %s\n" %(r, d))
     stat = random.choice(['closed', 'cracked'])
-    gui.Simulate("Robot %s found it to be %s" %(r, stat))
+    gui.Simulate("Robot %s found it to be %s\n" %(r, stat))
     rae1.state.doorStatus[d] = stat
     return SUCCESS
 

@@ -8,10 +8,14 @@ Recharger is only at one location'''
 from domain_constants import *
 import rae1
 import gui
+from timer import globalTimer
 
 def take(r, o):
     if rae1.state.load[r] == NIL:
         if rae1.state.loc[r] == rae1.state.pos[o]:
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('take', start) == False):
+			    pass
             gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
             rae1.state.pos[o] = r
             rae1.state.load[r] = o
@@ -26,6 +30,9 @@ def take(r, o):
 
 def put(r, o):
     if rae1.state.pos[o] == r:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('put', start) == False):
+		    pass
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
         gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
@@ -37,6 +44,9 @@ def put(r, o):
 
 def charge(r, c):
     if rae1.state.loc[r] == rae1.state.pos[c] or rae1.state.pos[c] == r:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('charge', start) == False):
+			pass
         rae1.state.charge[r] = 4
         gui.Simulate("Robot %s is fully charged\n" %r)
         res = SUCCESS
@@ -46,6 +56,9 @@ def charge(r, c):
     return res
 
 def moveCharger(c, l):
+    #start = globalTimer.GetTime()
+    #while(globalTimer.IsCommandExecutionOver('moveCharger', start) == False):
+	#	pass
     gui.Simulate("Charger %s is moved to location %s\n" %(c,l))
     rae1.state.pos[c] = l
     return SUCCESS
@@ -55,6 +68,14 @@ def move(r, l1, l2, dist):
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+            if rae1.state.loc[r] == l2:
+                gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+                return SUCCESS
+            elif rae1.state.loc[r] != l1:
+                gui.Simulate("Robot %s has gone out of route to l2\n" %(r, l2))
+                return FAILURE
         gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
@@ -73,6 +94,9 @@ def move(r, l1, l2, dist):
 
 def perceive(l):
     if rae1.state.view[l] == False:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
+		    pass
         for c in rae1.state.containers[l]:
             rae1.state.pos[c] = l
         rae1.state.view[l] = True

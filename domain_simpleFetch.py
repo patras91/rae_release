@@ -2,11 +2,15 @@ __author__ = 'patras'
 import rae1
 from domain_constants import *
 import gui
+from timer import globalTimer
 
 '''A simple example where a robot has to fetch an object in a harbor and handle emergencies. From Ch 3'''
 
 def moveTo(r, l):
     if rae1.state.emergencyHandling[r] == False:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('moveTo', start) == False):
+		    pass
         gui.Simulate("Robot %s has gone to location %d\n" %(r,l))
         rae1.state.loc[r] = l
         res = SUCCESS
@@ -16,12 +20,18 @@ def moveTo(r, l):
     return res
 
 def moveToEmergency(r, l):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('moveToEmergency', start) == False):
+	    pass
     gui.Simulate("Robot %s has gone to location %d to handle emergency\n" %(r,l))
     rae1.state.loc[r] = l
     return SUCCESS
 
 def take(r, o, l):
     if rae1.state.pos[o] == l:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('take', start) == False):
+		    pass
         rae1.state.pos[o] = r
         rae1.state.load[r] = o
         gui.Simulate("Robot %s has taken object %s at location %d\n" %(r,o,l))
@@ -33,6 +43,9 @@ def take(r, o, l):
 
 def put(r, o, l):
     if rae1.state.pos[o] == r:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('put', start) == False):
+		    pass
         rae1.state.pos[o] = l
         rae1.state.load[r] = NIL
         gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,l))
@@ -44,26 +57,35 @@ def put(r, o, l):
 
 def perceive(l):
     if rae1.state.view[l] == False:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
+		    pass
         for c in rae1.state.containers[l]:
             rae1.state.pos[c] = l
         rae1.state.view[l] = True
-        gui.Simulate("Perceived location %d" %l)
+        gui.Simulate("Perceived location %d\n" %l)
     else:
         gui.Simulate("Already perceived\n")
     return SUCCESS
 
 def addressEmergency(r, l, i):
     if rae1.state.loc[r] == l:
-        gui.Simulate("Robot %s has addressed emergency %d" %(r, i))
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('addressEmergency', start) == False):
+		    pass
+        gui.Simulate("Robot %s has addressed emergency %d\n" %(r, i))
         res = SUCCESS
     else:
-        gui.Simulate("Robot %s has failed to address emergency %d" %(r, i))
+        gui.Simulate("Robot %s has failed to address emergency %d\n" %(r, i))
         res = FAILURE
     rae1.state.emergencyHandling[r] = False
     return res
 
 def wait(r):
-    gui.Simulate("Robot %s is waiting for emergency to be over" %r)
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('wait', start) == False):
+	    pass
+    gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
     return SUCCESS
 
 def Search_Method1(r, o, stackid):

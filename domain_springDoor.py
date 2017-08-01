@@ -3,6 +3,7 @@ __author__ = 'patras'
 from domain_constants import *
 import rae1
 import gui
+from timer import globalTimer
 
 '''A spring door closes automatically when not held. There are two robots
 to carry objects and open doors. Each robot has only one arm with which it can
@@ -21,6 +22,9 @@ an object and bring it to the hallway.'''
 
 def openDoor(r, d):
     if rae1.state.load[r] == NIL and (rae1.state.doorStatus[d] == 'closed' or rae1.state.doorStatus):
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('openDoor', start) == False):
+	        pass
         gui.Simulate("Robot %s has opened door %s\n" %(r, d))
         rae1.state.doorStatus[d] = 'opened'
         res = SUCCESS
@@ -31,6 +35,9 @@ def openDoor(r, d):
 
 def passDoor(r, d, l):
     if rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'held':
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('passDoor', start) == False):
+	        pass
         gui.Simulate("Robot %s has passed the door %s\n" %(r, d))
         rae1.state.loc[r] = l
         res = SUCCESS
@@ -41,6 +48,9 @@ def passDoor(r, d, l):
 
 def holdDoor(r, d):
     if (rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'closing') and rae1.state.load[r] == NIL:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('holdDoor', start) == False):
+	        pass
         gui.Simulate("Robot %s is holding the door %s\n" %(r, d))
         rae1.state.load[r] = 'H'
         rae1.state.doorStatus[d] = 'held'
@@ -55,6 +65,9 @@ def holdDoor(r, d):
 
 def releaseDoor(r, d):
     if rae1.state.doorStatus[d] == 'held' and rae1.state.load[r] == 'H':
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('releaseDoor', start) == False):
+	        pass
         gui.Simulate("Robot %s has released the the door %s\n" %(r, d))
         rae1.state.doorStatus[d] = 'closing'
         rae1.state.load[r] = NIL
@@ -71,6 +84,9 @@ def move(r, l1, l2):
             gui.Simulate("Robot %s cannot move. There is a spring door between %s and %s \n" %(r, l1, l2))
             res = FAILURE
         else:
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('move', start) == False):
+                pass
             gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
             rae1.state.loc[r] = l2
             res = SUCCESS
@@ -81,6 +97,9 @@ def move(r, l1, l2):
 
 def put(r, o):
     if rae1.state.pos[o] == r:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('put', start) == False):
+	        pass
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
         gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
@@ -93,6 +112,9 @@ def put(r, o):
 def take(r, o):
     if rae1.state.load[r] == NIL:
         if rae1.state.loc[r] == rae1.state.pos[o]:
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('take', start) == False):
+	            pass
             gui.Simulate("Robot %s has picked up object %s" %(r, o))
             rae1.state.pos[o] = r
             rae1.state.load[r] = o
@@ -102,9 +124,13 @@ def take(r, o):
             res = FAILURE
     else:
         print("Robot %s is not free to take anything\n" %r)
+        res = FAILURE
     return res
 
 def closeDoors():
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
+        pass
     for d in ['d1', 'd2', 'd3']:
         if rae1.state.doorStatus[d] == 'opened':
             rae1.state.doorStatus[d] = 'closing'

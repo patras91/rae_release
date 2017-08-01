@@ -3,6 +3,7 @@ __author__ = 'patras'
 from domain_constants import *
 import rae1
 import gui
+from timer import globalTimer
 
 '''A UAV and several robots explore environment and collect data.
 UAV can only survey whereas robots can survey, monitor, screen, sample and process.
@@ -17,6 +18,9 @@ def survey(r, l):
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
     elif rae1.state.loc[r] == l and EE_TYPE[e] == 'survey' and rae1.state.data[r] < 4:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('survey', start) == False):
+			pass
         gui.Simulate("%s has surveyed the location %s\n" %(r, l))
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -37,6 +41,9 @@ def monitor(r, l):
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
     elif rae1.state.loc[r] == l and EE_TYPE[e] == 'monitor' and r != 'UAV' and rae1.state.data[r] < 4:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('monitor', start) == False):
+			pass
         gui.Simulate("%s has monitored the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -60,6 +67,9 @@ def screen(r, l):
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
     elif rae1.state.loc[r] == l and EE_TYPE[e] == 'screen' and r != 'UAV' and rae1.state.data[r] < 4:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('screen', start) == False):
+			pass
         gui.Simulate("%s has screened the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -83,6 +93,9 @@ def sample(r, l):
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
     elif rae1.state.loc[r] == l and EE_TYPE[e] == 'sample' and r != 'UAV' and rae1.state.data[r] < 4:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('sample', start) == False):
+			pass
         gui.Simulate("%s has sampled the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -106,6 +119,9 @@ def process(r, l):
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
     elif rae1.state.loc[r] == l and EE_TYPE[e] == 'process' and r != 'UAV' and rae1.state.data[r] < 4:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('process', start) == False):
+			pass
         gui.Simulate("%s has processed the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -125,6 +141,9 @@ def process(r, l):
 
 def charge(r, c):
     if rae1.state.loc[r] == rae1.state.pos[c] or rae1.state.pos[c] == r:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('charge', start) == False):
+			pass
         rae1.state.charge[r] = 4
         gui.Simulate("Robot %s is fully charged\n" %r)
         res = SUCCESS
@@ -139,6 +158,9 @@ def move(r, l1, l2):
         gui.Simulate("%s is already at location %s\n" %(r, l2))
         res = SUCCESS
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+			pass
         gui.Simulate("%s has moved from %s to %s\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
@@ -163,6 +185,9 @@ def fly(r, l1, l2):
         gui.Simulate("%s is already at location %s\n" %(r, l2))
         res = SUCCESS
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('fly', start) == False):
+			pass
         gui.Simulate("%s has flied from %d to %d\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
@@ -181,7 +206,10 @@ def fly(r, l1, l2):
 def take(r, o):
     if rae1.state.load[r] == NIL:
         if rae1.state.loc[r] == rae1.state.pos[o]:
-            gui.Simulate("%s has picked up %s" %(r, o))
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('take', start) == False):
+			    pass
+            gui.Simulate("%s has picked up %s\n" %(r, o))
             rae1.state.pos[o] = r
             rae1.state.load[r] = o
             res = SUCCESS
@@ -195,6 +223,9 @@ def take(r, o):
 
 def put(r, o):
     if rae1.state.pos[o] == r:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('put', start) == False):
+			pass
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
         gui.Simulate("%s has put %s at location %s\n" %(r,o,rae1.state.loc[r]))
@@ -206,6 +237,9 @@ def put(r, o):
 
 def deposit(r):
     if rae1.state.loc[r] == 'base':
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('deposit', start) == False):
+			pass
         gui.Simulate("%s has deposited data in the base\n" %r)
         rae1.state.data[r] = 0
         res = SUCCESS
@@ -219,14 +253,21 @@ def transferData(r1, r2):
         gui.Simulate("%s and %s are not in same location.\n" %(r1, r2))
         res = FAILURE
     elif rae1.state.data[r2] + rae1.state.data[r1] <= 4:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
+			pass
         gui.Simulate("%s transfered data to %s\n" %(r1, r2))
         rae1.state.data[r2] += rae1.state.data[r1]
         rae1.state.data[r1] = 0
         res = SUCCESS
     elif rae1.state.data[r2] < 4:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
+			pass
         t = 4 - rae1.state.data[r2]
         rae1.state.data[r2] = 4
         rae1.state.data[r1] -= t
+        gui.Simulate("%s transfered data to %s\n" %(r1, r2))
         res = SUCCESS
     return res
 
@@ -276,67 +317,83 @@ def GetEquipment_Method2(r, activity, stackid):
 
 def MoveTo_Method1(r, l, stackid):
     res = SUCCESS
-    path = EE_GETPATH(rae1.state.loc[r], l)
-    if path == {}:
-        gui.Simulate("%s is already at location %s \n" %(r, l))
+    if l not in EE_LOCATIONS:
+        gui.Simulate("%s is trying to go to an invalid location\n" %r)
+        res = FAILURE
     else:
-        lTemp = rae1.state.loc[r]
-        lNext = path[lTemp]
-        while(lTemp != l):
-            lNext = path[lTemp]
-            rae1.do_command(move, r, lTemp, lNext, stackid)
-            if lTemp == rae1.state.loc[r]:
-                res = FAILURE
-                break
-            else:
-                lTemp = rae1.state.loc[r]
-    return res
-
-def MoveTo_Method2(r, l, stackid):
-    dist = EE_GETDISTANCE(rae1.state.loc[r], l)
-    if rae1.state.charge[r] >= dist:
         path = EE_GETPATH(rae1.state.loc[r], l)
         if path == {}:
             gui.Simulate("%s is already at location %s \n" %(r, l))
-            res = SUCCESS
         else:
             lTemp = rae1.state.loc[r]
-            lNext = path[lTemp]
-            while(lTemp != l):
+            if lTemp not in path:
+                gui.Simulate("Robot %s is out of its path to %s\n" %(r, l))
+                res = FAILURE
+            else:
                 lNext = path[lTemp]
-                rae1.do_command(move, r, lTemp, lNext, stackid)
-                if lTemp == rae1.state.loc[r]:
-                    res = FAILURE
-                    break
-                else:
-                    lTemp = rae1.state.loc[r]
-            res = SUCCESS
-    else:
-        gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
+                while(lTemp != l):
+                    lNext = path[lTemp]
+                    rae1.do_command(move, r, lTemp, lNext, stackid)
+                    if lTemp == rae1.state.loc[r]:
+                        res = FAILURE
+                        break
+                    else:
+                        lTemp = rae1.state.loc[r]
+    return res
+
+def MoveTo_Method2(r, l, stackid):
+    if l not in EE_LOCATIONS:
+        gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
+    else:
+        dist = EE_GETDISTANCE(rae1.state.loc[r], l)
+        if rae1.state.charge[r] >= dist:
+            path = EE_GETPATH(rae1.state.loc[r], l)
+            if path == {}:
+                gui.Simulate("%s is already at location %s \n" %(r, l))
+                res = SUCCESS
+            else:
+                lTemp = rae1.state.loc[r]
+                lNext = path[lTemp]
+                while(lTemp != l):
+                    lNext = path[lTemp]
+                    rae1.do_command(move, r, lTemp, lNext, stackid)
+                    if lTemp == rae1.state.loc[r]:
+                        res = FAILURE
+                        break
+                    else:
+                        lTemp = rae1.state.loc[r]
+                res = SUCCESS
+        else:
+            gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
+            res = FAILURE
     return res
 
 def MoveTo_Method3(r, l, stackid):
     res = SUCCESS
-    dist = EE_GETDISTANCE(rae1.state.loc[r], l)
-    if rae1.state.charge[r] >= dist:
-        path = EE_GETPATH(rae1.state.loc[r], l)
-        if path == {}:
-            gui.Simulate("%s is already at location %s \n" %(r, l))
-        else:
-            lTemp = rae1.state.loc[r]
-            lNext = path[lTemp]
-            while(lTemp != l):
-                lNext = path[lTemp]
-                rae1.do_command(move, r, lTemp, lNext, stackid)
-                if lTemp == rae1.state.loc[r]:
-                    res = FAILURE
-                    break
-                else:
-                    lTemp = rae1.state.loc[r]
+    if l not in EE_LOCATIONS:
+        gui.Simulate("%s is trying to go to an invalid location\n" %r)
+        res = FAILURE
     else:
-        rae1.do_task('recharge', r, stackid)
-        rae1.do_task('moveTo', r, l, stackid)
+        dist = EE_GETDISTANCE(rae1.state.loc[r], l)
+        if rae1.state.charge[r] >= dist:
+            path = EE_GETPATH(rae1.state.loc[r], l)
+            if path == {}:
+                gui.Simulate("%s is already at location %s \n" %(r, l))
+            else:
+                lTemp = rae1.state.loc[r]
+                lNext = path[lTemp]
+                while(lTemp != l):
+                    lNext = path[lTemp]
+                    rae1.do_command(move, r, lTemp, lNext, stackid)
+                    if lTemp == rae1.state.loc[r]:
+                        res = FAILURE
+                        break
+                    else:
+                        lTemp = rae1.state.loc[r]
+        else:
+            rae1.do_task('recharge', r, stackid)
+            rae1.do_task('moveTo', r, l, stackid)
     return res
 
 def FlyTo_Method1(r, l, stackid):
