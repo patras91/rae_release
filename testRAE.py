@@ -14,16 +14,16 @@ import gui
 
 __author__ = 'patras'
 
-def GetNextAlive(nextStack, NUMSTACKS, threadList):
+def GetNextAlive(lastActiveStack, numstacks, threadList):
     nextAlive = -1
     i = 1
-    j = nextStack
-    while i <= NUMSTACKS:
+    j = lastActiveStack % numstacks + 1
+    while i <= numstacks:
         if threadList[j-1].isAlive() == True:
             nextAlive = j
             break
         i = i + 1
-        j = j % NUMSTACKS + 1
+        j = j % numstacks + 1
 
     return nextAlive
 
@@ -86,31 +86,42 @@ def testRAE(domain):
     gui.start()
     rM.join()
 
+def BeginFreshIteration(lastActiveStack, numstacks, threadList):
+    begin = True
+    i = lastActiveStack % numstacks + 1
+    while i != 1:
+        if threadList[i - 1].isAlive() == True:
+            begin = False
+            break
+        i = i % numstacks + 1
+    return begin
+
 def raeMult(domain):
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
     ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
 
-    threadList = []
-    nextStack = 1
-    NUMSTACKS = 0
+    threadList = [] #keeps track of all the stacks in RAE Agenda
+    lastActiveStack = 0 #keeps track of the last stack that was Progressed
+    numstacks = 0 #keeps track of the total number of stacks
     GetNewTask.counter = 0
 
     while (True):
         if ipcArgs.nextStack == 0 or threadList[ipcArgs.nextStack-1].isAlive() == False:
             ipcArgs.sem.acquire()
-            if nextStack == 1: # Check for incoming tasks after progressing each stack
+
+            if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, threadList) == True: # Check for incoming tasks after progressing all stacks
                 taskArgs = GetNewTask(domain)
                 if taskArgs != []:
-                    NUMSTACKS = NUMSTACKS + 1
-                    taskArgs.append(NUMSTACKS)
+                    numstacks = numstacks + 1
+                    taskArgs.append(numstacks)
                     threadList.append(threading.Thread(target=rae1, args = taskArgs))
-                    threadList[NUMSTACKS-1].start()
+                    threadList[numstacks-1].start()
                 globalTimer.IncrementTime()
 
-            res = GetNextAlive(nextStack, NUMSTACKS, threadList)
+            res = GetNextAlive(lastActiveStack, numstacks, threadList)
             if res != -1:
                 ipcArgs.nextStack = res
-                nextStack = res % NUMSTACKS + 1
+                lastActiveStack = res
                 ipcArgs.sem.release()
             else:
                 break

@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 from domain_constants import *
+from timer import globalTimer
 """
 File ste.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
@@ -19,76 +20,88 @@ def taxi_rate(dist):
 	return (1.5 + 0.5 * dist)
 
 def walk(a,x,y):
-
 	if rae1.state.loc[a] == x:
-		gui.Simulate('agent',a,'walks from',x,'to',y,'\n')
-		sys.stdout.flush()
+		gui.Simulate('agent',a,'starts walking at location',x,'\n')
+		start = globalTimer.GetTime()
+		while(globalTimer.IsCommandExecutionOver('walk', start) == False):
+			pass
+		gui.Simulate('agent',a,'has reached location',y,'\n')
 		rae1.state.loc[a] = y
-		return SUCCESS
+		res = SUCCESS
 	else:
 		gui.Simulate('agent',a,"isn't at location",x,'\n')
-		sys.stdout.flush()
-	return FAILURE
+		res = FAILURE
+	return res
 
 def call_taxi(a,x):
 	if rae1.state.occupied['taxi'] == False:
+		start = globalTimer.GetTime()
+		gui.Simulate('a taxi is on its way to location',x,'\n')
+		while(globalTimer.IsCommandExecutionOver('call_taxi', start) == False):
+			pass
 		gui.Simulate('a taxi appears at location',x,'\n')
-		sys.stdout.flush()
 		rae1.state.loc['taxi'] = x
 		res = SUCCESS
 	else:
 		gui.Simulate('Taxi is occupied \n')
-		sys.stdout.flush()
 		res = FAILURE
 	return res
 
 def enter_taxi(a):
-	if rae1.state.loc['taxi'] == rae1.state.loc[a]:
+	if rae1.state.loc['taxi'] == rae1.state.loc[a] and rae1.state.occupied['taxi'] == False:
+		start = globalTimer.GetTime()
+		while(globalTimer.IsCommandExecutionOver('enter_taxi', start) == False):
+			if rae1.state.loc['taxi'] != rae1.state.loc[a]:
+				gui.Simulate('taxi is gone away from of agent',a,'\'s location \n')
+				return FAILURE
 		gui.Simulate('agent',a,'enters taxi at location',rae1.state.loc[a],'\n')
-		sys.stdout.flush()
 		rae1.state.loc[a] = 'taxi'
 		rae1.state.occupied['taxi'] = True
 		return SUCCESS
 	else:
-		gui.Simulate("there's no taxi for agent",a,'to enter','\n')
-		sys.stdout.flush()
+		gui.Simulate("there's no taxi for agent",a,'to enter or the taxi is occupied','\n')
 		return FAILURE
 
 def taxi_carry(a,y):
 	if rae1.state.loc[a]=='taxi':
 		x = rae1.state.loc['taxi']
+		start = globalTimer.GetTime()
+		while(globalTimer.IsCommandExecutionOver('taxi_carry', start) == False):
+			if rae1.state.loc['taxi'] != x:
+				gui.Simulate('taxi is gone out of agent',a,'\'s route \n')
+				return FAILURE
 		gui.Simulate('taxi carries agent',a,'from',x,'to',y,'\n')
-		sys.stdout.flush()
 		rae1.state.loc['taxi'] = y
 		rae1.state.owe[a] = taxi_rate(rae1.state.dist[x][y])
 		return SUCCESS
 	else:
 		gui.Simulate('agent',a,"isn't in a taxi",'\n')
-		sys.stdout.flush()
 		return FAILURE
 
 def pay_driver(a):
 	if rae1.state.cash[a] >= rae1.state.owe[a]:
+		start = globalTimer.GetTime()
+		while(globalTimer.IsCommandExecutionOver('pay_driver', start) == False):
+			pass
 		gui.Simulate('agent',a,'pays',rae1.state.owe[a],'to the taxi driver','\n')
-		sys.stdout.flush()
 		rae1.state.cash[a] = rae1.state.cash[a] - rae1.state.owe[a]
 		rae1.state.owe[a] = 0
 		return SUCCESS
 	else:
 		gui.Simulate('agent',a,'cannot pay',rae1.state.owe[a],'to the taxi driver','\n')
-		sys.stdout.flush()
 		return FAILURE
 
 def leave_taxi(a):
 	if rae1.state.loc[a]=='taxi':
+		start = globalTimer.GetTime()
+		while(globalTimer.IsCommandExecutionOver('leave_taxi', start) == False):
+			pass
 		gui.Simulate('agent',a,'leaves taxi at location',rae1.state.loc['taxi'],'\n')
-		sys.stdout.flush()
 		rae1.state.loc[a] = rae1.state.loc['taxi']
 		rae1.state.occupied['taxi'] = False
 		return SUCCESS
 	else:
 		gui.Simulate('agent',a,"isn't in a taxi",'\n')
-		sys.stdout.flush()
 		return FAILURE
 
 def travel_by_foot(a,x,y,stackid):
@@ -104,7 +117,6 @@ def travel_by_taxi(a,x,y,stackid):
 		return SUCCESS
 	else:
 		gui.Simulate('agent',a,"has too little money for a taxi from",x,'to',y,'\n')
-		sys.stdout.flush()
 		return FAILURE
 
 def ride_taxi_method(a,y,stackid):
@@ -116,7 +128,6 @@ def ride_taxi_method(a,y,stackid):
 		return SUCCESS
 	else:
 		gui.Simulate('the taxi driver is unwilling to drive to',y,'\n')
-		sys.stdout.flush()
 		return FAILURE
 
 def ste_init():

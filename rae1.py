@@ -287,7 +287,7 @@ def do_task(task, *args):
 		raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
 
 def beginCommand(cmd, cmdRet, cmdArgs):
-    cmdRet['state'] = cmd(*cmdArgs)
+	cmdRet['state'] = cmd(*cmdArgs)
 
 def do_command(cmd, *args):
 	"""
