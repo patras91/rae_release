@@ -96,6 +96,16 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
         i = i % numstacks + 1
     return begin
 
+def CreateNewStack(taskInfo, taskArgs):
+    stackid = taskArgs[-1]
+    taskRes = rae1(*taskArgs)
+    taskInfo[stackid] = (taskArgs[0:-1], taskRes)
+
+def PrintResult(taskInfo):
+    for stackid in taskInfo:
+        args, res = taskInfo[stackid]
+        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\n')
+
 def raeMult(domain):
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
     ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
@@ -104,6 +114,7 @@ def raeMult(domain):
     lastActiveStack = 0 #keeps track of the last stack that was Progressed
     numstacks = 0 #keeps track of the total number of stacks
     GetNewTask.counter = 0
+    taskInfo = {}
 
     while (True):
         if ipcArgs.nextStack == 0 or threadList[ipcArgs.nextStack-1].isAlive() == False:
@@ -114,7 +125,7 @@ def raeMult(domain):
                 if taskArgs != []:
                     numstacks = numstacks + 1
                     taskArgs.append(numstacks)
-                    threadList.append(threading.Thread(target=rae1, args = taskArgs))
+                    threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, taskArgs)))
                     threadList[numstacks-1].start()
                 globalTimer.IncrementTime()
 
@@ -126,3 +137,4 @@ def raeMult(domain):
             else:
                 break
     print("----Done with RAE----\n")
+    PrintResult(taskInfo)
