@@ -144,7 +144,7 @@ def charge(r, c):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
 			pass
-        rae1.state.charge[r] = 4
+        rae1.state.charge[r] = 75
         gui.Simulate("Robot %s is fully charged\n" %r)
         res = SUCCESS
     else:
@@ -315,30 +315,34 @@ def GetEquipment_Method2(r, activity, stackid):
         rae1.do_command(take, r, EE_EQUIPMENT[activity], stackid)
     return SUCCESS
 
-def MoveTo_Method1(r, l, stackid):
+def MoveTo_MethodHelper(r, l, stackid):
     res = SUCCESS
+    path = EE_GETPATH(rae1.state.loc[r], l)
+    if path == {}:
+        gui.Simulate("%s is already at location %s \n" %(r, l))
+    else:
+        lTemp = rae1.state.loc[r]
+        if lTemp not in path:
+            gui.Simulate("Robot %s is out of its path to %s\n" %(r, l))
+            res = FAILURE
+        else:
+            while(lTemp != l):
+                lNext = path[lTemp]
+                rae1.do_command(move, r, lTemp, lNext, stackid)
+                if lNext != rae1.state.loc[r]:
+                    gui.Simulate("Robot %s is out of its path to %s\n" %(r, l))
+                    res = FAILURE
+                    break
+                else:
+                    lTemp = lNext
+    return res
+
+def MoveTo_Method1(r, l, stackid):
     if l not in EE_LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
     else:
-        path = EE_GETPATH(rae1.state.loc[r], l)
-        if path == {}:
-            gui.Simulate("%s is already at location %s \n" %(r, l))
-        else:
-            lTemp = rae1.state.loc[r]
-            if lTemp not in path:
-                gui.Simulate("Robot %s is out of its path to %s\n" %(r, l))
-                res = FAILURE
-            else:
-                lNext = path[lTemp]
-                while(lTemp != l):
-                    lNext = path[lTemp]
-                    rae1.do_command(move, r, lTemp, lNext, stackid)
-                    if lTemp == rae1.state.loc[r]:
-                        res = FAILURE
-                        break
-                    else:
-                        lTemp = rae1.state.loc[r]
+        res = MoveTo_MethodHelper(r, l, stackid)
     return res
 
 def MoveTo_Method2(r, l, stackid):
@@ -348,52 +352,24 @@ def MoveTo_Method2(r, l, stackid):
     else:
         dist = EE_GETDISTANCE(rae1.state.loc[r], l)
         if rae1.state.charge[r] >= dist:
-            path = EE_GETPATH(rae1.state.loc[r], l)
-            if path == {}:
-                gui.Simulate("%s is already at location %s \n" %(r, l))
-                res = SUCCESS
-            else:
-                lTemp = rae1.state.loc[r]
-                lNext = path[lTemp]
-                while(lTemp != l):
-                    lNext = path[lTemp]
-                    rae1.do_command(move, r, lTemp, lNext, stackid)
-                    if lTemp == rae1.state.loc[r]:
-                        res = FAILURE
-                        break
-                    else:
-                        lTemp = rae1.state.loc[r]
-                res = SUCCESS
+            res = MoveTo_MethodHelper(r, l, stackid)
         else:
             gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
             res = FAILURE
     return res
 
 def MoveTo_Method3(r, l, stackid):
-    res = SUCCESS
     if l not in EE_LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
     else:
         dist = EE_GETDISTANCE(rae1.state.loc[r], l)
         if rae1.state.charge[r] >= dist:
-            path = EE_GETPATH(rae1.state.loc[r], l)
-            if path == {}:
-                gui.Simulate("%s is already at location %s \n" %(r, l))
-            else:
-                lTemp = rae1.state.loc[r]
-                lNext = path[lTemp]
-                while(lTemp != l):
-                    lNext = path[lTemp]
-                    rae1.do_command(move, r, lTemp, lNext, stackid)
-                    if lTemp == rae1.state.loc[r]:
-                        res = FAILURE
-                        break
-                    else:
-                        lTemp = rae1.state.loc[r]
+            res = MoveTo_MethodHelper(r, l, stackid)
         else:
             rae1.do_task('recharge', r, stackid)
             rae1.do_task('moveTo', r, l, stackid)
+            res = SUCCESS
     return res
 
 def FlyTo_Method1(r, l, stackid):
@@ -427,7 +403,7 @@ def FlyTo_Method3(r, l, stackid):
             res = SUCCESS
         else:
             rae1.do_task('recharge', r, stackid)
-            rae1.do_task('moveTo', r, l, stackid)
+            rae1.do_task('flyTo', r, l, stackid)
             res = SUCCESS
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
