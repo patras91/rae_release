@@ -12,7 +12,9 @@ We have the following domains.
    --- developed and integrated with RAE: testing needed
 5. domain_springDoor: Robot needs to collect objects in an environment with spring doors
    --- developed and integrated with RAE: testing needed
-
+6. domain_exploreEnv: Robots and UAV move through an area and collects various data
+   --- developed and integrated with RAE: testing needed
+   
 HOW TO USE?
 To test on any domain, import testRAE and use the following command in python
 

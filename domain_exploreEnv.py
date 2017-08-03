@@ -145,7 +145,7 @@ def charge(r, c):
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
 			pass
         rae1.state.charge[r] = 75
-        gui.Simulate("Robot %s is fully charged\n" %r)
+        gui.Simulate("%s is fully charged\n" %r)
         res = SUCCESS
     else:
         gui.Simulate("%s is not in the charger's location or it doesn't have the charger with it\n" %r)
@@ -204,15 +204,22 @@ def fly(r, l1, l2):
     return res
 
 def take(r, o):
+    res = SUCCESS
     if rae1.state.load[r] == NIL:
         if rae1.state.loc[r] == rae1.state.pos[o]:
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
-			    pass
-            gui.Simulate("%s has picked up %s\n" %(r, o))
-            rae1.state.pos[o] = r
-            rae1.state.load[r] = o
-            res = SUCCESS
+                if rae1.state.load[r] != NIL:
+                    res = FAILURE
+                    break
+            if res != FAILURE and rae1.state.load[r] != NIL:
+                gui.Simulate("%s has picked up %s\n" %(r, o))
+                rae1.state.pos[o] = r
+                rae1.state.load[r] = o
+                res = SUCCESS
+            else:
+                gui.Simulate("%s is not free to take anything\n" %r)
+                res = FAILURE
         elif rae1.state.loc[r] != rae1.state.pos[o]:
             gui.Simulate("%s is not at %s's location\n" %(r, o))
             res = FAILURE
@@ -231,7 +238,7 @@ def put(r, o):
         gui.Simulate("%s has put %s at location %s\n" %(r,o,rae1.state.loc[r]))
         res = SUCCESS
     else:
-        gui.Simulate("%s is not with robot %s\n" %(o,r))
+        gui.Simulate("%s is not with %s\n" %(o,r))
         res = FAILURE
     return res
 
@@ -323,14 +330,14 @@ def MoveTo_MethodHelper(r, l, stackid):
     else:
         lTemp = rae1.state.loc[r]
         if lTemp not in path:
-            gui.Simulate("Robot %s is out of its path to %s\n" %(r, l))
+            gui.Simulate("%s is out of its path to %s\n" %(r, l))
             res = FAILURE
         else:
             while(lTemp != l):
                 lNext = path[lTemp]
                 rae1.do_command(move, r, lTemp, lNext, stackid)
                 if lNext != rae1.state.loc[r]:
-                    gui.Simulate("Robot %s is out of its path to %s\n" %(r, l))
+                    gui.Simulate("%s is out of its path to %s\n" %(r, l))
                     res = FAILURE
                     break
                 else:
@@ -354,7 +361,7 @@ def MoveTo_Method2(r, l, stackid):
         if rae1.state.charge[r] >= dist:
             res = MoveTo_MethodHelper(r, l, stackid)
         else:
-            gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
+            gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
             res = FAILURE
     return res
 
@@ -388,7 +395,7 @@ def FlyTo_Method2(r, l, stackid):
             rae1.do_command(fly, r, rae1.state.loc[r], l, dist, stackid)
             res = SUCCESS
         else:
-            gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
+            gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
             res = FAILURE
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
