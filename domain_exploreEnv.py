@@ -318,7 +318,13 @@ def GetEquipment_Method1(r, activity, stackid):
 def GetEquipment_Method2(r, activity, stackid):
     if rae1.state.load[r] != EE_EQUIPMENT[activity]:
         rae1.do_task('moveTo', r, rae1.state.pos[EE_EQUIPMENT[activity]], stackid)
-        rae1.do_command(put, r, rae1.state.load[r], stackid)
+        rae1.state.load.AcquireLock(r)
+        if rae1.state.load[r] != NIL:
+            x = rae1.state.load[r]
+            rae1.state.load.ReleaseLock(r)
+            rae1.do_command(put, r, x, stackid)
+        else:
+            rae1.state.load.ReleaseLock(r)
         rae1.do_command(take, r, EE_EQUIPMENT[activity], stackid)
     return SUCCESS
 

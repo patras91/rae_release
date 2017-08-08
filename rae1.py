@@ -1,7 +1,7 @@
 from __future__ import print_function
 import types
 import threading
-
+from state import State
 """
 File rae1.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
@@ -12,12 +12,6 @@ This has multiple execution stacks
 import sys, pprint
 
 ############################################################
-# States and goals
-
-class State():
-	"""A state is just a collection of variable bindings."""
-	def __init__(self):
-		pass
 
 ### A goal is identical to a state except for the class name.
 ### I don't know if we'll need it or not, but it was trivial to write,
@@ -27,15 +21,6 @@ class Goal():
 	"""A goal is just a collection of variable bindings."""
 	def __init__(self):
 		pass
-
-
-def print_state():
-	"""Print each variable in state"""
-	global state
-	if state != False:
-		for (name,val) in vars(state).items():
-			print('   state.' + name + ' =', val)
-	else: print('False')
 
 def print_stack_size(stackid, path):
 	stacksize = len(path[stackid])
@@ -194,7 +179,7 @@ def rae1(task, *args):
 	if verbose > 1:
 		print_stack_size(stackid, path)
 		print('Initial state is:')
-		print_state()
+		print(state)
 
 	try:
 		retcode = do_task(task, *args)
@@ -213,7 +198,7 @@ def rae1(task, *args):
 	if verbose > 1:
 		print_stack_size(stackid, path)
 		print('Final state is:')
-		print_state()
+		print(state)
 	if verbose > 0:
 		print("\n---- Rae1: Done with stack %d\n" %stackid)
 
@@ -256,7 +241,7 @@ def do_task(task, *args):
 			if verbose > 1:
 				print_stack_size(stackid, path)
 				print('Current state is:'.format(stackid))
-				print_state()
+				print(state)
 			retcode = m(*args)
 		except Failed_command, e:
 			if verbose > 0:
@@ -331,7 +316,7 @@ def do_command(cmd, *args):
 		print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
 		print_stack_size(stackid, path)
 		print('Current state is')
-		print_state()
+		print(state)
 
 	path[stackid].pop()
 	if verbose > 1:
