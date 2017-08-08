@@ -13,6 +13,9 @@ they can carry with them. They can store data in the base location. UAV needs to
 base location every night.'''
 
 def survey(r, l):
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
     if e not in EE_TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
@@ -33,9 +36,15 @@ def survey(r, l):
     elif rae1.state.data[r] == 4:
         gui.Simulate("%s cannot store any more data\n" %r)
         res = FAILURE
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.data.ReleaseLock(r)
     return res
 
 def monitor(r, l):
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
     if e not in EE_TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
@@ -59,9 +68,15 @@ def monitor(r, l):
     elif rae1.state.data[r] == 4:
         gui.Simulate("%s cannot store any more data\n" %r)
         res = FAILURE
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.data.ReleaseLock(r)
     return res
 
 def screen(r, l):
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
     if e not in EE_TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
@@ -85,9 +100,15 @@ def screen(r, l):
     elif rae1.state.data[r] == 4:
         gui.Simulate("%s cannot store any more data\n" %r)
         res = FAILURE
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.data.ReleaseLock(r)
     return res
 
 def sample(r, l):
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
     if e not in EE_TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
@@ -111,9 +132,15 @@ def sample(r, l):
     elif rae1.state.data[r] == 4:
         gui.Simulate("%s cannot store any more data\n" %r)
         res = FAILURE
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.data.ReleaseLock(r)
     return res
 
 def process(r, l):
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
     if e not in EE_TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
@@ -137,22 +164,33 @@ def process(r, l):
     elif rae1.state.data[r] == 4:
         gui.Simulate("%s cannot store any more data\n" %r)
         res = FAILURE
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.data.ReleaseLock(r)
     return res
 
 def charge(r, c):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.pos.AcquireLock(c)
     if rae1.state.loc[r] == rae1.state.pos[c] or rae1.state.pos[c] == r:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
 			pass
+        rae1.state.charge.AcquireLock(r)
         rae1.state.charge[r] = 75
         gui.Simulate("%s is fully charged\n" %r)
+        rae1.state.charge.ReleaseLock(r)
         res = SUCCESS
     else:
         gui.Simulate("%s is not in the charger's location or it doesn't have the charger with it\n" %r)
         res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.pos.ReleaseLock(c)
     return res
 
 def move(r, l1, l2):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.charge.AcquireLock(r)
     dist = EE_GETDISTANCE(l1, l2)
     if l1 == l2:
         gui.Simulate("%s is already at location %s\n" %(r, l2))
@@ -174,9 +212,13 @@ def move(r, l1, l2):
     else:
         gui.Simulate("%s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
         res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.charge.ReleaseLock(r)
     return res
 
 def fly(r, l1, l2):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.charge.AcquireLock(r)
     dist = EE_GETDISTANCE(l1, l2)
     if r != 'UAV':
         gui.Simulate("%s cannot fly\n" %r)
@@ -201,34 +243,37 @@ def fly(r, l1, l2):
     else:
         gui.Simulate("%s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
         res = FAILURE
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.charge.AcquireLock(r)
     return res
 
 def take(r, o):
-    res = SUCCESS
+    rae1.state.load.AcquireLock(r)
     if rae1.state.load[r] == NIL:
+        rae1.state.loc.AcquireLock(r)
+        rae1.state.pos.AcquireLock(o)
         if rae1.state.loc[r] == rae1.state.pos[o]:
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
-                if rae1.state.load[r] != NIL:
-                    res = FAILURE
-                    break
-            if res != FAILURE and rae1.state.load[r] != NIL:
-                gui.Simulate("%s has picked up %s\n" %(r, o))
-                rae1.state.pos[o] = r
-                rae1.state.load[r] = o
-                res = SUCCESS
-            else:
-                gui.Simulate("%s is not free to take anything\n" %r)
-                res = FAILURE
-        elif rae1.state.loc[r] != rae1.state.pos[o]:
+                pass
+            gui.Simulate("%s has picked up %s\n" %(r, o))
+            rae1.state.pos[o] = r
+            rae1.state.load[r] = o
+            res = SUCCESS
+        else:
             gui.Simulate("%s is not at %s's location\n" %(r, o))
             res = FAILURE
+        rae1.state.loc.ReleaseLock(r)
+        rae1.state.pos.ReleaseLock(o)
     else:
         gui.Simulate("%s is not free to take anything\n" %r)
         res = FAILURE
+    rae1.state.load.ReleaseLock(r)
     return res
 
 def put(r, o):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.pos.AcquireLock(o)
     if rae1.state.pos[o] == r:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
@@ -240,9 +285,13 @@ def put(r, o):
     else:
         gui.Simulate("%s is not with %s\n" %(o,r))
         res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.pos.ReleaseLock(o)
     return res
 
 def deposit(r):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.data.AcquireLock(r)
     if rae1.state.loc[r] == 'base':
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('deposit', start) == False):
@@ -253,9 +302,16 @@ def deposit(r):
     else:
         gui.Simulate("%s is not in base, so it cannot deposit data.\n" %r)
         res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.data.ReleaseLock(r)
     return res
 
 def transferData(r1, r2):
+    rae1.state.loc.AcquireLock(r1)
+    rae1.state.loc.AcquireLock(r2)
+    rae1.state.data.AcquireLock(r1)
+    rae1.state.data.AcquireLock(r2)
+
     if rae1.state.loc[r1] != rae1.state.loc[r2]:
         gui.Simulate("%s and %s are not in same location.\n" %(r1, r2))
         res = FAILURE
@@ -276,6 +332,10 @@ def transferData(r1, r2):
         rae1.state.data[r1] -= t
         gui.Simulate("%s transfered data to %s\n" %(r1, r2))
         res = SUCCESS
+    rae1.state.loc.ReleaseLock(r1)
+    rae1.state.loc.ReleaseLock(r2)
+    rae1.state.data.ReleaseLock(r1)
+    rae1.state.data.ReleaseLock(r2)
     return res
 
 def Explore_Method2(r, activity, l, stackid):

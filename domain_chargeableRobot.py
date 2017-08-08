@@ -11,7 +11,9 @@ import gui
 from timer import globalTimer
 
 def take(r, o):
+    rae1.state.load.AcquireLock(r)
     if rae1.state.load[r] == NIL:
+        rae1.state.pos.AcquireLock(o)
         if rae1.state.loc[r] == rae1.state.pos[o]:
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
@@ -20,62 +22,75 @@ def take(r, o):
             rae1.state.pos[o] = r
             rae1.state.load[r] = o
             res = SUCCESS
-        elif rae1.state.loc[r] != rae1.state.pos[o]:
+        else:
             gui.Simulate("Robot %s is not at object %s's location\n" %(r, o))
             res = FAILURE
+        rae1.state.pos.ReleaseLock(o)
     else:
         gui.Simulate("Robot %s is not free to take anything\n" %r)
         res = FAILURE
+    rae1.state.load.ReleaseLock(r)
     return res
 
 def put(r, o):
+    rae1.state.pos.AcquireLock(o)
     if rae1.state.pos[o] == r:
         start = globalTimer.GetTime()
+        rae1.state.loc.AcquireLock(r)
+        rae1.state.load.AcquireLock(r)
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
 		    pass
+        gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
-        gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
+        rae1.state.loc.ReleaseLock(r)
+        rae1.state.load.ReleaseLock(r)
         res = SUCCESS
     else:
         gui.Simulate("Object %s is not with robot %s\n" %(o,r))
         res = FAILURE
+    rae1.state.pos.ReleaseLock(o)
     return res
 
 def charge(r, c):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.pos.AcquireLock(c)
     if rae1.state.loc[r] == rae1.state.pos[c] or rae1.state.pos[c] == r:
+        rae1.state.charge.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
 			pass
         rae1.state.charge[r] = 4
         gui.Simulate("Robot %s is fully charged\n" %r)
+        rae1.state.charge.ReleaseLock(r)
         res = SUCCESS
     else:
         gui.Simulate("Robot %s is not in the charger's location or it doesn't have the charger with it\n" %r)
         res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.pos.ReleaseLock(c)
     return res
 
 def moveCharger(c, l):
     #start = globalTimer.GetTime()
     #while(globalTimer.IsCommandExecutionOver('moveCharger', start) == False):
 	#	pass
+    rae1.state.pos.AcquireLock(c)
     gui.Simulate("Charger %s is moved to location %s\n" %(c,l))
     rae1.state.pos[c] = l
+    rae1.state.pos.ReleaseLock(c)
     return SUCCESS
 
 def move(r, l1, l2, dist):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.charge.AcquireLock(r)
     if l1 == l2:
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
-            if rae1.state.loc[r] == l2:
-                gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
-                return SUCCESS
-            elif rae1.state.loc[r] != l1:
-                gui.Simulate("Robot %s has gone out of route to l2\n" %(r, l2))
-                return FAILURE
+           pass
         gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
@@ -90,28 +105,36 @@ def move(r, l1, l2, dist):
     else:
         gui.Simulate("Robot %s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
         res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.charge.ReleaseLock(r)
     return res
 
 def perceive(l):
+    rae1.state.view.AcquireLock(l)
     if rae1.state.view[l] == False:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
 		    pass
         for c in rae1.state.containers[l]:
+            rae1.state.pos.AcquireLock(c)
             rae1.state.pos[c] = l
+            rae1.state.pos.ReleaseLock(c)
         rae1.state.view[l] = True
         gui.Simulate("Perceived location %d\n" %l)
     else:
         gui.Simulate("Already perceived\n")
+    rae1.state.view.ReleaseLock(l)
     return SUCCESS
 
 def MoveTo_Method1(r, l, stackid):
-    dist = GETDISTANCE(rae1.state.loc[r], l)
-    if rae1.state.charge[r] >= dist:
-        rae1.do_command(move, r, rae1.state.loc[r], l, dist, stackid)
+    x = rae1.state.loc[r]
+    c = rae1.state.charge[r]
+    dist = GETDISTANCE(x, l)
+    if c >= dist:
+        rae1.do_command(move, r, x, l, dist, stackid)
         res = SUCCESS
     else:
-        gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(rae1.state.charge[r] * 100 / 4, r))
+        gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(c * 100 / 4, r))
         res = FAILURE
     return res
 
@@ -183,23 +206,25 @@ def Search_Method2(r, o, stackid):
     return res
 
 def Fetch_Method1(r, o, stackid):
-    if rae1.state.pos[o] == UNK:
+    pos_o = rae1.state.pos[o]
+    if pos_o == UNK:
         rae1.do_task('search', r, o, stackid)
-    elif rae1.state.loc[r] == rae1.state.pos[o]:
+    elif rae1.state.loc[r] == pos_o:
         rae1.do_command(take, r, o, stackid)
     else:
-        rae1.do_task('moveTo', r, rae1.state.pos[o],  stackid)
+        rae1.do_task('moveTo', r, pos_o,  stackid)
         rae1.do_command(take, r, o, stackid)
     return SUCCESS
 
 def Fetch_Method2(r, o, stackid):
-    if rae1.state.pos[o] == UNK:
+    pos_o = rae1.state.pos[o]
+    if pos_o == UNK:
         rae1.do_task('search', r, o, stackid)
-    elif rae1.state.loc[r] == rae1.state.pos[o]:
+    elif rae1.state.loc[r] == pos_o:
         rae1.do_command(take, r, o, stackid)
     else:
         rae1.do_task('recharge', r, 'c1', stackid)
-        rae1.do_task('moveTo', r, rae1.state.pos[o], stackid)
+        rae1.do_task('moveTo', r, pos_o, stackid)
         rae1.do_command(take, r, o, stackid)
     return SUCCESS
 

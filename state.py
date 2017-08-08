@@ -33,6 +33,8 @@ class StateDict():
 
     def __setitem__(self, key, value):
         self.dict[key] = value
+        if key not in self.lock:
+            self.lock[key] = Lock()
 
     def __iter__(self):
         return self.dict.__iter__()
