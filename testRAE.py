@@ -60,7 +60,8 @@ def GetNewTask(domain):
             3: ['explore', 'r1', 'process', 'z5']
         },
         'IP' : {
-            1: ['order', ['pack', ['paint', 'o1', 'white'], ['assemble', ['assemble', 'a', 'b'], 'c']]]
+            1: ['order', ['pack', ['paint', 'o1', 'white'], ['assemble', ['assemble', 'a', 'b'], 'c']]],
+            2: ['order', ['assemble', 'a1', ['paint', ['assemble', 'b1', 'c1'], 'pink']]]
         }
     }
     if GetNewTask.counter in task[domain]:

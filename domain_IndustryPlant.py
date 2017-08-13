@@ -114,7 +114,7 @@ def Paint_Method1(o, colour, name, stackid):
     else:
         o_name = o
 
-    if rae1.state.pos[o_name] != IP_MACHINE_LOCATION['paint']:
+    if o_name not in rae1.state.pos or rae1.state.pos[o_name] != IP_MACHINE_LOCATION['paint']:
         rae1.do_task('deliver', o_name, IP_MACHINE_LOCATION['paint'], stackid)
     rae1.do_command(paint, o_name, colour, name, stackid)
     return SUCCESS
@@ -132,9 +132,9 @@ def Assemble_Method1(part1, part2, name, stackid):
     else:
         o_name2 = part2
 
-    if rae1.state.pos[o_name1] != IP_MACHINE_LOCATION['assemble']:
+    if o_name1 not in rae1.state.pos or rae1.state.pos[o_name1] != IP_MACHINE_LOCATION['assemble']:
         rae1.do_task('deliver', o_name1, IP_MACHINE_LOCATION['assemble'], stackid)
-    if rae1.state.pos[o_name2] != IP_MACHINE_LOCATION['assemble']:
+    if o_name2 not in rae1.state.pos or rae1.state.pos[o_name2] != IP_MACHINE_LOCATION['assemble']:
         rae1.do_task('deliver', o_name2, IP_MACHINE_LOCATION['assemble'], stackid)
     rae1.do_command(assemble, o_name1, o_name2, name, stackid)
     return SUCCESS
@@ -151,9 +151,9 @@ def Pack_Method1(o1, o2, name, stackid):
         Delegate(o2, o_name2, stackid)
     else:
         o_name2 = o2
-    if rae1.state.pos[o_name1] != IP_MACHINE_LOCATION['pack']:
+    if o_name1 not in rae1.state.pos or rae1.state.pos[o_name1] != IP_MACHINE_LOCATION['pack']:
         rae1.do_task('deliver', o_name1, IP_MACHINE_LOCATION['pack'], stackid)
-    if rae1.state.pos[o_name2] != IP_MACHINE_LOCATION['pack']:
+    if o_name2 not in rae1.state.pos or rae1.state.pos[o_name2] != IP_MACHINE_LOCATION['pack']:
         rae1.do_task('deliver', o_name2, IP_MACHINE_LOCATION['pack'], stackid)
     rae1.do_command(pack, o_name1, o_name2, name, stackid)
     return SUCCESS
@@ -168,6 +168,8 @@ def Order_Method1(taskArgs, stackid):
     return SUCCESS
 
 def Deliver_Method1(o, l, stackid):
+    if o not in rae1.state.pos:
+        rae1.state.pos[o] = 1
     loc_o = rae1.state.pos[o]
     deliveryRobot = NIL
     while(deliveryRobot == NIL):
