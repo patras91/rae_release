@@ -34,6 +34,7 @@ def push(r, lamda):
 #******************************************************
 #commands controlling movement of door handle by robot
 def grasp(r, o):
+    rae1.state.reachable.AcquireLock(r,o)
     if rae1.state.reachable[r,o] == True:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('grasp', start) == False):
@@ -43,9 +44,11 @@ def grasp(r, o):
     else:
         gui.Simulate("Robot %s cannot grasp handle %s because it is unreachable\n" %(r, o))
         res = FAILURE
+    rae1.state.reachable.ReleaseLock(r,o)
     return res
 
 def ungrasp(r, o):
+    rae1.state.reachable.AcquireLock(r,o)
     if rae1.state.reachable[r,o] == True:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('ungrasp', start) == False):
@@ -55,9 +58,11 @@ def ungrasp(r, o):
     else:
         gui.Simulate("Robot %s cannot ungrasp handle %s because it is unreachable\n" %(r, o))
         res = FAILURE
+    rae1.state.reachable.ReleaseLock(r,o)
     return res
 
 def turn(r, o, alpha):
+    rae1.state.reachable.AcquireLock(r,o)
     if rae1.state.reachable[r,o] == True:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('turn', start) == False):
@@ -67,10 +72,12 @@ def turn(r, o, alpha):
     else:
         gui.Simulate("Robot %s cannot turn handle %s because it is unreachable\n" %(r, o))
         res = FAILURE
+    rae1.state.reachable.ReleaseLock(r,o)
     return res
 #******************************************************
 
 def moveClose(r, o):
+    rae1.state.reachable.AcquireLock(r,o)
     if rae1.state.reachable[r,o] == False:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('moveClose', start) == False):
@@ -81,6 +88,7 @@ def moveClose(r, o):
     else:
         gui.Simulate("Robot %s is already close to handle %s\n" %(r, o))
         res = SUCCESS
+    rae1.state.reachable.ReleaseLock(r,o)
     return res
 
 def getStatus(r, d):
@@ -90,7 +98,9 @@ def getStatus(r, d):
     gui.Simulate("Robot %s is monitoring the status of door %s\n" %(r, d))
     stat = random.choice(['closed', 'cracked'])
     gui.Simulate("Robot %s found it to be %s\n" %(r, stat))
+    rae1.state.doorStatus.AcquireLock(d)
     rae1.state.doorStatus[d] = stat
+    rae1.state.doorStatus.ReleaseLock(d)
     return SUCCESS
 
 def Unlatch_Method1(r, d, o, stackid):

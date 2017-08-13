@@ -306,3 +306,80 @@ def EE_GETDISTANCE(l0, l1):
 
     return visitedDistances[l1]
 #*******************************************************
+
+#*******************************************************
+
+#Constants for IP domain
+
+IP_MACHINE_LOCATION = {'paint': 3, 'pack': 4, 'assemble': 8, 'input': 1, 'output': 11}
+IP_LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+IP_EDGES = {1: [2], 2: [1, 3, 5], 3: [2, 4, 6], 4: [3, 7], 5: [2, 6, 8], 6: [3, 5, 7, 9], 7: [4, 6, 10], 8: [5, 9], 9: [6, 8, 10], 10: [7, 9, 11], 11: [10]}
+
+# Using Dijsktra's algorithm
+def IP_GETDISTANCE(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(IP_LOCATIONS)
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in IP_EDGES[min_loc]:
+            dist = current_dist + IP_EDGES[min_loc][l]
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+
+    return visitedDistances[l1]
+
+# Using Dijsktra's algorithm
+def IP_GETPATH(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(IP_LOCATIONS)
+    path = {}
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in IP_EDGES[min_loc]:
+            dist = current_dist + IP_EDGES[min_loc][l]
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+                path[l] = min_loc
+    l = l1
+    path2 = {}
+    while l != l0:
+        path2[path[l]] = l
+        l = path[l]
+
+    return path2
+
+def GetNewName():
+    GetNewName.current += 1
+    return 'TMPOBJECT' + GetNewName.current.__str__()
+
+GetNewName.current = 0
+
+IP_ROBOTS = ['r1', 'r2']

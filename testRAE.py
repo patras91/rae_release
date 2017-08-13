@@ -6,6 +6,7 @@ import domain_chargeableRobot
 import domain_simpleOpenDoor
 import domain_springDoor
 import domain_exploreEnv
+import domain_IndustryPlant
 from rae1 import ipcArgs, verbosity, rae1
 import threading
 import sys
@@ -57,6 +58,9 @@ def GetNewTask(domain):
             1: ['explore', 'UAV', 'survey', 'z1'],
             2: ['explore', 'UAV', 'sample', 'z3'],
             3: ['explore', 'r1', 'process', 'z5']
+        },
+        'IP' : {
+            1: ['order', ['pack', ['paint', 'o1', 'white'], ['assemble', ['assemble', 'a', 'b'], 'c']]]
         }
     }
     if GetNewTask.counter in task[domain]:
@@ -77,6 +81,8 @@ def testRAE(domain):
         domain_springDoor.springDoor_init()
     elif domain == 'EE':
         domain_exploreEnv.exploreEnv_init()
+    elif domain == 'IP':
+        domain_IndustryPlant.industryPlant_init()
     else:
         print("Invalid domain\n")
         return

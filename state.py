@@ -36,14 +36,23 @@ class StateDict():
         if key not in self.lock:
             self.lock[key] = Lock()
 
+    def __cmp__(self, other):
+        return cmp(self.dict, other)
+
     def __iter__(self):
         return self.dict.__iter__()
 
     def __str__(self):
         return self.dict.__str__()
 
-    def AcquireLock(self, key):
-        self.lock[key].acquire()
+    def AcquireLock(self, *key):
+        if len(key) == 1:
+            self.lock[key[0]].acquire()
+        else:
+            self.lock[key].acquire()
 
-    def ReleaseLock(self, key):
-        self.lock[key].release()
+    def ReleaseLock(self, *key):
+        if len(key) == 1:
+            self.lock[key[0]].release()
+        else:
+            self.lock[key].release()

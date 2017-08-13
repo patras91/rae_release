@@ -21,7 +21,12 @@ an object and bring it to the hallway.'''
 #|_______|_______|_______|
 
 def openDoor(r, d):
-    if rae1.state.load[r] == NIL and (rae1.state.doorStatus[d] == 'closed' or rae1.state.doorStatus):
+    rae1.state.load.AcquireLock(r)
+    rae1.state.doorStatus.AcquireLock(d)
+    if rae1.state.doorStatus[d] == 'opened':
+        gui.Simulate("Door %s is already open\n" %d)
+        res = SUCCESS
+    elif rae1.state.load[r] == NIL and rae1.state.doorStatus[d] == 'closed':
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('openDoor', start) == False):
 	        pass
@@ -31,9 +36,13 @@ def openDoor(r, d):
     else:
         gui.Simulate("Robot %s is not free to open door %s or the door is not closed\n" %(r, d))
         res = FAILURE
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.doorStatus.ReleaseLock(d)
     return res
 
 def passDoor(r, d, l):
+    rae1.state.doorStatus.AcquireLock(d)
+    rae1.state.loc.AcquireLock(r)
     if rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'held':
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('passDoor', start) == False):
@@ -44,9 +53,13 @@ def passDoor(r, d, l):
     else:
         gui.Simulate("Robot %s is not able to pass door %s\n" %(r, d))
         res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.doorStatus.ReleaseLock(d)
     return res
 
 def holdDoor(r, d):
+    rae1.state.doorStatus.AcquireLock(d)
+    rae1.state.load.AcquireLock(r)
     if (rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'closing') and rae1.state.load[r] == NIL:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('holdDoor', start) == False):
@@ -61,6 +74,8 @@ def holdDoor(r, d):
     elif rae1.state.load[r] != NIL:
         gui.Simulate("Robot %s is not free to hold the door %s\n" %(r, d))
         res = FAILURE
+    rae1.state.doorStatus.ReleaseLock(d)
+    rae1.state.load.ReleaseLock(r)
     return res
 
 def releaseDoor(r, d):
@@ -76,6 +91,7 @@ def releaseDoor(r, d):
     return SUCCESS
 
 def move(r, l1, l2):
+    rae1.state.loc.AcquireLock(r)
     if l1 == l2:
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
@@ -93,9 +109,13 @@ def move(r, l1, l2):
     else:
         gui.Simulate("Invalid move by robot %s\n" %r)
         res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
     return res
 
 def put(r, o):
+    rae1.state.pos.AcquireLock(o)
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
     if rae1.state.pos[o] == r:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
@@ -107,15 +127,21 @@ def put(r, o):
     else:
         print("Object %s is not with robot %s\n" %(o,r))
         res = FAILURE
+    rae1.state.pos.ReleaseLock(o)
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
     return res
 
 def take(r, o):
+    rae1.state.pos.AcquireLock(o)
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
     if rae1.state.load[r] == NIL:
         if rae1.state.loc[r] == rae1.state.pos[o]:
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
 	            pass
-            gui.Simulate("Robot %s has picked up object %s" %(r, o))
+            gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
             rae1.state.pos[o] = r
             rae1.state.load[r] = o
             res = SUCCESS
@@ -125,6 +151,9 @@ def take(r, o):
     else:
         print("Robot %s is not free to take anything\n" %r)
         res = FAILURE
+    rae1.state.pos.ReleaseLock(o)
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
     return res
 
 def closeDoors():
@@ -132,6 +161,7 @@ def closeDoors():
     while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
         pass
     for d in ['d1', 'd2', 'd3']:
+        rae1.state.doorStatus.AcquireLock(d)
         if rae1.state.doorStatus[d] == 'opened':
             rae1.state.doorStatus[d] = 'closing'
             gui.Simulate("Door %s is closing\n" %d)
@@ -140,6 +170,7 @@ def closeDoors():
             gui.Simulate("Door %s is closed\n" %d)
         elif rae1.state.doorStatus[d] == 'held':
             gui.Simulate("Door %s is %s, so it cannot be closed\n" %(d, rae1.state.doorStatus[d]))
+        rae1.state.doorStatus.ReleaseLock(d)
     return SUCCESS
 
 def MoveThroughDoorway_Method3(r, d, l, stackid):
@@ -176,11 +207,12 @@ def MoveThroughDoorway_Method1(r, d, l, stackid):
 
 def MoveTo_Method1(r, l, stackid):
     res = SUCCESS
-    path = GETPATH_SPRINGDOOR(rae1.state.loc[r], l)
+    x = rae1.state.loc[r]
+    path = GETPATH_SPRINGDOOR(x, l)
     if path == {}:
         gui.Simulate("Robot %s is already at location %s \n" %(r, l))
     else:
-        lTemp = rae1.state.loc[r]
+        lTemp = x
         lNext = path[lTemp]
         while(lTemp != l):
             lNext = path[lTemp]
@@ -189,24 +221,25 @@ def MoveTo_Method1(r, l, stackid):
                 rae1.do_task('moveThroughDoorway', r, d, lNext, stackid)
             else:
                 rae1.do_command(move, r, lTemp, lNext, stackid)
-            if lTemp == rae1.state.loc[r]:
+            if lNext != rae1.state.loc[r]:
                 res = FAILURE
                 break
             else:
-                lTemp = rae1.state.loc[r]
-
+                lTemp = lNext
     return res
 
 def GetHelp_Method1(r, stackid):
-    if rae1.state.load['r2'] != NIL:
-        rae1.do_command(put, 'r2', rae1.state.load['r2'], stackid)
+    load_r = rae1.state.load['r2']
+    if load_r != NIL:
+        rae1.do_command(put, 'r2', load_r, stackid)
     rae1.do_task('moveTo', 'r2', rae1.state.loc[r], stackid)
     return SUCCESS
 
 def Fetch_Method1(r, o, l, stackid):
     rae1.do_task('moveTo', r, rae1.state.pos[o], stackid)
-    if rae1.state.load[r] != NIL:
-        rae1.do_command(put, r, o, stackid)
+    load_r = rae1.state.load[r]
+    if load_r != NIL:
+        rae1.do_command(put, r, load_r, stackid)
     rae1.do_command(take, r, o, stackid)
     rae1.do_task('moveTo', r, l, stackid)
     rae1.state.done = True

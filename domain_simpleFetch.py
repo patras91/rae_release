@@ -7,68 +7,88 @@ from timer import globalTimer
 '''A simple example where a robot has to fetch an object in a harbor and handle emergencies. From Ch 3'''
 
 def moveTo(r, l):
+    rae1.state.emergencyHandling.AcquireLock(r)
     if rae1.state.emergencyHandling[r] == False:
+        rae1.state.loc.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('moveTo', start) == False):
 		    pass
         gui.Simulate("Robot %s has gone to location %d\n" %(r,l))
         rae1.state.loc[r] = l
+        rae1.state.loc.ReleaseLock(r)
         res = SUCCESS
     else:
         gui.Simulate("Cannot move robot %s because it is handling emergency\n" %r)
         res = FAILURE
+    rae1.state.emergencyHandling.ReleaseLock(r)
     return res
 
 def moveToEmergency(r, l):
+    rae1.state.loc.AcquireLock(r)
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('moveToEmergency', start) == False):
 	    pass
     gui.Simulate("Robot %s has gone to location %d to handle emergency\n" %(r,l))
     rae1.state.loc[r] = l
+    rae1.state.loc.ReleaseLock(r)
     return SUCCESS
 
 def take(r, o, l):
+    rae1.state.pos.AcquireLock(o)
     if rae1.state.pos[o] == l:
+        rae1.state.load.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('take', start) == False):
 		    pass
         rae1.state.pos[o] = r
         rae1.state.load[r] = o
+        rae1.state.load.ReleaseLock(r)
         gui.Simulate("Robot %s has taken object %s at location %d\n" %(r,o,l))
         res = SUCCESS
     else:
         gui.Simulate("Object %s is not at location %d\n" %(o,l))
         res = FAILURE
+    rae1.state.pos.ReleaseLock(o)
     return res
 
 def put(r, o, l):
+    rae1.state.pos.AcquireLock(o)
     if rae1.state.pos[o] == r:
+        rae1.state.load.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
 		    pass
         rae1.state.pos[o] = l
         rae1.state.load[r] = NIL
+        rae1.state.load.ReleaseLock(r)
         gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,l))
         res = SUCCESS
     else:
         gui.Simulate("Object %s is not with robot %s\n" %(o,r))
         res = FAILURE
+    rae1.state.pos.ReleaseLock(o)
     return res
 
 def perceive(l):
+    rae1.state.view.AcquireLock(l)
     if rae1.state.view[l] == False:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
 		    pass
         for c in rae1.state.containers[l]:
+            rae1.state.pos.AcquireLock(c)
             rae1.state.pos[c] = l
+            rae1.state.pos.ReleaseLock(c)
         rae1.state.view[l] = True
         gui.Simulate("Perceived location %d\n" %l)
     else:
         gui.Simulate("Already perceived\n")
+    rae1.state.view.ReleaseLock(l)
     return SUCCESS
 
 def addressEmergency(r, l, i):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.emergencyHandling.AcquireLock(r)
     if rae1.state.loc[r] == l:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('addressEmergency', start) == False):
@@ -79,6 +99,8 @@ def addressEmergency(r, l, i):
         gui.Simulate("Robot %s has failed to address emergency %d\n" %(r, i))
         res = FAILURE
     rae1.state.emergencyHandling[r] = False
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.emergencyHandling.ReleaseLock(r)
     return res
 
 def wait(r):
@@ -104,20 +126,22 @@ def Search_Method1(r, o, stackid):
     return res
 
 def Fetch_Method1(r, o, stackid):
-    if rae1.state.pos[o] == UNK:
+    pos_o = rae1.state.pos[o]
+    if pos_o == UNK:
         rae1.do_task('search', r, o, stackid)
-    elif rae1.state.loc[r] == rae1.state.pos[o]:
-        rae1.do_command(take, r, o, rae1.state.pos[o], stackid)
+    elif rae1.state.loc[r] == pos_o:
+        rae1.do_command(take, r, o, pos_o, stackid)
     else:
-        rae1.do_task('nonEmergencyMove', r, rae1.state.pos[o], stackid)
-        rae1.do_command(take, r, o, rae1.state.pos[o], stackid)
+        rae1.do_task('nonEmergencyMove', r, pos_o, stackid)
+        rae1.do_command(take, r, o, pos_o, stackid)
     return SUCCESS
 
 def Emergency_Method1(r, l, i, stackid):
     if rae1.state.emergencyHandling[r] == False:
         rae1.state.emergencyHandling[r] = True
-        if rae1.state.load[r] != NIL:
-            rae1.do_command(put, r, rae1.state.load[r], rae1.state.loc[r], stackid)
+        load_r = rae1.state.load[r]
+        if load_r != NIL:
+            rae1.do_command(put, r, load_r, rae1.state.loc[r], stackid)
         rae1.do_command(moveToEmergency, r, l, stackid)
         rae1.do_command(addressEmergency, r, l, i, stackid)
         res = SUCCESS
