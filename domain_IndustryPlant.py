@@ -8,8 +8,13 @@ from timer import globalTimer
 def paint(o, colour, name):
     rae1.state.pos.AcquireLock(o)
     if rae1.state.pos[o] == IP_MACHINE_LOCATION['paint']:
+        rae1.state.status.AcquireLock('paint')
         gui.Simulate("Colouring %s with colour %s and naming it %s\n" %(o, colour, name))
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('paint', start) == False):
+		    pass
         rae1.state.pos[name] = IP_MACHINE_LOCATION['paint']
+        rae1.state.status.ReleaseLock('paint')
         res = SUCCESS
     else:
         gui.Simulate("%s is not in painting machine's location\n" %o)
@@ -22,8 +27,13 @@ def assemble(p1, p2, name):
     rae1.state.pos.AcquireLock(p2)
 
     if rae1.state.pos[p1] == IP_MACHINE_LOCATION['assemble'] and rae1.state.pos[p2] == IP_MACHINE_LOCATION['assemble']:
+        rae1.state.status.AcquireLock('assemble')
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('assemble', start) == False):
+		    pass
         gui.Simulate("Assembled parts %s and %s and naming it %s\n" %(p1, p2, name))
         rae1.state.pos[name] = IP_MACHINE_LOCATION['assemble']
+        rae1.state.status.ReleaseLock('assemble')
         res = SUCCESS
     else:
         gui.Simulate("Part %s or %s is not in painting machine's location\n" %(p1, p2))
@@ -36,8 +46,13 @@ def pack(o1, o2, name):
     rae1.state.pos.AcquireLock(o1)
     rae1.state.pos.AcquireLock(o2)
     if rae1.state.pos[o1] == IP_MACHINE_LOCATION['pack'] and rae1.state.pos[o2] == IP_MACHINE_LOCATION['pack']:
+        rae1.state.status.AcquireLock('pack')
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('pack', start) == False):
+		    pass
         gui.Simulate("Packed objects %s and %s and naming it %s\n" %(o1, o2, name))
         rae1.state.pos[name] = IP_MACHINE_LOCATION['pack']
+        rae1.state.status.ReleaseLock('pack')
         res = SUCCESS
     else:
         gui.Simulate("Part %s or %s is not in packing machine's location\n" %(o1, o2))
@@ -213,5 +228,5 @@ def industryPlant_init():
 
     rae1.state.load = {'r1': NIL, 'r2': NIL}
     rae1.state.loc = {'r1': 2, 'r2': 4}
-    rae1.state.status = {'r1': 'free', 'r2': 'free'}
+    rae1.state.status = {'r1': 'free', 'r2': 'free', 'paint': 'free', 'assemble': 'free', 'pack': 'free'}
     rae1.state.pos = {'a': IP_MACHINE_LOCATION['input'], 'b': IP_MACHINE_LOCATION['input'], 'c': IP_MACHINE_LOCATION['input'], 'o1': IP_MACHINE_LOCATION['input']}

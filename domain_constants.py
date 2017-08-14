@@ -202,7 +202,11 @@ DURATION_COUNTER = {
     'process': 5,
     'fly': 3,
     'deposit': 1,
-    'transferData': 1
+    'transferData': 1,
+
+    'paint': 5, # for domain IP
+    'assemble': 5,
+    'pack': 5,
 }
 
 #*******************************************************

@@ -15,7 +15,7 @@ We have the following domains.
 6. domain_exploreEnv: Robots and UAV move through an area and collects various data
    --- developed and integrated with RAE: testing needed
 7. domain_industrialPlant: Orders of compound tasks involving painting, assembly and packing of components are handled
-  ----developed and integrated with RAE: testing needed
+   --- developed and integrated with RAE: testing needed
 
 HOW TO USE?
 To test on any domain, import testRAE and use the following command in python
