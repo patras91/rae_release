@@ -110,14 +110,14 @@ def wait(r):
     gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
     return SUCCESS
 
-def Search_Method1(r, o, stackid):
+def Search_Method1(r, o):
     if rae1.state.pos[o] == UNK:
         for l in LOCATIONS:
             if rae1.state.view[l] == False:
-                rae1.do_task('nonEmergencyMove', r, l, stackid)
-                rae1.do_command(perceive, l, stackid)
+                rae1.do_task('nonEmergencyMove', r, l)
+                rae1.do_command(perceive, l)
                 if rae1.state.pos[o] == l:
-                    rae1.do_command(take, r, o, l, stackid)
+                    rae1.do_command(take, r, o, l)
                     break
         res = SUCCESS
     else:
@@ -125,47 +125,47 @@ def Search_Method1(r, o, stackid):
         res = FAILURE
     return res
 
-def Fetch_Method1(r, o, stackid):
+def Fetch_Method1(r, o):
     pos_o = rae1.state.pos[o]
     if pos_o == UNK:
-        rae1.do_task('search', r, o, stackid)
+        rae1.do_task('search', r, o)
     elif rae1.state.loc[r] == pos_o:
-        rae1.do_command(take, r, o, pos_o, stackid)
+        rae1.do_command(take, r, o, pos_o)
     else:
-        rae1.do_task('nonEmergencyMove', r, pos_o, stackid)
-        rae1.do_command(take, r, o, pos_o, stackid)
+        rae1.do_task('nonEmergencyMove', r, pos_o)
+        rae1.do_command(take, r, o, pos_o)
     return SUCCESS
 
-def Emergency_Method1(r, l, i, stackid):
+def Emergency_Method1(r, l, i):
     if rae1.state.emergencyHandling[r] == False:
         rae1.state.emergencyHandling[r] = True
         load_r = rae1.state.load[r]
         if load_r != NIL:
-            rae1.do_command(put, r, load_r, rae1.state.loc[r], stackid)
-        rae1.do_command(moveToEmergency, r, l, stackid)
-        rae1.do_command(addressEmergency, r, l, i, stackid)
+            rae1.do_command(put, r, load_r, rae1.state.loc[r])
+        rae1.do_command(moveToEmergency, r, l)
+        rae1.do_command(addressEmergency, r, l, i)
         res = SUCCESS
     else:
         gui.Simulate("%r is already busy handling another emergency\n" %r)
         res = FAILURE
     return res
 
-def NonEmergencyMove_Method1(r, l, stackid):
+def NonEmergencyMove_Method1(r, l):
     if rae1.state.emergencyHandling[r] == False:
-        rae1.do_command(moveTo, r, l, stackid)
+        rae1.do_command(moveTo, r, l)
         res = SUCCESS
     else:
         gui.Simulate("Move failed, trying to do a non emergency move for a robot handling emergency\n")
         res = FAILURE
     return res
 
-def NonEmergencyMove_Method2(r, l, stackid):
+def NonEmergencyMove_Method2(r, l):
     if rae1.state.emergencyHandling[r] == False:
-        rae1.do_command(moveTo, r, l, stackid)
+        rae1.do_command(moveTo, r, l)
     else:
         while(rae1.state.emergencyHandling[r] == True):
-            rae1.do_command(wait, r, stackid)
-        rae1.do_command(moveTo, r, l, stackid)
+            rae1.do_command(wait, r)
+        rae1.do_command(moveTo, r, l)
     return SUCCESS
 
 def simpleFetch_init():

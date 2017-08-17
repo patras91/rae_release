@@ -141,32 +141,32 @@ def leave_taxi(a):
 	rae1.state.loc.ReleaseLock(a)
 	return res
 
-def travel_by_foot(a,x,y,stackid):
+def travel_by_foot(a,x,y):
 	if rae1.state.dist[x][y] <= 2:
-		rae1.do_command(walk,a,x,y,stackid)
+		rae1.do_command(walk,a,x,y)
 		return SUCCESS
 	return FAILURE
 
-def travel_by_taxi(a,x,y,stackid):
+def travel_by_taxi(a,x,y):
 	rae1.state.cash.AcquireLock(a)
 	if rae1.state.cash[a] >= taxi_rate(rae1.state.dist[x][y]):
 		rae1.state.cash.ReleaseLock(a)
-		rae1.do_command(call_taxi,a,x,stackid)
-		rae1.do_task('ride_taxi',a,y,stackid)
+		rae1.do_command(call_taxi,a,x)
+		rae1.do_task('ride_taxi',a,y)
 		return SUCCESS
 	else:
 		rae1.state.cash.ReleaseLock(a)
 		gui.Simulate('agent',a,"has too little money for a taxi from",x,'to',y,'\n')
 		return FAILURE
 
-def ride_taxi_method(a,y,stackid):
+def ride_taxi_method(a,y):
 	rae1.state.loc.AcquireLock(a)
 	if rae1.state.dist[rae1.state.loc[a]][y] < 50:
 		rae1.state.loc.ReleaseLock(a)
-		rae1.do_command(enter_taxi,a,stackid)
-		rae1.do_command(taxi_carry,a,y,stackid)
-		rae1.do_command(pay_driver,a,stackid)
-		rae1.do_command(leave_taxi,a,stackid)
+		rae1.do_command(enter_taxi,a)
+		rae1.do_command(taxi_carry,a,y)
+		rae1.do_command(pay_driver,a)
+		rae1.do_command(leave_taxi,a)
 		return SUCCESS
 	else:
 		rae1.state.loc.ReleaseLock(a)

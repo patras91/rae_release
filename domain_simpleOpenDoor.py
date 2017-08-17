@@ -103,14 +103,14 @@ def getStatus(r, d):
     rae1.state.doorStatus.ReleaseLock(d)
     return SUCCESS
 
-def Unlatch_Method1(r, d, o, stackid):
+def Unlatch_Method1(r, d, o):
     if ((rae1.state.loc[r],d) in TOWARDSIDE and (d,'left') in SIDE  and (d, 'rotates') in TYPE and (d, o) in HANDLE):
-        rae1.do_command(grasp, r, o, stackid)
-        rae1.do_command(turn, r, o, 'alpha1', stackid)
-        rae1.do_command(pull, r, 'val1', stackid)
-        rae1.do_command(getStatus, r, d, stackid)
+        rae1.do_command(grasp, r, o)
+        rae1.do_command(turn, r, o, 'alpha1')
+        rae1.do_command(pull, r, 'val1')
+        rae1.do_command(getStatus, r, d)
         if rae1.state.doorStatus[d] == 'cracked':
-            rae1.do_command(ungrasp, r, o, stackid)
+            rae1.do_command(ungrasp, r, o)
             res = SUCCESS
         else:
             res = FAILURE
@@ -120,24 +120,24 @@ def Unlatch_Method1(r, d, o, stackid):
         res = FAILURE
     return res
 
-def ThrowWide_Method1(r, d, o, stackid):
+def ThrowWide_Method1(r, d, o):
     if ((rae1.state.loc[r], d) in TOWARDSIDE and (d, 'left') in SIDE and (d, 'rotates') in TYPE and (d, o) in HANDLE and rae1.state.doorStatus[d] == 'cracked'):
-        rae1.do_command(grasp, r, o, stackid)
-        rae1.do_command(pull, r, 'val1', stackid)
-        rae1.do_command(moveBy, r, 'val2', stackid)
+        rae1.do_command(grasp, r, o)
+        rae1.do_command(pull, r, 'val1')
+        rae1.do_command(moveBy, r, 'val2')
         res = SUCCESS
     else:
         gui.Simulate("Robot %s is not in right position and orientation to throw wide %s\n" %(r, d))
         res = FAILURE
     return res
 
-def OpenDoor_Method1(r, d, o, stackid):
+def OpenDoor_Method1(r, d, o):
     if (rae1.state.loc[r], d) in ADJACENT and (d, o) in HANDLE:
         if rae1.state.reachable[r, o] == False:
-            rae1.do_command(moveClose, r, o, stackid)
+            rae1.do_command(moveClose, r, o)
         if rae1.state.doorStatus[d] == 'unknown' or rae1.state.doorStatus[d] == 'closed' :
-            rae1.do_task('unlatch', r, d, o, stackid)
-        rae1.do_task('throwWide', r, d, o, stackid)
+            rae1.do_task('unlatch', r, d, o)
+        rae1.do_task('throwWide', r, d, o)
         res = SUCCESS
     else:
         gui.Simulate("%s not in right position to open door %s" %(r,d))

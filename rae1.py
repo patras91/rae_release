@@ -45,6 +45,7 @@ def print_entire_stack(stackid, path):
 
 verbose = 0
 state = State()
+id = threading.local()
 
 def verbosity(level):
 	"""
@@ -165,7 +166,8 @@ def rae1(task, *args):
 	# To Dana: Only using the stackid at the end now. Removed other arguments which consisted of state
 	# and thread communication parameters. They are now global variables --Sunandita
 
-	stackid = args[-1]
+	id.val = args[-1]
+	stackid = id.val
 	taskArgs = args[0:-1]
 
 	global path
@@ -182,7 +184,7 @@ def rae1(task, *args):
 		print(state)
 
 	try:
-		retcode = do_task(task, *args)
+		retcode = do_task(task, *taskArgs)
 	except Failed_command,e:
 		if verbose > 0:
 			print_stack_size(stackid, path)
@@ -208,12 +210,11 @@ def rae1(task, *args):
 def choose_candidate(candidates):
 	return(candidates[0],candidates[1:])
 
-def do_task(task, *args):
+def do_task(task, *taskArgs):
 	"""
 	This is the workhorse for rae1. The arguments are the same as for rae1.
 	"""
-	stackid = args[-1]
-	taskArgs = args[0:-1]
+	stackid = id.val
 	global path
 
 	path[stackid].append([task, taskArgs])
@@ -242,7 +243,7 @@ def do_task(task, *args):
 				print_stack_size(stackid, path)
 				print('Current state is:'.format(stackid))
 				print(state)
-			retcode = m(*args)
+			retcode = m(*taskArgs)
 		except Failed_command, e:
 			if verbose > 0:
 				print_stack_size(stackid, path)
@@ -274,13 +275,12 @@ def do_task(task, *args):
 def beginCommand(cmd, cmdRet, cmdArgs):
 	cmdRet['state'] = cmd(*cmdArgs)
 
-def do_command(cmd, *args):
+def do_command(cmd, *cmdArgs):
 	"""
-	Perform command cmd(args). Last arg must be the current state
+	Perform command cmd(cmdArgs). Last arg must be the current state
 	"""
 
-	stackid = args[-1]
-	cmdArgs = args[0:-1]
+	stackid = id.val
 
 	global path
 	path[stackid].append([cmd, cmdArgs])

@@ -338,57 +338,57 @@ def transferData(r1, r2):
     rae1.state.data.ReleaseLock(r2)
     return res
 
-def Explore_Method2(r, activity, l, stackid):
-    rae1.do_task('getEquipment', r, activity, stackid)
-    rae1.do_task('moveTo', r, l, stackid)
+def Explore_Method2(r, activity, l):
+    rae1.do_task('getEquipment', r, activity)
+    rae1.do_task('moveTo', r, l)
     if activity == 'survey':
-        rae1.do_command(survey, r, l, stackid)
+        rae1.do_command(survey, r, l)
     elif activity == 'monitor':
-        rae1.do_command(monitor, r, l, stackid)
+        rae1.do_command(monitor, r, l)
     elif activity == 'screen':
-        rae1.do_command(screen, r, l, stackid)
+        rae1.do_command(screen, r, l)
     elif activity == 'sample':
-        rae1.do_command(sample, r, l, stackid)
+        rae1.do_command(sample, r, l)
     elif activity == 'process':
-        rae1.do_command(process, r, l, stackid)
-    rae1.do_task('depositData', r, 'base', stackid)
+        rae1.do_command(process, r, l)
+    rae1.do_task('depositData', r, 'base')
     return SUCCESS
 
-def Explore_Method1(r, activity, l, stackid):
-    rae1.do_task('getEquipment', r, activity, stackid)
-    rae1.do_task('moveTo', r, l, stackid)
+def Explore_Method1(r, activity, l):
+    rae1.do_task('getEquipment', r, activity)
+    rae1.do_task('moveTo', r, l)
     if activity == 'survey':
-        rae1.do_command(survey, r, l, stackid)
+        rae1.do_command(survey, r, l)
     elif activity == 'monitor':
-        rae1.do_command(monitor, r, l, stackid)
+        rae1.do_command(monitor, r, l)
     elif activity == 'screen':
-        rae1.do_command(screen, r, l, stackid)
+        rae1.do_command(screen, r, l)
     elif activity == 'sample':
-        rae1.do_command(sample, r, l, stackid)
+        rae1.do_command(sample, r, l)
     elif activity == 'process':
-        rae1.do_command(process, r, l, stackid)
+        rae1.do_command(process, r, l)
     return SUCCESS
 
-def GetEquipment_Method1(r, activity, stackid):
+def GetEquipment_Method1(r, activity):
     if rae1.state.load[r] != EE_EQUIPMENT[activity]:
-        rae1.do_task('moveTo', r, rae1.state.pos[EE_EQUIPMENT[activity]], stackid)
-        rae1.do_command(take, r, EE_EQUIPMENT[activity], stackid)
+        rae1.do_task('moveTo', r, rae1.state.pos[EE_EQUIPMENT[activity]])
+        rae1.do_command(take, r, EE_EQUIPMENT[activity])
     return SUCCESS
 
-def GetEquipment_Method2(r, activity, stackid):
+def GetEquipment_Method2(r, activity):
     if rae1.state.load[r] != EE_EQUIPMENT[activity]:
-        rae1.do_task('moveTo', r, rae1.state.pos[EE_EQUIPMENT[activity]], stackid)
+        rae1.do_task('moveTo', r, rae1.state.pos[EE_EQUIPMENT[activity]])
         rae1.state.load.AcquireLock(r)
         if rae1.state.load[r] != NIL:
             x = rae1.state.load[r]
             rae1.state.load.ReleaseLock(r)
-            rae1.do_command(put, r, x, stackid)
+            rae1.do_command(put, r, x)
         else:
             rae1.state.load.ReleaseLock(r)
-        rae1.do_command(take, r, EE_EQUIPMENT[activity], stackid)
+        rae1.do_command(take, r, EE_EQUIPMENT[activity])
     return SUCCESS
 
-def MoveTo_MethodHelper(r, l, stackid):
+def MoveTo_MethodHelper(r, l):
     res = SUCCESS
     path = EE_GETPATH(rae1.state.loc[r], l)
     if path == {}:
@@ -401,7 +401,7 @@ def MoveTo_MethodHelper(r, l, stackid):
         else:
             while(lTemp != l):
                 lNext = path[lTemp]
-                rae1.do_command(move, r, lTemp, lNext, stackid)
+                rae1.do_command(move, r, lTemp, lNext)
                 if lNext != rae1.state.loc[r]:
                     gui.Simulate("%s is out of its path to %s\n" %(r, l))
                     res = FAILURE
@@ -410,55 +410,55 @@ def MoveTo_MethodHelper(r, l, stackid):
                     lTemp = lNext
     return res
 
-def MoveTo_Method1(r, l, stackid):
+def MoveTo_Method1(r, l):
     if l not in EE_LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
     else:
-        res = MoveTo_MethodHelper(r, l, stackid)
+        res = MoveTo_MethodHelper(r, l)
     return res
 
-def MoveTo_Method2(r, l, stackid):
-    if l not in EE_LOCATIONS:
-        gui.Simulate("%s is trying to go to an invalid location\n" %r)
-        res = FAILURE
-    else:
-        dist = EE_GETDISTANCE(rae1.state.loc[r], l)
-        if rae1.state.charge[r] >= dist:
-            res = MoveTo_MethodHelper(r, l, stackid)
-        else:
-            gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
-            res = FAILURE
-    return res
-
-def MoveTo_Method3(r, l, stackid):
+def MoveTo_Method2(r, l):
     if l not in EE_LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
     else:
         dist = EE_GETDISTANCE(rae1.state.loc[r], l)
         if rae1.state.charge[r] >= dist:
-            res = MoveTo_MethodHelper(r, l, stackid)
+            res = MoveTo_MethodHelper(r, l)
         else:
-            rae1.do_task('recharge', r, stackid)
-            rae1.do_task('moveTo', r, l, stackid)
+            gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
+            res = FAILURE
+    return res
+
+def MoveTo_Method3(r, l):
+    if l not in EE_LOCATIONS:
+        gui.Simulate("%s is trying to go to an invalid location\n" %r)
+        res = FAILURE
+    else:
+        dist = EE_GETDISTANCE(rae1.state.loc[r], l)
+        if rae1.state.charge[r] >= dist:
+            res = MoveTo_MethodHelper(r, l)
+        else:
+            rae1.do_task('recharge', r)
+            rae1.do_task('moveTo', r, l)
             res = SUCCESS
     return res
 
-def FlyTo_Method1(r, l, stackid):
+def FlyTo_Method1(r, l):
     if r == 'UAV':
-        rae1.do_command(fly, r, rae1.state.loc[r], l, stackid)
+        rae1.do_command(fly, r, rae1.state.loc[r], l)
         res = SUCCESS
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
         res = FAILURE
     return res
 
-def FlyTo_Method2(r, l, stackid):
+def FlyTo_Method2(r, l):
     dist = GETDISTANCE(rae1.state.loc[r], l)
     if r == 'UAV':
         if rae1.state.charge[r] >= dist:
-            rae1.do_command(fly, r, rae1.state.loc[r], l, dist, stackid)
+            rae1.do_command(fly, r, rae1.state.loc[r], l, dist)
             res = SUCCESS
         else:
             gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
@@ -468,66 +468,66 @@ def FlyTo_Method2(r, l, stackid):
         res = FAILURE
     return res
 
-def FlyTo_Method3(r, l, stackid):
+def FlyTo_Method3(r, l):
     dist = GETDISTANCE(rae1.state.loc[r], l)
     if r == 'UAV':
         if rae1.state.charge[r] >= dist:
-            rae1.do_command(fly, r, rae1.state.loc[r], l, dist, stackid)
+            rae1.do_command(fly, r, rae1.state.loc[r], l, dist)
             res = SUCCESS
         else:
-            rae1.do_task('recharge', r, stackid)
-            rae1.do_task('flyTo', r, l, stackid)
+            rae1.do_task('recharge', r)
+            rae1.do_task('flyTo', r, l)
             res = SUCCESS
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
         res = FAILURE
     return res
 
-def DepositData_Method1(r, stackid):
+def DepositData_Method1(r):
     if rae1.state.data[r] > 0:
-        rae1.do_task('moveTo', r, 'base', stackid)
-        rae1.do_command(deposit, r, stackid)
+        rae1.do_task('moveTo', r, 'base')
+        rae1.do_command(deposit, r)
     else:
         gui.Simulate("%s has no data to deposit.\n" %r)
     return SUCCESS
 
-def DepositData_Method2(r, stackid):
+def DepositData_Method2(r):
     if rae1.state.data[r] > 0:
-        rae1.do_task('flyTo', 'UAV', rae1.state.loc[r], stackid)
-        rae1.do_command(transferData, r, 'UAV', stackid)
-        rae1.do_task('flyTo', 'UAV', 'base', stackid)
-        rae1.do_command(deposit, 'UAV', stackid)
+        rae1.do_task('flyTo', 'UAV', rae1.state.loc[r])
+        rae1.do_command(transferData, r, 'UAV')
+        rae1.do_task('flyTo', 'UAV', 'base')
+        rae1.do_command(deposit, 'UAV')
     else:
         gui.Simulate("%s has no data to deposit.\n" %r)
     return SUCCESS
 
-def Recharge_Method1(r, stackid):
+def Recharge_Method1(r):
     c = 'c1'
     if rae1.state.pos[c] not in EE_LOCATIONS and rae1.state.pos[c] != r:
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
         res = FAILURE
     elif rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
-        rae1.do_task('moveTo', r, rae1.state.pos[c], stackid)
-        rae1.do_command(charge, r, c, stackid)
+        rae1.do_task('moveTo', r, rae1.state.pos[c])
+        rae1.do_command(charge, r, c)
         res = SUCCESS
     else:
-        rae1.do_command(charge, r, c, stackid)
+        rae1.do_command(charge, r, c)
         res = SUCCESS
     return res
 
-def Recharge_Method2(r, stackid):
+def Recharge_Method2(r):
     c = 'c1'
     if rae1.state.pos[c] not in EE_LOCATIONS and rae1.state.pos[c] != r:
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
         res = FAILURE
     elif rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
-        rae1.do_task('moveTo', r, rae1.state.pos[c], stackid)
-        rae1.do_command(charge, r, c, stackid)
-        rae1.do_command(take, r, c, stackid)
+        rae1.do_task('moveTo', r, rae1.state.pos[c])
+        rae1.do_command(charge, r, c)
+        rae1.do_command(take, r, c)
         res = SUCCESS
     else:
-        rae1.do_command(charge, r, c, stackid)
-        rae1.do_command(take, r, c, stackid)
+        rae1.do_command(charge, r, c)
+        rae1.do_command(take, r, c)
         res = SUCCESS
     return res
 

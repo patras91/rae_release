@@ -173,39 +173,39 @@ def closeDoors():
         rae1.state.doorStatus.ReleaseLock(d)
     return SUCCESS
 
-def MoveThroughDoorway_Method3(r, d, l, stackid):
+def MoveThroughDoorway_Method3(r, d, l):
     if rae1.state.load[r] == NIL:
-        rae1.do_command(openDoor, r, d, stackid)
-        rae1.do_command(holdDoor, r, d, stackid)
-        rae1.do_command(passDoor, r, d, l, stackid)
-        rae1.do_command(releaseDoor, r, d, stackid)
+        rae1.do_command(openDoor, r, d)
+        rae1.do_command(holdDoor, r, d)
+        rae1.do_command(passDoor, r, d, l)
+        rae1.do_command(releaseDoor, r, d)
         res = SUCCESS
     else:
         res = FAILURE
     return res
 
-def MoveThroughDoorway_Method2(r, d, l, stackid):
+def MoveThroughDoorway_Method2(r, d, l):
     if rae1.state.load[r] != NIL:
-        rae1.do_task('getHelp', r, stackid)
-        rae1.do_command(openDoor, 'r2', d, stackid)
-        rae1.do_command(holdDoor, 'r2', d, stackid)
-        rae1.do_command(passDoor, r, d, l, stackid)
-        rae1.do_command(releaseDoor, 'r2', d, stackid)
+        rae1.do_task('getHelp', r)
+        rae1.do_command(openDoor, 'r2', d)
+        rae1.do_command(holdDoor, 'r2', d)
+        rae1.do_command(passDoor, r, d, l)
+        rae1.do_command(releaseDoor, 'r2', d)
         res = SUCCESS
     else:
         res = FAILURE
     return res
 
-def MoveThroughDoorway_Method1(r, d, l, stackid):
+def MoveThroughDoorway_Method1(r, d, l):
     if rae1.state.load[r] == NIL:
-        rae1.do_command(openDoor, r, d, stackid)
-        rae1.do_command(passDoor, r, d, l, stackid)
+        rae1.do_command(openDoor, r, d)
+        rae1.do_command(passDoor, r, d, l)
         res = SUCCESS
     else:
         res = FAILURE
     return res
 
-def MoveTo_Method1(r, l, stackid):
+def MoveTo_Method1(r, l):
     res = SUCCESS
     x = rae1.state.loc[r]
     path = GETPATH_SPRINGDOOR(x, l)
@@ -218,9 +218,9 @@ def MoveTo_Method1(r, l, stackid):
             lNext = path[lTemp]
             if (lTemp, lNext) in DOORLOCATIONS_SPRINGDOOR or (lNext, lTemp) in DOORLOCATIONS_SPRINGDOOR:
                 d = GETDOOR_SPRINGDOOR(lTemp, lNext)
-                rae1.do_task('moveThroughDoorway', r, d, lNext, stackid)
+                rae1.do_task('moveThroughDoorway', r, d, lNext)
             else:
-                rae1.do_command(move, r, lTemp, lNext, stackid)
+                rae1.do_command(move, r, lTemp, lNext)
             if lNext != rae1.state.loc[r]:
                 res = FAILURE
                 break
@@ -228,26 +228,26 @@ def MoveTo_Method1(r, l, stackid):
                 lTemp = lNext
     return res
 
-def GetHelp_Method1(r, stackid):
+def GetHelp_Method1(r):
     load_r = rae1.state.load['r2']
     if load_r != NIL:
-        rae1.do_command(put, 'r2', load_r, stackid)
-    rae1.do_task('moveTo', 'r2', rae1.state.loc[r], stackid)
+        rae1.do_command(put, 'r2', load_r)
+    rae1.do_task('moveTo', 'r2', rae1.state.loc[r])
     return SUCCESS
 
-def Fetch_Method1(r, o, l, stackid):
-    rae1.do_task('moveTo', r, rae1.state.pos[o], stackid)
+def Fetch_Method1(r, o, l):
+    rae1.do_task('moveTo', r, rae1.state.pos[o])
     load_r = rae1.state.load[r]
     if load_r != NIL:
-        rae1.do_command(put, r, load_r, stackid)
-    rae1.do_command(take, r, o, stackid)
-    rae1.do_task('moveTo', r, l, stackid)
+        rae1.do_command(put, r, load_r)
+    rae1.do_command(take, r, o)
+    rae1.do_task('moveTo', r, l)
     rae1.state.done = True
     return SUCCESS
 
-def CloseDoors_Method1(stackid):
+def CloseDoors_Method1():
     while rae1.state.done == False:
-        rae1.do_command(closeDoors, stackid)
+        rae1.do_command(closeDoors)
     return SUCCESS
 
 def springDoor_init():

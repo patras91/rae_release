@@ -126,33 +126,33 @@ def perceive(l):
     rae1.state.view.ReleaseLock(l)
     return SUCCESS
 
-def MoveTo_Method1(r, l, stackid):
+def MoveTo_Method1(r, l):
     x = rae1.state.loc[r]
     c = rae1.state.charge[r]
     dist = GETDISTANCE(x, l)
     if c >= dist:
-        rae1.do_command(move, r, x, l, dist, stackid)
+        rae1.do_command(move, r, x, l, dist)
         res = SUCCESS
     else:
         gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(c * 100 / 4, r))
         res = FAILURE
     return res
 
-def Recharge_Method1(r, c, stackid):
+def Recharge_Method1(r, c):
     if rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
-        rae1.do_task('moveTo', r, rae1.state.pos[c], stackid)
-    rae1.do_command(charge, r, c, stackid)
+        rae1.do_task('moveTo', r, rae1.state.pos[c])
+    rae1.do_command(charge, r, c)
     return SUCCESS
 
-def Recharge_Method2(r, c, stackid):
+def Recharge_Method2(r, c):
     if rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
-        rae1.do_task('moveTo', r, rae1.state.pos[c], stackid)
+        rae1.do_task('moveTo', r, rae1.state.pos[c])
 
-    rae1.do_command(charge, r, c, stackid)
-    rae1.do_command(take, r, c, stackid)
+    rae1.do_command(charge, r, c)
+    rae1.do_command(take, r, c)
     return SUCCESS
 
-def Search_Method1(r, o, stackid):
+def Search_Method1(r, o):
     if rae1.state.pos[o] == UNK:
         toBePerceived = NIL
         for l in LOCATIONS_CHARGEABLEROBOT:
@@ -161,14 +161,14 @@ def Search_Method1(r, o, stackid):
                 break
 
         if toBePerceived != NIL:
-            rae1.do_task('moveTo', r, toBePerceived, stackid)
-            rae1.do_command(perceive, toBePerceived, stackid)
+            rae1.do_task('moveTo', r, toBePerceived)
+            rae1.do_command(perceive, toBePerceived)
             if rae1.state.pos[o] == toBePerceived:
                 if rae1.state.load[r] != NIL:
-                    rae1.do_command(put, r, rae1.state.load[r], stackid)
-                rae1.do_command(take, r, o, stackid)
+                    rae1.do_command(put, r, rae1.state.load[r])
+                rae1.do_command(take, r, o)
             else:
-                rae1.do_task('search', r, o, stackid)
+                rae1.do_task('search', r, o)
             res = SUCCESS
         else:
             gui.Simulate("Failed to search %s" %o)
@@ -178,7 +178,7 @@ def Search_Method1(r, o, stackid):
         res = SUCCESS
     return res
 
-def Search_Method2(r, o, stackid):
+def Search_Method2(r, o):
     if rae1.state.pos[o] == UNK:
         toBePerceived = NIL
         for l in LOCATIONS_CHARGEABLEROBOT:
@@ -187,15 +187,15 @@ def Search_Method2(r, o, stackid):
                 break
 
         if toBePerceived != NIL:
-            Recharge_Method1(r, 'c1', stackid) # is this allowed?
-            rae1.do_task('moveTo', r, toBePerceived, stackid)
-            rae1.do_command(perceive, toBePerceived, stackid)
+            Recharge_Method1(r, 'c1') # is this allowed?
+            rae1.do_task('moveTo', r, toBePerceived)
+            rae1.do_command(perceive, toBePerceived)
             if rae1.state.pos[o] == toBePerceived:
                 if rae1.state.load[r] != NIL:
-                    rae1.do_command(put, r, rae1.state.load[r], stackid)
-                rae1.do_command(take, r, o, stackid)
+                    rae1.do_command(put, r, rae1.state.load[r])
+                rae1.do_command(take, r, o)
             else:
-                rae1.do_task('search', r, o, stackid)
+                rae1.do_task('search', r, o)
             res = SUCCESS
         else:
             gui.Simulate("Failed to search %s" %o)
@@ -205,37 +205,37 @@ def Search_Method2(r, o, stackid):
         res = SUCCESS
     return res
 
-def Fetch_Method1(r, o, stackid):
+def Fetch_Method1(r, o):
     pos_o = rae1.state.pos[o]
     if pos_o == UNK:
-        rae1.do_task('search', r, o, stackid)
+        rae1.do_task('search', r, o)
     elif rae1.state.loc[r] == pos_o:
-        rae1.do_command(take, r, o, stackid)
+        rae1.do_command(take, r, o)
     else:
-        rae1.do_task('moveTo', r, pos_o,  stackid)
-        rae1.do_command(take, r, o, stackid)
+        rae1.do_task('moveTo', r, pos_o)
+        rae1.do_command(take, r, o)
     return SUCCESS
 
-def Fetch_Method2(r, o, stackid):
+def Fetch_Method2(r, o):
     pos_o = rae1.state.pos[o]
     if pos_o == UNK:
-        rae1.do_task('search', r, o, stackid)
+        rae1.do_task('search', r, o)
     elif rae1.state.loc[r] == pos_o:
-        rae1.do_command(take, r, o, stackid)
+        rae1.do_command(take, r, o)
     else:
-        rae1.do_task('recharge', r, 'c1', stackid)
-        rae1.do_task('moveTo', r, pos_o, stackid)
-        rae1.do_command(take, r, o, stackid)
+        rae1.do_task('recharge', r, 'c1')
+        rae1.do_task('moveTo', r, pos_o)
+        rae1.do_command(take, r, o)
     return SUCCESS
 
-def RelocateCharger_Method1(c, l, stackid):
+def RelocateCharger_Method1(c, l):
     res = SUCCESS
     for r in rae1.state.charge:
         if rae1.state.charge[r] != 4:
             res = FAILURE
 
     if res == SUCCESS:
-        rae1.do_command(moveCharger, c, l, stackid)
+        rae1.do_command(moveCharger, c, l)
     else:
         gui.Simulate("Cannot move charger now, robots might need it\n")
 

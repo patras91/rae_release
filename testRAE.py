@@ -134,6 +134,7 @@ def raeMult(domain):
                     taskArgs.append(numstacks)
                     threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, taskArgs)))
                     threadList[numstacks-1].start()
+                lastActiveStack = 0
                 globalTimer.IncrementTime()
 
             res = GetNextAlive(lastActiveStack, numstacks, threadList)

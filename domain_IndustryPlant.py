@@ -112,7 +112,7 @@ def move(r, loc1, loc2):
     rae1.state.loc.ReleaseLock(r)
     return res
 
-def Delegate(args, o_name, stackid):
+def Delegate(args, o_name):
     taskName = args[0]
     param1 = args[1]
     param2 = args[2]
@@ -120,69 +120,69 @@ def Delegate(args, o_name, stackid):
         param1 = param1[0]
     if len(param2) == 1:
         param2 = param2[0]
-    rae1.do_task(taskName, param1, param2, o_name, stackid)
+    rae1.do_task(taskName, param1, param2, o_name)
 
-def Paint_Method1(o, colour, name, stackid):
+def Paint_Method1(o, colour, name):
     if isinstance(o, list):
         o_name = GetNewName()
-        Delegate(o, o_name, stackid)
+        Delegate(o, o_name)
     else:
         o_name = o
 
     if o_name not in rae1.state.pos or rae1.state.pos[o_name] != IP_MACHINE_LOCATION['paint']:
-        rae1.do_task('deliver', o_name, IP_MACHINE_LOCATION['paint'], stackid)
-    rae1.do_command(paint, o_name, colour, name, stackid)
+        rae1.do_task('deliver', o_name, IP_MACHINE_LOCATION['paint'])
+    rae1.do_command(paint, o_name, colour, name)
     return SUCCESS
 
-def Assemble_Method1(part1, part2, name, stackid):
+def Assemble_Method1(part1, part2, name):
     if isinstance(part1, list):
         o_name1 = GetNewName()
-        Delegate(part1, o_name1, stackid)
+        Delegate(part1, o_name1)
     else:
         o_name1 = part1
 
     if isinstance(part2, list):
         o_name2 = GetNewName()
-        Delegate(part2, o_name2, stackid)
+        Delegate(part2, o_name2)
     else:
         o_name2 = part2
 
     if o_name1 not in rae1.state.pos or rae1.state.pos[o_name1] != IP_MACHINE_LOCATION['assemble']:
-        rae1.do_task('deliver', o_name1, IP_MACHINE_LOCATION['assemble'], stackid)
+        rae1.do_task('deliver', o_name1, IP_MACHINE_LOCATION['assemble'])
     if o_name2 not in rae1.state.pos or rae1.state.pos[o_name2] != IP_MACHINE_LOCATION['assemble']:
-        rae1.do_task('deliver', o_name2, IP_MACHINE_LOCATION['assemble'], stackid)
-    rae1.do_command(assemble, o_name1, o_name2, name, stackid)
+        rae1.do_task('deliver', o_name2, IP_MACHINE_LOCATION['assemble'])
+    rae1.do_command(assemble, o_name1, o_name2, name)
     return SUCCESS
 
-def Pack_Method1(o1, o2, name, stackid):
+def Pack_Method1(o1, o2, name):
     if isinstance(o1, list):
         o_name1 = GetNewName()
-        Delegate(o1, o_name1, stackid)
+        Delegate(o1, o_name1)
     else:
         o_name1 = o1
 
     if isinstance(o2, list):
         o_name2 = GetNewName()
-        Delegate(o2, o_name2, stackid)
+        Delegate(o2, o_name2)
     else:
         o_name2 = o2
     if o_name1 not in rae1.state.pos or rae1.state.pos[o_name1] != IP_MACHINE_LOCATION['pack']:
-        rae1.do_task('deliver', o_name1, IP_MACHINE_LOCATION['pack'], stackid)
+        rae1.do_task('deliver', o_name1, IP_MACHINE_LOCATION['pack'])
     if o_name2 not in rae1.state.pos or rae1.state.pos[o_name2] != IP_MACHINE_LOCATION['pack']:
-        rae1.do_task('deliver', o_name2, IP_MACHINE_LOCATION['pack'], stackid)
-    rae1.do_command(pack, o_name1, o_name2, name, stackid)
+        rae1.do_task('deliver', o_name2, IP_MACHINE_LOCATION['pack'])
+    rae1.do_command(pack, o_name1, o_name2, name)
     return SUCCESS
 
-def Order_Method1(taskArgs, stackid):
+def Order_Method1(taskArgs):
     taskName = taskArgs[0]
     taskArg1 = taskArgs[1]
     taskArg2 = taskArgs[2]
     name = GetNewName()
-    rae1.do_task(taskName, taskArg1, taskArg2, name, stackid)
-    rae1.do_task('deliver', name, IP_MACHINE_LOCATION['output'], stackid)
+    rae1.do_task(taskName, taskArg1, taskArg2, name)
+    rae1.do_task('deliver', name, IP_MACHINE_LOCATION['output'])
     return SUCCESS
 
-def Deliver_Method1(o, l, stackid):
+def Deliver_Method1(o, l):
     if o not in rae1.state.pos:
         rae1.state.pos[o] = 1
     loc_o = rae1.state.pos[o]
@@ -196,10 +196,10 @@ def Deliver_Method1(o, l, stackid):
                 rae1.state.status.ReleaseLock(r)
                 break
             rae1.state.status.ReleaseLock(r)
-    rae1.do_command(move, deliveryRobot, rae1.state.loc[deliveryRobot], loc_o, stackid)
-    rae1.do_command(take, deliveryRobot, o, loc_o, stackid)
-    rae1.do_command(move, deliveryRobot, rae1.state.loc[deliveryRobot], l, stackid)
-    rae1.do_command(put, deliveryRobot, o, l, stackid)
+    rae1.do_command(move, deliveryRobot, rae1.state.loc[deliveryRobot], loc_o)
+    rae1.do_command(take, deliveryRobot, o, loc_o)
+    rae1.do_command(move, deliveryRobot, rae1.state.loc[deliveryRobot], l)
+    rae1.do_command(put, deliveryRobot, o, l)
 
     rae1.state.status.AcquireLock(deliveryRobot)
     rae1.state.status[deliveryRobot] = 'free'
