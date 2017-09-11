@@ -32,13 +32,13 @@ SIDE = [('d1', 'right'), ('d2', 'left')]
 
 #****************************************************************
 #chargeable robot domain, domain_chargeableRobot.py
-LOCATIONS_CHARGEABLEROBOT = [1, 2, 3, 4, 5, 6, 7, 8]
-EDGES_CHARGEABLEROBOT = {1: [7], 2: [8], 3: [8], 4: [8], 5: [7], 6: [7], 7:[1, 5, 6, 8], 8: [2, 3, 4, 7]}
+CR_LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8]
+CR_EDGES = {1: [7], 2: [8], 3: [8], 4: [8], 5: [7], 6: [7], 7:[1, 5, 6, 8], 8: [2, 3, 4, 7]}
 
 # Using Dijsktra's algorithm
-def GETDISTANCE(l0, l1):
+def CR_GETDISTANCE(l0, l1):
     visitedDistances = {l0: 0}
-    locs = list(LOCATIONS_CHARGEABLEROBOT)
+    locs = list(CR_LOCATIONS)
 
     while locs:
         min_loc = None
@@ -55,7 +55,7 @@ def GETDISTANCE(l0, l1):
         locs.remove(min_loc)
         current_dist = visitedDistances[min_loc]
 
-        for l in EDGES_CHARGEABLEROBOT[min_loc]:
+        for l in CR_EDGES[min_loc]:
             dist = current_dist + 1
             if l not in visitedDistances or dist < visitedDistances[l]:
                 visitedDistances[l] = dist
@@ -67,20 +67,20 @@ def GETDISTANCE(l0, l1):
 #****************************************************************
 #spring door example, with dynamic environment, domain_springDoor.py
 
-LOCATIONS_SPRINGDOOR = [1, 2, 3, 4, 5, 6]
-EDGES_SPRINGDOOR = {1: [4], 2: [5], 3: [6], 4: [1, 5], 5: [2, 4, 6], 6: [3, 5]}
-DOORLOCATIONS_SPRINGDOOR = {(1, 4): 'd1', (2, 5): 'd2', (3, 6): 'd3'}
+SD_LOCATIONS = [1, 2, 3, 4, 5, 6]
+SD_EDGES = {1: [4], 2: [5], 3: [6], 4: [1, 5], 5: [2, 4, 6], 6: [3, 5]}
+SD_DOORLOCATIONS = {(1, 4): 'd1', (2, 5): 'd2', (3, 6): 'd3'}
 
-def GETDOOR_SPRINGDOOR(l1, l2):
-    if (l1, l2) in DOORLOCATIONS_SPRINGDOOR:
-        return DOORLOCATIONS_SPRINGDOOR[l1, l2]
+def SD_GETDOOR(l1, l2):
+    if (l1, l2) in SD_DOORLOCATIONS:
+        return SD_DOORLOCATIONS[l1, l2]
     else:
-        return DOORLOCATIONS_SPRINGDOOR[l2, l1]
+        return SD_DOORLOCATIONS[l2, l1]
 
 # Using Dijsktra's algorithm
-def GETPATH_SPRINGDOOR(l0, l1):
+def SD_GETPATH(l0, l1):
     visitedDistances = {l0: 0}
-    locs = list(LOCATIONS_SPRINGDOOR)
+    locs = list(SD_LOCATIONS)
     path = {}
 
     while locs:
@@ -98,7 +98,7 @@ def GETPATH_SPRINGDOOR(l0, l1):
         locs.remove(min_loc)
         current_dist = visitedDistances[min_loc]
 
-        for l in EDGES_SPRINGDOOR[min_loc]:
+        for l in SD_EDGES[min_loc]:
             dist = current_dist + 1
             if l not in visitedDistances or dist < visitedDistances[l]:
                 visitedDistances[l] = dist

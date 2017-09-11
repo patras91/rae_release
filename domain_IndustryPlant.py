@@ -196,9 +196,11 @@ def Deliver_Method1(o, l):
                 rae1.state.status.ReleaseLock(r)
                 break
             rae1.state.status.ReleaseLock(r)
-    rae1.do_command(move, deliveryRobot, rae1.state.loc[deliveryRobot], loc_o)
+    if rae1.state.loc[deliveryRobot] != loc_o:
+        rae1.do_command(move, deliveryRobot, rae1.state.loc[deliveryRobot], loc_o)
     rae1.do_command(take, deliveryRobot, o, loc_o)
-    rae1.do_command(move, deliveryRobot, rae1.state.loc[deliveryRobot], l)
+    if rae1.state.loc[deliveryRobot] != l:
+        rae1.do_command(move, deliveryRobot, rae1.state.loc[deliveryRobot], l)
     rae1.do_command(put, deliveryRobot, o, l)
 
     rae1.state.status.AcquireLock(deliveryRobot)

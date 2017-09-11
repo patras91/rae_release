@@ -96,7 +96,7 @@ def move(r, l1, l2):
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
     elif rae1.state.loc[r] == l1:
-        if (l1, l2) in DOORLOCATIONS_SPRINGDOOR or (l2, l1) in DOORLOCATIONS_SPRINGDOOR:
+        if (l1, l2) in SD_DOORLOCATIONS or (l2, l1) in SD_DOORLOCATIONS:
             gui.Simulate("Robot %s cannot move. There is a spring door between %s and %s \n" %(r, l1, l2))
             res = FAILURE
         else:
@@ -208,7 +208,7 @@ def MoveThroughDoorway_Method1(r, d, l):
 def MoveTo_Method1(r, l):
     res = SUCCESS
     x = rae1.state.loc[r]
-    path = GETPATH_SPRINGDOOR(x, l)
+    path = SD_GETPATH(x, l)
     if path == {}:
         gui.Simulate("Robot %s is already at location %s \n" %(r, l))
     else:
@@ -216,8 +216,8 @@ def MoveTo_Method1(r, l):
         lNext = path[lTemp]
         while(lTemp != l):
             lNext = path[lTemp]
-            if (lTemp, lNext) in DOORLOCATIONS_SPRINGDOOR or (lNext, lTemp) in DOORLOCATIONS_SPRINGDOOR:
-                d = GETDOOR_SPRINGDOOR(lTemp, lNext)
+            if (lTemp, lNext) in SD_DOORLOCATIONS or (lNext, lTemp) in SD_DOORLOCATIONS:
+                d = SD_GETDOOR(lTemp, lNext)
                 rae1.do_task('moveThroughDoorway', r, d, lNext)
             else:
                 rae1.do_command(move, r, lTemp, lNext)

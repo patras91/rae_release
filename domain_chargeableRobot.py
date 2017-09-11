@@ -129,7 +129,7 @@ def perceive(l):
 def MoveTo_Method1(r, l):
     x = rae1.state.loc[r]
     c = rae1.state.charge[r]
-    dist = GETDISTANCE(x, l)
+    dist = CR_GETDISTANCE(x, l)
     if c >= dist:
         rae1.do_command(move, r, x, l, dist)
         res = SUCCESS
@@ -155,7 +155,7 @@ def Recharge_Method2(r, c):
 def Search_Method1(r, o):
     if rae1.state.pos[o] == UNK:
         toBePerceived = NIL
-        for l in LOCATIONS_CHARGEABLEROBOT:
+        for l in CR_LOCATIONS:
             if rae1.state.view[l] == False:
                 toBePerceived = l
                 break
@@ -181,7 +181,7 @@ def Search_Method1(r, o):
 def Search_Method2(r, o):
     if rae1.state.pos[o] == UNK:
         toBePerceived = NIL
-        for l in LOCATIONS_CHARGEABLEROBOT:
+        for l in CR_LOCATIONS:
             if rae1.state.view[l] == False:
                 toBePerceived = l
                 break
@@ -266,5 +266,5 @@ def chargeableRobot_init():
     rae1.state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:['o1'], 6:[], 7:[], 8:[]}
 
     rae1.state.view = {}
-    for l in LOCATIONS_CHARGEABLEROBOT:
+    for l in CR_LOCATIONS:
         rae1.state.view[l] = False
