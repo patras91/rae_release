@@ -2,6 +2,9 @@ from __future__ import print_function
 from rae1 import ipcArgs, verbosity, rae1
 import threading
 import sys
+sys.path.append('domains/')
+sys.path.append('problems/')
+
 from timer import globalTimer, SetMode
 import gui
 
