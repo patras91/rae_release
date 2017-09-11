@@ -10,6 +10,33 @@ import rae1
 import gui
 from timer import globalTimer
 
+# Using Dijsktra's algorithm
+def CR_GETDISTANCE(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(rv.LOCATIONS)
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in rv.EDGES[min_loc]:
+            dist = current_dist + 1
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+
+    return visitedDistances[l1]
+
 def take(r, o):
     rae1.state.load.AcquireLock(r)
     if rae1.state.load[r] == NIL:
@@ -155,7 +182,7 @@ def Recharge_Method2(r, c):
 def Search_Method1(r, o):
     if rae1.state.pos[o] == UNK:
         toBePerceived = NIL
-        for l in CR_LOCATIONS:
+        for l in rv.LOCATIONS:
             if rae1.state.view[l] == False:
                 toBePerceived = l
                 break
@@ -181,7 +208,7 @@ def Search_Method1(r, o):
 def Search_Method2(r, o):
     if rae1.state.pos[o] == UNK:
         toBePerceived = NIL
-        for l in CR_LOCATIONS:
+        for l in rv.LOCATIONS:
             if rae1.state.view[l] == False:
                 toBePerceived = l
                 break
@@ -241,30 +268,22 @@ def RelocateCharger_Method1(c, l):
 
     return res
 
-def chargeableRobot_init():
-    rae1.declare_commands(put, take, perceive, charge, move, moveCharger)
-    print('\n')
-    rae1.print_commands()
 
-    rae1.declare_methods('search', Search_Method1, Search_Method2)
-    rae1.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
-    rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
-    rae1.declare_methods('moveTo', MoveTo_Method1)
-    rae1.declare_methods('relocateCharger', RelocateCharger_Method1)
-    print('\n')
-    rae1.print_methods()
+rv = RV()
+rae1.declare_commands(put, take, perceive, charge, move, moveCharger)
+print('\n')
+rae1.print_commands()
 
-    print('\n*********************************************************')
-    print("* Call rae1 on chargeable robot domain.")
-    print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
-    print('*********************************************************\n')
+rae1.declare_methods('search', Search_Method1, Search_Method2)
+rae1.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
+rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
+rae1.declare_methods('moveTo', MoveTo_Method1)
+rae1.declare_methods('relocateCharger', RelocateCharger_Method1)
+print('\n')
+rae1.print_methods()
 
-    rae1.state.loc = {'r1': 1}
-    rae1.state.charge = {'r1':4}
-    rae1.state.load = {'r1': NIL}
-    rae1.state.pos = {'c1': 7, 'o1': UNK, 'o2': UNK}
-    rae1.state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:['o1'], 6:[], 7:[], 8:[]}
+print('\n*********************************************************')
+print("* Call rae1 on chargeable robot domain.")
+print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
+print('*********************************************************\n')
 
-    rae1.state.view = {}
-    for l in CR_LOCATIONS:
-        rae1.state.view[l] = False

@@ -1,7 +1,14 @@
 __author__ = 'patras'
 
-from domain_constants import *
 from time import time
+
+class Duration():
+	def __init__(self):
+		pass
+
+DURATION = Duration()
+DURATION.TIME = {}
+DURATION.COUNTER = {}
 
 class Timer():
     def __init__(self):
@@ -32,12 +39,12 @@ class Timer():
 
     def IsCommandExecutionOver(self, cmd, start):
         if self.mode == 'Counter':
-		    if self.now - start < DURATION_COUNTER[cmd]:
+		    if self.now - start < DURATION.COUNTER[cmd]:
 			    over = False
 		    else:
 			    over = True
         elif self.mode == 'Clock':
-            if time() - start < DURATION_TIME[cmd]:
+            if time() - start < DURATION.TIME[cmd]:
                 over = False
             else:
                 over = True

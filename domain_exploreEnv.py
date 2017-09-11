@@ -12,15 +12,76 @@ charge and needs to be charged frequently. They also have a capacity of the amou
 they can carry with them. They can store data in the base location. UAV needs to return to
 base location every night.'''
 
+# Using Dijsktra's algorithm
+def EE_GETPATH(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(rv.LOCATIONS)
+    path = {}
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in rv.EDGES[min_loc]:
+            dist = current_dist + rv.EDGES[min_loc][l]
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+                path[l] = min_loc
+    l = l1
+    path2 = {}
+    while l != l0:
+        path2[path[l]] = l
+        l = path[l]
+
+    return path2
+
+# Using Dijsktra's algorithm
+def EE_GETDISTANCE(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(rv.LOCATIONS)
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in rv.EDGES[min_loc]:
+            dist = current_dist + rv.EDGES[min_loc][l]
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+
+    return visitedDistances[l1]
+
 def survey(r, l):
     rae1.state.load.AcquireLock(r)
     rae1.state.loc.AcquireLock(r)
     rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
-    if e not in EE_TYPE:
+    if e not in rv.TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'survey' and rae1.state.data[r] < 4:
+    elif rae1.state.loc[r] == l and rv.TYPE[e] == 'survey' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('survey', start) == False):
 			pass
@@ -30,7 +91,7 @@ def survey(r, l):
     elif rae1.state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif EE_TYPE[e] != 'survey':
+    elif rv.TYPE[e] != 'survey':
         gui.Simulate("%s is not the right equipment for survey\n" %e)
         res = FAILURE
     elif rae1.state.data[r] == 4:
@@ -46,10 +107,10 @@ def monitor(r, l):
     rae1.state.loc.AcquireLock(r)
     rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
-    if e not in EE_TYPE:
+    if e not in rv.TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'monitor' and r != 'UAV' and rae1.state.data[r] < 4:
+    elif rae1.state.loc[r] == l and rv.TYPE[e] == 'monitor' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('monitor', start) == False):
 			pass
@@ -59,7 +120,7 @@ def monitor(r, l):
     elif rae1.state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif EE_TYPE[e] != 'monitor':
+    elif rv.TYPE[e] != 'monitor':
         gui.Simulate("%s is not the right equipment for monitor\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -78,10 +139,10 @@ def screen(r, l):
     rae1.state.loc.AcquireLock(r)
     rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
-    if e not in EE_TYPE:
+    if e not in rv.TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'screen' and r != 'UAV' and rae1.state.data[r] < 4:
+    elif rae1.state.loc[r] == l and rv.TYPE[e] == 'screen' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('screen', start) == False):
 			pass
@@ -91,7 +152,7 @@ def screen(r, l):
     elif rae1.state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif EE_TYPE[e] != 'screen':
+    elif rv.TYPE[e] != 'screen':
         gui.Simulate("%s is not the right equipment for screening\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -110,10 +171,10 @@ def sample(r, l):
     rae1.state.loc.AcquireLock(r)
     rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
-    if e not in EE_TYPE:
+    if e not in rv.TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'sample' and r != 'UAV' and rae1.state.data[r] < 4:
+    elif rae1.state.loc[r] == l and rv.TYPE[e] == 'sample' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('sample', start) == False):
 			pass
@@ -123,7 +184,7 @@ def sample(r, l):
     elif rae1.state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif EE_TYPE[e] != 'sample':
+    elif rv.TYPE[e] != 'sample':
         gui.Simulate("%s is not the right equipment for sampling\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -142,10 +203,10 @@ def process(r, l):
     rae1.state.loc.AcquireLock(r)
     rae1.state.data.AcquireLock(r)
     e = rae1.state.load[r]
-    if e not in EE_TYPE:
+    if e not in rv.TYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif rae1.state.loc[r] == l and EE_TYPE[e] == 'process' and r != 'UAV' and rae1.state.data[r] < 4:
+    elif rae1.state.loc[r] == l and rv.TYPE[e] == 'process' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('process', start) == False):
 			pass
@@ -155,7 +216,7 @@ def process(r, l):
     elif rae1.state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif EE_TYPE[e] != 'process':
+    elif rv.TYPE[e] != 'process':
         gui.Simulate("%s is not the right equipment for process\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -370,14 +431,14 @@ def Explore_Method1(r, activity, l):
     return SUCCESS
 
 def GetEquipment_Method1(r, activity):
-    if rae1.state.load[r] != EE_EQUIPMENT[activity]:
-        rae1.do_task('moveTo', r, rae1.state.pos[EE_EQUIPMENT[activity]])
-        rae1.do_command(take, r, EE_EQUIPMENT[activity])
+    if rae1.state.load[r] != rv.EQUIPMENT[activity]:
+        rae1.do_task('moveTo', r, rae1.state.pos[rv.EQUIPMENT[activity]])
+        rae1.do_command(take, r, rv.EQUIPMENT[activity])
     return SUCCESS
 
 def GetEquipment_Method2(r, activity):
-    if rae1.state.load[r] != EE_EQUIPMENT[activity]:
-        rae1.do_task('moveTo', r, rae1.state.pos[EE_EQUIPMENT[activity]])
+    if rae1.state.load[r] != rv.EQUIPMENT[activity]:
+        rae1.do_task('moveTo', r, rae1.state.pos[rv.EQUIPMENT[activity]])
         rae1.state.load.AcquireLock(r)
         if rae1.state.load[r] != NIL:
             x = rae1.state.load[r]
@@ -385,7 +446,7 @@ def GetEquipment_Method2(r, activity):
             rae1.do_command(put, r, x)
         else:
             rae1.state.load.ReleaseLock(r)
-        rae1.do_command(take, r, EE_EQUIPMENT[activity])
+        rae1.do_command(take, r, rv.EQUIPMENT[activity])
     return SUCCESS
 
 def MoveTo_MethodHelper(r, l):
@@ -411,7 +472,7 @@ def MoveTo_MethodHelper(r, l):
     return res
 
 def MoveTo_Method1(r, l):
-    if l not in EE_LOCATIONS:
+    if l not in rv.LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
     else:
@@ -419,7 +480,7 @@ def MoveTo_Method1(r, l):
     return res
 
 def MoveTo_Method2(r, l):
-    if l not in EE_LOCATIONS:
+    if l not in rv.LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
     else:
@@ -432,7 +493,7 @@ def MoveTo_Method2(r, l):
     return res
 
 def MoveTo_Method3(r, l):
-    if l not in EE_LOCATIONS:
+    if l not in rv.LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
     else:
@@ -455,7 +516,7 @@ def FlyTo_Method1(r, l):
     return res
 
 def FlyTo_Method2(r, l):
-    dist = GETDISTANCE(rae1.state.loc[r], l)
+    dist = EE_GETDISTANCE(rae1.state.loc[r], l)
     if r == 'UAV':
         if rae1.state.charge[r] >= dist:
             rae1.do_command(fly, r, rae1.state.loc[r], l, dist)
@@ -469,7 +530,7 @@ def FlyTo_Method2(r, l):
     return res
 
 def FlyTo_Method3(r, l):
-    dist = GETDISTANCE(rae1.state.loc[r], l)
+    dist = EE_GETDISTANCE(rae1.state.loc[r], l)
     if r == 'UAV':
         if rae1.state.charge[r] >= dist:
             rae1.do_command(fly, r, rae1.state.loc[r], l, dist)
@@ -503,7 +564,7 @@ def DepositData_Method2(r):
 
 def Recharge_Method1(r):
     c = 'c1'
-    if rae1.state.pos[c] not in EE_LOCATIONS and rae1.state.pos[c] != r:
+    if rae1.state.pos[c] not in rv.LOCATIONS and rae1.state.pos[c] != r:
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
         res = FAILURE
     elif rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
@@ -517,7 +578,7 @@ def Recharge_Method1(r):
 
 def Recharge_Method2(r):
     c = 'c1'
-    if rae1.state.pos[c] not in EE_LOCATIONS and rae1.state.pos[c] != r:
+    if rae1.state.pos[c] not in rv.LOCATIONS and rae1.state.pos[c] != r:
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
         res = FAILURE
     elif rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
@@ -531,27 +592,22 @@ def Recharge_Method2(r):
         res = SUCCESS
     return res
 
-def exploreEnv_init():
-    rae1.declare_commands(survey, monitor, screen, sample, process, charge, move, put, take, fly, deposit, transferData)
-    print('\n')
-    rae1.print_commands()
+rv = RV()
+rae1.declare_commands(survey, monitor, screen, sample, process, charge, move, put, take, fly, deposit, transferData)
+print('\n')
+rae1.print_commands()
 
-    rae1.declare_methods('explore', Explore_Method1, Explore_Method2)
-    rae1.declare_methods('getEquipment', GetEquipment_Method1, GetEquipment_Method2)
-    rae1.declare_methods('moveTo', MoveTo_Method1, MoveTo_Method2, MoveTo_Method3)
-    rae1.declare_methods('flyTo', FlyTo_Method1, FlyTo_Method2, FlyTo_Method3)
-    rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
-    rae1.declare_methods('depositData', DepositData_Method1, DepositData_Method2)
-    print('\n')
-    rae1.print_methods()
+rae1.declare_methods('explore', Explore_Method1, Explore_Method2)
+rae1.declare_methods('getEquipment', GetEquipment_Method1, GetEquipment_Method2)
+rae1.declare_methods('moveTo', MoveTo_Method1, MoveTo_Method2, MoveTo_Method3)
+rae1.declare_methods('flyTo', FlyTo_Method1, FlyTo_Method2, FlyTo_Method3)
+rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
+rae1.declare_methods('depositData', DepositData_Method1, DepositData_Method2)
+print('\n')
+rae1.print_methods()
 
-    print('\n*********************************************************')
-    print("* Call rae1 on environment exploration domain.")
-    print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
-    print('*********************************************************\n')
+print('\n*********************************************************')
+print("* Call rae1 on environment exploration domain.")
+print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
+print('*********************************************************\n')
 
-    rae1.state.loc = {'r1': 'base', 'UAV': 'base'}
-    rae1.state.charge = {'r1':75, 'UAV': 75}
-    rae1.state.data = {'r1': 0, 'UAV': 0}
-    rae1.state.load = {'r1': NIL, 'UAV': NIL}
-    rae1.state.pos = {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base'}

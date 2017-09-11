@@ -10,15 +10,48 @@ to carry objects and open doors. Each robot has only one arm with which it can
 either hold the door or carry the object. The goal for the main robot is to find
 an object and bring it to the hallway.'''
 
-# The domain is as follows:
-#_________________________
-#|       |       |       |
-#|   1   |   2   |   3   |
-#|       |       |       |
-#|--d1---|--d2---|--d3---|
-#|       |       |       |
-#|   4       5       6   |
-#|_______|_______|_______|
+def SD_GETDOOR(l1, l2):
+    if (l1, l2) in rv.DOORLOCATIONS:
+        return rv.DOORLOCATIONS[l1, l2]
+    else:
+        return rv.DOORLOCATIONS[l2, l1]
+
+# Using Dijsktra's algorithm
+def SD_GETPATH(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(rv.LOCATIONS)
+    path = {}
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in rv.EDGES[min_loc]:
+            dist = current_dist + 1
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+                path[l] = min_loc
+
+    l = l1
+    path2 = {}
+    while l != l0:
+        path2[path[l]] = l
+        l = path[l]
+
+    return path2
+#****************************************************************
+
 
 def openDoor(r, d):
     rae1.state.load.AcquireLock(r)
@@ -96,7 +129,7 @@ def move(r, l1, l2):
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
     elif rae1.state.loc[r] == l1:
-        if (l1, l2) in SD_DOORLOCATIONS or (l2, l1) in SD_DOORLOCATIONS:
+        if (l1, l2) in rv.DOORLOCATIONS or (l2, l1) in rv.DOORLOCATIONS:
             gui.Simulate("Robot %s cannot move. There is a spring door between %s and %s \n" %(r, l1, l2))
             res = FAILURE
         else:
@@ -216,7 +249,7 @@ def MoveTo_Method1(r, l):
         lNext = path[lTemp]
         while(lTemp != l):
             lNext = path[lTemp]
-            if (lTemp, lNext) in SD_DOORLOCATIONS or (lNext, lTemp) in SD_DOORLOCATIONS:
+            if (lTemp, lNext) in rv.DOORLOCATIONS or (lNext, lTemp) in rv.DOORLOCATIONS:
                 d = SD_GETDOOR(lTemp, lNext)
                 rae1.do_task('moveThroughDoorway', r, d, lNext)
             else:
@@ -250,27 +283,21 @@ def CloseDoors_Method1():
         rae1.do_command(closeDoors)
     return SUCCESS
 
-def springDoor_init():
-    rae1.declare_commands(openDoor, holdDoor, passDoor, releaseDoor, move, put, take, closeDoors)
-    print('\n')
-    rae1.print_commands()
+rv = RV()
+rae1.declare_commands(openDoor, holdDoor, passDoor, releaseDoor, move, put, take, closeDoors)
+print('\n')
+rae1.print_commands()
 
-    rae1.declare_methods('fetch', Fetch_Method1)
-    rae1.declare_methods('getHelp', GetHelp_Method1)
-    rae1.declare_methods('moveTo', MoveTo_Method1)
-    rae1.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroughDoorway_Method2, MoveThroughDoorway_Method3)
-    rae1.declare_methods('closeDoors', CloseDoors_Method1)
+rae1.declare_methods('fetch', Fetch_Method1)
+rae1.declare_methods('getHelp', GetHelp_Method1)
+rae1.declare_methods('moveTo', MoveTo_Method1)
+rae1.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroughDoorway_Method2, MoveThroughDoorway_Method3)
+rae1.declare_methods('closeDoors', CloseDoors_Method1)
 
-    print('\n')
-    rae1.print_methods()
+print('\n')
+rae1.print_methods()
 
-    print('\n*********************************************************')
-    print("* Call rae1 on spring door domain.")
-    print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
-    print('*********************************************************\n')
-
-    rae1.state.load = {'r1': NIL, 'r2': NIL}
-    rae1.state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed' }
-    rae1.state.loc = {'r1': 1, 'r2': 2}
-    rae1.state.pos = {'o1': 3}
-    rae1.state.done = False
+print('\n*********************************************************')
+print("* Call rae1 on spring door domain.")
+print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
+print('*********************************************************\n')

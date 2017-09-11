@@ -112,7 +112,7 @@ def wait(r):
 
 def Search_Method1(r, o):
     if rae1.state.pos[o] == UNK:
-        for l in LOCATIONS:
+        for l in rv.LOCATIONS:
             if rae1.state.view[l] == False:
                 rae1.do_task('nonEmergencyMove', r, l)
                 rae1.do_command(perceive, l)
@@ -168,30 +168,19 @@ def NonEmergencyMove_Method2(r, l):
         rae1.do_command(moveTo, r, l)
     return SUCCESS
 
-def simpleFetch_init():
+rv = RV()
+rae1.declare_commands(moveTo, take, perceive, addressEmergency, moveToEmergency, wait)
+print('\n')
+rae1.print_commands()
 
-    rae1.declare_commands(moveTo, take, perceive, addressEmergency, moveToEmergency, wait)
-    print('\n')
-    rae1.print_commands()
+rae1.declare_methods('search', Search_Method1)
+rae1.declare_methods('fetch', Fetch_Method1)
+rae1.declare_methods('emergency', Emergency_Method1)
+rae1.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1, NonEmergencyMove_Method2)
+print('\n')
+rae1.print_methods()
 
-    rae1.declare_methods('search', Search_Method1)
-    rae1.declare_methods('fetch', Fetch_Method1)
-    rae1.declare_methods('emergency', Emergency_Method1)
-    rae1.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1, NonEmergencyMove_Method2)
-    print('\n')
-    rae1.print_methods()
-
-    print('\n*********************************************************')
-    print("* Call rae1 on simple fetch domain.")
-    print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
-    print('*********************************************************\n')
-
-    rae1.state.loc = {'r1' : 1}
-    rae1.state.pos = {'o1' : UNK, 'o2': UNK}
-    rae1.state.load = {'r1' : NIL}
-    rae1.state.view = {}
-    rae1.state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:[], 6:['o1']}
-
-    for l in LOCATIONS:
-        rae1.state.view[l] = False
-    rae1.state.emergencyHandling = {'r1' : False}
+print('\n*********************************************************')
+print("* Call rae1 on simple fetch domain.")
+print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
+print('*********************************************************\n')

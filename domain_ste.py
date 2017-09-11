@@ -1,6 +1,6 @@
 from __future__ import print_function
 import sys
-from domain_constants import *
+#from domain_constants import *
 from timer import globalTimer
 """
 File ste.py
@@ -11,6 +11,8 @@ but modified to have multiple levels of tasks.
 Sunandita: Updated the test cases to test RAE
 Dana: tweaks to how verbosity is handled.
 """
+SUCCESS = 'Success'
+FAILURE = 'Failure'
 
 import copy
 import rae1
@@ -173,22 +175,15 @@ def ride_taxi_method(a,y):
 		gui.Simulate('the taxi driver is unwilling to drive to',y,'\n')
 		return FAILURE
 
-def ste_init():
-	rae1.declare_commands(walk, call_taxi, enter_taxi, taxi_carry, pay_driver, leave_taxi)
-	print('')
-	rae1.print_commands()
-	rae1.declare_methods('travel', travel_by_foot, travel_by_taxi)
-	rae1.declare_methods('ride_taxi', ride_taxi_method)
-	print('')
-	rae1.print_methods()
-	print('\n*********************************************************')
-	print("* Call rae1 on simple travel domain. For different amounts of")
-	print("* printout, try verbosity(0), verbosity(1), or verbosity(2).")
-	print('*********************************************************')
-	sys.stdout.flush()
-
-	rae1.state.loc = {'Dana':'home', 'Paolo':'home', 'Malik':'home2', 'taxi':'taxiStand'}
-	rae1.state.cash = {'Dana':20, 'Paolo': 5, 'Malik': 100}
-	rae1.state.owe = {'Dana':0, 'Paolo': 0, 'Malik': 0}
-	rae1.state.dist = {'home':{'park':8}, 'park':{'home':8}, 'home2':{'park2':80}, 'park2':{'home2':80}}
-	rae1.state.occupied = {'taxi':False}
+rae1.declare_commands(walk, call_taxi, enter_taxi, taxi_carry, pay_driver, leave_taxi)
+print('')
+rae1.print_commands()
+rae1.declare_methods('travel', travel_by_foot, travel_by_taxi)
+rae1.declare_methods('ride_taxi', ride_taxi_method)
+print('')
+rae1.print_methods()
+print('\n*********************************************************')
+print("* Call rae1 on simple travel domain. For different amounts of")
+print("* printout, try verbosity(0), verbosity(1), or verbosity(2).")
+print('*********************************************************')
+sys.stdout.flush()

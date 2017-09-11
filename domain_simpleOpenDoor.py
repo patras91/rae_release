@@ -104,7 +104,7 @@ def getStatus(r, d):
     return SUCCESS
 
 def Unlatch_Method1(r, d, o):
-    if ((rae1.state.loc[r],d) in TOWARDSIDE and (d,'left') in SIDE  and (d, 'rotates') in TYPE and (d, o) in HANDLE):
+    if ((rae1.state.loc[r],d) in rv.TOWARDSIDE and (d,'left') in rv.SIDE  and (d, 'rotates') in rv.TYPE and (d, o) in rv.HANDLE):
         rae1.do_command(grasp, r, o)
         rae1.do_command(turn, r, o, 'alpha1')
         rae1.do_command(pull, r, 'val1')
@@ -121,7 +121,7 @@ def Unlatch_Method1(r, d, o):
     return res
 
 def ThrowWide_Method1(r, d, o):
-    if ((rae1.state.loc[r], d) in TOWARDSIDE and (d, 'left') in SIDE and (d, 'rotates') in TYPE and (d, o) in HANDLE and rae1.state.doorStatus[d] == 'cracked'):
+    if ((rae1.state.loc[r], d) in rv.TOWARDSIDE and (d, 'left') in rv.SIDE and (d, 'rotates') in rv.TYPE and (d, o) in rv.HANDLE and rae1.state.doorStatus[d] == 'cracked'):
         rae1.do_command(grasp, r, o)
         rae1.do_command(pull, r, 'val1')
         rae1.do_command(moveBy, r, 'val2')
@@ -132,7 +132,7 @@ def ThrowWide_Method1(r, d, o):
     return res
 
 def OpenDoor_Method1(r, d, o):
-    if (rae1.state.loc[r], d) in ADJACENT and (d, o) in HANDLE:
+    if (rae1.state.loc[r], d) in rv.ADJACENT and (d, o) in rv.HANDLE:
         if rae1.state.reachable[r, o] == False:
             rae1.do_command(moveClose, r, o)
         if rae1.state.doorStatus[d] == 'unknown' or rae1.state.doorStatus[d] == 'closed' :
@@ -145,22 +145,18 @@ def OpenDoor_Method1(r, d, o):
 
     return res
 
-def simpleOpenDoor_init():
-    rae1.declare_commands(moveBy, pull, push, grasp, ungrasp, turn, moveClose, getStatus)
-    print('\n')
-    rae1.print_commands()
+rv = RV()
+rae1.declare_commands(moveBy, pull, push, grasp, ungrasp, turn, moveClose, getStatus)
+print('\n')
+rae1.print_commands()
 
-    rae1.declare_methods('unlatch', Unlatch_Method1)
-    rae1.declare_methods('throwWide', ThrowWide_Method1)
-    rae1.declare_methods('openDoor', OpenDoor_Method1)
-    print('\n')
-    rae1.print_methods()
+rae1.declare_methods('unlatch', Unlatch_Method1)
+rae1.declare_methods('throwWide', ThrowWide_Method1)
+rae1.declare_methods('openDoor', OpenDoor_Method1)
+print('\n')
+rae1.print_methods()
 
-    print('\n*********************************************************')
-    print("* Call rae1 on simple open door domain.")
-    print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
-    print('*********************************************************\n')
-
-    rae1.state.doorStatus = { 'd1':'unknown', 'd2':'unknown'}
-    rae1.state.loc = {'r1':2, 'r2':3}
-    rae1.state.reachable = {('r1','o1'):False, ('r2','o2'):False}
+print('\n*********************************************************')
+print("* Call rae1 on simple open door domain.")
+print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
+print('*********************************************************\n')

@@ -5,15 +5,82 @@ import gui
 from domain_constants import *
 from timer import globalTimer
 
+# Using Dijsktra's algorithm
+def IP_GETDISTANCE(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(rv.LOCATIONS)
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in rv.EDGES[min_loc]:
+            dist = current_dist + rv.EDGES[min_loc][l]
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+
+    return visitedDistances[l1]
+
+# Using Dijsktra's algorithm
+def IP_GETPATH(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(rv.LOCATIONS)
+    path = {}
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in rv.EDGES[min_loc]:
+            dist = current_dist + rv.EDGES[min_loc][l]
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+                path[l] = min_loc
+    l = l1
+    path2 = {}
+    while l != l0:
+        path2[path[l]] = l
+        l = path[l]
+
+    return path2
+
+def GetNewName():
+    GetNewName.current += 1
+    return 'TMPOBJECT' + GetNewName.current.__str__()
+
+GetNewName.current = 0
+
 def paint(o, colour, name):
     rae1.state.pos.AcquireLock(o)
-    if rae1.state.pos[o] == IP_MACHINE_LOCATION['paint']:
+    if rae1.state.pos[o] == rv.MACHINE_LOCATION['paint']:
         rae1.state.status.AcquireLock('paint')
         gui.Simulate("Colouring %s with colour %s and naming it %s\n" %(o, colour, name))
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('paint', start) == False):
 		    pass
-        rae1.state.pos[name] = IP_MACHINE_LOCATION['paint']
+        rae1.state.pos[name] = rv.MACHINE_LOCATION['paint']
         rae1.state.status.ReleaseLock('paint')
         res = SUCCESS
     else:
@@ -26,13 +93,13 @@ def assemble(p1, p2, name):
     rae1.state.pos.AcquireLock(p1)
     rae1.state.pos.AcquireLock(p2)
 
-    if rae1.state.pos[p1] == IP_MACHINE_LOCATION['assemble'] and rae1.state.pos[p2] == IP_MACHINE_LOCATION['assemble']:
+    if rae1.state.pos[p1] == rv.MACHINE_LOCATION['assemble'] and rae1.state.pos[p2] == rv.MACHINE_LOCATION['assemble']:
         rae1.state.status.AcquireLock('assemble')
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('assemble', start) == False):
 		    pass
         gui.Simulate("Assembled parts %s and %s and naming it %s\n" %(p1, p2, name))
-        rae1.state.pos[name] = IP_MACHINE_LOCATION['assemble']
+        rae1.state.pos[name] = rv.MACHINE_LOCATION['assemble']
         rae1.state.status.ReleaseLock('assemble')
         res = SUCCESS
     else:
@@ -45,13 +112,13 @@ def assemble(p1, p2, name):
 def pack(o1, o2, name):
     rae1.state.pos.AcquireLock(o1)
     rae1.state.pos.AcquireLock(o2)
-    if rae1.state.pos[o1] == IP_MACHINE_LOCATION['pack'] and rae1.state.pos[o2] == IP_MACHINE_LOCATION['pack']:
+    if rae1.state.pos[o1] == rv.MACHINE_LOCATION['pack'] and rae1.state.pos[o2] == rv.MACHINE_LOCATION['pack']:
         rae1.state.status.AcquireLock('pack')
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('pack', start) == False):
 		    pass
         gui.Simulate("Packed objects %s and %s and naming it %s\n" %(o1, o2, name))
-        rae1.state.pos[name] = IP_MACHINE_LOCATION['pack']
+        rae1.state.pos[name] = rv.MACHINE_LOCATION['pack']
         rae1.state.status.ReleaseLock('pack')
         res = SUCCESS
     else:
@@ -129,8 +196,8 @@ def Paint_Method1(o, colour, name):
     else:
         o_name = o
 
-    if o_name not in rae1.state.pos or rae1.state.pos[o_name] != IP_MACHINE_LOCATION['paint']:
-        rae1.do_task('deliver', o_name, IP_MACHINE_LOCATION['paint'])
+    if o_name not in rae1.state.pos or rae1.state.pos[o_name] != rv.MACHINE_LOCATION['paint']:
+        rae1.do_task('deliver', o_name, rv.MACHINE_LOCATION['paint'])
     rae1.do_command(paint, o_name, colour, name)
     return SUCCESS
 
@@ -147,10 +214,10 @@ def Assemble_Method1(part1, part2, name):
     else:
         o_name2 = part2
 
-    if o_name1 not in rae1.state.pos or rae1.state.pos[o_name1] != IP_MACHINE_LOCATION['assemble']:
-        rae1.do_task('deliver', o_name1, IP_MACHINE_LOCATION['assemble'])
-    if o_name2 not in rae1.state.pos or rae1.state.pos[o_name2] != IP_MACHINE_LOCATION['assemble']:
-        rae1.do_task('deliver', o_name2, IP_MACHINE_LOCATION['assemble'])
+    if o_name1 not in rae1.state.pos or rae1.state.pos[o_name1] != rv.MACHINE_LOCATION['assemble']:
+        rae1.do_task('deliver', o_name1, rv.MACHINE_LOCATION['assemble'])
+    if o_name2 not in rae1.state.pos or rae1.state.pos[o_name2] != rv.MACHINE_LOCATION['assemble']:
+        rae1.do_task('deliver', o_name2, rv.MACHINE_LOCATION['assemble'])
     rae1.do_command(assemble, o_name1, o_name2, name)
     return SUCCESS
 
@@ -166,10 +233,10 @@ def Pack_Method1(o1, o2, name):
         Delegate(o2, o_name2)
     else:
         o_name2 = o2
-    if o_name1 not in rae1.state.pos or rae1.state.pos[o_name1] != IP_MACHINE_LOCATION['pack']:
-        rae1.do_task('deliver', o_name1, IP_MACHINE_LOCATION['pack'])
-    if o_name2 not in rae1.state.pos or rae1.state.pos[o_name2] != IP_MACHINE_LOCATION['pack']:
-        rae1.do_task('deliver', o_name2, IP_MACHINE_LOCATION['pack'])
+    if o_name1 not in rae1.state.pos or rae1.state.pos[o_name1] != rv.MACHINE_LOCATION['pack']:
+        rae1.do_task('deliver', o_name1, rv.MACHINE_LOCATION['pack'])
+    if o_name2 not in rae1.state.pos or rae1.state.pos[o_name2] != rv.MACHINE_LOCATION['pack']:
+        rae1.do_task('deliver', o_name2, rv.MACHINE_LOCATION['pack'])
     rae1.do_command(pack, o_name1, o_name2, name)
     return SUCCESS
 
@@ -179,7 +246,7 @@ def Order_Method1(taskArgs):
     taskArg2 = taskArgs[2]
     name = GetNewName()
     rae1.do_task(taskName, taskArg1, taskArg2, name)
-    rae1.do_task('deliver', name, IP_MACHINE_LOCATION['output'])
+    rae1.do_task('deliver', name, rv.MACHINE_LOCATION['output'])
     return SUCCESS
 
 def Deliver_Method1(o, l):
@@ -188,7 +255,7 @@ def Deliver_Method1(o, l):
     loc_o = rae1.state.pos[o]
     deliveryRobot = NIL
     while(deliveryRobot == NIL):
-        for r in IP_ROBOTS:
+        for r in rv.ROBOTS:
             rae1.state.status.AcquireLock(r)
             if rae1.state.status[r] == 'free':
                 deliveryRobot = r
@@ -208,27 +275,22 @@ def Deliver_Method1(o, l):
     rae1.state.status.ReleaseLock(deliveryRobot)
     return SUCCESS
 
-def industryPlant_init():
-    rae1.declare_commands(paint, assemble, pack, take, put)
-    print('\n')
-    rae1.print_commands()
+rv = RV()
+rae1.declare_commands(paint, assemble, pack, take, put)
+print('\n')
+rae1.print_commands()
 
-    rae1.declare_methods('paint', Paint_Method1)
-    rae1.declare_methods('assemble', Assemble_Method1)
-    rae1.declare_methods('pack', Pack_Method1)
-    rae1.declare_methods('deliver', Deliver_Method1)
-    rae1.declare_methods('order', Order_Method1)
+rae1.declare_methods('paint', Paint_Method1)
+rae1.declare_methods('assemble', Assemble_Method1)
+rae1.declare_methods('pack', Pack_Method1)
+rae1.declare_methods('deliver', Deliver_Method1)
+rae1.declare_methods('order', Order_Method1)
 
-    print('\n')
-    rae1.print_methods()
+print('\n')
+rae1.print_methods()
 
-    print('\n*********************************************************')
-    print("* Call rae1 on industry plant domain.")
-    print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
-    print("* For a different mode, try SetMode(\'Clock\') or SetMode(\'Counter\').")
-    print('*********************************************************\n')
-
-    rae1.state.load = {'r1': NIL, 'r2': NIL}
-    rae1.state.loc = {'r1': 2, 'r2': 4}
-    rae1.state.status = {'r1': 'free', 'r2': 'free', 'paint': 'free', 'assemble': 'free', 'pack': 'free'}
-    rae1.state.pos = {'a': IP_MACHINE_LOCATION['input'], 'b': IP_MACHINE_LOCATION['input'], 'c': IP_MACHINE_LOCATION['input'], 'o1': IP_MACHINE_LOCATION['input']}
+print('\n*********************************************************')
+print("* Call rae1 on industry plant domain.")
+print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
+print("* For a different mode, try SetMode(\'Clock\') or SetMode(\'Counter\').")
+print('*********************************************************\n')

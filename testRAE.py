@@ -1,12 +1,4 @@
-
 from __future__ import print_function
-import domain_ste
-import domain_simpleFetch
-import domain_chargeableRobot
-import domain_simpleOpenDoor
-import domain_springDoor
-import domain_exploreEnv
-import domain_IndustryPlant
 from rae1 import ipcArgs, verbosity, rae1
 import threading
 import sys
@@ -28,67 +20,26 @@ def GetNextAlive(lastActiveStack, numstacks, threadList):
 
     return nextAlive
 
-def GetNewTask(domain):
+def GetNewTask():
     GetNewTask.counter += 1
-    task = {
-        'STE': {
-            1: ['travel', 'Dana', 'home', 'park'],
-            2: ['travel','Paolo','home','park'],
-            3: ['travel','Malik','home2','park2']
-        },
-        'CR' : {
-            1: ['fetch', 'r1', 'o1'],
-            2: ['fetch', 'r1', 'o2'],
-            3: ['relocateCharger', 'c1', 8]
-        },
-        'SF' : {
-            1: ['fetch', 'r1', 'o1'],
-            2: ['fetch', 'r1', 'o2'],
-            3: ['emergency', 'r1', 2, 1]
-        },
-        'SOD' : {
-            1: ['openDoor', 'r1', 'd1', 'o1'],
-            2: ['openDoor', 'r2', 'd2', 'o2']
-        },
-        'SD' : {
-            1: ['fetch', 'r1', 'o1', 5],
-            2: ['closeDoors']
-        },
-        'EE' : {
-            1: ['explore', 'UAV', 'survey', 'z1'],
-            2: ['explore', 'UAV', 'sample', 'z3'],
-            3: ['explore', 'r1', 'process', 'z5']
-        },
-        'IP' : {
-            1: ['order', ['pack', ['paint', 'o1', 'white'], ['assemble', ['assemble', 'a', 'b'], 'c']]],
-            2: ['order', ['assemble', 'a1', ['paint', ['assemble', 'b1', 'c1'], 'pink']]]
-        }
-    }
-    if GetNewTask.counter in task[domain]:
-        return task[domain][GetNewTask.counter]
+    global mod
+    if GetNewTask.counter in mod.tasks:
+        return mod.tasks[GetNewTask.counter]
     else:
         return []
 
-def testRAE(domain):
-    if domain == 'SF':
-        domain_simpleFetch.simpleFetch_init()
-    elif domain == 'CR':
-        domain_chargeableRobot.chargeableRobot_init()
-    elif domain == 'STE':
-        domain_ste.ste_init()
-    elif domain == 'SOD':
-        domain_simpleOpenDoor.simpleOpenDoor_init()
-    elif domain == 'SD':
-        domain_springDoor.springDoor_init()
-    elif domain == 'EE':
-        domain_exploreEnv.exploreEnv_init()
-    elif domain == 'IP':
-        domain_IndustryPlant.industryPlant_init()
+def InitializeDomain(domain, problem):
+    if domain in ['SF', 'CR', 'STE', 'SOD', 'SD', 'EE', 'IP']:
+        module = problem + '_' + domain
+        global mod
+        mod = __import__(module)
     else:
         print("Invalid domain\n")
-        return
+        exit(11)
 
-    rM = threading.Thread(target=raeMult, args=[domain])
+def testRAE(domain, problem):
+    InitializeDomain(domain, problem)
+    rM = threading.Thread(target=raeMult)
     rM.start()
     gui.start()
     rM.join()
@@ -113,7 +64,7 @@ def PrintResult(taskInfo):
         args, res = taskInfo[stackid]
         print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\n')
 
-def raeMult(domain):
+def raeMult():
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
     ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
 
@@ -128,7 +79,7 @@ def raeMult(domain):
             ipcArgs.sem.acquire()
 
             if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, threadList) == True: # Check for incoming tasks after progressing all stacks
-                taskArgs = GetNewTask(domain)
+                taskArgs = GetNewTask()
                 if taskArgs != []:
                     numstacks = numstacks + 1
                     taskArgs.append(numstacks)
