@@ -1,8 +1,19 @@
 __author__ = 'patras'
 
-from domains.domain_IndustryPlant import *
+from domain_IndustryPlant import *
 from timer import DURATION
 from rae1 import state
+
+#------------------------|
+# input|     |p1   |pck1 |
+#   1  |  2  |  3  |  4  |
+#______|___r1|_____|___r2|
+#      |     |     |     |
+#      |  5  |  6  |  7  |
+#      |_____|_____|_____|______
+#      |     |     |     |output
+#      |  8  |  9  |  10 |  11
+#      |___a1|___p2|_____|______
 
 DURATION.TIME = {
     'paint': 5, # for domain IP
@@ -22,15 +33,17 @@ DURATION.COUNTER = {
     'put': 2,
  }
 
-rv.MACHINE_LOCATION = {'paint': 3, 'pack': 4, 'assemble': 8, 'input': 1, 'output': 11}
+rv.MACHINE_LOCATION = {'p1': 3, 'pck1': 4, 'a1': 8, 'p2': 9}
+rv.MACHINES = {'paint': ['p1', 'p2'], 'pack': ['pck1'], 'assemble': ['a1']}
+rv.BUFFERS = {'input': 1, 'output': 11}
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 rv.EDGES = {1: [2], 2: [1, 3, 5], 3: [2, 4, 6], 4: [3, 7], 5: [2, 6, 8], 6: [3, 5, 7, 9], 7: [4, 6, 10], 8: [5, 9], 9: [6, 8, 10], 10: [7, 9, 11], 11: [10]}
 rv.ROBOTS = ['r1', 'r2']
 
 state.load = {'r1': NIL, 'r2': NIL}
 state.loc = {'r1': 2, 'r2': 4}
-state.status = {'r1': 'free', 'r2': 'free', 'paint': 'free', 'assemble': 'free', 'pack': 'free'}
-state.pos = {'a': rv.MACHINE_LOCATION['input'], 'b': rv.MACHINE_LOCATION['input'], 'c': rv.MACHINE_LOCATION['input'], 'o1': rv.MACHINE_LOCATION['input']}
+state.status = {'r1': 'free', 'r2': 'free', 'p1': 'free', 'a1': 'free', 'pck1': 'free', 'p2': 'free'}
+state.pos = {'a': rv.BUFFERS['input'], 'b': rv.BUFFERS['input'], 'c': rv.BUFFERS['input'], 'o1': rv.BUFFERS['input']}
 
 tasks = {
     1: ['order', ['pack', ['paint', 'o1', 'white'], ['assemble', ['assemble', 'a', 'b'], 'c']]],
