@@ -1,6 +1,6 @@
 __author__ = 'patras'
 
-from domains.domain_simpleOpenDoor import *
+from domain_simpleOpenDoor import *
 from timer import DURATION
 from rae1 import state
 

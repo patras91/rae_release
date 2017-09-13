@@ -1,6 +1,6 @@
-RAE is working with multiple stacks. Each stack is implemented as a Python thread.
+RAE is a refinement acting engine with multiple stacks. Each stack is implemented as a Python thread.
 
-We have the following domains.
+We have the following domains in the domain folder.
 
 1. domain_simpleFetch: Robot collecting objects in a harbour
    --- developed and integrated with RAE: testing needed
@@ -18,9 +18,10 @@ We have the following domains.
    --- developed and integrated with RAE: testing needed
 
 HOW TO USE?
-To test on any domain, import testRAE and use the following command in python
+To test on any domain, use the following commands in python
 
-testRAE(domainCode)
+from testRAE import *
+testRAE(domainCode, problemId)
 
 domain codes are as follows:
 domain_simpleFetch: 'SF',
@@ -31,8 +32,17 @@ domain_springDoor: 'SD',
 domain_exploreEnv: 'EE',
 domain_industrialPlan: 'IP'
 
-for example, to test Spring door, type
-testRAE('SD')
+The problemid should correspond to a problem inside the folder 'problems'.
+A problem file specifies the initial state, the tasks arriving at different times and
+various parameters specific to the domain. To define a new problem, please follow the
+following syntax to name the file.
+
+problemId_domainCode.py
+
+For example, a problem of SD domain with problemId 'problem1' should be named problem1_SD.py.
+To test problem1 of Spring door, use the command:
+
+testRAE('SD', 'problem1')
 
 You can see different amount of output by changing the verbosity as follows:
 verbosity(0), verbosity(1) or verbosity(2)
