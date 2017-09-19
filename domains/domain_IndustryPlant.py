@@ -95,6 +95,29 @@ def paint(m, o, colour, name):
     state.pos.ReleaseLock(o)
     return res
 
+def wrap(m, o, name):
+    state.pos.AcquireLock(o)
+    if state.pos[o] == rv.MACHINE_LOCATION[m]:
+        state.status.AcquireLock(m)
+        if state.status[m] == 'free':
+            state.status[m] = 'busy'
+            Simulate("%s is wrapping %s and naming it %s\n" %(m, o, name))
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('wrap', start) == False):
+		        pass
+            state.pos[name] = rv.MACHINE_LOCATION[m]
+            state.status[m] = 'free'
+            res = SUCCESS
+        else:
+            Simulate("%s is not free\n", m)
+            res = FAILURE
+        state.status.ReleaseLock(m)
+    else:
+        Simulate("%s is not in wrapping machine's location\n" %o)
+        res = FAILURE
+    state.pos.ReleaseLock(o)
+    return res
+
 def assemble(m, p1, p2, name):
     state.pos.AcquireLock(p1)
     state.pos.AcquireLock(p2)
@@ -187,15 +210,10 @@ def move(r, loc1, loc2):
     state.loc.ReleaseLock(r)
     return res
 
-def Delegate(args, o_name):
-    taskName = args[0]
-    param1 = args[1]
-    param2 = args[2]
-    if len(param1) == 1:
-        param1 = param1[0]
-    if len(param2) == 1:
-        param2 = param2[0]
-    do_task(taskName, param1, param2, o_name)
+def Delegate(o, o_name):
+    taskName = o[0]
+    taskArgs = o[1:]
+    do_task(taskName, o_name, *taskArgs)
 
 def GetMachine(job, loc):
     free = [m for m in rv.MACHINES[job] if state.status[m] == 'free']
@@ -210,7 +228,9 @@ def GetLocation(o):
         state.pos[o] = rv.BUFFERS['input']
     return state.pos[o]
 
-def Paint_Method1(o, colour, name):
+def Paint_Method1(name, *args):
+    o = args[0]
+    colour = args[1]
     if isinstance(o, list):
         o_name = GetNewName()
         Delegate(o, o_name)
@@ -228,7 +248,9 @@ def Paint_Method1(o, colour, name):
         res = FAILURE
     return res
 
-def Assemble_Method1(part1, part2, name):
+def Assemble_Method1(name, *args):
+    part1 = args[0]
+    part2 = args[1]
     if isinstance(part1, list):
         o_name1 = GetNewName()
         Delegate(part1, o_name1)
@@ -254,7 +276,9 @@ def Assemble_Method1(part1, part2, name):
         res = FAILURE
     return res
 
-def Pack_Method1(o1, o2, name):
+def Pack_Method1(name, *args):
+    o1 = args[0]
+    o2 = args[1]
     if isinstance(o1, list):
         o_name1 = GetNewName()
         Delegate(o1, o_name1)
@@ -280,43 +304,59 @@ def Pack_Method1(o1, o2, name):
         res = FAILURE
     return res
 
+def Wrap_Method1(name, o):
+    if isinstance(o, list):
+        o_name = GetNewName()
+        Delegate(o, o_name)
+    else:
+        o_name = o
+
+    m = GetMachine('wrap', GetLocation(o_name))
+    if m != NIL:
+        if GetLocation(o_name) != rv.MACHINE_LOCATION[m]:
+            do_task('deliver', o_name, rv.MACHINE_LOCATION[m])
+        do_command(wrap, m, o_name, name)
+        res = SUCCESS
+    else:
+        print("There are no machines free to pack.\n")
+        res = FAILURE
+    return res
+
 def Order_Method1(taskArgs):
     taskName = taskArgs[0]
-    taskArg1 = taskArgs[1]
-    taskArg2 = taskArgs[2]
+    args = taskArgs[1:]
     name = GetNewName()
-    do_task(taskName, taskArg1, taskArg2, name)
+    do_task(taskName, name, *args)
     do_task('deliver', name, rv.BUFFERS['output'])
     return SUCCESS
 
 def GetRobot(loc):
-    deliveryRobot = NIL
-    while (deliveryRobot == NIL):
-        free = [r for r in rv.ROBOTS if state.status[r] == 'free']
-        dist = [IP_GETDISTANCE(loc, state.loc[r]) for r in free]
-        if dist != []:
-            r = free[dist.index(min(dist))]
-            state.status.AcquireLock(r)
-            if state.status[r] == 'free':
-                deliveryRobot = r
-                state.status[r] = 'busy'
-            state.status.ReleaseLock(r)
+    free = [r for r in rv.ROBOTS if state.status[r] == 'free']
+    dist = [IP_GETDISTANCE(loc, state.loc[r]) for r in free]
+    if dist != []:
+        r = free[dist.index(min(dist))]
+        deliveryRobot = r
+        state.status[r] = 'busy'
+    else:
+        deliveryRobot = NIL
     return deliveryRobot
 
 def Deliver_Method1(o, l):
     loc_o = GetLocation(o)
     deliveryRobot = GetRobot(loc_o)
-    if state.loc[deliveryRobot] != loc_o:
-        do_command(move, deliveryRobot, state.loc[deliveryRobot], loc_o)
-    do_command(take, deliveryRobot, o, loc_o)
-    if state.loc[deliveryRobot] != l:
-        do_command(move, deliveryRobot, state.loc[deliveryRobot], l)
-    do_command(put, deliveryRobot, o, l)
-
-    state.status.AcquireLock(deliveryRobot)
-    state.status[deliveryRobot] = 'free'
-    state.status.ReleaseLock(deliveryRobot)
-    return SUCCESS
+    if deliveryRobot != NIL:
+        if state.loc[deliveryRobot] != loc_o:
+            do_command(move, deliveryRobot, state.loc[deliveryRobot], loc_o)
+        do_command(take, deliveryRobot, o, loc_o)
+        if state.loc[deliveryRobot] != l:
+            do_command(move, deliveryRobot, state.loc[deliveryRobot], l)
+        do_command(put, deliveryRobot, o, l)
+        state.status[deliveryRobot] = 'free'
+        res = SUCCESS
+    else:
+        Simulate("No robot free to deliver %s to location %s\n" %(o, l))
+        res = FAILURE
+    return res
 
 rv = RV()
 declare_commands(paint, assemble, pack, take, put)
@@ -326,6 +366,7 @@ print_commands()
 declare_methods('paint', Paint_Method1)
 declare_methods('assemble', Assemble_Method1)
 declare_methods('pack', Pack_Method1)
+declare_methods('wrap', Wrap_Method1)
 declare_methods('deliver', Deliver_Method1)
 declare_methods('order', Order_Method1)
 

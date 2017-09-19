@@ -10,7 +10,7 @@ from rae1 import state
 #______|___r1|_____|___r2|
 #      |     |     |     |
 #      |  5  |  6  |  7  |
-#      |_____|_____|_____|______
+#      |_____|_____|___w1|______
 #      |     |     |     |output
 #      |  8  |  9  |  10 |  11
 #      |___a1|___p2|_____|______
@@ -22,6 +22,7 @@ DURATION.TIME = {
     'move': 10,
     'take': 2,
     'put': 2,
+    'wrap': 3
  }
 
 DURATION.COUNTER = {
@@ -31,10 +32,11 @@ DURATION.COUNTER = {
     'move': 10,
     'take': 2,
     'put': 2,
+    'wrap': 3
  }
 
-rv.MACHINE_LOCATION = {'p1': 3, 'pck1': 4, 'a1': 8, 'p2': 9}
-rv.MACHINES = {'paint': ['p1', 'p2'], 'pack': ['pck1'], 'assemble': ['a1']}
+rv.MACHINE_LOCATION = {'p1': 3, 'pck1': 4, 'a1': 8, 'p2': 9, 'w1': 7}
+rv.MACHINES = {'paint': ['p1', 'p2'], 'pack': ['pck1'], 'assemble': ['a1'], 'wrap': ['w1']}
 rv.BUFFERS = {'input': 1, 'output': 11}
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 rv.EDGES = {1: [2], 2: [1, 3, 5], 3: [2, 4, 6], 4: [3, 7], 5: [2, 6, 8], 6: [3, 5, 7, 9], 7: [4, 6, 10], 8: [5, 9], 9: [6, 8, 10], 10: [7, 9, 11], 11: [10]}
@@ -47,5 +49,6 @@ state.pos = {'a': rv.BUFFERS['input'], 'b': rv.BUFFERS['input'], 'c': rv.BUFFERS
 
 tasks = {
     1: ['order', ['pack', ['paint', 'o1', 'white'], ['assemble', ['assemble', 'a', 'b'], 'c']]],
-    2: ['order', ['assemble', 'a1', ['paint', ['assemble', 'b1', 'c1'], 'pink']]]
+    2: ['order', ['assemble', 'a1', ['paint', ['assemble', 'b1', 'c1'], 'pink']]],
+    3: ['order', ['wrap', ['paint', 'gift', 'red']]]
 }
