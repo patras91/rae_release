@@ -18,10 +18,16 @@ We have the following domains in the domain folder.
    --- developed and integrated with RAE: testing needed
 
 HOW TO USE?
-To test on any domain, use the following commands in python
+To test on any domain, use the following command in terminal
 
-from testRAE import *
-testRAE(domainCode, problemId)
+python testRAE.py [-h] [--v V] [--d D] [--p P] [--s S] [--c C]
+optional arguments:
+  -h, --help  show this help message and exit
+  --v V       verbosity of RAE's debugging output (0, 1 or 2)
+  --d D       name of the test domain (STE, CR, SD, EE, SOD, IP or SF)
+  --p P       identifier for the problem eg. 'problem1', 'problem2', etc
+  --s S       Do you want to use sampling or not? ('y' or 'n')
+  --c C       Mode of the clock ('Counter' or 'Clock')
 
 domain codes are as follows:
 domain_simpleFetch: 'SF',
@@ -42,13 +48,7 @@ problemId_domainCode.py
 For example, a problem of SD domain with problemId 'problem1' should be named problem1_SD.py.
 To test problem1 of Spring door, use the command:
 
-testRAE('SD', 'problem1')
-
-You can see different amount of output by changing the verbosity as follows:
-verbosity(0), verbosity(1) or verbosity(2)
+python testRAE.py --d SD --p problem1
 
 The commands can be executed in two modes: 'Clock' or 'Counter'.
 By default, the mode is set to 'Counter'.
-To change mode, use:
-
-SetMode('Counter') or SetMode('Clock')

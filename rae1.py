@@ -2,6 +2,8 @@ from __future__ import print_function
 import types
 import threading
 from state import State
+import multiprocessing
+import colorama
 """
 File rae1.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
@@ -11,6 +13,7 @@ This has multiple execution stacks
 
 import sys, pprint
 
+import globals
 ############################################################
 
 ### A goal is identical to a state except for the class name.
@@ -46,6 +49,9 @@ def print_entire_stack(stackid, path):
 verbose = 0
 state = State()
 id = threading.local()
+
+def ResetState():
+	state.ReleaseLocks()
 
 def verbosity(level):
 	"""
@@ -134,7 +140,7 @@ class Incorrect_return_code(Exception):
 #****************************************************************
 #Functions to control Progress of each stack step by step
 class IpcArgs():
-	""" IPCArgs is just a collection of variable bindings to share data among the processes."""
+	""" IPCArgs is just a collection of variable bindings to share data among the threads."""
 	def __init__(self):
 		pass
 
@@ -184,17 +190,21 @@ def rae1(task, *args):
 		print(state)
 
 	try:
-		retcode = do_task(task, *taskArgs)
+		result = do_task(task, *taskArgs)
 	except Failed_command,e:
 		if verbose > 0:
 			print_stack_size(stackid, path)
 			print('Failed command {}'.format(e))
-		retcode = 'Failure'
+		result = globals.G()
+		result.retcode = 'Failure'
+		result.cost = float("inf")
 	except Failed_task, e:
 		if verbose > 0:
 			print_stack_size(stackid, path)
 			print('Failed task {}'.format(e))
-		retcode = 'Failure'
+		result = globals.G()
+		result.retcode = 'Failure'
+		result.cost = float("inf")
 	else:
 		pass
 	if verbose > 1:
@@ -205,15 +215,102 @@ def rae1(task, *args):
 		print("\n---- Rae1: Done with stack %d\n" %stackid)
 
 	EndCriticalRegion()
-	return retcode
+	return result
 
-def choose_candidate(candidates):
-	return(candidates[0],candidates[1:])
+def choose_candidate(candidates, task, taskArgs):
+	if globals.GetDoSampling() == False:
+		return(candidates[0],candidates[1:])
+	else:
+		queue = multiprocessing.Queue()
+		print(colorama.Fore.RED)
+		p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, None, queue])
+		p.start()
+		p.join()
+		result = queue.get()
+		if result.retcode != 'Failure':
+			m = result.method
+			candidates.pop(candidates.index(m))
+			return(m, candidates)
+		else:
+			return(None, [])
 
-def do_task(task, *taskArgs):
-	"""
-	This is the workhorse for rae1. The arguments are the same as for rae1.
-	"""
+def SimulateTask(task, *taskArgs):
+	stackid = id.val
+	global path
+	path[stackid].append([task, taskArgs])
+
+	methodChosen = taskArgs[-1]
+	if callable(methodChosen):
+		taskArgs = taskArgs[0:-1]
+		result = taskProgress(stackid, path, methodChosen, taskArgs)
+		retcode = result.retcode
+
+		path[stackid].pop()
+		if verbose > 1:
+			print_entire_stack(stackid, path)
+
+		if retcode == 'Failure':
+			raise Failed_task('{}{}'.format(task, taskArgs))
+		elif retcode == 'Success':
+			return result
+		else:
+			raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
+		return result
+	else:
+		candidates = methods[task]
+		result = {}
+		for m in candidates:
+			queue = multiprocessing.Queue()
+			p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, m, queue])
+			p.start()
+			p.join()
+			result[m.__name__] = queue.get()
+
+		min = candidates[0]
+		for m_name in result:
+			if result[m_name].retcode == 'Success' and result[m_name].cost < result[min.__name__].cost:
+				min = result[m_name].method
+		return result[min.__name__]
+
+def taskProgress(stackid, path, m, taskArgs):
+	if verbose > 0:
+		print_stack_size(stackid, path)
+		print('Try method {}{}'.format(m.__name__,taskArgs))
+
+	result = globals.G()
+	result.retcode = "Failure"
+	result.cost = float("inf")
+	try:
+		EndCriticalRegion()
+		BeginCriticalRegion(stackid)
+		if verbose > 0:
+			print_stack_size(stackid, path)
+			print("Executing method {}{}".format(m.__name__, taskArgs))
+		if verbose > 1:
+			print_stack_size(stackid, path)
+			print('Current state is:'.format(stackid))
+			print(state)
+		retcode = m(*taskArgs)
+		result.method = m
+		result.retcode = retcode
+		result.cost = 1
+	except Failed_command, e:
+		if verbose > 0:
+			print_stack_size(stackid, path)
+			print('Failed command {}'.format(e))
+	except Failed_task,e:
+		if verbose > 0:
+			print_stack_size(stackid, path)
+			print('Failed task {}'.format(e))
+	else:
+		pass
+
+	if verbose > 1:
+		print_stack_size(stackid, path)
+		print('{} for method {}{}'.format(retcode, m.__name__, taskArgs))
+	return result
+
+def DoTaskInRealWorld(task, *taskArgs):
 	stackid = id.val
 	global path
 
@@ -228,38 +325,10 @@ def do_task(task, *taskArgs):
 	retcode = 'Failure'
 	candidates = methods[task]
 	while (retcode == 'Failure' and candidates != []):
-		(m,candidates) = choose_candidate(candidates)
-		if verbose > 0:
-			print_stack_size(stackid, path)
-			print('Try method {}{}'.format(m.__name__,taskArgs))
-
-		try:
-			EndCriticalRegion()
-			BeginCriticalRegion(stackid)
-			if verbose > 0:
-				print_stack_size(stackid, path)
-				print("Executing method {}{}".format(m.__name__, taskArgs))
-			if verbose > 1:
-				print_stack_size(stackid, path)
-				print('Current state is:'.format(stackid))
-				print(state)
-			retcode = m(*taskArgs)
-		except Failed_command, e:
-			if verbose > 0:
-				print_stack_size(stackid, path)
-				print('Failed command {}'.format(e))
-			retcode = 'Failure'
-		except Failed_task,e:
-			if verbose > 0:
-				print_stack_size(stackid, path)
-				print('Failed task {}'.format(e))
-			retcode = 'Failure'
-		else:
-			pass
-
-		if verbose > 1:
-			print_stack_size(stackid, path)
-			print('{} for method {}{}'.format(retcode,m.__name__,taskArgs))
+		(m,candidates) = choose_candidate(candidates, task, taskArgs)
+		if m != None:
+			result = taskProgress(stackid, path, m, taskArgs)
+			retcode = result.retcode
 
 	path[stackid].pop()
 	if verbose > 1:
@@ -268,9 +337,18 @@ def do_task(task, *taskArgs):
 	if retcode == 'Failure':
 		raise Failed_task('{}{}'.format(task, taskArgs))
 	elif retcode == 'Success':
-		return retcode
+		return result
 	else:
 		raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
+
+def do_task(task, *taskArgs):
+	"""
+	This is the workhorse for rae1. The arguments are the same as for rae1.
+	"""
+	if globals.GetSamplingMode() == True:
+		return SimulateTask(task, *taskArgs)
+	else:
+		return DoTaskInRealWorld(task, *taskArgs)
 
 def beginCommand(cmd, cmdRet, cmdArgs):
 	cmdRet['state'] = cmd(*cmdArgs)
@@ -328,3 +406,5 @@ def do_command(cmd, *cmdArgs):
 		return retcode
 	else:
 		raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))
+
+import testRAE

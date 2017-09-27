@@ -18,6 +18,10 @@ class State():
             res = 'False'
         return res
 
+    def ReleaseLocks(self):
+        for key in self.__dict__:
+            self.__dict__[key].ReleaseAllLocks()
+
 class StateDict():
     def __init__(self, d):
         if hasattr(d, '__iter__'):
@@ -56,3 +60,8 @@ class StateDict():
             self.lock[key[0]].release()
         else:
             self.lock[key].release()
+
+    def ReleaseAllLocks(self):
+        for key in self.lock:
+            if self.lock[key].locked():
+                self.lock[key].release()
