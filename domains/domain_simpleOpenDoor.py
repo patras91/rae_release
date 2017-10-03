@@ -16,7 +16,21 @@ def moveBy(r, lamda):
     gui.Simulate("Robot %s performs a motion defined by vector %s\n" %(r, lamda))
     return SUCCESS
 
+def moveBy_Sim(r, lamda):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('moveBy', start) == False):
+	    pass
+    gui.Simulate("Robot %s performs a motion defined by vector %s\n" %(r, lamda))
+    return SUCCESS
+
 def pull(r, lamda):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('pull', start) == False):
+	    pass
+    gui.Simulate("Robot %s pulls its arm by vector %s\n" %(r, lamda))
+    return SUCCESS
+
+def pull_Sim(r, lamda):
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('pull', start) == False):
 	    pass
@@ -29,11 +43,32 @@ def push(r, lamda):
 	    pass
     gui.Simulate("Robot %s pushes its arm vector %s\n" %(r, lamda))
     return SUCCESS
+
+def push_Sim(r, lamda):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('push', start) == False):
+	    pass
+    gui.Simulate("Robot %s pushes its arm vector %s\n" %(r, lamda))
+    return SUCCESS
 #******************************************************
 
 #******************************************************
 #commands controlling movement of door handle by robot
 def grasp(r, o):
+    rae1.state.reachable.AcquireLock(r,o)
+    if rae1.state.reachable[r,o] == True:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('grasp', start) == False):
+	        pass
+        gui.Simulate("Robot %s has grasped handle %s\n" %(r, o))
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s cannot grasp handle %s because it is unreachable\n" %(r, o))
+        res = FAILURE
+    rae1.state.reachable.ReleaseLock(r,o)
+    return res
+
+def grasp_Sim(r, o):
     rae1.state.reachable.AcquireLock(r,o)
     if rae1.state.reachable[r,o] == True:
         start = globalTimer.GetTime()
@@ -61,7 +96,35 @@ def ungrasp(r, o):
     rae1.state.reachable.ReleaseLock(r,o)
     return res
 
+def ungrasp_Sim(r, o):
+    rae1.state.reachable.AcquireLock(r,o)
+    if rae1.state.reachable[r,o] == True:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('ungrasp', start) == False):
+	        pass
+        gui.Simulate("Robot %s has ungrasped handle %s\n" %(r, o))
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s cannot ungrasp handle %s because it is unreachable\n" %(r, o))
+        res = FAILURE
+    rae1.state.reachable.ReleaseLock(r,o)
+    return res
+
 def turn(r, o, alpha):
+    rae1.state.reachable.AcquireLock(r,o)
+    if rae1.state.reachable[r,o] == True:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('turn', start) == False):
+	        pass
+        gui.Simulate("Robot %s turns %s by %s\n" %(r, o, alpha))
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s cannot turn handle %s because it is unreachable\n" %(r, o))
+        res = FAILURE
+    rae1.state.reachable.ReleaseLock(r,o)
+    return res
+
+def turn_Sim(r, o, alpha):
     rae1.state.reachable.AcquireLock(r,o)
     if rae1.state.reachable[r,o] == True:
         start = globalTimer.GetTime()
@@ -91,7 +154,34 @@ def moveClose(r, o):
     rae1.state.reachable.ReleaseLock(r,o)
     return res
 
+def moveClose_Sim(r, o):
+    rae1.state.reachable.AcquireLock(r,o)
+    if rae1.state.reachable[r,o] == False:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('moveClose', start) == False):
+	        pass
+        gui.Simulate("Robot %s moves close to door handle %s\n" %(r, o))
+        rae1.state.reachable[r,o] = True
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s is already close to handle %s\n" %(r, o))
+        res = SUCCESS
+    rae1.state.reachable.ReleaseLock(r,o)
+    return res
+
 def getStatus(r, d):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('getStatus', start) == False):
+        pass
+    gui.Simulate("Robot %s is monitoring the status of door %s\n" %(r, d))
+    stat = random.choice(['closed', 'cracked'])
+    gui.Simulate("Robot %s found it to be %s\n" %(r, stat))
+    rae1.state.doorStatus.AcquireLock(d)
+    rae1.state.doorStatus[d] = stat
+    rae1.state.doorStatus.ReleaseLock(d)
+    return SUCCESS
+
+def getStatus_Sim(r, d):
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('getStatus', start) == False):
         pass
@@ -146,7 +236,8 @@ def OpenDoor_Method1(r, d, o):
     return res
 
 rv = RV()
-rae1.declare_commands(moveBy, pull, push, grasp, ungrasp, turn, moveClose, getStatus)
+rae1.declare_commands([moveBy, pull, push, grasp, ungrasp, turn, moveClose, getStatus],
+                      [moveBy_Sim, pull_Sim, push_Sim, grasp_Sim, ungrasp_Sim, turn_Sim, moveClose_Sim, getStatus_Sim])
 print('\n')
 rae1.print_commands()
 

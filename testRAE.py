@@ -9,7 +9,6 @@ import argparse
 from timer import globalTimer, SetMode
 import gui
 import globals
-import colorama
 
 __author__ = 'patras'
 
@@ -139,8 +138,6 @@ def raeMultSimulator(task, taskArgs, method, queue):
             else:
                 ipcArgs.nextStack = 1
                 ipcArgs.sem.release()
-
-    print(colorama.Style.RESET_ALL)
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()

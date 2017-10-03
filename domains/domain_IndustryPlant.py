@@ -95,7 +95,53 @@ def paint(m, o, colour, name):
     state.pos.ReleaseLock(o)
     return res
 
+def paint_Sim(m, o, colour, name):
+    state.pos.AcquireLock(o)
+    if state.pos[o] == rv.MACHINE_LOCATION[m]:
+        state.status.AcquireLock(m)
+        if state.status[m] == 'free':
+            state.status[m] = 'busy'
+            Simulate("%s is colouring %s with colour %s and naming it %s\n" %(m, o, colour, name))
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('paint', start) == False):
+		        pass
+            state.pos[name] = rv.MACHINE_LOCATION[m]
+            state.status[m] = 'free'
+            res = SUCCESS
+        else:
+            Simulate("%s is not free\n", m)
+            res = FAILURE
+        state.status.ReleaseLock(m)
+    else:
+        Simulate("%s is not in painting machine's location\n" %o)
+        res = FAILURE
+    state.pos.ReleaseLock(o)
+    return res
+
 def wrap(m, o, name):
+    state.pos.AcquireLock(o)
+    if state.pos[o] == rv.MACHINE_LOCATION[m]:
+        state.status.AcquireLock(m)
+        if state.status[m] == 'free':
+            state.status[m] = 'busy'
+            Simulate("%s is wrapping %s and naming it %s\n" %(m, o, name))
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('wrap', start) == False):
+		        pass
+            state.pos[name] = rv.MACHINE_LOCATION[m]
+            state.status[m] = 'free'
+            res = SUCCESS
+        else:
+            Simulate("%s is not free\n", m)
+            res = FAILURE
+        state.status.ReleaseLock(m)
+    else:
+        Simulate("%s is not in wrapping machine's location\n" %o)
+        res = FAILURE
+    state.pos.ReleaseLock(o)
+    return res
+
+def wrap_Sim(m, o, name):
     state.pos.AcquireLock(o)
     if state.pos[o] == rv.MACHINE_LOCATION[m]:
         state.status.AcquireLock(m)
@@ -140,7 +186,48 @@ def assemble(m, p1, p2, name):
     state.pos.ReleaseLock(p2)
     return res
 
+def assemble_Sim(m, p1, p2, name):
+    state.pos.AcquireLock(p1)
+    state.pos.AcquireLock(p2)
+
+    if state.pos[p1] == rv.MACHINE_LOCATION[m] and state.pos[p2] == rv.MACHINE_LOCATION[m]:
+        state.status.AcquireLock(m)
+        state.status[m] = 'busy'
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('assemble', start) == False):
+		    pass
+        Simulate("Assembled parts %s and %s and naming it %s\n" %(p1, p2, name))
+        state.pos[name] = rv.MACHINE_LOCATION[m]
+        state.status[m] = 'free'
+        state.status.ReleaseLock(m)
+        res = SUCCESS
+    else:
+        Simulate("Part %s or %s is not in painting machine's location\n" %(p1, p2))
+        res = FAILURE
+    state.pos.ReleaseLock(p1)
+    state.pos.ReleaseLock(p2)
+    return res
+
 def pack(m, o1, o2, name):
+    state.pos.AcquireLock(o1)
+    state.pos.AcquireLock(o2)
+    if state.pos[o1] == rv.MACHINE_LOCATION[m] and state.pos[o2] == rv.MACHINE_LOCATION[m]:
+        state.status.AcquireLock(m)
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('pack', start) == False):
+		    pass
+        Simulate("Packed objects %s and %s and naming it %s\n" %(o1, o2, name))
+        state.pos[name] = rv.MACHINE_LOCATION[m]
+        state.status.ReleaseLock(m)
+        res = SUCCESS
+    else:
+        Simulate("Part %s or %s is not in packing machine's location\n" %(o1, o2))
+        res = FAILURE
+    state.pos.ReleaseLock(o1)
+    state.pos.ReleaseLock(o2)
+    return res
+
+def pack_Sim(m, o1, o2, name):
     state.pos.AcquireLock(o1)
     state.pos.AcquireLock(o2)
     if state.pos[o1] == rv.MACHINE_LOCATION[m] and state.pos[o2] == rv.MACHINE_LOCATION[m]:
@@ -177,6 +264,24 @@ def take(r, o, l):
     state.pos.ReleaseLock(o)
     return res
 
+def take_Sim(r, o, l):
+    state.pos.AcquireLock(o)
+    if state.pos[o] == l:
+        state.load.AcquireLock(r)
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('take', start) == False):
+		    pass
+        state.pos[o] = r
+        state.load[r] = o
+        state.load.ReleaseLock(r)
+        Simulate("Robot %s has taken object %s at location %d\n" %(r,o,l))
+        res = SUCCESS
+    else:
+        Simulate("Object %s is not at location %d\n" %(o,l))
+        res = FAILURE
+    state.pos.ReleaseLock(o)
+    return res
+
 def put(r, o, l):
     state.pos.AcquireLock(o)
     if state.pos[o] == r:
@@ -195,7 +300,40 @@ def put(r, o, l):
     state.pos.ReleaseLock(o)
     return res
 
+def put_Sim(r, o, l):
+    state.pos.AcquireLock(o)
+    if state.pos[o] == r:
+        state.load.AcquireLock(r)
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('put', start) == False):
+		    pass
+        state.pos[o] = l
+        state.load[r] = NIL
+        state.load.ReleaseLock(r)
+        Simulate("Robot %s has put object %s at location %d\n" %(r,o,l))
+        res = SUCCESS
+    else:
+        Simulate("Object %s is not with robot %s\n" %(o,r))
+        res = FAILURE
+    state.pos.ReleaseLock(o)
+    return res
+
 def move(r, loc1, loc2):
+    state.loc.AcquireLock(r)
+    if state.loc[r] == loc1:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+		    pass
+        state.loc[r] = loc2
+        Simulate("%s has moved from %s to %s\n" %(r, loc1, loc2))
+        res = SUCCESS
+    else:
+        Simulate("%s is not in location %s\n" %(r, loc1))
+        res = FAILURE
+    state.loc.ReleaseLock(r)
+    return res
+
+def move_Sim(r, loc1, loc2):
     state.loc.AcquireLock(r)
     if state.loc[r] == loc1:
         start = globalTimer.GetTime()
@@ -359,7 +497,8 @@ def Deliver_Method1(o, l):
     return res
 
 rv = RV()
-declare_commands(paint, assemble, pack, take, put)
+declare_commands([paint, assemble, pack, take, put, move],
+                 [paint_Sim, assemble_Sim, pack_Sim, take_Sim, put_Sim, move_Sim])
 print('\n')
 print_commands()
 

@@ -3,7 +3,7 @@ import types
 import threading
 from state import State
 import multiprocessing
-import colorama
+
 """
 File rae1.py
 Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
@@ -14,6 +14,8 @@ This has multiple execution stacks
 import sys, pprint
 
 import globals
+import random
+import colorama
 ############################################################
 
 ### A goal is identical to a state except for the class name.
@@ -91,15 +93,27 @@ def find_if(cond,seq):
 # Functions to tell Rae1 what the commands and methods are
 
 commands = {}
+commandSimulations = {}
 methods = {}
 
-def declare_commands(*cmd_list):
+def declare_commands(cmd_list, cmdSim_list):
 	"""
 	Call this after defining the commands, to tell Rae1 what they are. 
 	cmd_list must be a list of functions, not strings.
 	"""
 	commands.update({cmd.__name__:cmd for cmd in cmd_list})
+	for cmd in cmdSim_list:
+		cmdParts = cmd.__name__.split('_')
+		key = '_'.join(cmdParts[0:-1])
+		commandSimulations[key] = cmd
 	return commands
+
+def GetCommand(cmd):
+	name = cmd.__name__
+	if globals.GetSamplingMode() == True:
+		return commandSimulations[name]
+	else:
+		return commands[name]
 
 def declare_methods(task_name,*method_list):
 	"""
@@ -179,8 +193,10 @@ def rae1(task, *args):
 	global path
 	path.update({stackid: []})
 
+	mode = globals.GetSamplingMode()
 	if verbose > 0:
-		print('\n---- Rae1: Create stack {}, task {}{}\n'.format(stackid, task, taskArgs))
+		if mode == False:
+			print('\n---- Rae1 Simulation: Create stack {}, task {}{}\n'.format(stackid, task, taskArgs))
 
 	BeginCriticalRegion(stackid)
 
@@ -212,7 +228,8 @@ def rae1(task, *args):
 		print('Final state is:')
 		print(state)
 	if verbose > 0:
-		print("\n---- Rae1: Done with stack %d\n" %stackid)
+		if mode == False:
+			print("\n---- Rae1: Done with stack %d\n" %stackid)
 
 	EndCriticalRegion()
 	return result
@@ -221,11 +238,18 @@ def choose_candidate(candidates, task, taskArgs):
 	if globals.GetDoSampling() == False:
 		return(candidates[0],candidates[1:])
 	else:
+
+		if verbose > 0:
+			print(colorama.Fore.RED, "Starting simulation for stack")
+
 		queue = multiprocessing.Queue()
-		print(colorama.Fore.RED)
 		p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, None, queue])
 		p.start()
 		p.join()
+
+		if verbose > 0:
+			print("Done with simulation \n", colorama.Style.RESET_ALL)
+
 		result = queue.get()
 		if result.retcode != 'Failure':
 			m = result.method
@@ -258,6 +282,8 @@ def SimulateTask(task, *taskArgs):
 		return result
 	else:
 		candidates = methods[task]
+		random.shuffle(candidates)
+		candidates = candidates[0:min(len(candidates), globals.getK())]
 		result = {}
 		for m in candidates:
 			queue = multiprocessing.Queue()
@@ -266,11 +292,11 @@ def SimulateTask(task, *taskArgs):
 			p.join()
 			result[m.__name__] = queue.get()
 
-		min = candidates[0]
+		minCostMethod = candidates[0]
 		for m_name in result:
-			if result[m_name].retcode == 'Success' and result[m_name].cost < result[min.__name__].cost:
-				min = result[m_name].method
-		return result[min.__name__]
+			if result[m_name].retcode == 'Success' and result[m_name].cost < result[minCostMethod.__name__].cost:
+				minCostMethod = result[m_name].method
+		return result[minCostMethod.__name__]
 
 def taskProgress(stackid, path, m, taskArgs):
 	if verbose > 0:
@@ -351,6 +377,8 @@ def do_task(task, *taskArgs):
 		return DoTaskInRealWorld(task, *taskArgs)
 
 def beginCommand(cmd, cmdRet, cmdArgs):
+	mode = globals.GetSamplingMode()
+	cmd = GetCommand(cmd)
 	cmdRet['state'] = cmd(*cmdArgs)
 
 def do_command(cmd, *cmdArgs):

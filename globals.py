@@ -7,6 +7,7 @@ class G():
 g = G()
 g.doSampling = False
 g.samplingMode = False
+g.K = 1
 
 def SetDoSampling(s):
 	g.doSampling = s
@@ -19,3 +20,9 @@ def GetSamplingMode():
 
 def GetDoSampling():
     return g.doSampling
+
+def SetK(k):
+    g.K = k
+
+def getK():
+    return g.K

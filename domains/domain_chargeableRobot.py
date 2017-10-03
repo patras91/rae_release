@@ -59,7 +59,49 @@ def take(r, o):
     rae1.state.load.ReleaseLock(r)
     return res
 
+def take_Sim(r, o):
+    rae1.state.load.AcquireLock(r)
+    if rae1.state.load[r] == NIL:
+        rae1.state.pos.AcquireLock(o)
+        if rae1.state.loc[r] == rae1.state.pos[o]:
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('take', start) == False):
+			    pass
+            gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
+            rae1.state.pos[o] = r
+            rae1.state.load[r] = o
+            res = SUCCESS
+        else:
+            gui.Simulate("Robot %s is not at object %s's location\n" %(r, o))
+            res = FAILURE
+        rae1.state.pos.ReleaseLock(o)
+    else:
+        gui.Simulate("Robot %s is not free to take anything\n" %r)
+        res = FAILURE
+    rae1.state.load.ReleaseLock(r)
+    return res
+
 def put(r, o):
+    rae1.state.pos.AcquireLock(o)
+    if rae1.state.pos[o] == r:
+        start = globalTimer.GetTime()
+        rae1.state.loc.AcquireLock(r)
+        rae1.state.load.AcquireLock(r)
+        while(globalTimer.IsCommandExecutionOver('put', start) == False):
+		    pass
+        gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
+        rae1.state.pos[o] = rae1.state.loc[r]
+        rae1.state.load[r] = NIL
+        rae1.state.loc.ReleaseLock(r)
+        rae1.state.load.ReleaseLock(r)
+        res = SUCCESS
+    else:
+        gui.Simulate("Object %s is not with robot %s\n" %(o,r))
+        res = FAILURE
+    rae1.state.pos.ReleaseLock(o)
+    return res
+
+def put_Sim(r, o):
     rae1.state.pos.AcquireLock(o)
     if rae1.state.pos[o] == r:
         start = globalTimer.GetTime()
@@ -98,7 +140,36 @@ def charge(r, c):
     rae1.state.pos.ReleaseLock(c)
     return res
 
+def charge_Sim(r, c):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.pos.AcquireLock(c)
+    if rae1.state.loc[r] == rae1.state.pos[c] or rae1.state.pos[c] == r:
+        rae1.state.charge.AcquireLock(r)
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('charge', start) == False):
+			pass
+        rae1.state.charge[r] = 4
+        gui.Simulate("Robot %s is fully charged\n" %r)
+        rae1.state.charge.ReleaseLock(r)
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s is not in the charger's location or it doesn't have the charger with it\n" %r)
+        res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.pos.ReleaseLock(c)
+    return res
+
 def moveCharger(c, l):
+    #start = globalTimer.GetTime()
+    #while(globalTimer.IsCommandExecutionOver('moveCharger', start) == False):
+	#	pass
+    rae1.state.pos.AcquireLock(c)
+    gui.Simulate("Charger %s is moved to location %s\n" %(c,l))
+    rae1.state.pos[c] = l
+    rae1.state.pos.ReleaseLock(c)
+    return SUCCESS
+
+def moveCharger_Sim(c, l):
     #start = globalTimer.GetTime()
     #while(globalTimer.IsCommandExecutionOver('moveCharger', start) == False):
 	#	pass
@@ -136,7 +207,52 @@ def move(r, l1, l2, dist):
     rae1.state.charge.ReleaseLock(r)
     return res
 
+def move_Sim(r, l1, l2, dist):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.charge.AcquireLock(r)
+    if l1 == l2:
+        gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
+        res = SUCCESS
+    elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+           pass
+        gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+        rae1.state.loc[r] = l2
+        rae1.state.charge[r] = rae1.state.charge[r] - dist
+        res = SUCCESS
+    elif rae1.state.loc[r] != l1 and rae1.state.charge[r] >= dist:
+        gui.Simulate("Robot %s is not in location %d\n" %(r, l1))
+        res = FAILURE
+    elif rae1.state.loc[r] == l1 and rae1.state.charge[r] < dist:
+        gui.Simulate("Robot %s does not have enough charge to move :(\n" %r)
+        rae1.state.charge[r] = 0 # should we do this?
+        res = FAILURE
+    else:
+        gui.Simulate("Robot %s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
+        res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.charge.ReleaseLock(r)
+    return res
+
 def perceive(l):
+    rae1.state.view.AcquireLock(l)
+    if rae1.state.view[l] == False:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
+		    pass
+        for c in rae1.state.containers[l]:
+            rae1.state.pos.AcquireLock(c)
+            rae1.state.pos[c] = l
+            rae1.state.pos.ReleaseLock(c)
+        rae1.state.view[l] = True
+        gui.Simulate("Perceived location %d\n" %l)
+    else:
+        gui.Simulate("Already perceived\n")
+    rae1.state.view.ReleaseLock(l)
+    return SUCCESS
+
+def perceive_Sim(l):
     rae1.state.view.AcquireLock(l)
     if rae1.state.view[l] == False:
         start = globalTimer.GetTime()
@@ -270,7 +386,8 @@ def RelocateCharger_Method1(c, l):
 
 
 rv = RV()
-rae1.declare_commands(put, take, perceive, charge, move, moveCharger)
+rae1.declare_commands([put, take, perceive, charge, move, moveCharger],
+                      [put_Sim, take_Sim, perceive_Sim, charge_Sim, move_Sim, moveCharger_Sim])
 print('\n')
 rae1.print_commands()
 

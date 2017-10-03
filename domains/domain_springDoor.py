@@ -73,7 +73,44 @@ def openDoor(r, d):
     rae1.state.doorStatus.ReleaseLock(d)
     return res
 
+def openDoor_Sim(r, d):
+    rae1.state.load.AcquireLock(r)
+    rae1.state.doorStatus.AcquireLock(d)
+    if rae1.state.doorStatus[d] == 'opened':
+        gui.Simulate("Door %s is already open\n" %d)
+        res = SUCCESS
+    elif rae1.state.load[r] == NIL and rae1.state.doorStatus[d] == 'closed':
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('openDoor', start) == False):
+	        pass
+        gui.Simulate("Robot %s has opened door %s\n" %(r, d))
+        rae1.state.doorStatus[d] = 'opened'
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s is not free to open door %s or the door is not closed\n" %(r, d))
+        res = FAILURE
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.doorStatus.ReleaseLock(d)
+    return res
+
 def passDoor(r, d, l):
+    rae1.state.doorStatus.AcquireLock(d)
+    rae1.state.loc.AcquireLock(r)
+    if rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'held':
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('passDoor', start) == False):
+	        pass
+        gui.Simulate("Robot %s has passed the door %s\n" %(r, d))
+        rae1.state.loc[r] = l
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s is not able to pass door %s\n" %(r, d))
+        res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.doorStatus.ReleaseLock(d)
+    return res
+
+def passDoor_Sim(r, d, l):
     rae1.state.doorStatus.AcquireLock(d)
     rae1.state.loc.AcquireLock(r)
     if rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'held':
@@ -111,7 +148,40 @@ def holdDoor(r, d):
     rae1.state.load.ReleaseLock(r)
     return res
 
+def holdDoor_Sim(r, d):
+    rae1.state.doorStatus.AcquireLock(d)
+    rae1.state.load.AcquireLock(r)
+    if (rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'closing') and rae1.state.load[r] == NIL:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('holdDoor', start) == False):
+	        pass
+        gui.Simulate("Robot %s is holding the door %s\n" %(r, d))
+        rae1.state.load[r] = 'H'
+        rae1.state.doorStatus[d] = 'held'
+        res = SUCCESS
+    elif rae1.state.doorStatus[d] == 'closed':
+        gui.Simulate("Door %s is closed and cannot be held by %s\n" %(d, r))
+        res = FAILURE
+    elif rae1.state.load[r] != NIL:
+        gui.Simulate("Robot %s is not free to hold the door %s\n" %(r, d))
+        res = FAILURE
+    rae1.state.doorStatus.ReleaseLock(d)
+    rae1.state.load.ReleaseLock(r)
+    return res
+
 def releaseDoor(r, d):
+    if rae1.state.doorStatus[d] == 'held' and rae1.state.load[r] == 'H':
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('releaseDoor', start) == False):
+	        pass
+        gui.Simulate("Robot %s has released the the door %s\n" %(r, d))
+        rae1.state.doorStatus[d] = 'closing'
+        rae1.state.load[r] = NIL
+    else:
+        gui.Simulate("Robot %s is not holding door %s\n" %(r, d))
+    return SUCCESS
+
+def releaseDoor_Sim(r, d):
     if rae1.state.doorStatus[d] == 'held' and rae1.state.load[r] == 'H':
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('releaseDoor', start) == False):
@@ -145,7 +215,49 @@ def move(r, l1, l2):
     rae1.state.loc.ReleaseLock(r)
     return res
 
+def move_Sim(r, l1, l2):
+    rae1.state.loc.AcquireLock(r)
+    if l1 == l2:
+        gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
+        res = SUCCESS
+    elif rae1.state.loc[r] == l1:
+        if (l1, l2) in rv.DOORLOCATIONS or (l2, l1) in rv.DOORLOCATIONS:
+            gui.Simulate("Robot %s cannot move. There is a spring door between %s and %s \n" %(r, l1, l2))
+            res = FAILURE
+        else:
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('move', start) == False):
+                pass
+            gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+            rae1.state.loc[r] = l2
+            res = SUCCESS
+    else:
+        gui.Simulate("Invalid move by robot %s\n" %r)
+        res = FAILURE
+    rae1.state.loc.ReleaseLock(r)
+    return res
+
 def put(r, o):
+    rae1.state.pos.AcquireLock(o)
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
+    if rae1.state.pos[o] == r:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('put', start) == False):
+	        pass
+        rae1.state.pos[o] = rae1.state.loc[r]
+        rae1.state.load[r] = NIL
+        gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
+        res = SUCCESS
+    else:
+        print("Object %s is not with robot %s\n" %(o,r))
+        res = FAILURE
+    rae1.state.pos.ReleaseLock(o)
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    return res
+
+def put_Sim(r, o):
     rae1.state.pos.AcquireLock(o)
     rae1.state.load.AcquireLock(r)
     rae1.state.loc.AcquireLock(r)
@@ -189,7 +301,48 @@ def take(r, o):
     rae1.state.loc.ReleaseLock(r)
     return res
 
+def take_Sim(r, o):
+    rae1.state.pos.AcquireLock(o)
+    rae1.state.load.AcquireLock(r)
+    rae1.state.loc.AcquireLock(r)
+    if rae1.state.load[r] == NIL:
+        if rae1.state.loc[r] == rae1.state.pos[o]:
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('take', start) == False):
+	            pass
+            gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
+            rae1.state.pos[o] = r
+            rae1.state.load[r] = o
+            res = SUCCESS
+        elif rae1.state.loc[r] != rae1.state.pos[o]:
+            gui.Simulate("Robot %s is not at object %s's location\n" %(r, o))
+            res = FAILURE
+    else:
+        print("Robot %s is not free to take anything\n" %r)
+        res = FAILURE
+    rae1.state.pos.ReleaseLock(o)
+    rae1.state.load.ReleaseLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    return res
+
 def closeDoors():
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
+        pass
+    for d in ['d1', 'd2', 'd3']:
+        rae1.state.doorStatus.AcquireLock(d)
+        if rae1.state.doorStatus[d] == 'opened':
+            rae1.state.doorStatus[d] = 'closing'
+            gui.Simulate("Door %s is closing\n" %d)
+        elif rae1.state.doorStatus[d] == 'closing' or rae1.state.doorStatus[d] == 'closed':
+            rae1.state.doorStatus[d] = 'closed'
+            gui.Simulate("Door %s is closed\n" %d)
+        elif rae1.state.doorStatus[d] == 'held':
+            gui.Simulate("Door %s is %s, so it cannot be closed\n" %(d, rae1.state.doorStatus[d]))
+        rae1.state.doorStatus.ReleaseLock(d)
+    return SUCCESS
+
+def closeDoors_Sim():
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
         pass
@@ -284,7 +437,8 @@ def CloseDoors_Method1():
     return SUCCESS
 
 rv = RV()
-rae1.declare_commands(openDoor, holdDoor, passDoor, releaseDoor, move, put, take, closeDoors)
+rae1.declare_commands([openDoor, holdDoor, passDoor, releaseDoor, move, put, take, closeDoors],
+                      [openDoor_Sim, holdDoor_Sim, passDoor_Sim, releaseDoor_Sim, move_Sim, put_Sim, take_Sim, closeDoors_Sim])
 print('\n')
 rae1.print_commands()
 
