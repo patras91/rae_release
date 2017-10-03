@@ -196,7 +196,7 @@ def rae1(task, *args):
 	mode = globals.GetSamplingMode()
 	if verbose > 0:
 		if mode == False:
-			print('\n---- Rae1 Simulation: Create stack {}, task {}{}\n'.format(stackid, task, taskArgs))
+			print('\n---- Rae1: Create stack {}, task {}{}\n'.format(stackid, task, taskArgs))
 
 	BeginCriticalRegion(stackid)
 
@@ -247,25 +247,30 @@ def choose_candidate(candidates, task, taskArgs):
 		p.start()
 		p.join()
 
-		if verbose > 0:
-			print("Done with simulation \n", colorama.Style.RESET_ALL)
-
 		result = queue.get()
 		if result.retcode != 'Failure':
 			m = result.method
 			candidates.pop(candidates.index(m))
+
+			if verbose > 0:
+				print("Done with simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
+
 			return(m, candidates)
 		else:
+
+			if verbose > 0:
+				print("Done with simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
+
 			return(None, [])
 
 def SimulateTask(task, *taskArgs):
 	stackid = id.val
 	global path
-	path[stackid].append([task, taskArgs])
 
 	methodChosen = taskArgs[-1]
-	if callable(methodChosen):
+	if type(methodChosen) == types.FunctionType:
 		taskArgs = taskArgs[0:-1]
+		path[stackid].append([task, taskArgs])
 		result = taskProgress(stackid, path, methodChosen, taskArgs)
 		retcode = result.retcode
 
@@ -281,7 +286,7 @@ def SimulateTask(task, *taskArgs):
 			raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
 		return result
 	else:
-		candidates = methods[task]
+		candidates = methods[task][:]
 		random.shuffle(candidates)
 		candidates = candidates[0:min(len(candidates), globals.getK())]
 		result = {}
@@ -333,7 +338,7 @@ def taskProgress(stackid, path, m, taskArgs):
 
 	if verbose > 1:
 		print_stack_size(stackid, path)
-		print('{} for method {}{}'.format(retcode, m.__name__, taskArgs))
+		print('{} for method {}{}'.format(result.retcode, m.__name__, taskArgs))
 	return result
 
 def DoTaskInRealWorld(task, *taskArgs):
@@ -349,7 +354,7 @@ def DoTaskInRealWorld(task, *taskArgs):
 		print_entire_stack(stackid, path)
 
 	retcode = 'Failure'
-	candidates = methods[task]
+	candidates = methods[task][:]
 	while (retcode == 'Failure' and candidates != []):
 		(m,candidates) = choose_candidate(candidates, task, taskArgs)
 		if m != None:

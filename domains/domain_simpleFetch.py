@@ -214,7 +214,7 @@ def wait_Sim(r):
 	    pass
     gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
     rae1.state.emergencyHandling.AcquireLock(r)
-    rae1.state.emergencyHandling[r] == False
+    rae1.state.emergencyHandling[r] = False
     rae1.state.emergencyHandling.ReleaseLock(r)
 
     return SUCCESS
