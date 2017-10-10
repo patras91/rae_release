@@ -4,6 +4,10 @@ class G():
     def __init__(self):
         pass
 
+class RaeArgs():
+    def __init__(self):
+        pass
+
 g = G()
 g.doSampling = False
 g.samplingMode = False

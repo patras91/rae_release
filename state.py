@@ -62,6 +62,10 @@ class StateDict():
             self.lock[key].release()
 
     def ReleaseAllLocks(self):
-        for key in self.lock:
-            if self.lock[key].locked():
-                self.lock[key].release()
+        if hasattr(self.lock, '__iter__'):
+            for key in self.lock:
+                if self.lock[key].locked():
+                    self.lock[key].release()
+        else:
+            if self.lock.locked():
+                self.lock.release()

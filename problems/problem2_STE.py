@@ -29,5 +29,5 @@ state.dist = {'home':{'park': 8}, 'park':{'home': 8}, 'home2':{'park2': 80}, 'pa
 state.occupied = {'taxi':False}
 
 tasks = {
-    1: ['travel', 'Dana', 'home', 'park']
+    1: ['travel', 'Malik', 'home2', 'park2']
 }

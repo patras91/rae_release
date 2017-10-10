@@ -62,10 +62,10 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
         i = i % numstacks + 1
     return begin
 
-def CreateNewStack(taskInfo, taskArgs):
-    stackid = taskArgs[-1]
-    taskRes = rae1(*taskArgs)
-    taskInfo[stackid] = (taskArgs[0:-1], taskRes.retcode)
+def CreateNewStack(taskInfo, raeArgs):
+    stackid = raeArgs.stack
+    taskRes = rae1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = (raeArgs.taskArgs, taskRes.retcode)
 
 def PrintResult(taskInfo):
     for stackid in taskInfo:
@@ -86,11 +86,14 @@ def raeMult():
             ipcArgs.sem.acquire()
 
             if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
-                taskArgs = GetNewTask()
-                if taskArgs != []:
+                taskParams = GetNewTask()
+                if taskParams != []:
                     numstacks = numstacks + 1
-                    taskArgs.append(numstacks)
-                    ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, taskArgs)))
+                    raeArgs = globals.RaeArgs()
+                    raeArgs.stack = numstacks
+                    raeArgs.task = taskParams[0]
+                    raeArgs.taskArgs = taskParams[1:]
+                    ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, raeArgs)))
                     ipcArgs.threadList[numstacks-1].start()
                 lastActiveStack = 0
                 globalTimer.IncrementTime()
@@ -105,11 +108,11 @@ def raeMult():
     print("----Done with RAE----\n")
     PrintResult(taskInfo)
 
-def CreateNewStackSimulation(queue, taskArgs):
-    taskRes = rae1(*taskArgs)
+def CreateNewStackSimulation(queue, raeArgs):
+    taskRes = rae1(raeArgs.task, raeArgs)
     queue.put(taskRes)
 
-def raeMultSimulator(task, taskArgs, method, queue):
+def raeMultSimulator(task, taskArgs, method, queue, candidateMethods):
     # Simulating one stack now
     # TODO: Simulate multiple stacks in future
 
@@ -117,15 +120,17 @@ def raeMultSimulator(task, taskArgs, method, queue):
     globals.SetSamplingMode(True)
     ResetState()
 
-    if callable(method):
-        taskArgs = [task] + list(taskArgs) + [method] + [1]
-    else:
-        taskArgs = [task] + list(taskArgs) + [1]
+    raeArgs = globals.RaeArgs()
+    raeArgs.taskArgs = taskArgs
+    raeArgs.stack = 1
+    raeArgs.task = task
+    raeArgs.candidates = candidateMethods
+    raeArgs.method = method
 
     ipcArgs.nextStack = 0
     ipcArgs.sem = threading.Semaphore(1)
 
-    thread = threading.Thread(target=CreateNewStackSimulation, args=[queue, taskArgs])
+    thread = threading.Thread(target=CreateNewStackSimulation, args=[queue, raeArgs])
 
     thread.start()
 
