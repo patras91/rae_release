@@ -59,7 +59,7 @@ def openDoor(r, d):
     if rae1.state.doorStatus[d] == 'opened':
         gui.Simulate("Door %s is already open\n" %d)
         res = SUCCESS
-    elif rae1.state.load[r] == NIL and rae1.state.doorStatus[d] == 'closed':
+    elif rae1.state.load[r] == NIL and (rae1.state.doorStatus[d] == 'closed' or rae1.state.doorStatus[d] == 'closing'):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('openDoor', start) == False):
 	        pass
@@ -79,7 +79,7 @@ def openDoor_Sim(r, d):
     if rae1.state.doorStatus[d] == 'opened':
         gui.Simulate("Door %s is already open\n" %d)
         res = SUCCESS
-    elif rae1.state.load[r] == NIL and rae1.state.doorStatus[d] == 'closed':
+    elif rae1.state.load[r] == NIL and (rae1.state.doorStatus[d] == 'closed' or rae1.state.doorStatus[d] == 'closing'):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('openDoor', start) == False):
 	        pass
