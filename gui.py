@@ -3,6 +3,7 @@ __author__ = 'patras'
 
 from Tkinter import *
 from Queue import Queue
+import globals
 
 globalQueue = Queue()
 
@@ -22,6 +23,8 @@ class GUI():
         self.root.after(1, self.simulate)
 
 def Simulate(*t):
+    if globals.GetSamplingMode() == True:
+        return
     globalQueue.put(t)
 
 def start():

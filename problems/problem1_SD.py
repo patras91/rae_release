@@ -50,5 +50,8 @@ state.done = False
 
 tasks = {
     1: ['fetch', 'r1', 'o1', 5],
-    2: ['closeDoors']
+}
+
+eventsEnv = {
+    1: [closeDoors, []]
 }

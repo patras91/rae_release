@@ -90,7 +90,7 @@ def paint(m, o, colour, name):
             res = FAILURE
         state.status.ReleaseLock(m)
     else:
-        Simulate("%s is not in painting machine's location\n" %o)
+        Simulate("%s is not in painting machine %s's location\n" %(o, m))
         res = FAILURE
     state.pos.ReleaseLock(o)
     return res
@@ -113,7 +113,7 @@ def paint_Sim(m, o, colour, name):
             res = FAILURE
         state.status.ReleaseLock(m)
     else:
-        Simulate("%s is not in painting machine's location\n" %o)
+        Simulate("%s is not in painting machine %s's location\n" %(o, m))
         res = FAILURE
     state.pos.ReleaseLock(o)
     return res
@@ -335,15 +335,16 @@ def move(r, loc1, loc2):
 
 def move_Sim(r, loc1, loc2):
     state.loc.AcquireLock(r)
+    print(state)
     if state.loc[r] == loc1:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
-		    pass
+            pass
         state.loc[r] = loc2
-        Simulate("%s has moved from %s to %s\n" %(r, loc1, loc2))
+        #Simulate("%s has moved from %s to %s\n" %(r, loc1, loc2))
         res = SUCCESS
     else:
-        Simulate("%s is not in location %s\n" %(r, loc1))
+        #Simulate("%s is not in location %s\n" %(r, loc1))
         res = FAILURE
     state.loc.ReleaseLock(r)
     return res
@@ -497,8 +498,8 @@ def Deliver_Method1(o, l):
     return res
 
 rv = RV()
-declare_commands([paint, assemble, pack, take, put, move],
-                 [paint_Sim, assemble_Sim, pack_Sim, take_Sim, put_Sim, move_Sim])
+declare_commands([paint, assemble, pack, take, put, move, wrap],
+                 [paint_Sim, assemble_Sim, pack_Sim, take_Sim, put_Sim, move_Sim, wrap_Sim])
 print('\n')
 print_commands()
 

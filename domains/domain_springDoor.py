@@ -326,37 +326,39 @@ def take_Sim(r, o):
     return res
 
 def closeDoors():
-    start = globalTimer.GetTime()
-    while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
-        pass
-    for d in ['d1', 'd2', 'd3']:
-        rae1.state.doorStatus.AcquireLock(d)
-        if rae1.state.doorStatus[d] == 'opened':
-            rae1.state.doorStatus[d] = 'closing'
-            gui.Simulate("Door %s is closing\n" %d)
-        elif rae1.state.doorStatus[d] == 'closing' or rae1.state.doorStatus[d] == 'closed':
-            rae1.state.doorStatus[d] = 'closed'
-            gui.Simulate("Door %s is closed\n" %d)
-        elif rae1.state.doorStatus[d] == 'held':
-            gui.Simulate("Door %s is %s, so it cannot be closed\n" %(d, rae1.state.doorStatus[d]))
-        rae1.state.doorStatus.ReleaseLock(d)
+    while(rae1.state.done == False):
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
+            pass
+        for d in ['d1', 'd2', 'd3']:
+            rae1.state.doorStatus.AcquireLock(d)
+            if rae1.state.doorStatus[d] == 'opened':
+                rae1.state.doorStatus[d] = 'closing'
+                gui.Simulate("Door %s is closing\n" %d)
+            elif rae1.state.doorStatus[d] == 'closing' or rae1.state.doorStatus[d] == 'closed':
+                rae1.state.doorStatus[d] = 'closed'
+                gui.Simulate("Door %s is closed\n" %d)
+            elif rae1.state.doorStatus[d] == 'held':
+                gui.Simulate("Door %s is %s, so it cannot be closed\n" %(d, rae1.state.doorStatus[d]))
+            rae1.state.doorStatus.ReleaseLock(d)
     return SUCCESS
 
 def closeDoors_Sim():
-    start = globalTimer.GetTime()
-    while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
-        pass
-    for d in ['d1', 'd2', 'd3']:
-        rae1.state.doorStatus.AcquireLock(d)
-        if rae1.state.doorStatus[d] == 'opened':
-            rae1.state.doorStatus[d] = 'closing'
-            gui.Simulate("Door %s is closing\n" %d)
-        elif rae1.state.doorStatus[d] == 'closing' or rae1.state.doorStatus[d] == 'closed':
-            rae1.state.doorStatus[d] = 'closed'
-            gui.Simulate("Door %s is closed\n" %d)
-        elif rae1.state.doorStatus[d] == 'held':
-            gui.Simulate("Door %s is %s, so it cannot be closed\n" %(d, rae1.state.doorStatus[d]))
-        rae1.state.doorStatus.ReleaseLock(d)
+    while(rae1.state.done == False):
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
+            pass
+        for d in ['d1', 'd2', 'd3']:
+            rae1.state.doorStatus.AcquireLock(d)
+            if rae1.state.doorStatus[d] == 'opened':
+                rae1.state.doorStatus[d] = 'closing'
+                gui.Simulate("Door %s is closing\n" %d)
+            elif rae1.state.doorStatus[d] == 'closing' or rae1.state.doorStatus[d] == 'closed':
+                rae1.state.doorStatus[d] = 'closed'
+                gui.Simulate("Door %s is closed\n" %d)
+            elif rae1.state.doorStatus[d] == 'held':
+                gui.Simulate("Door %s is %s, so it cannot be closed\n" %(d, rae1.state.doorStatus[d]))
+            rae1.state.doorStatus.ReleaseLock(d)
     return SUCCESS
 
 def MoveThroughDoorway_Method3(r, d, l):
@@ -431,14 +433,14 @@ def Fetch_Method1(r, o, l):
     rae1.state.done = True
     return SUCCESS
 
-def CloseDoors_Method1():
-    while rae1.state.done == False:
-        rae1.do_command(closeDoors)
-    return SUCCESS
+#def CloseDoors_Method1():
+#    while rae1.state.done == False:
+#        rae1.do_command(closeDoors)
+#    return SUCCESS
 
 rv = RV()
-rae1.declare_commands([openDoor, holdDoor, passDoor, releaseDoor, move, put, take, closeDoors],
-                      [openDoor_Sim, holdDoor_Sim, passDoor_Sim, releaseDoor_Sim, move_Sim, put_Sim, take_Sim, closeDoors_Sim])
+rae1.declare_commands([openDoor, holdDoor, passDoor, releaseDoor, move, put, take],
+                      [openDoor_Sim, holdDoor_Sim, passDoor_Sim, releaseDoor_Sim, move_Sim, put_Sim, take_Sim])
 print('\n')
 rae1.print_commands()
 
@@ -446,7 +448,7 @@ rae1.declare_methods('fetch', Fetch_Method1)
 rae1.declare_methods('getHelp', GetHelp_Method1)
 rae1.declare_methods('moveTo', MoveTo_Method1)
 rae1.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroughDoorway_Method2, MoveThroughDoorway_Method3)
-rae1.declare_methods('closeDoors', CloseDoors_Method1)
+#rae1.declare_methods('closeDoors', CloseDoors_Method1)
 
 print('\n')
 rae1.print_methods()

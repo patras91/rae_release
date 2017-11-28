@@ -1,5 +1,5 @@
 from __future__ import print_function
-from rae1 import ipcArgs, verbosity, rae1, ResetState
+from rae1 import ipcArgs, envArgs, verbosity, rae1, ResetState
 import threading
 import sys
 sys.path.append('domains/')
@@ -15,6 +15,12 @@ __author__ = 'patras'
 domain_module = None
 
 def GetNextAlive(lastActiveStack, numstacks, threadList):
+    '''
+    :param lastActiveStack: the stack which was progressed before this
+    :param numstacks: total number of stacks in the Agenda
+    :param threadList: list of all the threads, each running a RAE stack
+    :return: The stack which should be executed next
+    '''
     nextAlive = -1
     i = 1
     j = lastActiveStack % numstacks + 1
@@ -28,6 +34,9 @@ def GetNextAlive(lastActiveStack, numstacks, threadList):
     return nextAlive
 
 def GetNewTask():
+    '''
+    :return: gets the new task that appears in the problem at the current time
+    '''
     GetNewTask.counter += 1
     if GetNewTask.counter in domain_module.tasks:
         return domain_module.tasks[GetNewTask.counter]
@@ -35,6 +44,11 @@ def GetNewTask():
         return []
 
 def InitializeDomain(domain, problem):
+    '''
+    :param domain: code of the domain which you are running
+    :param problem: id of the problem
+    :return:none
+    '''
     if domain in ['SF', 'CR', 'STE', 'SOD', 'SD', 'EE', 'IP']:
         module = problem + '_' + domain
         global domain_module
@@ -44,12 +58,18 @@ def InitializeDomain(domain, problem):
         exit(11)
 
 def testRAE(domain, problem, doSampling):
+    '''
+    :param domain: the code of the domain
+    :param problem: the problem id
+    :param doSampling: bool value indicating whether to do sampling or not before executing the stacks
+    :return:
+    '''
     InitializeDomain(domain, problem)
     globals.SetDoSampling(doSampling)
-    globals.SetSamplingMode(False)
+    globals.SetSamplingMode(False) # sampling mode is required to switch between sampling and non-sampling states
     rM = threading.Thread(target=raeMult)
     rM.start()
-    gui.start()
+    gui.start() # graphical user interface to show action executions
     rM.join()
 
 def BeginFreshIteration(lastActiveStack, numstacks, threadList):
@@ -72,6 +92,21 @@ def PrintResult(taskInfo):
         args, res = taskInfo[stackid]
         print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\n')
 
+def StartEnv():
+    while(True):
+        while(envArgs.envActive == False):
+            pass
+        envArgs.sem.acquire()
+        StartEnv.counter += 1
+        if StartEnv.counter in domain_module.eventsEnv:
+            eventArgs = domain_module.eventsEnv[StartEnv.counter]
+            event = eventArgs[0]
+            eventParams = eventArgs[1]
+            t = threading.Thread(target=event, args=eventParams)
+            t.start()
+        envArgs.envActive = False
+        envArgs.sem.release()
+
 def raeMult():
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
     ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
@@ -79,23 +114,43 @@ def raeMult():
     lastActiveStack = 0 #keeps track of the last stack that was Progressed
     numstacks = 0 #keeps track of the total number of stacks
     GetNewTask.counter = 0
+    StartEnv.counter = 0
     taskInfo = {}
+
+    envArgs.sem = threading.Semaphore(1)
+    envArgs.envActive = False
+    envArgs.exit = False
+
+    envThread = threading.Thread(target=StartEnv)
+    envThread.start()
+
 
     while (True):
         if ipcArgs.nextStack == 0 or ipcArgs.threadList[ipcArgs.nextStack-1].isAlive() == False:
             ipcArgs.sem.acquire()
 
             if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
+
                 taskParams = GetNewTask()
                 if taskParams != []:
+
                     numstacks = numstacks + 1
                     raeArgs = globals.RaeArgs()
                     raeArgs.stack = numstacks
                     raeArgs.task = taskParams[0]
                     raeArgs.taskArgs = taskParams[1:]
+
                     ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, raeArgs)))
                     ipcArgs.threadList[numstacks-1].start()
+
                 lastActiveStack = 0
+
+                envArgs.envActive = True
+                envArgs.sem.release()
+                while(envArgs.envActive == True):
+                    pass
+                envArgs.sem.acquire()
+
                 globalTimer.IncrementTime()
 
             res = GetNextAlive(lastActiveStack, numstacks, ipcArgs.threadList)
@@ -104,6 +159,7 @@ def raeMult():
                 lastActiveStack = res
                 ipcArgs.sem.release()
             else:
+                envArgs.exit = True
                 break
     print("----Done with RAE----\n")
     PrintResult(taskInfo)

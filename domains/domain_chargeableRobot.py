@@ -371,14 +371,14 @@ def Fetch_Method2(r, o):
         rae1.do_command(take, r, o)
     return SUCCESS
 
-def RelocateCharger_Method1(c, l):
+def RelocateCharger(c, l):
     res = SUCCESS
     for r in rae1.state.charge:
         if rae1.state.charge[r] != 4:
             res = FAILURE
 
     if res == SUCCESS:
-        rae1.do_command(moveCharger, c, l)
+        moveCharger(c, l)
     else:
         gui.Simulate("Cannot move charger now, robots might need it\n")
 
@@ -395,7 +395,7 @@ rae1.declare_methods('search', Search_Method1, Search_Method2)
 rae1.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
 rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
 rae1.declare_methods('moveTo', MoveTo_Method1)
-rae1.declare_methods('relocateCharger', RelocateCharger_Method1)
+#rae1.declare_methods('relocateCharger', RelocateCharger_Method1)
 print('\n')
 rae1.print_methods()
 

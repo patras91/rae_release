@@ -44,7 +44,7 @@ rv.ROBOTS = ['r1', 'r2']
 
 state.load = {'r1': NIL, 'r2': NIL}
 state.loc = {'r1': 2, 'r2': 4}
-state.status = {'r1': 'free', 'r2': 'free', 'p1': 'free', 'a1': 'free', 'pck1': 'free', 'p2': 'free'}
+state.status = {'r1': 'free', 'r2': 'free', 'p1': 'free', 'a1': 'free', 'pck1': 'free', 'p2': 'free', 'w1': 'free'}
 state.pos = {'a': rv.BUFFERS['input'], 'b': rv.BUFFERS['input'], 'c': rv.BUFFERS['input'], 'o1': rv.BUFFERS['input']}
 
 tasks = {
@@ -52,3 +52,5 @@ tasks = {
     2: ['order', ['assemble', 'a1', ['paint', ['assemble', 'b1', 'c1'], 'pink']]],
     3: ['order', ['wrap', ['paint', 'gift', 'red']]]
 }
+
+eventsEnv = {}

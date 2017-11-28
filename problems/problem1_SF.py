@@ -38,3 +38,5 @@ tasks = {
     2: ['fetch', 'r1', 'o2'],
     3: ['emergency', 'r1', 2, 1]
 }
+
+eventsEnv = {}

@@ -41,3 +41,5 @@ tasks = {
     1: ['openDoor', 'r1', 'd1', 'o1'],
     2: ['openDoor', 'r2', 'd2', 'o2']
 }
+
+eventsEnv = {}

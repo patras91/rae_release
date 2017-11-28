@@ -159,6 +159,7 @@ class IpcArgs():
 		pass
 
 ipcArgs = IpcArgs()
+envArgs = IpcArgs()
 
 def BeginCriticalRegion(stackid):
 	while(ipcArgs.nextStack != stackid):
@@ -276,6 +277,7 @@ def SimulateTask(task, taskArgs):
 	else:
 		methodChosen = None
 
+	# If a method has already been supplied
 	if type(methodChosen) == types.FunctionType:
 		path[raelocals.stackid].append([task, taskArgs])
 		result = taskProgress(raelocals.stackid, path, methodChosen, taskArgs)
@@ -293,6 +295,7 @@ def SimulateTask(task, taskArgs):
 			raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
 		return result
 	else:
+	# need to choose from candidates which may already be supplied
 		if raelocals.candidates != None:
 			candidates = raelocals.candidates[:]
 			raelocals.candidates = None
@@ -316,6 +319,8 @@ def SimulateTask(task, taskArgs):
 		if result[minCostMethod.__name__].retcode == 'Failure':
 			raise Failed_task('{}{}'.format(task, taskArgs))
 		else:
+			global state
+			state.restore(result[minCostMethod.__name__].state)
 			return result[minCostMethod.__name__]
 
 def taskProgress(stackid, path, m, taskArgs):
@@ -326,6 +331,7 @@ def taskProgress(stackid, path, m, taskArgs):
 	result = globals.G()
 	result.retcode = "Failure"
 	result.cost = float("inf")
+	result.state = state.copy()
 	try:
 		EndCriticalRegion()
 		BeginCriticalRegion(stackid)
@@ -341,6 +347,7 @@ def taskProgress(stackid, path, m, taskArgs):
 		result.method = m
 		result.retcode = retcode
 		result.cost = 1
+		result.state = state.copy()
 	except Failed_command, e:
 		if verbose > 0:
 			print_stack_size(stackid, path)

@@ -1,6 +1,6 @@
 __author__ = 'patras'
 
-from domains.domain_constants import *
+from domain_constants import *
 import rae1
 import gui
 from timer import globalTimer
@@ -456,6 +456,7 @@ def move(r, l1, l2):
 def move_Sim(r, l1, l2):
     rae1.state.loc.AcquireLock(r)
     rae1.state.charge.AcquireLock(r)
+    print("crossed")
     dist = EE_GETDISTANCE(l1, l2)
     if l1 == l2:
         gui.Simulate("%s is already at location %s\n" %(r, l2))
@@ -482,8 +483,10 @@ def move_Sim(r, l1, l2):
     return res
 
 def fly(r, l1, l2):
+
     rae1.state.loc.AcquireLock(r)
     rae1.state.charge.AcquireLock(r)
+
     dist = EE_GETDISTANCE(l1, l2)
     if r != 'UAV':
         gui.Simulate("%s cannot fly\n" %r)
@@ -495,12 +498,12 @@ def fly(r, l1, l2):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('fly', start) == False):
 			pass
-        gui.Simulate("%s has flied from %d to %d\n" %(r, l1, l2))
+        gui.Simulate("%s has flied from %s to %s\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
         res = SUCCESS
     elif rae1.state.loc[r] != l1 and rae1.state.charge[r] >= dist:
-        gui.Simulate("%s is not in location %d\n" %(r, l1))
+        gui.Simulate("%s is not in location %s\n" %(r, l1))
         res = FAILURE
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] < dist:
         gui.Simulate("%s does not have any charge to move :(\n" %r)
@@ -508,13 +511,15 @@ def fly(r, l1, l2):
     else:
         gui.Simulate("%s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
         res = FAILURE
-    rae1.state.loc.AcquireLock(r)
-    rae1.state.charge.AcquireLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.charge.ReleaseLock(r)
     return res
 
 def fly_Sim(r, l1, l2):
+    print("here")
     rae1.state.loc.AcquireLock(r)
     rae1.state.charge.AcquireLock(r)
+    print("crossed")
     dist = EE_GETDISTANCE(l1, l2)
     if r != 'UAV':
         gui.Simulate("%s cannot fly\n" %r)
@@ -526,12 +531,12 @@ def fly_Sim(r, l1, l2):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('fly', start) == False):
 			pass
-        gui.Simulate("%s has flied from %d to %d\n" %(r, l1, l2))
+        gui.Simulate("%s has flied from %s to %s\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
         res = SUCCESS
     elif rae1.state.loc[r] != l1 and rae1.state.charge[r] >= dist:
-        gui.Simulate("%s is not in location %d\n" %(r, l1))
+        gui.Simulate("%s is not in location %s\n" %(r, l1))
         res = FAILURE
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] < dist:
         gui.Simulate("%s does not have any charge to move :(\n" %r)
@@ -539,8 +544,8 @@ def fly_Sim(r, l1, l2):
     else:
         gui.Simulate("%s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
         res = FAILURE
-    rae1.state.loc.AcquireLock(r)
-    rae1.state.charge.AcquireLock(r)
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.charge.ReleaseLock(r)
     return res
 
 def take(r, o):
@@ -738,7 +743,7 @@ def Explore_Method2(r, activity, l):
         rae1.do_command(sample, r, l)
     elif activity == 'process':
         rae1.do_command(process, r, l)
-    rae1.do_task('depositData', r, 'base')
+    rae1.do_task('depositData', r)
     return SUCCESS
 
 def Explore_Method1(r, activity, l):
@@ -845,7 +850,7 @@ def FlyTo_Method2(r, l):
     dist = EE_GETDISTANCE(rae1.state.loc[r], l)
     if r == 'UAV':
         if rae1.state.charge[r] >= dist:
-            rae1.do_command(fly, r, rae1.state.loc[r], l, dist)
+            rae1.do_command(fly, r, rae1.state.loc[r], l)
             res = SUCCESS
         else:
             gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
@@ -859,7 +864,7 @@ def FlyTo_Method3(r, l):
     dist = EE_GETDISTANCE(rae1.state.loc[r], l)
     if r == 'UAV':
         if rae1.state.charge[r] >= dist:
-            rae1.do_command(fly, r, rae1.state.loc[r], l, dist)
+            rae1.do_command(fly, r, rae1.state.loc[r], l)
             res = SUCCESS
         else:
             rae1.do_task('recharge', r)
@@ -880,8 +885,9 @@ def DepositData_Method1(r):
 
 def DepositData_Method2(r):
     if rae1.state.data[r] > 0:
-        rae1.do_task('flyTo', 'UAV', rae1.state.loc[r])
-        rae1.do_command(transferData, r, 'UAV')
+        if r != 'UAV':
+            rae1.do_task('flyTo', 'UAV', rae1.state.loc[r])
+            rae1.do_command(transferData, r, 'UAV')
         rae1.do_task('flyTo', 'UAV', 'base')
         rae1.do_command(deposit, 'UAV')
     else:

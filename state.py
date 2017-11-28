@@ -18,6 +18,18 @@ class State():
             res = 'False'
         return res
 
+    def copy(self):
+        s = State()
+        for (key, val) in vars(self).items():
+            s.__setattr__(key, val.GetVal())
+            s.__dict__[key].DeleteLocks() # because locks are not picklable
+        return s
+
+    def restore(self, s):
+        for (key, val) in vars(s).items():
+            self.__setattr__(key, val.GetVal())
+        return s
+
     def ReleaseLocks(self):
         for key in self.__dict__:
             self.__dict__[key].ReleaseAllLocks()
@@ -31,6 +43,9 @@ class StateDict():
         else:
             self.lock = Lock()
         self.dict = d
+
+    def GetVal(self):
+        return self.dict
 
     def __getitem__(self, item):
         return self.dict[item]
@@ -69,3 +84,6 @@ class StateDict():
         else:
             if self.lock.locked():
                 self.lock.release()
+
+    def DeleteLocks(self):
+        self.lock = None

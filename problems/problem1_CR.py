@@ -38,5 +38,9 @@ for l in rv.LOCATIONS:
 tasks = {
     1: ['fetch', 'r1', 'o1'],
     2: ['fetch', 'r1', 'o2'],
-    3: ['relocateCharger', 'c1', 8]
+
+}
+
+eventsEnv = {
+    3: [RelocateCharger, ['c1', 8]]
 }

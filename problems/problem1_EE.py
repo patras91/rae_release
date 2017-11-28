@@ -81,3 +81,5 @@ tasks =  {
     2: ['explore', 'UAV', 'sample', 'z3'],
     3: ['explore', 'r1', 'process', 'z5']
 }
+
+eventsEnv = {}

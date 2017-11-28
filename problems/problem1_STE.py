@@ -33,3 +33,5 @@ tasks = {
     2: ['travel','Paolo','home','park'],
     3: ['travel','Malik','home2','park2']
 }
+
+eventsEnv = {}

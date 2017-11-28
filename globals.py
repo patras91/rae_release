@@ -11,7 +11,7 @@ class RaeArgs():
 g = G()
 g.doSampling = False
 g.samplingMode = False
-g.K = 2
+g.K = 3
 
 def SetDoSampling(s):
 	g.doSampling = s

@@ -31,3 +31,5 @@ state.occupied = {'taxi':False}
 tasks = {
     1: ['travel', 'Malik', 'home2', 'park2']
 }
+
+eventsEnv = {}
