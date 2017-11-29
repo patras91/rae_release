@@ -2,8 +2,8 @@ from __future__ import print_function
 from rae1 import ipcArgs, envArgs, verbosity, rae1, ResetState
 import threading
 import sys
-sys.path.append('domains/')
-sys.path.append('problems/')
+sys.path.append('../domains/')
+sys.path.append('../problems/')
 import argparse
 
 from timer import globalTimer, SetMode
@@ -54,7 +54,7 @@ def InitializeDomain(domain, problem):
         global domain_module
         domain_module = __import__(module)
     else:
-        print("Invalid domain\n")
+        print("Invalid domain\n", domain)
         exit(11)
 
 def testRAE(domain, problem, doSampling):
@@ -97,12 +97,16 @@ def StartEnv():
         while(envArgs.envActive == False):
             pass
         envArgs.sem.acquire()
+        if envArgs.exit == True:
+            return
+
         StartEnv.counter += 1
         if StartEnv.counter in domain_module.eventsEnv:
             eventArgs = domain_module.eventsEnv[StartEnv.counter]
             event = eventArgs[0]
             eventParams = eventArgs[1]
             t = threading.Thread(target=event, args=eventParams)
+            t.setDaemon(True)  # Setting the environment thread to daemon because we don't want the environment running once the tasks are done
             t.start()
         envArgs.envActive = False
         envArgs.sem.release()
@@ -154,12 +158,15 @@ def raeMult():
                 globalTimer.IncrementTime()
 
             res = GetNextAlive(lastActiveStack, numstacks, ipcArgs.threadList)
+
             if res != -1:
                 ipcArgs.nextStack = res
                 lastActiveStack = res
                 ipcArgs.sem.release()
             else:
+                envArgs.envActive = True
                 envArgs.exit = True
+                envArgs.sem.release()
                 break
     print("----Done with RAE----\n")
     PrintResult(taskInfo)
@@ -212,6 +219,8 @@ if __name__ == "__main__":
                            type=str, default='y', required=False)
     argparser.add_argument("--c", help="Mode of the clock ('Counter' or 'Clock')",
                            type=str, default='Counter', required=False)
+    argparser.add_argument("--simMode", help="Mode of simulation output ('on' or 'off')",
+                           type=str, default='on', required=False)
 
     args = argparser.parse_args()
 
@@ -222,4 +231,5 @@ if __name__ == "__main__":
 
     verbosity(args.v)
     SetMode(args.c)
+    globals.SetSimulationMode(args.simMode)
     testRAE(args.d, args.p, s)

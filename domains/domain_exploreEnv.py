@@ -456,7 +456,6 @@ def move(r, l1, l2):
 def move_Sim(r, l1, l2):
     rae1.state.loc.AcquireLock(r)
     rae1.state.charge.AcquireLock(r)
-    print("crossed")
     dist = EE_GETDISTANCE(l1, l2)
     if l1 == l2:
         gui.Simulate("%s is already at location %s\n" %(r, l2))
@@ -516,10 +515,8 @@ def fly(r, l1, l2):
     return res
 
 def fly_Sim(r, l1, l2):
-    print("here")
     rae1.state.loc.AcquireLock(r)
     rae1.state.charge.AcquireLock(r)
-    print("crossed")
     dist = EE_GETDISTANCE(l1, l2)
     if r != 'UAV':
         gui.Simulate("%s cannot fly\n" %r)

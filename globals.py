@@ -11,6 +11,7 @@ class RaeArgs():
 g = G()
 g.doSampling = False
 g.samplingMode = False
+g.simulationMode = 'on'
 g.K = 3
 
 def SetDoSampling(s):
@@ -30,3 +31,9 @@ def SetK(k):
 
 def getK():
     return g.K
+
+def GetSimulationMode():
+    return g.simulationMode
+
+def SetSimulationMode(mode):
+    g.simulationMode = mode

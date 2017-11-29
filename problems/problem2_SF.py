@@ -36,3 +36,5 @@ state.emergencyHandling = {'r1' : True}
 tasks = {
     1: ['fetch', 'r1', 'o1']
 }
+
+eventsEnv = {}
