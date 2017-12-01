@@ -897,9 +897,14 @@ def Recharge_Method1(r):
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
         res = FAILURE
     elif rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
-        rae1.do_task('moveTo', r, rae1.state.pos[c])
-        rae1.do_command(charge, r, c)
-        res = SUCCESS
+        dist = EE_GETDISTANCE(rae1.state.loc[r], rae1.state.pos[c])
+        if rae1.state.charge[r] >= dist:
+            rae1.do_task('moveTo', r, rae1.state.pos[c])
+            rae1.do_command(charge, r, c)
+            res = SUCCESS
+        else:
+            gui.Simulate("%s is stranded without any possibility of charging" %r)
+            res = FAILURE
     else:
         rae1.do_command(charge, r, c)
         res = SUCCESS
@@ -911,10 +916,15 @@ def Recharge_Method2(r):
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
         res = FAILURE
     elif rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
-        rae1.do_task('moveTo', r, rae1.state.pos[c])
-        rae1.do_command(charge, r, c)
-        rae1.do_command(take, r, c)
-        res = SUCCESS
+        dist = EE_GETDISTANCE(rae1.state.loc[r], rae1.state.pos[c])
+        if rae1.state.charge[r] >= dist:
+            rae1.do_task('moveTo', r, rae1.state.pos[c])
+            rae1.do_command(charge, r, c)
+            rae1.do_command(take, r, c)
+            res = SUCCESS
+        else:
+            gui.Simulate("%s is stranded without any possibility of charging" %r)
+            res = FAILURE
     else:
         rae1.do_command(charge, r, c)
         rae1.do_command(take, r, c)

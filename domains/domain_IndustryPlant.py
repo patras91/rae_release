@@ -335,7 +335,6 @@ def move(r, loc1, loc2):
 
 def move_Sim(r, loc1, loc2):
     state.loc.AcquireLock(r)
-    print(state)
     if state.loc[r] == loc1:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
