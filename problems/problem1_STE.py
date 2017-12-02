@@ -22,11 +22,12 @@ DURATION.COUNTER = {
     'leave_taxi': 5
 }
 
-state.loc = {'Dana':'home', 'Paolo':'home', 'Malik':'home2', 'taxi':'taxiStand'}
-state.cash = {'Dana':20, 'Paolo': 5, 'Malik': 100}
-state.owe = {'Dana':0, 'Paolo': 0, 'Malik': 0}
-state.dist = {'home':{'park': 8}, 'park':{'home': 8}, 'home2':{'park2': 80}, 'park2':{'home2': 80}}
-state.occupied = {'taxi':False}
+def ResetState():
+    state.loc = {'Dana':'home', 'Paolo':'home', 'Malik':'home2', 'taxi':'taxiStand'}
+    state.cash = {'Dana':20, 'Paolo': 5, 'Malik': 100}
+    state.owe = {'Dana':0, 'Paolo': 0, 'Malik': 0}
+    state.dist = {'home':{'park': 8}, 'park':{'home': 8}, 'home2':{'park2': 80}, 'park2':{'home2': 80}}
+    state.occupied = {'taxi':False}
 
 tasks = {
     1: ['travel', 'Dana', 'home', 'park'],

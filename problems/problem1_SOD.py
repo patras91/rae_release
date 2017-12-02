@@ -33,9 +33,10 @@ rv.HANDLE = [('d1', 'o1'), ('d2', 'o2')]
 rv.TYPE = [('d1', 'slides'), ('d2', 'rotates')]
 rv.SIDE = [('d1', 'right'), ('d2', 'left')]
 
-state.doorStatus = { 'd1':'unknown', 'd2':'unknown'}
-state.loc = {'r1':2, 'r2':3}
-state.reachable = {('r1','o1'):False, ('r2','o2'):False}
+def ResetState():
+    state.doorStatus = { 'd1':'unknown', 'd2':'unknown'}
+    state.loc = {'r1':2, 'r2':3}
+    state.reachable = {('r1','o1'):False, ('r2','o2'):False}
 
 tasks = {
     1: ['openDoor', 'r1', 'd1', 'o1'],

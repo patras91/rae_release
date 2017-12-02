@@ -5,6 +5,7 @@ import rae1
 import gui
 from timer import globalTimer
 
+
 '''A UAV and several robots explore environment and collect data.
 UAV can only survey whereas robots can survey, monitor, screen, sample and process.
 UAV can fly whereas a robot can only move on the ground. The UAV and robots have limited
@@ -934,8 +935,6 @@ def Recharge_Method2(r):
 rv = RV()
 rae1.declare_commands([survey, monitor, screen, sample, process, charge, move, put, take, fly, deposit, transferData],
                       [survey_Sim, monitor_Sim, screen_Sim, sample_Sim, process_Sim, charge_Sim, move_Sim, put_Sim, take_Sim, fly_Sim, deposit_Sim, transferData_Sim])
-print('\n')
-rae1.print_commands()
 
 rae1.declare_methods('explore', Explore_Method1, Explore_Method2)
 rae1.declare_methods('getEquipment', GetEquipment_Method1, GetEquipment_Method2)
@@ -943,11 +942,5 @@ rae1.declare_methods('moveTo', MoveTo_Method1, MoveTo_Method2, MoveTo_Method3)
 rae1.declare_methods('flyTo', FlyTo_Method1, FlyTo_Method2, FlyTo_Method3)
 rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
 rae1.declare_methods('depositData', DepositData_Method1, DepositData_Method2)
-print('\n')
-rae1.print_methods()
 
-print('\n*********************************************************')
-print("* Call rae1 on environment exploration domain.")
-print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
-print('*********************************************************\n')
 

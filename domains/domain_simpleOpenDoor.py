@@ -238,16 +238,7 @@ def OpenDoor_Method1(r, d, o):
 rv = RV()
 rae1.declare_commands([moveBy, pull, push, grasp, ungrasp, turn, moveClose, getStatus],
                       [moveBy_Sim, pull_Sim, push_Sim, grasp_Sim, ungrasp_Sim, turn_Sim, moveClose_Sim, getStatus_Sim])
-print('\n')
-rae1.print_commands()
 
 rae1.declare_methods('unlatch', Unlatch_Method1)
 rae1.declare_methods('throwWide', ThrowWide_Method1)
 rae1.declare_methods('openDoor', OpenDoor_Method1)
-print('\n')
-rae1.print_methods()
-
-print('\n*********************************************************')
-print("* Call rae1 on simple open door domain.")
-print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
-print('*********************************************************\n')

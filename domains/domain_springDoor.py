@@ -441,19 +441,9 @@ def Fetch_Method1(r, o, l):
 rv = RV()
 rae1.declare_commands([openDoor, holdDoor, passDoor, releaseDoor, move, put, take],
                       [openDoor_Sim, holdDoor_Sim, passDoor_Sim, releaseDoor_Sim, move_Sim, put_Sim, take_Sim])
-print('\n')
-rae1.print_commands()
 
 rae1.declare_methods('fetch', Fetch_Method1)
 rae1.declare_methods('getHelp', GetHelp_Method1)
 rae1.declare_methods('moveTo', MoveTo_Method1)
 rae1.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroughDoorway_Method2, MoveThroughDoorway_Method3)
 #rae1.declare_methods('closeDoors', CloseDoors_Method1)
-
-print('\n')
-rae1.print_methods()
-
-print('\n*********************************************************')
-print("* Call rae1 on spring door domain.")
-print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
-print('*********************************************************\n')

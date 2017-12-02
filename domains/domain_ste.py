@@ -298,14 +298,6 @@ def ride_taxi_method(a,y):
 		return FAILURE
 
 rae1.declare_commands([walk, call_taxi, enter_taxi, taxi_carry, pay_driver, leave_taxi], [walk_Sim, call_taxi_Sim, enter_taxi_Sim, taxi_carry_Sim, pay_driver_Sim, leave_taxi_Sim])
-print('')
-rae1.print_commands()
+
 rae1.declare_methods('travel', travel_by_foot, travel_by_taxi)
 rae1.declare_methods('ride_taxi', ride_taxi_method)
-print('')
-rae1.print_methods()
-print('\n*********************************************************')
-print("* Call rae1 on simple travel domain. For different amounts of")
-print("* printout, try verbosity(0), verbosity(1), or verbosity(2).")
-print('*********************************************************')
-sys.stdout.flush()

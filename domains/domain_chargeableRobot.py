@@ -388,19 +388,11 @@ def RelocateCharger(c, l):
 rv = RV()
 rae1.declare_commands([put, take, perceive, charge, move, moveCharger],
                       [put_Sim, take_Sim, perceive_Sim, charge_Sim, move_Sim, moveCharger_Sim])
-print('\n')
-rae1.print_commands()
+
 
 rae1.declare_methods('search', Search_Method1, Search_Method2)
 rae1.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
 rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
 rae1.declare_methods('moveTo', MoveTo_Method1)
 #rae1.declare_methods('relocateCharger', RelocateCharger_Method1)
-print('\n')
-rae1.print_methods()
-
-print('\n*********************************************************')
-print("* Call rae1 on chargeable robot domain.")
-print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
-print('*********************************************************\n')
 

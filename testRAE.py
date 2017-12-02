@@ -2,8 +2,8 @@ from __future__ import print_function
 from rae1 import ipcArgs, envArgs, verbosity, rae1, ResetState
 import threading
 import sys
-sys.path.append('../domains/')
-sys.path.append('../problems/')
+sys.path.append('domains/')
+sys.path.append('problems/')
 import argparse
 
 from timer import globalTimer, SetMode
@@ -53,6 +53,7 @@ def InitializeDomain(domain, problem):
         module = problem + '_' + domain
         global domain_module
         domain_module = __import__(module)
+        domain_module.ResetState()
     else:
         print("Invalid domain\n", domain)
         exit(11)
@@ -168,8 +169,9 @@ def raeMult():
                 envArgs.exit = True
                 envArgs.sem.release()
                 break
-    print("----Done with RAE----\n")
-    PrintResult(taskInfo)
+    if globals.GetSimulationMode() == 'on':
+        print("----Done with RAE----\n")
+        PrintResult(taskInfo)
 
 def CreateNewStackSimulation(queue, raeArgs):
     taskRes = rae1(raeArgs.task, raeArgs)

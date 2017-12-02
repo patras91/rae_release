@@ -70,11 +70,12 @@ rv.EDGES = {
     }
 }
 
-state.loc = {'r1': 'base', 'UAV': 'base'}
-state.charge = {'r1':75, 'UAV': 75}
-state.data = {'r1': 0, 'UAV': 0}
-state.load = {'r1': NIL, 'UAV': NIL}
-state.pos = {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base'}
+def ResetState():
+    state.loc = {'r1': 'base', 'UAV': 'base'}
+    state.charge = {'r1':75, 'UAV': 75}
+    state.data = {'r1': 0, 'UAV': 0}
+    state.load = {'r1': NIL, 'UAV': NIL}
+    state.pos = {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base'}
 
 tasks =  {
     1: ['explore', 'UAV', 'survey', 'z1'],

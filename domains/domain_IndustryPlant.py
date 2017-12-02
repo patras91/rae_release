@@ -499,8 +499,6 @@ def Deliver_Method1(o, l):
 rv = RV()
 declare_commands([paint, assemble, pack, take, put, move, wrap],
                  [paint_Sim, assemble_Sim, pack_Sim, take_Sim, put_Sim, move_Sim, wrap_Sim])
-print('\n')
-print_commands()
 
 declare_methods('paint', Paint_Method1)
 declare_methods('assemble', Assemble_Method1)
@@ -508,12 +506,3 @@ declare_methods('pack', Pack_Method1)
 declare_methods('wrap', Wrap_Method1)
 declare_methods('deliver', Deliver_Method1)
 declare_methods('order', Order_Method1)
-
-print('\n')
-print_methods()
-
-print('\n*********************************************************')
-print("* Call rae1 on industry plant domain.")
-print("* For a different amout of printout,  try verbosity(0), verbosity(1), or verbosity(2).")
-print("* For a different mode, try SetMode(\'Clock\') or SetMode(\'Counter\').")
-print('*********************************************************\n')

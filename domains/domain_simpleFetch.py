@@ -279,17 +279,8 @@ def NonEmergencyMove_Method2(r, l):
 rv = RV()
 rae1.declare_commands([moveTo, take, perceive, addressEmergency, moveToEmergency, wait],
                       [moveTo_Sim, take_Sim, perceive_Sim, addressEmergency_Sim, moveToEmergency_Sim, wait_Sim])
-print('\n')
-rae1.print_commands()
 
 rae1.declare_methods('search', Search_Method1)
 rae1.declare_methods('fetch', Fetch_Method1)
 rae1.declare_methods('emergency', Emergency_Method1)
 rae1.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1, NonEmergencyMove_Method2)
-print('\n')
-rae1.print_methods()
-
-print('\n*********************************************************')
-print("* Call rae1 on simple fetch domain.")
-print("* For a different amout of printout, try verbosity(0), verbosity(1), or verbosity(2).")
-print('*********************************************************\n')
