@@ -37,3 +37,21 @@ def GetSimulationMode():
 
 def SetSimulationMode(mode):
     g.simulationMode = mode
+
+def SetConcurrent(mode):
+    if mode == 'y':
+        g.concurrentMode = True
+    else:
+        g.concurrentMode = False
+
+def GetConcurrentMode():
+    return g.concurrentMode
+
+def SetLazy(val):
+    if val == 'y':
+        g.lazy = True
+    else:
+        g.lazy = False
+
+def GetLazy():
+    return g.lazy

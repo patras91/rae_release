@@ -1,5 +1,5 @@
 from __future__ import print_function
-from rae1 import ipcArgs, envArgs, verbosity, rae1, ResetState
+from rae1 import ipcArgs, envArgs, verbosity, rae1, ResetState, CleanState
 import threading
 import sys
 sys.path.append('domains/')
@@ -53,6 +53,7 @@ def InitializeDomain(domain, problem):
         module = problem + '_' + domain
         global domain_module
         domain_module = __import__(module)
+        CleanState()
         domain_module.ResetState()
     else:
         print("Invalid domain\n", domain)
@@ -173,9 +174,9 @@ def raeMult():
         print("----Done with RAE----\n")
         PrintResult(taskInfo)
 
-def CreateNewStackSimulation(queue, raeArgs):
-    taskRes = rae1(raeArgs.task, raeArgs)
-    queue.put(taskRes)
+def CreateNewStackSimulation(raeArgs):
+    methodList = rae1(raeArgs.task, raeArgs)
+    raeArgs.queue.put(methodList)
 
 def raeMultSimulator(task, taskArgs, method, queue, candidateMethods):
     # Simulating one stack now
@@ -191,11 +192,12 @@ def raeMultSimulator(task, taskArgs, method, queue, candidateMethods):
     raeArgs.task = task
     raeArgs.candidates = candidateMethods
     raeArgs.method = method
+    raeArgs.queue = queue
 
     ipcArgs.nextStack = 0
     ipcArgs.sem = threading.Semaphore(1)
 
-    thread = threading.Thread(target=CreateNewStackSimulation, args=[queue, raeArgs])
+    thread = threading.Thread(target=CreateNewStackSimulation, args=[raeArgs])
 
     thread.start()
 
@@ -223,6 +225,10 @@ if __name__ == "__main__":
                            type=str, default='Counter', required=False)
     argparser.add_argument("--simMode", help="Mode of simulation output ('on' or 'off')",
                            type=str, default='on', required=False)
+    argparser.add_argument("--lazy", help="Whether to do lazy lookahead? ('y' or 'n')",
+                           type=str, default='n', required=False)
+    argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n')",
+                           type=str, default='n', required=False)
 
     args = argparser.parse_args()
 
@@ -231,6 +237,8 @@ if __name__ == "__main__":
     else:
         s = False
 
+    globals.SetLazy(args.lazy)
+    globals.SetConcurrent(args.concurrent)
     verbosity(args.v)
     SetMode(args.c)
     globals.SetSimulationMode(args.simMode)

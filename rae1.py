@@ -50,6 +50,10 @@ def print_entire_stack(stackid, path):
 
 verbose = 0
 state = State()
+
+def CleanState():
+	state = State()
+
 raelocals = threading.local()
 
 def ResetState():
@@ -137,6 +141,11 @@ def print_methods(mlist=methods):
 	for task in mlist:
 		print('{:<14}'.format(task) + ', '.join([f.__name__ for f in mlist[task]]))
 
+def PrintList(list):
+	print('[')
+	for item in list:
+		print(item.method.__name__)
+	print(']')
 ############################################################
 # Stuff for debugging printout
 
@@ -188,18 +197,20 @@ def rae1(task, raeArgs):
 	# and thread communication parameters. They are now global variables --Sunandita
 
 	raelocals.stackid = raeArgs.stack
+	raelocals.refinementList = None
 	taskArgs = raeArgs.taskArgs
 
 	global path
 	path.update({raelocals.stackid: []})
 
-	mode = globals.GetSamplingMode()
-	if mode == True:
+	samplingMode = globals.GetSamplingMode()
+	if samplingMode == True:
 		raelocals.method = raeArgs.method
 		raelocals.candidates = raeArgs.candidates
+		raelocals.resultList = []
 
 	if verbose > 0:
-		if mode == False:
+		if samplingMode == False:
 			print('\n---- Rae1: Create stack {}, task {}{}\n'.format(raelocals.stackid, task, taskArgs))
 
 
@@ -212,6 +223,9 @@ def rae1(task, raeArgs):
 
 	try:
 		result = do_task(task, *taskArgs)
+		if samplingMode == True:
+			resultList = raelocals.resultList
+
 	except Failed_command,e:
 		if verbose > 0:
 			print_stack_size(raelocals.stackid, path)
@@ -219,6 +233,7 @@ def rae1(task, raeArgs):
 		result = globals.G()
 		result.retcode = 'Failure'
 		result.cost = float("inf")
+		resultList = [result]
 	except Failed_task, e:
 		if verbose > 0:
 			print_stack_size(raelocals.stackid, path)
@@ -226,6 +241,7 @@ def rae1(task, raeArgs):
 		result = globals.G()
 		result.retcode = 'Failure'
 		result.cost = float("inf")
+		resultList = [result]
 	else:
 		pass
 	if verbose > 1:
@@ -233,40 +249,79 @@ def rae1(task, raeArgs):
 		print('Final state is:')
 		print(state)
 	if verbose > 0:
-		if mode == False:
+		if samplingMode == False:
 			print("\n---- Rae1: Done with stack %d\n" %raelocals.stackid)
 
 	EndCriticalRegion()
-	return result
+	if samplingMode == True:
+		return resultList
+	else:
+		return result
 
-def choose_candidate(candidates, task, taskArgs):
-	if globals.GetDoSampling() == False:
-		return(candidates[0],candidates[1:])
+def GetCandidateBySampling(candidates, task, taskArgs):
+	if verbose > 0:
+		print(colorama.Fore.RED, "Starting simulation for stack")
+
+	queue = multiprocessing.Queue()
+	p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, None, queue, candidates])
+
+	p.start()
+	p.join()
+
+	resultList = queue.get()
+
+	raelocals.refinementList = resultList[1:]
+	if raelocals.refinementList == []:
+		raelocals.refinementList = None
+	result = resultList[0]
+
+	if result.retcode != 'Failure':
+		m = result.method
+		candidates.pop(candidates.index(m))
+
+		if verbose > 0:
+			print("Done with simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
+
+		return(m, candidates)
 	else:
 
 		if verbose > 0:
-			print(colorama.Fore.RED, "Starting simulation for stack")
+			print("Done with simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
 
-		queue = multiprocessing.Queue()
-		p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, None, queue, candidates])
-		p.start()
-		p.join()
+		return(None, [])
 
-		result = queue.get()
-		if result.retcode != 'Failure':
-			m = result.method
-			candidates.pop(candidates.index(m))
+def choose_candidate(candidates, task, taskArgs):
 
-			if verbose > 0:
-				print("Done with simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
+	if globals.GetDoSampling() == False:
 
-			return(m, candidates)
+		return(candidates[0],candidates[1:])
+
+	elif globals.GetConcurrentMode() == False:
+
+		if (raelocals.refinementList == None) or (globals.GetLazy() == False):
+
+			return GetCandidateBySampling(candidates, task, taskArgs)
+
 		else:
 
-			if verbose > 0:
-				print("Done with simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
+			chosen = raelocals.refinementList[0].method
+			raelocals.refinementList = raelocals.refinementList[1:]
+			candidates.pop(candidates.index(chosen))
+			return (chosen, candidates)
+	else:
 
-			return(None, [])
+		while(raelocals.concParams.refinementList == None):
+			pass
+
+		if raelocals.concParams.refinementList == []:
+			return (None, [])
+		else:
+			print("candidates are ", candidates)
+			PrintList(raelocals.concParams.refinementList)
+			chosen = raelocals.concParams.refinementList[0].method
+			raelocals.concParams.refinementList = raelocals.concParams.refinementList[1:]
+			candidates.pop(candidates.index(chosen))
+			return (chosen, candidates)
 
 def SimulateTask(task, taskArgs):
 	global path
@@ -290,10 +345,11 @@ def SimulateTask(task, taskArgs):
 		if retcode == 'Failure':
 			raise Failed_task('{}{}'.format(task, taskArgs))
 		elif retcode == 'Success':
+			raelocals.resultList = [result] + raelocals.resultList
 			return result
 		else:
 			raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
-		return result
+		#return result
 	else:
 	# need to choose from candidates which may already be supplied
 		if raelocals.candidates != None:
@@ -309,19 +365,21 @@ def SimulateTask(task, taskArgs):
 			p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, m, queue, None])
 			p.start()
 			p.join()
-			result[m.__name__] = queue.get()
+			resultList = queue.get()
+			result[m.__name__] = resultList
 
 		minCostMethod = candidates[0]
 		for m_name in result:
-			if result[m_name].retcode == 'Success' and result[m_name].cost < result[minCostMethod.__name__].cost:
-				minCostMethod = result[m_name].method
+			if result[m_name][0].retcode == 'Success' and result[m_name][0].cost < result[minCostMethod.__name__][0].cost:
+				minCostMethod = result[m_name][0].method
 
-		if result[minCostMethod.__name__].retcode == 'Failure':
+		if result[minCostMethod.__name__][0].retcode == 'Failure':
 			raise Failed_task('{}{}'.format(task, taskArgs))
 		else:
 			global state
-			state.restore(result[minCostMethod.__name__].state)
-			return result[minCostMethod.__name__]
+			state.restore(result[minCostMethod.__name__][0].state)
+			raelocals.resultList = result[minCostMethod.__name__] + raelocals.resultList
+			return result[minCostMethod.__name__][0]
 
 def taskProgress(stackid, path, m, taskArgs):
 	if verbose > 0:
@@ -365,9 +423,58 @@ def taskProgress(stackid, path, m, taskArgs):
 		print('{} for method {}{}'.format(result.retcode, m.__name__, taskArgs))
 	return result
 
+def DoConcurrentSampling(concParams):
+	while (True):
+		if verbose > 0:
+			print(colorama.Fore.RED, "Starting simulation for stack")
+
+		queue = multiprocessing.Queue()
+		while(concParams.control == 'real'):
+			pass
+		concParams.sem.acquire()
+		p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[concParams.task, concParams.taskArgs, None, queue, concParams.candidates])
+		concParams.sem.release()
+		p.start()
+		p.join()
+
+		resultList = queue.get()
+		result = resultList[0]
+
+		if verbose > 0:
+			print("Done with one concurrent simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
+
+		if result.retcode != 'Failure':
+			concParams.refinementList = resultList[:]
+		else:
+			concParams.refinementList = []
+
+def InitializeConcurrentSimulations(task, candidates, taskArgs):
+	startThread = False
+	if hasattr(raelocals, 'concParams') == False:
+		raelocals.concParams = globals.G()
+		raelocals.concParams.refinementList = None # Need a mutable object to pass as a modifiable argument to a thread
+		raelocals.concParams.sem = threading.Semaphore(1)
+		startThread = True
+
+	raelocals.concParams.control = 'real' # who has the control: real world or the concurrent simulator
+	raelocals.concParams.sem.acquire()
+
+	raelocals.concParams.task = task
+	raelocals.concParams.candidates = candidates
+	raelocals.concParams.taskArgs = taskArgs
+
+	raelocals.concParams.control = 'sim'
+	raelocals.concParams.sem.release()
+
+	if startThread == True:
+		raelocals.concParams.thread = threading.Thread(target=DoConcurrentSampling, args=[raelocals.concParams])
+		raelocals.concParams.thread.setDaemon(True)
+		raelocals.concParams.thread.start()
+
 def DoTaskInRealWorld(task, taskArgs):
 	global path
 	path[raelocals.stackid].append([task, taskArgs])
+
 	if verbose > 0:
 		print_stack_size(raelocals.stackid, path)
 		print('Begin task {}{}'.format(task, taskArgs))
@@ -375,9 +482,17 @@ def DoTaskInRealWorld(task, taskArgs):
 	if verbose > 1:
 		print_entire_stack(raelocals.stackid, path)
 
-	retcode = 'Failure'
+	retcode = None
 	candidates = methods[task][:]
-	while (retcode == 'Failure' and candidates != []):
+
+	if globals.GetConcurrentMode() == True:
+		InitializeConcurrentSimulations(task, methods[task][:], taskArgs)
+
+	while (retcode != 'Success' and candidates != []):
+		if retcode == 'Failure':
+			raelocals.refinementList = None
+			if globals.GetConcurrentMode() == True:
+				InitializeConcurrentSimulations(task, candidates, taskArgs)
 		(m,candidates) = choose_candidate(candidates, task, taskArgs)
 		if m != None:
 			result = taskProgress(raelocals.stackid, path, m, taskArgs)
@@ -387,7 +502,7 @@ def DoTaskInRealWorld(task, taskArgs):
 	if verbose > 1:
 		print_entire_stack(raelocals.stackid, path)
 
-	if retcode == 'Failure':
+	if retcode == 'Failure' or retcode == None:
 		raise Failed_task('{}{}'.format(task, taskArgs))
 	elif retcode == 'Success':
 		return result
@@ -404,7 +519,6 @@ def do_task(task, *taskArgs):
 		return DoTaskInRealWorld(task, taskArgs)
 
 def beginCommand(cmd, cmdRet, cmdArgs):
-	mode = globals.GetSamplingMode()
 	cmd = GetCommand(cmd)
 	cmdRet['state'] = cmd(*cmdArgs)
 

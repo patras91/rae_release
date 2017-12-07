@@ -4,7 +4,7 @@ echo "Executing tests for RAE-S."
 
 for problem in "problem1" # "problem2"
 do
-    for domain in "STE" "SF" "SOD" "SD" "IP" "CR" "EE"
+    for domain in "SF" "SOD" "SD" "IP" "CR" "EE"
     do
         setup="
 import sys
@@ -22,6 +22,6 @@ globals.SetSimulationMode('off')"
         echo '' >> $fname
 
 		echo "Time test of '$domain $problem'" >> $fname
-        python -m timeit -s "$setup" "$time_test" >> $fname
+        python -m timeit -n 5 -s "$setup" "$time_test" >> $fname
     done
 done
