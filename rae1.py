@@ -143,10 +143,13 @@ def print_methods(mlist=methods):
         print('{:<14}'.format(task) + ', '.join([f.__name__ for f in mlist[task]]))
 
 def PrintList(list):
-    print('[')
-    for item in list:
-        print(item.method.__name__)
-    print(']')
+    if list == None:
+        print('[ None ]')
+    else:
+        print('[')
+        for item in list:
+            print(item.method.__name__)
+        print(']')
 ############################################################
 # Stuff for debugging printout
 
@@ -186,9 +189,9 @@ def EndCriticalRegion():
 # The actual acting engine
 
 class concLA():
-    def __init__(self, task, taskArgs, candidates, rList=None):
+    def __init__(self, task, taskArgs, candidates):
         self.sem = threading.Semaphore(1)
-        self.refinementList = rList
+        self.refinementList = None
         self.control = 'sim'
         self.task = task
         self.candidates = candidates
@@ -198,23 +201,35 @@ class concLA():
         self.thread.start()
 
     def Ready(self):
-        return (self.refinementList != None)
+        return ((raelocals.refinementList != None and raelocals.refinementList != []) or (self.refinementList != None))
 
     def NoMethodApplicable(self):
-        return (self.refinementList == [])
+        return ((raelocals.refinementList == [] or raelocals.refinementList == None) and (self.refinementList == []))
 
     def GetMethod(self):
-        chosen = self.refinementList[0].method
-        self.refinementList = self.refinementList[1:]
         self.control = 'real'
         self.sem.acquire()
+
+        if raelocals.refinementList == None or raelocals.refinementList == []:
+            raelocals.refinementList = self.refinementList[:]
+            self.refinementList = None
+
+        #PrintList(raelocals.refinementList)
+        chosen = raelocals.refinementList[0].method
+        raelocals.refinementList = raelocals.refinementList[1:]
+        #print("candidates are: ", self.candidates)
         self.candidates.pop(self.candidates.index(chosen))
-        self.control = 'sim'
+
+        if self.candidates == []:
+            self.refinementList = []
+            self.control = 'exit'
+        else:
+            self.control = 'sim'
         self.sem.release()
         return chosen
 
     def DoConcurrentSampling(self):
-        while (True):
+        while (self.control != 'exit'):
             if verbose > 0:
                 print(colorama.Fore.RED, "Starting simulation for stack")
 
@@ -222,6 +237,9 @@ class concLA():
             while(self.control == 'real'):
                 pass
             self.sem.acquire()
+
+            if self.control == 'exit':
+                break
             p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[self.task, self.taskArgs, None, queue, self.candidates])
             self.sem.release()
             p.start()
@@ -233,11 +251,22 @@ class concLA():
             if verbose > 0:
                 print("Done with one concurrent simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
 
+            while(self.control == 'real'):
+                pass
+            self.sem.acquire()
             if result.retcode != 'Failure':
-                self.refinementList = resultList[:]
+                if result.method not in self.candidates:
+                    self.refinementList = None
+                else:
+                    self.refinementList = resultList[:]
             else:
                 self.refinementList = []
 
+            self.sem.release()
+
+    def EndSimulations(self):
+        self.refinementList = []
+        self.control = 'exit'
 
 def InitializeSampling(raeArgs):
     samplingMode = globals.GetSamplingMode()
@@ -370,6 +399,7 @@ def choose_candidate(candidates, task, taskArgs):
             return (None, [])
         else:
             chosen = currManager.GetMethod()
+            #print("choosing ", chosen)
             candidates.pop(candidates.index(chosen))
             return (chosen, candidates)
 
@@ -476,6 +506,11 @@ def InitializeConcurrentSimulations(task, candidates, taskArgs):
     newManager = concLA(task, taskArgs, candidates)
     raelocals.conManagerList.append(newManager)
 
+def StopConcurrentSimulations():
+    currManager = raelocals.conManagerList[-1]
+    currManager.EndSimulations()
+    raelocals.conManagerList.pop()
+
 def DoTaskInRealWorld(task, taskArgs):
     global path
     path[raelocals.stackid].append([task, taskArgs])
@@ -502,7 +537,8 @@ def DoTaskInRealWorld(task, taskArgs):
             retcode = result.retcode
 
     path[raelocals.stackid].pop()
-    raelocals.conManagerList.pop()
+    if globals.GetConcurrentMode() == True:
+        StopConcurrentSimulations()
 
     if verbose > 1:
         print_entire_stack(raelocals.stackid, path)
