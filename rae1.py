@@ -146,10 +146,7 @@ def PrintList(list):
     if list == None:
         print('[ None ]')
     else:
-        print('[')
-        for item in list:
-            print(item.method.__name__)
-        print(']')
+        print('Refinement list: [', ' '.join(item.method.__name__ for item in list), ']')
 ############################################################
 # Stuff for debugging printout
 
@@ -214,10 +211,8 @@ class concLA():
             raelocals.refinementList = self.refinementList[:]
             self.refinementList = None
 
-        PrintList(raelocals.refinementList)
         chosen = raelocals.refinementList[0].method
         raelocals.refinementList = raelocals.refinementList[1:]
-        print("candidates are: ", self.candidates)
         self.candidates.pop(self.candidates.index(chosen))
 
         if self.candidates == []:
@@ -383,7 +378,7 @@ def choose_candidate(candidates, task, taskArgs):
         return(candidates[0],candidates[1:])
 
     elif globals.GetConcurrentMode() == False:
-        if (raelocals.refinementList == None) or (globals.GetLazy() == False):
+        if (raelocals.refinementList == None or raelocals.refinementList == [] or globals.GetLazy() == False):
             return GetCandidateBySampling(candidates, task, taskArgs)
 
         else:
@@ -401,7 +396,6 @@ def choose_candidate(candidates, task, taskArgs):
             return (None, [])
         else:
             chosen = currManager.GetMethod()
-            #print("choosing ", chosen)
             candidates.pop(candidates.index(chosen))
             return (chosen, candidates)
 
@@ -458,7 +452,6 @@ def SimulateTask(task, taskArgs):
             p.join()
             resultNode = queue.get()
             result[m.__name__] = resultNode
-            #PrintList(resultNode.GetPreorderTraversal())
 
         minCostMethod = None
         minCost = float('inf')
