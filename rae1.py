@@ -16,7 +16,7 @@ import sys, pprint
 import globals
 import random
 import colorama
-
+import rTree
 ############################################################
 
 ### A goal is identical to a state except for the class name.
@@ -214,10 +214,10 @@ class concLA():
             raelocals.refinementList = self.refinementList[:]
             self.refinementList = None
 
-        #PrintList(raelocals.refinementList)
+        PrintList(raelocals.refinementList)
         chosen = raelocals.refinementList[0].method
         raelocals.refinementList = raelocals.refinementList[1:]
-        #print("candidates are: ", self.candidates)
+        print("candidates are: ", self.candidates)
         self.candidates.pop(self.candidates.index(chosen))
 
         if self.candidates == []:
@@ -245,7 +245,8 @@ class concLA():
             p.start()
             p.join()
 
-            resultList = queue.get()
+            resultTree = queue.get()
+            resultList = resultTree.GetPreorderTraversal()
             result = resultList[0]
 
             if verbose > 0:
@@ -273,7 +274,7 @@ def InitializeSampling(raeArgs):
     if samplingMode == True:
         raelocals.method = raeArgs.method
         raelocals.candidates = raeArgs.candidates
-        raelocals.resultList = []
+        raelocals.currentNode = rTree.RTNode('ROOT')
     return samplingMode
 
 def rae1(task, raeArgs):
@@ -289,7 +290,7 @@ def rae1(task, raeArgs):
     # and thread communication parameters. They are now global variables --Sunandita
 
     raelocals.stackid = raeArgs.stack
-    raelocals.refinementList = None  # required for lazy lookahead
+    raelocals.refinementList = None  # required for lazy lookahead and concurrent lookahead
     taskArgs = raeArgs.taskArgs
 
     global path
@@ -314,7 +315,7 @@ def rae1(task, raeArgs):
     try:
         result = do_task(task, *taskArgs)
         if samplingMode == True:
-            resultList = raelocals.resultList  # In sampling mode, we save a refinement list in resultList instead of just one result
+            resultTree = raelocals.currentNode.GetChild() # In sampling mode, we save a refinement tree instead of just one result
 
     except Failed_command,e:
         if verbose > 0:
@@ -322,16 +323,14 @@ def rae1(task, raeArgs):
             print('Failed command {}'.format(e))
         result = globals.G()
         result.retcode = 'Failure'
-        result.cost = float("inf")
-        resultList = [result]
+        resultTree = rTree.RTNode(result)
     except Failed_task, e:
         if verbose > 0:
             print_stack_size(raelocals.stackid, path)
             print('Failed task {}'.format(e))
         result = globals.G()
         result.retcode = 'Failure'
-        result.cost = float("inf")
-        resultList = [result]
+        resultTree = rTree.RTNode(result)
     else:
         pass
     if verbose > 1:
@@ -344,7 +343,7 @@ def rae1(task, raeArgs):
 
     EndCriticalRegion()
     if samplingMode == True:
-        return resultList
+        return resultTree
     else:
         return result
 
@@ -358,22 +357,25 @@ def GetCandidateBySampling(candidates, task, taskArgs):
     p.start()
     p.join()
 
-    resultList = queue.get()
+    resultTree = queue.get()
 
-    raelocals.refinementList = resultList[1:]
-    if raelocals.refinementList == []:
-        raelocals.refinementList = None
-    result = resultList[0]
+    retcode = resultTree.GetRetcode()
 
     if verbose > 0:
-        print("Done with simulation. Result = {} \n".format(result.retcode), colorama.Style.RESET_ALL)
+        print("Done with simulation. Result = {} \n".format(retcode), colorama.Style.RESET_ALL)
 
-    if result.retcode != 'Failure':
+    if retcode == 'Failure':
+        return (None, [])
+    else:
+        resultList = resultTree.GetPreorderTraversal()
+        if raelocals.refinementList == []:
+            raelocals.refinementList = None
+        else:
+            raelocals.refinementList = resultList[1:]
+        result = resultList[0]
         m = result.method
         candidates.pop(candidates.index(m))
-        return(m, candidates)
-    else:
-        return(None, [])
+        return (m, candidates)
 
 def choose_candidate(candidates, task, taskArgs):
 
@@ -415,6 +417,10 @@ def SimulateTask(task, taskArgs):
     # If a method has already been supplied
     if type(methodChosen) == types.FunctionType:
         path[raelocals.stackid].append([task, taskArgs])
+        # save the parent
+        savedNode = raelocals.currentNode
+        newNode = savedNode.Insert(methodChosen)
+        raelocals.currentNode = newNode
         result = taskProgress(raelocals.stackid, path, methodChosen, taskArgs)
         retcode = result.retcode
 
@@ -423,9 +429,14 @@ def SimulateTask(task, taskArgs):
             print_entire_stack(raelocals.stackid, path)
 
         if retcode == 'Failure':
+            savedNode.DeleteChild(newNode)
+            # restore the parent
+            raelocals.currentNode = savedNode
             raise Failed_task('{}{}'.format(task, taskArgs))
         elif retcode == 'Success':
-            raelocals.resultList = [result] + raelocals.resultList
+            newNode.Update(result)
+            # restore the parent
+            raelocals.currentNode = savedNode
             return result
         else:
             raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
@@ -445,21 +456,26 @@ def SimulateTask(task, taskArgs):
             p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, m, queue, None])
             p.start()
             p.join()
-            resultList = queue.get()
-            result[m.__name__] = resultList
+            resultNode = queue.get()
+            result[m.__name__] = resultNode
+            #PrintList(resultNode.GetPreorderTraversal())
 
-        minCostMethod = candidates[0]
+        minCostMethod = None
+        minCost = float('inf')
         for m_name in result:
-            if result[m_name][0].retcode == 'Success' and result[m_name][0].cost < result[minCostMethod.__name__][0].cost:
-                minCostMethod = result[m_name][0].method
+            if result[m_name].GetRetcode() == 'Success':
+                currCost = result[m_name].GetCost()
+                if currCost < minCost:
+                    minCostMethod = result[m_name].GetMethod()
+                    minCost = currCost
 
-        if result[minCostMethod.__name__][0].retcode == 'Failure':
+        if minCostMethod == None:
             raise Failed_task('{}{}'.format(task, taskArgs))
         else:
             global state
-            state.restore(result[minCostMethod.__name__][0].state)
-            raelocals.resultList = result[minCostMethod.__name__] + raelocals.resultList
-            return result[minCostMethod.__name__][0]
+            state.restore(result[minCostMethod.__name__].GetState())
+            raelocals.currentNode.AddChild(result[minCostMethod.__name__])
+            return result[minCostMethod.__name__].GetValue()
 
 def taskProgress(stackid, path, m, taskArgs):
     if verbose > 0:
