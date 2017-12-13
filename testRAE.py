@@ -94,6 +94,17 @@ def PrintResult(taskInfo):
         args, res = taskInfo[stackid]
         print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\n')
 
+def PrintSuccessCounts(taskInfo):
+    succ = 0
+    fail = 0
+    for stackid in taskInfo:
+        args, res = taskInfo[stackid]
+        if res == 'Success':
+            succ += 1
+        else:
+            fail += 1
+    print(succ, succ+fail)
+
 def StartEnv():
     while(True):
         while(envArgs.envActive == False):
@@ -173,6 +184,8 @@ def raeMult():
     if globals.GetSimulationMode() == 'on':
         print("----Done with RAE----\n")
         PrintResult(taskInfo)
+    else:
+        PrintSuccessCounts(taskInfo)
 
 def CreateNewStackSimulation(raeArgs):
     methodList = rae1(raeArgs.task, raeArgs)
@@ -229,6 +242,8 @@ if __name__ == "__main__":
                            type=str, default='n', required=False)
     argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n')",
                            type=str, default='n', required=False)
+    argparser.add_argument("--K", help="Sampling parameter",
+                           type=int, default=3, required=False)
 
     args = argparser.parse_args()
 
@@ -237,6 +252,7 @@ if __name__ == "__main__":
     else:
         s = False
 
+    globals.SetK(args.K)
     globals.SetLazy(args.lazy)
     globals.SetConcurrent(args.concurrent)
     verbosity(args.v)
