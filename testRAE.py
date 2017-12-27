@@ -71,7 +71,7 @@ def testRAE(domain, problem, doSampling):
     globals.SetSamplingMode(False) # sampling mode is required to switch between sampling and non-sampling states
     rM = threading.Thread(target=raeMult)
     rM.start()
-    gui.start() # graphical user interface to show action executions
+    gui.start(domain, domain_module.rv) # graphical user interface to show action executions
     rM.join()
 
 def BeginFreshIteration(lastActiveStack, numstacks, threadList):
@@ -86,24 +86,26 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    taskRes = rae1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = (raeArgs.taskArgs, taskRes.retcode)
+    taskRes, retryCount = rae1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = (raeArgs.taskArgs, taskRes.retcode, retryCount)
 
 def PrintResult(taskInfo):
     for stackid in taskInfo:
-        args, res = taskInfo[stackid]
-        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\n')
+        args, res, retryCount = taskInfo[stackid]
+        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\n')
 
 def PrintSuccessCounts(taskInfo):
     succ = 0
     fail = 0
+    retries = 0
     for stackid in taskInfo:
-        args, res = taskInfo[stackid]
+        args, res, retryCount = taskInfo[stackid]
         if res == 'Success':
             succ += 1
         else:
             fail += 1
-    print(succ, succ+fail)
+        retries += retryCount
+    print(succ, succ+fail, retryCount)
 
 def StartEnv():
     while(True):

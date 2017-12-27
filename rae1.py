@@ -285,6 +285,7 @@ def rae1(task, raeArgs):
     # and thread communication parameters. They are now global variables --Sunandita
 
     raelocals.stackid = raeArgs.stack
+    raelocals.retryCount = 0
     raelocals.refinementList = None  # required for lazy lookahead and concurrent lookahead
     taskArgs = raeArgs.taskArgs
 
@@ -312,14 +313,14 @@ def rae1(task, raeArgs):
         if samplingMode == True:
             resultTree = raelocals.currentNode.GetChild() # In sampling mode, we save a refinement tree instead of just one result
 
-    except Failed_command,e:
+    except Failed_command as e:
         if verbose > 0:
             print_stack_size(raelocals.stackid, path)
             print('Failed command {}'.format(e))
         result = globals.G()
         result.retcode = 'Failure'
         resultTree = rTree.RTNode(result)
-    except Failed_task, e:
+    except Failed_task as e:
         if verbose > 0:
             print_stack_size(raelocals.stackid, path)
             print('Failed task {}'.format(e))
@@ -340,7 +341,7 @@ def rae1(task, raeArgs):
     if samplingMode == True:
         return resultTree
     else:
-        return result
+        return (result, raelocals.retryCount)
 
 def GetCandidateBySampling(candidates, task, taskArgs):
     if verbose > 0:
@@ -360,7 +361,8 @@ def GetCandidateBySampling(candidates, task, taskArgs):
         print("Done with simulation. Result = {} \n".format(retcode), colorama.Style.RESET_ALL)
 
     if retcode == 'Failure':
-        return (None, [])
+        random.shuffle(candidates)
+        return (candidates[0], candidates[1:])
     else:
         resultList = resultTree.GetPreorderTraversal()
         if raelocals.refinementList == []:
@@ -375,7 +377,8 @@ def GetCandidateBySampling(candidates, task, taskArgs):
 def choose_candidate(candidates, task, taskArgs):
 
     if globals.GetDoSampling() == False:
-        return(candidates[0],candidates[1:])
+        random.shuffle(candidates)
+        return(candidates[0], candidates[1:])
 
     elif globals.GetConcurrentMode() == False:
         if (raelocals.refinementList == None or raelocals.refinementList == [] or globals.GetLazy() == False):
@@ -393,7 +396,8 @@ def choose_candidate(candidates, task, taskArgs):
             pass
 
         if currManager.NoMethodApplicable() == True:
-            return (None, [])
+            random.shuffle(candidates)
+            return (candidates[0], candidates[1:])
         else:
             chosen = currManager.GetMethod()
             candidates.pop(candidates.index(chosen))
@@ -495,11 +499,11 @@ def taskProgress(stackid, path, m, taskArgs):
         result.retcode = retcode
         result.cost = 1
         result.state = state.copy()
-    except Failed_command, e:
+    except Failed_command as e:
         if verbose > 0:
             print_stack_size(stackid, path)
             print('Failed command {}'.format(e))
-    except Failed_task,e:
+    except Failed_task as e:
         if verbose > 0:
             print_stack_size(stackid, path)
             print('Failed task {}'.format(e))
@@ -540,6 +544,7 @@ def DoTaskInRealWorld(task, taskArgs):
     while (retcode != 'Success' and candidates != []):
         if retcode == 'Failure':
             raelocals.refinementList = None
+            raelocals.retryCount += 1
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
         if m != None:
             result = taskProgress(raelocals.stackid, path, m, taskArgs)

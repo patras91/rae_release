@@ -15,6 +15,26 @@ from rae1 import state
 #      |  8  |  9  |  10 |  11
 #      |___a1|___p2|_____|______
 
+def square(init, edge):
+    (x, y) = init
+    l = [[(x, y), (x + edge, y)], [(x, y), (x, y + edge)],
+        [(x + edge, y), (x + edge, y + edge)], [(x, y + edge), (x + edge, y + edge)]]
+    return l
+
+rv.MAP = {
+    1: square((0, 20), 10),
+    2: square((10, 20), 10),
+    3: square((20, 20), 10),
+    4: square((30, 20), 10),
+    5: square((10, 10), 10),
+    6: square((20, 10), 10),
+    7: square((30, 10), 10),
+    8: square((10, 0), 10),
+    9: square((20, 0), 10),
+    10: square((30, 0), 10),
+    11: square((40, 0), 10),
+}
+
 DURATION.TIME = {
     'paint': 5, # for domain IP
     'assemble': 5,
@@ -34,6 +54,7 @@ DURATION.COUNTER = {
     'put': 2,
     'wrap': 3
  }
+
 
 rv.MACHINE_LOCATION = {'p1': 3, 'pck1': 4, 'a1': 8, 'p2': 9, 'w1': 7}
 rv.MACHINES = {'paint': ['p1', 'p2'], 'pack': ['pck1'], 'assemble': ['a1'], 'wrap': ['w1']}

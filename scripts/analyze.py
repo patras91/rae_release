@@ -1,5 +1,6 @@
 __author__ = 'patras'
 import matplotlib.pyplot as plt
+from numpy import array
 
 def PopulateHelper(res, domain, f_rae):
     line = f_rae.readline()
@@ -22,6 +23,8 @@ def PopulateHelper(res, domain, f_rae):
                 res['time'].append(runTime)
                 break
         line = f_rae.readline()
+    if domain == 'CR':
+        print(succCount, totalCount)
 
 def Populate(res, domain, simmode):
     f_rae = open("test_noLA_output.txt", "r")
@@ -31,8 +34,12 @@ def Populate(res, domain, simmode):
         if simmode == 'normal':
             fname = 'test_normalLA{}_output.txt'.format(k)
         elif simmode == 'lazy':
+            if domain == 'CR':
+                print(domain, simmode, k)
             fname = 'test_lazyLA{}_output.txt'.format(k)
         elif simmode == 'concurrent':
+            if domain == 'CR':
+                print(domain, simmode, k)
             fname = 'test_concLA{}_output.txt'.format(k)
         fptr = open(fname)
         PopulateHelper(res, domain, open(fname))
@@ -53,16 +60,22 @@ def GeneratePlots():
         Plot([0, 1, 2, 3], resDict[key], key, 'time')
         Plot([0, 1, 2, 3], resDict[key], key, 'count')
 
+def Edit(b, c):
+    a = b[:]
+    for ii in range(0, len(a)):
+        a[ii] += c
+    return a
+
 def Plot(val, res, domain, mode):
     plt.clf()
-    plt.plot(val, res['normal'][mode], label='normal')
-    plt.plot(val, res['lazy'][mode], label='lazy')
-    plt.plot(val, res['concurrent'][mode], label='concurrent')
+    plt.bar(Edit(val, 0.1), res['normal'][mode], align='edge', width=0.2, label='normal')
+    plt.bar(val, res['lazy'][mode], align='center', width=0.2, label='lazy', tick_label=[0,1,2,3])
+    plt.bar(Edit(val, -0.1), res['concurrent'][mode], align='edge', width=-0.2, label='concurrent')
     if mode == 'count':
-        fname = 'SuccessPercentage_{}.png'.format(domain)
+        fname = 'figures/SuccessPercentage_{}.png'.format(domain)
         plt.ylabel('Success Percentage')
     else:
-        fname = 'ExecutionTime_{}.png'.format(domain)
+        fname = 'figures/ExecutionTime_{}.png'.format(domain)
         plt.ylabel('Execution Time')
     plt.xlabel('K')
     plt.legend(bbox_to_anchor=(1.05, 0.9), loc=2, borderaxespad=0.)
