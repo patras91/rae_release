@@ -85,7 +85,7 @@ def survey(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'survey' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('survey', start) == False):
-			pass
+            pass
         gui.Simulate("%s has surveyed the location %s\n" %(r, l))
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -114,7 +114,7 @@ def survey_Sim(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'survey' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('survey', start) == False):
-			pass
+            pass
         gui.Simulate("%s has surveyed the location %s\n" %(r, l))
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -143,7 +143,7 @@ def monitor(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'monitor' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('monitor', start) == False):
-			pass
+            pass
         gui.Simulate("%s has monitored the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -175,7 +175,7 @@ def monitor_Sim(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'monitor' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('monitor', start) == False):
-			pass
+            pass
         gui.Simulate("%s has monitored the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -207,7 +207,7 @@ def screen(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'screen' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('screen', start) == False):
-			pass
+            pass
         gui.Simulate("%s has screened the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -239,7 +239,7 @@ def screen_Sim(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'screen' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('screen', start) == False):
-			pass
+            pass
         gui.Simulate("%s has screened the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -271,7 +271,7 @@ def sample(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'sample' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('sample', start) == False):
-			pass
+            pass
         gui.Simulate("%s has sampled the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -303,7 +303,7 @@ def sample_Sim(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'sample' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('sample', start) == False):
-			pass
+            pass
         gui.Simulate("%s has sampled the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -335,7 +335,7 @@ def process(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'process' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('process', start) == False):
-			pass
+            pass
         gui.Simulate("%s has processed the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -367,7 +367,7 @@ def process_Sim(r, l):
     elif rae1.state.loc[r] == l and rv.TYPE[e] == 'process' and r != 'UAV' and rae1.state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('process', start) == False):
-			pass
+            pass
         gui.Simulate("%s has processed the location\n" %r)
         res = SUCCESS
         rae1.state.data[r] += 1
@@ -394,7 +394,7 @@ def charge(r, c):
     if rae1.state.loc[r] == rae1.state.pos[c] or rae1.state.pos[c] == r:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
-			pass
+            pass
         rae1.state.charge.AcquireLock(r)
         rae1.state.charge[r] = 75
         gui.Simulate("%s is fully charged\n" %r)
@@ -413,7 +413,7 @@ def charge_Sim(r, c):
     if rae1.state.loc[r] == rae1.state.pos[c] or rae1.state.pos[c] == r:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
-			pass
+            pass
         rae1.state.charge.AcquireLock(r)
         rae1.state.charge[r] = 75
         gui.Simulate("%s is fully charged\n" %r)
@@ -436,7 +436,7 @@ def move(r, l1, l2):
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
-			pass
+            pass
         gui.Simulate("%s has moved from %s to %s\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
@@ -464,7 +464,7 @@ def move_Sim(r, l1, l2):
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
-			pass
+            pass
         gui.Simulate("%s has moved from %s to %s\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
@@ -497,7 +497,7 @@ def fly(r, l1, l2):
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('fly', start) == False):
-			pass
+            pass
         gui.Simulate("%s has flied from %s to %s\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
@@ -528,7 +528,7 @@ def fly_Sim(r, l1, l2):
     elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('fly', start) == False):
-			pass
+            pass
         gui.Simulate("%s has flied from %s to %s\n" %(r, l1, l2))
         rae1.state.loc[r] = l2
         rae1.state.charge[r] = rae1.state.charge[r] - dist
@@ -600,7 +600,7 @@ def put(r, o):
     if rae1.state.pos[o] == r:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
-			pass
+            pass
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
         gui.Simulate("%s has put %s at location %s\n" %(r,o,rae1.state.loc[r]))
@@ -618,7 +618,7 @@ def put_Sim(r, o):
     if rae1.state.pos[o] == r:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
-			pass
+            pass
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
         gui.Simulate("%s has put %s at location %s\n" %(r,o,rae1.state.loc[r]))
@@ -636,7 +636,7 @@ def deposit(r):
     if rae1.state.loc[r] == 'base':
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('deposit', start) == False):
-			pass
+            pass
         gui.Simulate("%s has deposited data in the base\n" %r)
         rae1.state.data[r] = 0
         res = SUCCESS
@@ -653,7 +653,7 @@ def deposit_Sim(r):
     if rae1.state.loc[r] == 'base':
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('deposit', start) == False):
-			pass
+            pass
         gui.Simulate("%s has deposited data in the base\n" %r)
         rae1.state.data[r] = 0
         res = SUCCESS
@@ -676,7 +676,7 @@ def transferData(r1, r2):
     elif rae1.state.data[r2] + rae1.state.data[r1] <= 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
-			pass
+            pass
         gui.Simulate("%s transfered data to %s\n" %(r1, r2))
         rae1.state.data[r2] += rae1.state.data[r1]
         rae1.state.data[r1] = 0
@@ -684,7 +684,7 @@ def transferData(r1, r2):
     elif rae1.state.data[r2] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
-			pass
+            pass
         t = 4 - rae1.state.data[r2]
         rae1.state.data[r2] = 4
         rae1.state.data[r1] -= t
@@ -708,7 +708,7 @@ def transferData_Sim(r1, r2):
     elif rae1.state.data[r2] + rae1.state.data[r1] <= 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
-			pass
+            pass
         gui.Simulate("%s transfered data to %s\n" %(r1, r2))
         rae1.state.data[r2] += rae1.state.data[r1]
         rae1.state.data[r1] = 0
@@ -716,7 +716,7 @@ def transferData_Sim(r1, r2):
     elif rae1.state.data[r2] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
-			pass
+            pass
         t = 4 - rae1.state.data[r2]
         rae1.state.data[r2] = 4
         rae1.state.data[r1] -= t

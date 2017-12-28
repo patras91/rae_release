@@ -12,7 +12,7 @@ def moveTo(r, l):
         rae1.state.loc.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('moveTo', start) == False):
-		    pass
+            pass
         gui.Simulate("Robot %s has gone to location %d\n" %(r,l))
         rae1.state.loc[r] = l
         rae1.state.loc.ReleaseLock(r)
@@ -29,7 +29,7 @@ def moveTo_Sim(r, l):
         rae1.state.loc.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('moveTo', start) == False):
-		    pass
+            pass
         gui.Simulate("Robot %s has gone to location %d\n" %(r,l))
         rae1.state.loc[r] = l
         rae1.state.loc.ReleaseLock(r)
@@ -44,7 +44,7 @@ def moveToEmergency(r, l):
     rae1.state.loc.AcquireLock(r)
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('moveToEmergency', start) == False):
-	    pass
+        pass
     gui.Simulate("Robot %s has gone to location %d to handle emergency\n" %(r,l))
     rae1.state.loc[r] = l
     rae1.state.loc.ReleaseLock(r)
@@ -54,7 +54,7 @@ def moveToEmergency_Sim(r, l):
     rae1.state.loc.AcquireLock(r)
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('moveToEmergency', start) == False):
-	    pass
+        pass
     gui.Simulate("Robot %s has gone to location %d to handle emergency\n" %(r,l))
     rae1.state.loc[r] = l
     rae1.state.loc.ReleaseLock(r)
@@ -66,7 +66,7 @@ def take(r, o, l):
         rae1.state.load.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('take', start) == False):
-		    pass
+            pass
         rae1.state.pos[o] = r
         rae1.state.load[r] = o
         rae1.state.load.ReleaseLock(r)
@@ -84,7 +84,7 @@ def take_Sim(r, o, l):
         rae1.state.load.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('take', start) == False):
-		    pass
+            pass
         rae1.state.pos[o] = r
         rae1.state.load[r] = o
         rae1.state.load.ReleaseLock(r)
@@ -102,7 +102,7 @@ def put(r, o, l):
         rae1.state.load.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
-		    pass
+            pass
         rae1.state.pos[o] = l
         rae1.state.load[r] = NIL
         rae1.state.load.ReleaseLock(r)
@@ -120,7 +120,7 @@ def put_Sim(r, o, l):
         rae1.state.load.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
-		    pass
+            pass
         rae1.state.pos[o] = l
         rae1.state.load[r] = NIL
         rae1.state.load.ReleaseLock(r)
@@ -137,7 +137,7 @@ def perceive(l):
     if rae1.state.view[l] == False:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
-		    pass
+            pass
         for c in rae1.state.containers[l]:
             rae1.state.pos.AcquireLock(c)
             rae1.state.pos[c] = l
@@ -154,7 +154,7 @@ def perceive_Sim(l):
     if rae1.state.view[l] == False:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
-		    pass
+            pass
         for c in rae1.state.containers[l]:
             rae1.state.pos.AcquireLock(c)
             rae1.state.pos[c] = l
@@ -172,7 +172,7 @@ def addressEmergency(r, l, i):
     if rae1.state.loc[r] == l:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('addressEmergency', start) == False):
-		    pass
+            pass
         gui.Simulate("Robot %s has addressed emergency %d\n" %(r, i))
         res = SUCCESS
     else:
@@ -189,7 +189,7 @@ def addressEmergency_Sim(r, l, i):
     if rae1.state.loc[r] == l:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('addressEmergency', start) == False):
-		    pass
+            pass
         gui.Simulate("Robot %s has addressed emergency %d\n" %(r, i))
         res = SUCCESS
     else:
@@ -204,14 +204,14 @@ def wait(r):
     while(rae1.state.emergencyHandling[r] == True):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('wait', start) == False):
-	        pass
+            pass
         gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
     return SUCCESS
 
 def wait_Sim(r):
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('wait', start) == False):
-	    pass
+        pass
     gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
     rae1.state.emergencyHandling.AcquireLock(r)
     rae1.state.emergencyHandling[r] = False

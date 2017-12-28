@@ -7,6 +7,7 @@ sys.path.append('problems/')
 import argparse
 
 from timer import globalTimer, SetMode
+#from time import time
 import gui
 import globals
 
@@ -94,7 +95,7 @@ def PrintResult(taskInfo):
         args, res, retryCount = taskInfo[stackid]
         print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\n')
 
-def PrintSuccessCounts(taskInfo):
+def PrintResultSummary(taskInfo):
     succ = 0
     fail = 0
     retries = 0
@@ -105,7 +106,7 @@ def PrintSuccessCounts(taskInfo):
         else:
             fail += 1
         retries += retryCount
-    print(succ, succ+fail, retryCount)
+    print(succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter())
 
 def StartEnv():
     while(True):
@@ -141,6 +142,7 @@ def raeMult():
     envArgs.exit = False
 
     envThread = threading.Thread(target=StartEnv)
+    #startTime = time()
     envThread.start()
 
 
@@ -187,11 +189,12 @@ def raeMult():
         print("----Done with RAE----\n")
         PrintResult(taskInfo)
     else:
-        PrintSuccessCounts(taskInfo)
+        PrintResultSummary(taskInfo)
+        #globalTimer.Callibrate(startTime)
 
 def CreateNewStackSimulation(raeArgs):
-    methodList = rae1(raeArgs.task, raeArgs)
-    raeArgs.queue.put(methodList)
+    methodTree, simTime = rae1(raeArgs.task, raeArgs)
+    raeArgs.queue.put((methodTree, simTime))
 
 def raeMultSimulator(task, taskArgs, method, queue, candidateMethods):
     # Simulating one stack now

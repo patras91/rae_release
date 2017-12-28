@@ -17,6 +17,7 @@ import globals
 import random
 import colorama
 import rTree
+from timer import globalTimer
 ############################################################
 
 ### A goal is identical to a state except for the class name.
@@ -240,7 +241,9 @@ class concLA():
             p.start()
             p.join()
 
-            resultTree = queue.get()
+            resultTree, simTime = queue.get()
+            globalTimer.UpdateSimCounter(simTime)
+
             resultList = resultTree.GetPreorderTraversal()
             result = resultList[0]
 
@@ -267,6 +270,7 @@ class concLA():
 def InitializeSampling(raeArgs):
     samplingMode = globals.GetSamplingMode()
     if samplingMode == True:
+        globalTimer.ResetSimCounter()
         raelocals.method = raeArgs.method
         raelocals.candidates = raeArgs.candidates
         raelocals.currentNode = rTree.RTNode('ROOT')
@@ -339,7 +343,7 @@ def rae1(task, raeArgs):
 
     EndCriticalRegion()
     if samplingMode == True:
-        return resultTree
+        return (resultTree, globalTimer.GetSimulationCounter())
     else:
         return (result, raelocals.retryCount)
 
@@ -353,7 +357,8 @@ def GetCandidateBySampling(candidates, task, taskArgs):
     p.start()
     p.join()
 
-    resultTree = queue.get()
+    resultTree, simTime = queue.get()
+    globalTimer.UpdateSimCounter(simTime)
 
     retcode = resultTree.GetRetcode()
 
@@ -454,7 +459,8 @@ def SimulateTask(task, taskArgs):
             p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, m, queue, None])
             p.start()
             p.join()
-            resultNode = queue.get()
+            resultNode, simTime = queue.get()
+            globalTimer.UpdateSimCounter(simTime)
             result[m.__name__] = resultNode
 
         minCostMethod = None

@@ -44,7 +44,7 @@ def take(r, o):
         if rae1.state.loc[r] == rae1.state.pos[o]:
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
-			    pass
+                pass
             gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
             rae1.state.pos[o] = r
             rae1.state.load[r] = o
@@ -66,7 +66,7 @@ def take_Sim(r, o):
         if rae1.state.loc[r] == rae1.state.pos[o]:
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
-			    pass
+                pass
             gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
             rae1.state.pos[o] = r
             rae1.state.load[r] = o
@@ -88,7 +88,7 @@ def put(r, o):
         rae1.state.loc.AcquireLock(r)
         rae1.state.load.AcquireLock(r)
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
-		    pass
+            pass
         gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
@@ -108,7 +108,7 @@ def put_Sim(r, o):
         rae1.state.loc.AcquireLock(r)
         rae1.state.load.AcquireLock(r)
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
-		    pass
+            pass
         gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,rae1.state.loc[r]))
         rae1.state.pos[o] = rae1.state.loc[r]
         rae1.state.load[r] = NIL
@@ -128,7 +128,7 @@ def charge(r, c):
         rae1.state.charge.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
-			pass
+            pass
         rae1.state.charge[r] = 4
         gui.Simulate("Robot %s is fully charged\n" %r)
         rae1.state.charge.ReleaseLock(r)
@@ -147,7 +147,7 @@ def charge_Sim(r, c):
         rae1.state.charge.AcquireLock(r)
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
-			pass
+            pass
         rae1.state.charge[r] = 4
         gui.Simulate("Robot %s is fully charged\n" %r)
         rae1.state.charge.ReleaseLock(r)
@@ -162,7 +162,7 @@ def charge_Sim(r, c):
 def moveCharger(c, l):
     #start = globalTimer.GetTime()
     #while(globalTimer.IsCommandExecutionOver('moveCharger', start) == False):
-	#	pass
+    #	pass
     rae1.state.pos.AcquireLock(c)
     gui.Simulate("Charger %s is moved to location %s\n" %(c,l))
     rae1.state.pos[c] = l
@@ -172,7 +172,7 @@ def moveCharger(c, l):
 def moveCharger_Sim(c, l):
     #start = globalTimer.GetTime()
     #while(globalTimer.IsCommandExecutionOver('moveCharger', start) == False):
-	#	pass
+    #	pass
     rae1.state.pos.AcquireLock(c)
     gui.Simulate("Charger %s is moved to location %s\n" %(c,l))
     rae1.state.pos[c] = l
@@ -240,7 +240,7 @@ def perceive(l):
     if rae1.state.view[l] == False:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
-		    pass
+            pass
         for c in rae1.state.containers[l]:
             rae1.state.pos.AcquireLock(c)
             rae1.state.pos[c] = l
@@ -257,7 +257,7 @@ def perceive_Sim(l):
     if rae1.state.view[l] == False:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
-		    pass
+            pass
         for c in rae1.state.containers[l]:
             rae1.state.pos.AcquireLock(c)
             rae1.state.pos[c] = l

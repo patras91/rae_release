@@ -1,6 +1,6 @@
 from __future__ import print_function
 import sys
-#from domain_constants import *
+from domain_constants import *
 from timer import globalTimer
 """
 File ste.py
@@ -296,6 +296,8 @@ def ride_taxi_method(a,y):
 		rae1.state.loc.ReleaseLock(a)
 		gui.Simulate('the taxi driver is unwilling to drive to',y,'\n')
 		return FAILURE
+
+rv = RV()
 
 rae1.declare_commands([walk, call_taxi, enter_taxi, taxi_carry, pay_driver, leave_taxi], [walk_Sim, call_taxi_Sim, enter_taxi_Sim, taxi_carry_Sim, pay_driver_Sim, leave_taxi_Sim])
 
