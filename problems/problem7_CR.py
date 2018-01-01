@@ -11,6 +11,8 @@ DURATION.TIME = {
     'charge': 5,
     'move': 10,
     'moveCharger': 5,
+    'addressEmergency': 15,
+    'wait': 5,
  }
 
 DURATION.COUNTER = {
@@ -20,28 +22,38 @@ DURATION.COUNTER = {
     'charge': 5,
     'move': 10,
     'moveCharger': 5,
+    'addressEmergency': 15,
+    'wait': 5,
  }
 
-rv.LOCATIONS = [1, 2, 3, 4, 5]
-rv.EDGES = {1: [2], 2: [1, 3, 4], 3: [2, 5], 4: [2, 5], 5: [3, 4]}
+rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7]
+rv.EDGES = {
+    1: [3],
+    2: [3],
+    3: [1, 2, 4],
+    4: [3, 5],
+    5: [4, 6],
+    6: [5, 7],
+    7: [6]
+}
 
 def ResetState():
-    state.loc = {'r1': 1}
-    state.charge = {'r1':3}
-    state.load = {'r1': NIL}
+    state.loc = {'r1': 1, 'r2': 2}
+    state.charge = {'r1': 1, 'r2': 4}
+    state.load = {'r1': NIL, 'r2': NIL}
     state.pos = {'c1': 3, 'o1': UNK, 'o2': UNK}
-    state.containers = {1:[], 2:[], 3:[], 4:['o1'], 5:['o2']}
-
+    state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:[], 6:[], 7:['o1', 'o2']}
+    state.emergencyHandling = {'r1': False, 'r2': False}
     state.view = {}
     for l in rv.LOCATIONS:
         state.view[l] = False
 
 tasks = {
     1: ['fetch', 'r1', 'o1'],
-    2: ['fetch', 'r1', 'o2'],
+    2: ['fetch', 'r2', 'o2'],
+    3: ['emergency', 'r1', 4, 1]
 
 }
 
 eventsEnv = {
-    3: [RelocateCharger, ['c1', 5]]
 }

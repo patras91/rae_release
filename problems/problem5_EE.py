@@ -16,6 +16,7 @@ DURATION.TIME = {
     'take': 2,
     'put': 2,
     'move': 10,
+    'charge': 5,
  }
 
 DURATION.COUNTER = {
@@ -28,6 +29,7 @@ DURATION.COUNTER = {
     'deposit': 1,
     'transferData': 1,
     'take': 2,
+    'charge': 5,
     'put': 2,
     'move': 5,
  }

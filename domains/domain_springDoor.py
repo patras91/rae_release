@@ -372,13 +372,19 @@ def MoveThroughDoorway_Method3(r, d, l):
         res = FAILURE
     return res
 
+def Restore(r, loc, cargo):
+    rae1.do_task('moveTo', r, loc)
+    if cargo != NIL:
+        rae1.do_command(take, r, cargo)
+
 def MoveThroughDoorway_Method2(r, d, l):
     if rae1.state.load[r] != NIL:
-        rae1.do_task('getHelp', r)
-        rae1.do_command(openDoor, 'r2', d)
-        rae1.do_command(holdDoor, 'r2', d)
+        r2, l, cargo = GetHelp_Method1(r)
+        rae1.do_command(openDoor, r2, d)
+        rae1.do_command(holdDoor, r2, d)
         rae1.do_command(passDoor, r, d, l)
-        rae1.do_command(releaseDoor, 'r2', d)
+        rae1.do_command(releaseDoor, r2, d)
+        Restore(r2, l, cargo)
         res = SUCCESS
     else:
         res = FAILURE
@@ -417,11 +423,21 @@ def MoveTo_Method1(r, l):
     return res
 
 def GetHelp_Method1(r):
-    load_r = rae1.state.load['r2']
+    if r == rv.ROBOTS[0]:
+        r2 = rv.ROBOTS[1]
+    else:
+        r2 = rv.ROBOTS[0]
+
+    for robo in rv.ROBOTS:
+        if rae1.state.load[robo] == NIL and robo != r:
+            r2 = robo
+
+    load_r = rae1.state.load[r2]
+    loc_r2 = rae1.state.loc[r2]
     if load_r != NIL:
-        rae1.do_command(put, 'r2', load_r)
-    rae1.do_task('moveTo', 'r2', rae1.state.loc[r])
-    return SUCCESS
+        rae1.do_command(put, r2, load_r)
+    rae1.do_task('moveTo', r2, rae1.state.loc[r])
+    return r2, loc_r2, load_r
 
 def Fetch_Method1(r, o, l):
     rae1.do_task('moveTo', r, rae1.state.pos[o])

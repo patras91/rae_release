@@ -11,6 +11,8 @@ DURATION.TIME = {
     'charge': 5,
     'move': 10,
     'moveCharger': 5,
+    'addressEmergency': 15,
+    'wait': 5,
  }
 
 DURATION.COUNTER = {
@@ -20,6 +22,8 @@ DURATION.COUNTER = {
     'charge': 5,
     'move': 10,
     'moveCharger': 5,
+    'addressEmergency': 15,
+    'wait': 5,
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -31,7 +35,7 @@ def ResetState():
     state.load = {'r1': NIL}
     state.pos = {'c1': 7, 'o1': UNK, 'o2': UNK}
     state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:['o1'], 6:[], 7:[], 8:[]}
-
+    state.emergencyHandling = {'r1': False, 'r2': False}
     state.view = {}
     for l in rv.LOCATIONS:
         state.view[l] = False
@@ -43,5 +47,5 @@ tasks = {
 }
 
 eventsEnv = {
-    3: [RelocateCharger, ['c1', 8]]
+    #3: [RelocateCharger, ['c1', 8]]
 }

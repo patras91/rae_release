@@ -10,6 +10,7 @@ from timer import globalTimer, SetMode
 #from time import time
 import gui
 import globals
+import multiprocessing
 
 __author__ = 'patras'
 
@@ -88,7 +89,7 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
     taskRes, retryCount = rae1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = (raeArgs.taskArgs, taskRes.retcode, retryCount)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, taskRes.retcode, retryCount)
 
 def PrintResult(taskInfo):
     for stackid in taskInfo:
@@ -264,3 +265,11 @@ if __name__ == "__main__":
     SetMode(args.c)
     globals.SetSimulationMode(args.simMode)
     testRAE(args.d, args.p, s)
+
+def testRAEBatch(domain, problem, doSampling):
+    p = multiprocessing.Process(target=testRAE, args=(domain, problem, doSampling))
+    p.start()
+    p.join(600)
+    if p.is_alive() == True:
+        p.terminate()
+        print("-1 -1 -1 -1 -1")

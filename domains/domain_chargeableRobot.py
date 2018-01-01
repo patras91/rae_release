@@ -179,7 +179,7 @@ def moveCharger_Sim(c, l):
     rae1.state.pos.ReleaseLock(c)
     return SUCCESS
 
-def move(r, l1, l2, dist):
+def moveToEmergency(r, l1, l2, dist):
     rae1.state.loc.AcquireLock(r)
     rae1.state.charge.AcquireLock(r)
     if l1 == l2:
@@ -205,9 +205,13 @@ def move(r, l1, l2, dist):
         res = FAILURE
     rae1.state.loc.ReleaseLock(r)
     rae1.state.charge.ReleaseLock(r)
+    if res == FAILURE:
+        rae1.state.emergencyHandling.AcquireLock(r)
+        rae1.state.emergencyHandling[r] = False
+        rae1.state.emergencyHandling.ReleaseLock(r)
     return res
 
-def move_Sim(r, l1, l2, dist):
+def moveToEmergency_Sim(r, l1, l2, dist):
     rae1.state.loc.AcquireLock(r)
     rae1.state.charge.AcquireLock(r)
     if l1 == l2:
@@ -233,6 +237,10 @@ def move_Sim(r, l1, l2, dist):
         res = FAILURE
     rae1.state.loc.ReleaseLock(r)
     rae1.state.charge.ReleaseLock(r)
+    if res == FAILURE:
+        rae1.state.emergencyHandling.AcquireLock(r)
+        rae1.state.emergencyHandling[r] = False
+        rae1.state.emergencyHandling.ReleaseLock(r)
     return res
 
 def perceive(l):
@@ -274,12 +282,133 @@ def MoveTo_Method1(r, l):
     c = rae1.state.charge[r]
     dist = CR_GETDISTANCE(x, l)
     if c >= dist:
-        rae1.do_command(move, r, x, l, dist)
+        rae1.do_task('nonEmergencyMove', r, x, l, dist)
         res = SUCCESS
     else:
         gui.Simulate("Insufficient charge! only %.2f%%. Robot %s cannot move\n" %(c * 100 / 4, r))
         res = FAILURE
     return res
+
+def move(r, l1, l2, dist):
+    rae1.state.emergencyHandling.AcquireLock(r)
+    if rae1.state.emergencyHandling[r] == False:
+        rae1.state.loc.AcquireLock(r)
+        rae1.state.charge.AcquireLock(r)
+        if l1 == l2:
+            gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
+            res = SUCCESS
+        elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('move', start) == False):
+               pass
+            gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+            rae1.state.loc[r] = l2
+            rae1.state.charge[r] = rae1.state.charge[r] - dist
+            res = SUCCESS
+        elif rae1.state.loc[r] != l1 and rae1.state.charge[r] >= dist:
+            gui.Simulate("Robot %s is not in location %d\n" %(r, l1))
+            res = FAILURE
+        elif rae1.state.loc[r] == l1 and rae1.state.charge[r] < dist:
+            gui.Simulate("Robot %s does not have enough charge to move :(\n" %r)
+            rae1.state.charge[r] = 0 # should we do this?
+            res = FAILURE
+        else:
+            gui.Simulate("Robot %s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
+            res = FAILURE
+        rae1.state.loc.ReleaseLock(r)
+        rae1.state.charge.ReleaseLock(r)
+    else:
+        gui.Simulate("Robot is addressing emergency so it cannot move.\n")
+        res = FAILURE
+    rae1.state.emergencyHandling.ReleaseLock(r)
+    return res
+
+def move_Sim(r, l1, l2, dist):
+    rae1.state.emergencyHandling.AcquireLock(r)
+    if rae1.state.emergencyHandling[r] == False:
+        rae1.state.loc.AcquireLock(r)
+        rae1.state.charge.AcquireLock(r)
+        if l1 == l2:
+            gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
+            res = SUCCESS
+        elif rae1.state.loc[r] == l1 and rae1.state.charge[r] >= dist:
+            start = globalTimer.GetTime()
+            while(globalTimer.IsCommandExecutionOver('move', start) == False):
+               pass
+            gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+            rae1.state.loc[r] = l2
+            rae1.state.charge[r] = rae1.state.charge[r] - dist
+            res = SUCCESS
+        elif rae1.state.loc[r] != l1 and rae1.state.charge[r] >= dist:
+            gui.Simulate("Robot %s is not in location %d\n" %(r, l1))
+            res = FAILURE
+        elif rae1.state.loc[r] == l1 and rae1.state.charge[r] < dist:
+            gui.Simulate("Robot %s does not have enough charge to move :(\n" %r)
+            rae1.state.charge[r] = 0 # should we do this?
+            res = FAILURE
+        else:
+            gui.Simulate("Robot %s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
+            res = FAILURE
+        rae1.state.loc.ReleaseLock(r)
+        rae1.state.charge.ReleaseLock(r)
+    else:
+        gui.Simulate("Robot is addressing emergency so it cannot move.\n")
+        res = FAILURE
+    rae1.state.emergencyHandling.ReleaseLock(r)
+    return res
+
+def addressEmergency(r, l, i):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.emergencyHandling.AcquireLock(r)
+    if rae1.state.loc[r] == l:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('addressEmergency', start) == False):
+            pass
+        gui.Simulate("Robot %s has addressed emergency %d\n" %(r, i))
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s has failed to address emergency %d\n" %(r, i))
+        res = FAILURE
+    rae1.state.emergencyHandling[r] = False
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.emergencyHandling.ReleaseLock(r)
+    return res
+
+def addressEmergency_Sim(r, l, i):
+    rae1.state.loc.AcquireLock(r)
+    rae1.state.emergencyHandling.AcquireLock(r)
+    if rae1.state.loc[r] == l:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('addressEmergency', start) == False):
+            pass
+        gui.Simulate("Robot %s has addressed emergency %d\n" %(r, i))
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s has failed to address emergency %d\n" %(r, i))
+        res = FAILURE
+    rae1.state.emergencyHandling[r] = False
+    rae1.state.loc.ReleaseLock(r)
+    rae1.state.emergencyHandling.ReleaseLock(r)
+    return res
+
+def wait(r):
+    while(rae1.state.emergencyHandling[r] == True):
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('wait', start) == False):
+            pass
+        gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
+    return SUCCESS
+
+def wait_Sim(r):
+    start = globalTimer.GetTime()
+    while(globalTimer.IsCommandExecutionOver('wait', start) == False):
+        pass
+    gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
+    rae1.state.emergencyHandling.AcquireLock(r)
+    rae1.state.emergencyHandling[r] = False
+    rae1.state.emergencyHandling.ReleaseLock(r)
+
+    return SUCCESS
 
 def Recharge_Method1(r, c):
     if rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
@@ -384,15 +513,49 @@ def RelocateCharger(c, l):
 
     return res
 
+def Emergency_Method1(r, l, i):
+    if rae1.state.emergencyHandling[r] == False:
+        rae1.state.emergencyHandling[r] = True
+        load_r = rae1.state.load[r]
+        if load_r != NIL:
+            rae1.do_command(put, r, load_r, rae1.state.loc[r])
+        l1 = rae1.state.loc[r]
+        dist = CR_GETDISTANCE(l1, l)
+        rae1.do_command(moveToEmergency, r, l1, l, dist)
+        rae1.do_command(addressEmergency, r, l, i)
+        res = SUCCESS
+    else:
+        gui.Simulate("%r is already busy handling another emergency\n" %r)
+        res = FAILURE
+    return res
+
+def NonEmergencyMove_Method1(r, l1, l2, dist):
+    if rae1.state.emergencyHandling[r] == False:
+        rae1.do_command(move, r, l1, l2, dist)
+        res = SUCCESS
+    else:
+        gui.Simulate("Move failed, trying to do a non emergency move for a robot handling emergency\n")
+        res = FAILURE
+    return res
+
+def NonEmergencyMove_Method2(r, l1, l2, dist):
+    if rae1.state.emergencyHandling[r] == False:
+        rae1.do_command(move, r, l1, l2, dist)
+    else:
+        rae1.do_command(wait, r)
+        rae1.do_command(move, r, l1, l2, dist)
+    return SUCCESS
 
 rv = RV()
-rae1.declare_commands([put, take, perceive, charge, move, moveCharger],
-                      [put_Sim, take_Sim, perceive_Sim, charge_Sim, move_Sim, moveCharger_Sim])
+rae1.declare_commands([put, take, perceive, charge, move, moveCharger, moveToEmergency, addressEmergency, wait],
+                      [put_Sim, take_Sim, perceive_Sim, charge_Sim, move_Sim, moveCharger_Sim, moveToEmergency_Sim, addressEmergency_Sim, wait_Sim])
 
 
 rae1.declare_methods('search', Search_Method1, Search_Method2)
 rae1.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
 rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
 rae1.declare_methods('moveTo', MoveTo_Method1)
+rae1.declare_methods('emergency', Emergency_Method1)
+rae1.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1, NonEmergencyMove_Method2)
 #rae1.declare_methods('relocateCharger', RelocateCharger_Method1)
 

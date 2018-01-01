@@ -16,6 +16,7 @@ DURATION.TIME = {
     'take': 2,
     'put': 2,
     'move': 10,
+    'charge': 5
  }
 
 DURATION.COUNTER = {
@@ -30,6 +31,7 @@ DURATION.COUNTER = {
     'take': 2,
     'put': 2,
     'move': 10,
+    'charge': 5
  }
 
 rv.TYPE = {'e1': 'survey', 'e2': 'monitor', 'e3': 'screen', 'e4': 'sample', 'e5':'process'}

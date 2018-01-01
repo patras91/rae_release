@@ -41,6 +41,7 @@ DURATION.COUNTER = {
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6]
 rv.EDGES = {1: [4], 2: [5], 3: [6], 4: [1, 5], 5: [2, 4, 6], 6: [3, 5]}
 rv.DOORLOCATIONS = {(1, 4): 'd1', (2, 5): 'd2', (3, 6): 'd3'}
+rv.ROBOTS = ['r1', 'r2']
 
 def ResetState():
     state.load = {'r1': NIL, 'r2': NIL}

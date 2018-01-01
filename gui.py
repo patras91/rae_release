@@ -28,10 +28,11 @@ class GUI():
             if globalQueue.empty() == False:
                 t = globalQueue.get()
                 tdraw.simulate(t)
-        elif globalQueue.empty() == False:
-            t = globalQueue.get()
-            t1 = ' '.join(map(str, t))
-            self.text.insert(END, t1)
+        else:
+            if globalQueue.empty() == False:
+                t = globalQueue.get()
+                t1 = ' '.join(map(str, t))
+                self.text.insert(END, t1)
             self.root.after(1, self.simulate)
 
 def Simulate(*t):
@@ -41,4 +42,5 @@ def Simulate(*t):
 
 def start(domain, rv):
     if (globals.GetSimulationMode() == 'on'):
+        global g
         g = GUI(domain, rv)
