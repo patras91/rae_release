@@ -37,7 +37,10 @@ def PopulateHelper(res, domain, f_rae):
     res['simTime'].append(simTime/1000)
     res['runTime'].append(runTime * mult[domain]/1000)
     #res['successCount'].append(succCount * 100 / totalCount)
-    res['successCount'].append(succCount)
+    sucNorm = succCount - 0.5 * retryCount
+    if sucNorm < 0:
+        sucNorm = 0
+    res['successCount'].append(sucNorm)
     res['retryCount'].append(retryCount)
 
 def Populate(res, domain, simmode):
@@ -82,27 +85,27 @@ def GeneratePlots():
     #plt.rcParams.update({'font.size': 22})
     ii = 1
     for domain in resDict:
-        #fname = '../../../hiofsm/IJCAI2018/figures/ExecutionTime.png'
+        fname = '../../../hiofsm/IJCAI2018/figures/ExecutionTime.png'
         Plot(K[domain], resDict[domain], domain, 'time', ii)
         if ii == 3:
             plt.legend(bbox_to_anchor=(0.0, 1), loc=2, borderaxespad=0.)
         ii += 1
-    #fig = plt.gcf()
-    #fig.set_size_inches(30, 10)
-    #plt.savefig(fname, bbox_inches='tight')
+    fig = plt.gcf()
+    fig.set_size_inches(30, 10)
+    plt.savefig(fname, bbox_inches='tight')
 
-    #plt.clf()
+    plt.clf()
     ii = 1
     for domain in resDict:
-        #fname = '../../../hiofsm/IJCAI2018/figures/SuccessAndRetry.png'
-        Plot(K[domain], resDict[domain], domain, 'count', 4 + ii)
+        fname = '../../../hiofsm/IJCAI2018/figures/SuccessWithRetryPenalty.png'
+        Plot(K[domain], resDict[domain], domain, 'count', ii)
         if ii == 1:
-            plt.legend(bbox_to_anchor=(0.20, 1), loc=2, borderaxespad=0.)
+            plt.legend(bbox_to_anchor=(0.0, 1), loc=2, borderaxespad=0.)
         ii += 1
     fig = plt.gcf()
-    fig.set_size_inches(50, 20)
+    fig.set_size_inches(30, 10)
 
-    fname = '../../../hiofsm/IJCAI2018/figures/allTogether.png'
+    #fname = '../../../hiofsm/IJCAI2018/figures/allTogether.png'
     plt.savefig(fname, bbox_inches='tight')
 
 def EditToFitBarPlot(b, c):
@@ -112,8 +115,7 @@ def EditToFitBarPlot(b, c):
     return a
 
 def Plot(val, res, domain, plotMode, ii):
-    #plt.clf()
-    plt.subplot(2, 4, ii)
+    plt.subplot(1, 4, ii)
     if plotMode == 'time':
         index1 = 'simTime'
         index2 = 'runTime'
@@ -134,10 +136,10 @@ def Plot(val, res, domain, plotMode, ii):
         fname = '../../../hiofsm/IJCAI2018/figures/SuccessAndRetry_{}.png'.format(domain)
         #ylabel = 'Success and Retry Counts in {}'.format(domain)
         ylabel = ''
-        label1 = "Active success count"
-        label2 = "Active retry count"
-        label3 = "Lazy success count"
-        label4 = "Lazy retry count"
+        label1 = "Active"
+        #label2 = "Active retry count"
+        label3 = "Lazy"
+        #label4 = "Lazy retry count"
         color1 = 'green'
         color2 = 'red'
         color3 = 'blue'
@@ -145,9 +147,11 @@ def Plot(val, res, domain, plotMode, ii):
 
     width = 0.15
     plt.bar(EditToFitBarPlot(val, 0 * width), res['normal'][index1], width=width, label=label1, color=color1)
-    plt.bar(EditToFitBarPlot(val, 1 * width), res['normal'][index2], width=width, label=label2, color=color2)
+    if plotMode == 'time':
+        plt.bar(EditToFitBarPlot(val, 1 * width), res['normal'][index2], width=width, label=label2, color=color2)
     plt.bar(EditToFitBarPlot(val, 2 * width), res['lazy'][index1], width=width, label=label3, tick_label=val, color=color3)
-    plt.bar(EditToFitBarPlot(val, 3 * width), res['lazy'][index2], width=width, label=label4, color=color4)
+    if plotMode == 'time':
+        plt.bar(EditToFitBarPlot(val, 3 * width), res['lazy'][index2], width=width, label=label4, color=color4)
     #plt.bar(Edit(val, -0.1), res['concurrent'][mode], align='edge', width=-0.2, label='concurrent') # for aligning the right edge
 
     plt.ylabel(ylabel)

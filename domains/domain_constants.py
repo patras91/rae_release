@@ -18,3 +18,6 @@ NIL = 'nil'
 class RV():
     def __init__(self):
         pass
+
+OK = 'ok'
+NOTOK = 'notok'

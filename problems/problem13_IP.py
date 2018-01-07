@@ -65,12 +65,12 @@ rv.MACHINES = {'paint': ['p1', 'p2'], 'pack': ['pck1'], 'assemble': ['a1'], 'wra
 rv.BUFFERS = {'input': 1, 'output': 11}
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 rv.EDGES = {1: [2], 2: [1, 3, 5], 3: [2, 4, 6], 4: [3, 7], 5: [2, 6, 8], 6: [3, 5, 7, 9], 7: [4, 6, 10], 8: [5, 9], 9: [6, 8, 10], 10: [7, 9, 11], 11: [10]}
-rv.ROBOTS = ['r1', 'r2']
+rv.ROBOTS = ['r1', 'r2', 'r3']
 
 def ResetState():
-    state.load = {'r1': NIL, 'r2': NIL}
-    state.loc = {'r1': 2, 'r2': 4}
-    state.status = {'r1': 'free', 'r2': 'free', 'p1': 'free', 'a1': 'free', 'pck1': 'free', 'p2': 'free', 'w1': 'free'}
+    state.load = {'r1': NIL, 'r2': NIL, 'r3': NIL}
+    state.loc = {'r1': 2, 'r2': 4, 'r3': 5}
+    state.status = {'r1': 'free', 'r2': 'free', 'r3': 'free', 'p1': 'free', 'a1': 'free', 'pck1': 'free', 'p2': 'free', 'w1': 'free'}
     state.pos = {'a': rv.BUFFERS['input'], 'b': rv.BUFFERS['input'], 'c': rv.BUFFERS['input'], 'o1': rv.BUFFERS['input'], 'gift': rv.BUFFERS['input']}
     state.cond = {'p1': OK, 'pck1': OK, 'a1': OK, 'p2': OK, 'w1': OK}
 
@@ -80,4 +80,5 @@ tasks = {
     3: ['order', ['wrap', ['paint', 'gift', 'red']]]
 }
 
-eventsEnv = {}
+eventsEnv = {
+}

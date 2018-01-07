@@ -82,5 +82,5 @@ tasks = {
 
 eventsEnv = {
     1: [damage, ['p1']],
-    2: [damage, ['p2']]
+    2: [damage, ['p2']],
 }

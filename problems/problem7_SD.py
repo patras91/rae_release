@@ -28,21 +28,23 @@ DURATION.COUNTER = {
     'put': 2,
  }
 
-rv.LOCATIONS = [1, 2, 3, 4]
+rv.LOCATIONS = [1, 2, 3, 4, 5, 6]
 rv.EDGES = {
-    1: [2, 3],
-    2: [1, 4],
-    3: [1, 4],
-    4: [2, 3],
+    1: [3],
+    2: [3, 5],
+    3: [1, 2, 4],
+    4: [6, 3],
+    5: [2],
+    6: [4]
 }
-rv.DOORLOCATIONS = {(1, 2): 'd2', (1, 3): 'd1', (2, 4): 'd3'}
+rv.DOORLOCATIONS = {(4, 6): 'd2', (2, 5): 'd1', (1, 3): 'd3'}
 rv.ROBOTS = ['r1', 'r2']
 rv.DOORS = ['d1', 'd2', 'd3']
 
 def ResetState():
     state.load = {'r1': NIL, 'r2': NIL}
     state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed'}
-    state.loc = {'r1': 2, 'r2': 3}
+    state.loc = {'r1': 5, 'r2': 6}
     state.pos = {'o1': 4, 'o2': 1}
     state.done = False
 
@@ -51,5 +53,4 @@ tasks = {
 }
 
 eventsEnv = {
-    3: ['closeDoors', []],
 }

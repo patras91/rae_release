@@ -33,7 +33,7 @@ def ResetState():
     state.loc = {'r1': 1}
     state.charge = {'r1':4}
     state.load = {'r1': NIL}
-    state.pos = {'c1': 7, 'o1': UNK, 'o2': UNK}
+    state.pos = {'c1': 7, 'o1': 5, 'o2': 2}
     state.containers = {1:[], 2:['o2'], 3:[], 4:[], 5:['o1'], 6:[], 7:[], 8:[]}
     state.emergencyHandling = {'r1': False, 'r2': False}
     state.view = {}
@@ -42,7 +42,7 @@ def ResetState():
 
 tasks = {
     1: ['fetch', 'r1', 'o1'],
-    2: ['fetch', 'r1', 'o2'],
+    #2: ['fetch', 'r1', 'o2'],
 
 }
 

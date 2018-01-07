@@ -27,20 +27,17 @@ def PopulateHelper(res, domain, f_rae):
         print(succCount, totalCount)
 
 def Populate(res, domain, simmode):
-    f_rae = open("test_noLA_output.txt", "r")
+    f_rae_name = "outputs/{}/noLA/RAE.txt".format(domain)
+    f_rae = open(f_rae_name, "r")
     PopulateHelper(res, domain, f_rae)
     f_rae.close()
     for k in range(1, 4):
         if simmode == 'normal':
-            fname = 'test_normalLA{}_output.txt'.format(k)
+            fname = 'outputs/{}/normal/K{}.txt'.format(domain, k)
         elif simmode == 'lazy':
-            if domain == 'CR':
-                print(domain, simmode, k)
-            fname = 'test_lazyLA{}_output.txt'.format(k)
+            fname = 'outputs/{}/lazy/K{}.txt'.format(domain, k)
         elif simmode == 'concurrent':
-            if domain == 'CR':
-                print(domain, simmode, k)
-            fname = 'test_concLA{}_output.txt'.format(k)
+            fname = 'outputs/{}/conc/K{}.txt'.format(domain, k)
         fptr = open(fname)
         PopulateHelper(res, domain, open(fname))
         fptr.close()
@@ -53,7 +50,7 @@ def GeneratePlots():
         'CR': {}
     }
     for key in resDict:
-        resDict[key] = {'normal': {}, 'lazy': {}, 'concurrent': {}}
+        resDict[key] = {'normal': {}, 'lazy': {}} #, 'concurrent': {}}
         for kk in resDict[key]:
             resDict[key][kk] = {'time': [], 'count': []}
             Populate(resDict[key][kk], key, kk)
@@ -70,7 +67,7 @@ def Plot(val, res, domain, mode):
     plt.clf()
     plt.bar(Edit(val, 0.1), res['normal'][mode], align='edge', width=0.2, label='normal')
     plt.bar(val, res['lazy'][mode], align='center', width=0.2, label='lazy', tick_label=[0,1,2,3])
-    plt.bar(Edit(val, -0.1), res['concurrent'][mode], align='edge', width=-0.2, label='concurrent')
+    #plt.bar(Edit(val, -0.1), res['concurrent'][mode], align='edge', width=-0.2, label='concurrent')
     if mode == 'count':
         fname = 'figures/SuccessPercentage_{}.png'.format(domain)
         plt.ylabel('Success Percentage')

@@ -56,7 +56,7 @@ class Timer():
     def IsCommandExecutionOver(self, cmd, start):
         mode = globals.GetSamplingMode()
         if mode == False:
-            mult = 8  # This is the approx callibrated value
+            mult = 1  # This is the approx callibrated value
         else:
             mult = 1
         if self.mode == 'Counter':

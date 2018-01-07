@@ -2,9 +2,10 @@
 
 echo "Executing tests for RAE-S."
 
-for problem in "problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" #
+for problem in "problem14" #"problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" # "problem1" "problem2"
+#for problem in "problem12" #"problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19" "problem20"
 do
-    for domain in "CR" #"SD" "IP" "CR" "EE"
+    for domain in "IP" #"SD" "IP" "CR" "EE"
     do
         setup="
 import sys
@@ -19,9 +20,9 @@ globals.SetConcurrent('n')
 globals.SetLazy('n')
 globals.SetSimulationMode('off')"
         echo $domain $problem
-        time_test="testRAEBatch(domain='$domain', problem='$problem', doSampling=True)"
+        time_test="testRAEBatch(domain='$domain', problem='$problem', doSampling=False)"
 
-        fname="test_batch10_CR_normalLA1_output.txt"
+        fname="outputs/$domain/noLA/RAE.txt"
         #echo '' >> $fname
 
 		echo "Time test of $domain $problem" >> $fname

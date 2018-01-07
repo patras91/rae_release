@@ -42,7 +42,9 @@ DURATION.TIME = {
     'move': 10,
     'take': 2,
     'put': 2,
-    'wrap': 3
+    'wrap': 3,
+    'damage': 1,
+    'repair': 5
  }
 
 DURATION.COUNTER = {
@@ -52,7 +54,9 @@ DURATION.COUNTER = {
     'move': 10,
     'take': 2,
     'put': 2,
-    'wrap': 3
+    'wrap': 3,
+    'damage': 1,
+    'repair': 5
  }
 
 
@@ -78,6 +82,7 @@ def ResetState():
         'o5': rv.BUFFERS['input'],
         'o6': rv.BUFFERS['input'],
     }
+    state.cond = {'p1': OK, 'pck1': OK, 'a1': OK, 'p2': OK, 'w1': OK}
 
 tasks = {
     1: ['order', ['paint', ['pack', 'o1', 'o2'], 'red']],

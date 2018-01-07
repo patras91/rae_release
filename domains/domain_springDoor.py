@@ -130,7 +130,7 @@ def passDoor_Sim(r, d, l):
 def holdDoor(r, d):
     rae1.state.doorStatus.AcquireLock(d)
     rae1.state.load.AcquireLock(r)
-    if (rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'closing') and rae1.state.load[r] == NIL:
+    if (rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'closing' or rae1.state.doorStatus[d] == 'held') and rae1.state.load[r] == NIL:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('holdDoor', start) == False):
 	        pass
@@ -151,7 +151,7 @@ def holdDoor(r, d):
 def holdDoor_Sim(r, d):
     rae1.state.doorStatus.AcquireLock(d)
     rae1.state.load.AcquireLock(r)
-    if (rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'closing') and rae1.state.load[r] == NIL:
+    if (rae1.state.doorStatus[d] == 'opened' or rae1.state.doorStatus[d] == 'closing' or rae1.state.doorStatus[d] == 'held') and rae1.state.load[r] == NIL:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('holdDoor', start) == False):
 	        pass
@@ -294,7 +294,7 @@ def take(r, o):
             gui.Simulate("Robot %s is not at object %s's location\n" %(r, o))
             res = FAILURE
     else:
-        print("Robot %s is not free to take anything\n" %r)
+        gui.Simulate("Robot %s is not free to take anything\n" %r)
         res = FAILURE
     rae1.state.pos.ReleaseLock(o)
     rae1.state.load.ReleaseLock(r)
@@ -330,7 +330,7 @@ def closeDoors():
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
             pass
-        for d in ['d1', 'd2', 'd3']:
+        for d in rv.DOORS:
             rae1.state.doorStatus.AcquireLock(d)
             if rae1.state.doorStatus[d] == 'opened':
                 rae1.state.doorStatus[d] = 'closing'
@@ -348,7 +348,7 @@ def closeDoors_Sim():
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
             pass
-        for d in ['d1', 'd2', 'd3']:
+        for d in rv.DOORS:
             rae1.state.doorStatus.AcquireLock(d)
             if rae1.state.doorStatus[d] == 'opened':
                 rae1.state.doorStatus[d] = 'closing'
@@ -379,13 +379,17 @@ def Restore(r, loc, cargo):
 
 def MoveThroughDoorway_Method2(r, d, l):
     if rae1.state.load[r] != NIL:
-        r2, l, cargo = GetHelp_Method1(r)
-        rae1.do_command(openDoor, r2, d)
-        rae1.do_command(holdDoor, r2, d)
-        rae1.do_command(passDoor, r, d, l)
-        rae1.do_command(releaseDoor, r2, d)
-        Restore(r2, l, cargo)
-        res = SUCCESS
+         params = GetHelp_Method1(r)
+         if params == FAILURE:
+             res = FAILURE
+         else:
+            r2, l2, cargo = params
+            rae1.do_command(openDoor, r2, d)
+            rae1.do_command(holdDoor, r2, d)
+            rae1.do_command(passDoor, r, d, l)
+            rae1.do_command(releaseDoor, r2, d)
+            Restore(r2, l2, cargo)
+            res = SUCCESS
     else:
         res = FAILURE
     return res
@@ -435,7 +439,11 @@ def GetHelp_Method1(r):
     load_r = rae1.state.load[r2]
     loc_r2 = rae1.state.loc[r2]
     if load_r != NIL:
-        rae1.do_command(put, r2, load_r)
+        if load_r != 'H':
+            rae1.do_command(put, r2, load_r)
+        else:
+            gui.Simulate("%s is holding another door\n" %r)
+            return FAILURE
     rae1.do_task('moveTo', r2, rae1.state.loc[r])
     return r2, loc_r2, load_r
 
@@ -443,7 +451,11 @@ def Fetch_Method1(r, o, l):
     rae1.do_task('moveTo', r, rae1.state.pos[o])
     load_r = rae1.state.load[r]
     if load_r != NIL:
-        rae1.do_command(put, r, load_r)
+        if load_r != 'H':
+            rae1.do_command(put, r, load_r)
+        else:
+            gui.Simulate("%s is holding another door\n" %r)
+            return FAILURE
     rae1.do_command(take, r, o)
     rae1.do_task('moveTo', r, l)
     rae1.state.done = True

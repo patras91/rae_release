@@ -412,14 +412,33 @@ def wait_Sim(r):
 
 def Recharge_Method1(r, c):
     if rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
-        rae1.do_task('moveTo', r, rae1.state.pos[c])
+        if rae1.state.pos[c] in rv.LOCATIONS:
+            rae1.do_task('moveTo', r, rae1.state.pos[c])
+        else:
+            gui.Simulate("%s cannot find charger %s\n" %(r, c))
+            return FAILURE
     rae1.do_command(charge, r, c)
     return SUCCESS
 
 def Recharge_Method2(r, c):
     if rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
-        rae1.do_task('moveTo', r, rae1.state.pos[c])
+        if rae1.state.pos[c] in rv.LOCATIONS:
+            rae1.do_task('moveTo', r, rae1.state.pos[c])
+        else:
+            gui.Simulate("%s cannot find charger %s\n" %(r, c))
+            return FAILURE
+    rae1.do_command(charge, r, c)
+    rae1.do_command(take, r, c)
+    return SUCCESS
 
+def Recharge_Method3(r, c):
+    if rae1.state.loc[r] != rae1.state.pos[c] and rae1.state.pos[c] != r:
+        if rae1.state.pos[c] in rv.LOCATIONS:
+            rae1.do_task('moveTo', r, rae1.state.pos[c])
+        else:
+            robot = rae1.state.pos[c]
+            rae1.do_command(put, robot, c)
+            rae1.do_task('moveTo', r, rae1.state.pos[c])
     rae1.do_command(charge, r, c)
     rae1.do_command(take, r, c)
     return SUCCESS
@@ -553,7 +572,7 @@ rae1.declare_commands([put, take, perceive, charge, move, moveCharger, moveToEme
 
 rae1.declare_methods('search', Search_Method1, Search_Method2)
 rae1.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
-rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
+rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2, Recharge_Method3)
 rae1.declare_methods('moveTo', MoveTo_Method1)
 rae1.declare_methods('emergency', Emergency_Method1)
 rae1.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1, NonEmergencyMove_Method2)

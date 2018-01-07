@@ -51,4 +51,5 @@ tasks = {
 }
 
 eventsEnv = {
+    3: [closeDoors, []],
 }

@@ -91,4 +91,9 @@ tasks = {
     7: ['order', ['assemble', ['paint', 'o5', 'green'], 'o6']]
 }
 
-eventsEnv = {}
+eventsEnv = {
+    5: [damage, ['p1', 'pck1']],
+    20: [damage, ['p2', 'a1']],
+    30: [damage, ['w1', 'p1']],
+    50: [damage, ['p2', 'pck1']]
+}

@@ -42,7 +42,9 @@ DURATION.TIME = {
     'move': 10,
     'take': 2,
     'put': 2,
-    'wrap': 3
+    'wrap': 3,
+    'damage': 1,
+    'repair': 5
  }
 
 DURATION.COUNTER = {
@@ -52,7 +54,9 @@ DURATION.COUNTER = {
     'move': 10,
     'take': 2,
     'put': 2,
-    'wrap': 3
+    'wrap': 3,
+    'damage': 1,
+    'repair': 5
  }
 
 
@@ -68,6 +72,7 @@ def ResetState():
     state.loc = {'r1': 2, 'r2': 4}
     state.status = {'r1': 'free', 'r2': 'free', 'p1': 'free', 'a1': 'free', 'pck1': 'free', 'p2': 'free', 'w1': 'free'}
     state.pos = {'a': rv.BUFFERS['input'], 'b': rv.BUFFERS['input'], 'c': rv.BUFFERS['input'], 'o1': rv.BUFFERS['input']}
+    state.cond = {'p1': OK, 'pck1': OK, 'a1': OK, 'p2': OK, 'w1': OK}
 
 tasks = {
     1: ['order', ['pack', ['paint', 'o1', 'white'], ['assemble', ['assemble', 'a', 'b'], 'c']]],
@@ -75,4 +80,7 @@ tasks = {
     3: ['order', ['wrap', ['paint', 'gift', 'red']]]
 }
 
-eventsEnv = {}
+eventsEnv = {
+    1: [damage, ['p1']],
+    2: [damage, ['p2']]
+}

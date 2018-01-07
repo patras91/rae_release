@@ -71,7 +71,7 @@ def ResetState():
     state.load = {'r1': NIL, 'r2': NIL, 'r3': NIL}
     state.loc = {'r1': 2, 'r2': 4, 'r3': 6}
     state.status = {'r1': 'free', 'r2': 'free', 'r3': 'free', 'p1': 'free', 'a1': 'free', 'pck1': 'free', 'p2': 'free', 'w1': 'free'}
-    state.pos = {'a': rv.BUFFERS['input'], 'b': rv.BUFFERS['input'], 'c': rv.BUFFERS['input'], 'o1': rv.BUFFERS['input']}
+    state.pos = {'a': rv.BUFFERS['input'], 'b': rv.BUFFERS['input'], 'c': rv.BUFFERS['input'], 'o1': rv.BUFFERS['input'], 'gift': rv.BUFFERS['input']}
     state.cond = {'p1': OK, 'pck1': OK, 'a1': OK, 'p2': OK, 'w1': OK}
 
 tasks = {
@@ -80,4 +80,9 @@ tasks = {
     3: ['order', ['wrap', ['paint', 'gift', 'red']]]
 }
 
-eventsEnv = {}
+eventsEnv = {
+    1: [damage, ['p1', 'w1', 'a1']],
+    10: [damage, ['p2', 'w1']],
+    100: [damage, ['p2', 'w1', 'p1']],
+    200: [damage, ['p2', 'w1']]
+}

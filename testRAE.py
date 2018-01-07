@@ -51,7 +51,7 @@ def InitializeDomain(domain, problem):
     :param problem: id of the problem
     :return:none
     '''
-    if domain in ['SF', 'CR', 'STE', 'SOD', 'SD', 'EE', 'IP']:
+    if domain in ['SF', 'CR', 'STE', 'SOD', 'SD', 'EE', 'IP', 'test']:
         module = problem + '_' + domain
         global domain_module
         domain_module = __import__(module)
@@ -269,7 +269,7 @@ if __name__ == "__main__":
 def testRAEBatch(domain, problem, doSampling):
     p = multiprocessing.Process(target=testRAE, args=(domain, problem, doSampling))
     p.start()
-    p.join(600)
+    p.join(300)
     if p.is_alive() == True:
         p.terminate()
         print("-1 -1 -1 -1 -1")

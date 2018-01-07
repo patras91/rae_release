@@ -42,7 +42,7 @@ def ResetState():
     state.loc = {'r1': 1, 'r2': 6}
     state.charge = {'r1': 3, 'r2': 3}
     state.load = {'r1': NIL, 'r2': 'o3'}
-    state.pos = {'c1': 4, 'o1': UNK, 'o2': UNK, 'o3': 'r2'}
+    state.pos = {'c1': 4, 'o1': 7, 'o2': 8, 'o3': 'r2'}
     state.containers = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:['o1'], 8:['o2']}
     state.emergencyHandling = {'r1': False, 'r2': False}
     state.view = {}
