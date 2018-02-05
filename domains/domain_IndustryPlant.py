@@ -54,7 +54,7 @@ def IP_GETPATH(l0, l1):
         current_dist = visitedDistances[min_loc]
 
         for l in rv.EDGES[min_loc]:
-            dist = current_dist + rv.EDGES[min_loc][l]
+            dist = current_dist + 1
             if l not in visitedDistances or dist < visitedDistances[l]:
                 visitedDistances[l] = dist
                 path[l] = min_loc
@@ -459,38 +459,6 @@ def Paint_Method2(name, *args):
         res = FAILURE
     return res
 
-def Assemble_Method1(name, *args):
-    part1 = args[0]
-    part2 = args[1]
-    if isinstance(part1, list):
-        o_name1 = GetNewName()
-        Delegate(part1, o_name1)
-    else:
-        o_name1 = part1
-
-    if isinstance(part2, list):
-        o_name2 = GetNewName()
-        Delegate(part2, o_name2)
-    else:
-        o_name2 = part2
-
-    m = GetMachine('assemble', GetLocation(o_name1))
-    if m != NIL:
-        if state.cond[m] == OK:
-            if GetLocation(o_name1) != rv.MACHINE_LOCATION[m]:
-                do_task('deliver', o_name1, rv.MACHINE_LOCATION[m])
-            if GetLocation(o_name2) != rv.MACHINE_LOCATION[m]:
-                do_task('deliver', o_name2, rv.MACHINE_LOCATION[m])
-            do_command(assemble, m, o_name1, o_name2, name)
-            res = SUCCESS
-        else:
-            Simulate("Assembly machine %s is damaged\n" %m)
-            res = FAILURE
-    else:
-        Simulate("There are no machines free to assemble.\n")
-        res = FAILURE
-    return res
-
 def Assemble_Method2(name, *args):
     part1 = args[0]
     part2 = args[1]
@@ -521,37 +489,37 @@ def Assemble_Method2(name, *args):
         res = FAILURE
     return res
 
-def Pack_Method1(name, *args):
-    o1 = args[0]
-    o2 = args[1]
-    if isinstance(o1, list):
+def Assemble_Method1(name, *args):
+    part1 = args[0]
+    part2 = args[1]
+    if isinstance(part1, list):
         o_name1 = GetNewName()
-        Delegate(o1, o_name1)
+        Delegate(part1, o_name1)
     else:
-        o_name1 = o1
+        o_name1 = part1
 
-    if isinstance(o2, list):
-        o_name2 = GetNewName()
-        Delegate(o2, o_name2)
-    else:
-        o_name2 = o2
-
-    m = GetMachine('pack', GetLocation(o_name1))
+    m = GetMachine('assemble', GetLocation(o_name1))
     if m != NIL:
-        if state.cond[m] == OK:
-            if GetLocation(o_name1) != rv.MACHINE_LOCATION[m]:
-                do_task('deliver', o_name1, rv.MACHINE_LOCATION[m])
-            if GetLocation(o_name2) != rv.MACHINE_LOCATION[m]:
-                do_task('deliver', o_name2, rv.MACHINE_LOCATION[m])
-            do_command(pack, m, o_name1, o_name2, name)
-            res = SUCCESS
-        else:
-            Simulate("Pack machine %s is damaged\n" %m)
-            res = FAILURE
+        if state.cond[m] == NOTOK:
+            do_task('repair', m)
+        if GetLocation(o_name1) != rv.MACHINE_LOCATION[m]:
+            do_task('deliver', o_name1, rv.MACHINE_LOCATION[m])
     else:
-        Simulate("There are no machines free to pack.\n")
-        res = FAILURE
-    return res
+        Simulate("There are no machines free to assemble.\n")
+        return FAILURE
+
+    if isinstance(part2, list):
+        o_name2 = GetNewName()
+        Delegate(part2, o_name2)
+    else:
+        o_name2 = part2
+
+    if GetLocation(o_name2) != rv.MACHINE_LOCATION[m]:
+        do_task('deliver', o_name2, rv.MACHINE_LOCATION[m])
+
+    do_command(assemble, m, o_name1, o_name2, name)
+
+    return SUCCESS
 
 def Pack_Method2(name, *args):
     o1 = args[0]
@@ -583,6 +551,38 @@ def Pack_Method2(name, *args):
         res = FAILURE
     return res
 
+def Pack_Method1(name, *args):
+    o1 = args[0]
+    o2 = args[1]
+    if isinstance(o1, list):
+        o_name1 = GetNewName()
+        Delegate(o1, o_name1)
+    else:
+        o_name1 = o1
+
+    m = GetMachine('pack', GetLocation(o_name1))
+    if m != NIL:
+        if state.cond[m] == NOTOK:
+            do_task('repair', m)
+    else:
+        Simulate("There are no machines free to pack.\n")
+        return FAILURE
+
+    if GetLocation(o_name1) != rv.MACHINE_LOCATION[m]:
+        do_task('deliver', o_name1, rv.MACHINE_LOCATION[m])
+
+    if isinstance(o2, list):
+        o_name2 = GetNewName()
+        Delegate(o2, o_name2)
+    else:
+        o_name2 = o2
+
+    if GetLocation(o_name2) != rv.MACHINE_LOCATION[m]:
+        do_task('deliver', o_name2, rv.MACHINE_LOCATION[m])
+    do_command(pack, m, o_name1, o_name2, name)
+
+    return SUCCESS
+
 def Wrap_Method1(name, o):
     if isinstance(o, list):
         o_name = GetNewName()
@@ -592,14 +592,10 @@ def Wrap_Method1(name, o):
 
     m = GetMachine('wrap', GetLocation(o_name))
     if m != NIL:
-        if state.cond[m] == OK:
-            if GetLocation(o_name) != rv.MACHINE_LOCATION[m]:
-                do_task('deliver', o_name, rv.MACHINE_LOCATION[m])
-            do_command(wrap, m, o_name, name)
-            res = SUCCESS
-        else:
-            Simulate("Wrap machine %s is damaged.\n" %m)
-            res = FAILURE
+        if GetLocation(o_name) != rv.MACHINE_LOCATION[m]:
+            do_task('deliver', o_name, rv.MACHINE_LOCATION[m])
+        do_command(wrap, m, o_name, name)
+        res = SUCCESS
     else:
         Simulate("There are no machines free to wrap.\n")
         res = FAILURE
@@ -614,8 +610,7 @@ def Wrap_Method2(name, o):
 
     m = GetMachine('wrap', GetLocation(o_name))
     if m != NIL:
-        if state.cond[m] == NOTOK:
-            do_task('repair', m)
+        do_task('repair', m)
         if GetLocation(o_name) != rv.MACHINE_LOCATION[m]:
             do_task('deliver', o_name, rv.MACHINE_LOCATION[m])
         do_command(wrap, m, o_name, name)
@@ -649,10 +644,10 @@ def Deliver_Method1(o, l):
     deliveryRobot = GetRobot(loc_o)
     if deliveryRobot != NIL:
         if state.loc[deliveryRobot] != loc_o:
-            do_command(move, deliveryRobot, state.loc[deliveryRobot], loc_o)
+            do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], loc_o)
         do_command(take, deliveryRobot, o, loc_o)
         if state.loc[deliveryRobot] != l:
-            do_command(move, deliveryRobot, state.loc[deliveryRobot], l)
+            do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], l)
         do_command(put, deliveryRobot, o, l)
         state.status[deliveryRobot] = 'free'
         res = SUCCESS
@@ -665,13 +660,35 @@ def Repair_Method1(m):
     repairBot = GetRobot(rv.MACHINE_LOCATION[m])
     if repairBot != NIL:
         if state.loc[repairBot] != rv.MACHINE_LOCATION[m]:
-            do_command(move, repairBot, state.loc[repairBot], rv.MACHINE_LOCATION[m])
+            do_task('moveTo', repairBot, state.loc[repairBot], rv.MACHINE_LOCATION[m])
         do_command(repair, m)
         state.status[repairBot] = 'free'
         res = SUCCESS
     else:
         Simulate("No robot is free to repair %s\n" %m)
         res = FAILURE
+    return res
+
+def MoveTo_Method1(r, l1, l2):
+    res = SUCCESS
+    path = IP_GETPATH(l1, l2)
+    if path == {}:
+        Simulate("%s is already at location %s \n" %(r, l2))
+    else:
+        lTemp = state.loc[r]
+        if lTemp not in path:
+            Simulate("%s is out of its path to %s\n" %(r, l2))
+            res = FAILURE
+        else:
+            while(lTemp != l2):
+                lNext = path[lTemp]
+                do_command(move, r, lTemp, lNext)
+                if lNext != state.loc[r]:
+                    Simulate("%s is out of its path to %s\n" %(r, l2))
+                    res = FAILURE
+                    break
+                else:
+                    lTemp = lNext
     return res
 
 rv = RV()
@@ -685,3 +702,4 @@ declare_methods('wrap', Wrap_Method1, Wrap_Method2)
 declare_methods('deliver', Deliver_Method1)
 declare_methods('order', Order_Method1)
 declare_methods('repair', Repair_Method1)
+declare_methods('moveTo', MoveTo_Method1)

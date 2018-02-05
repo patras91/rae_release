@@ -26,6 +26,9 @@ class RTNode():
                 res = res + node.GetPreorderTraversal()
             return res
 
+    def IncreaseCost(self, c):
+        self.value.cost += 1
+
     def GetCost(self):
         return self.value.cost
 
@@ -38,6 +41,7 @@ class RTNode():
     def UpdateDummy(self, m):
         self.value = globals.G()
         self.value.method = m
+        self.value.cost = 0
 
     def DeleteChild(self, child):
         self.children.remove(child)

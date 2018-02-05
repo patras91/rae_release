@@ -2,18 +2,31 @@
 
 echo "Executing tests for APE."
 
-#for problem in  "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" #"problem2" "problem3"
-for problem in "problem14" #"problem14" "problem15" "problem16" "problem17" "problem18" "problem19" "problem20"
+#for problem in "problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" #
+#for problem in "problem11" "problem12" "problem13" "problem14" # "problem15" #  "problem18" "problem19" "problem20"  "problem19" #"problem17" #
+#do
+for domain in "EE" # "CR" # "SD" "IP"
 do
-    for domain in "IP" #"SD" "IP" "CR" "EE"
+    if [ "$domain" = "SD" ]; then
+        P=("problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10")
+        K=(1 2 3 4)
+    fi
+    if [ "$domain" = "IP" ]; then
+        P=("problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" "problem11" "problem12" "problem13" "problem14")
+        K=(1 2)
+    fi
+    if [ "$domain" = "CR" ]; then
+        P=("problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19" "problem20")
+        K=(1 2 3)
+    fi
+    if [ "$domain" = "EE" ]; then
+        P=("problem19") # "problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18"
+        K=(1 2 3 4)
+    fi
+    for problem in ${P[@]}
     do
-        for mode in 'y' 'n'
+        for mode in 'n' 'y'
         do
-            if [ "$mode" = "n" ]; then
-                K=(1 2)
-            else
-                K=(1 2)
-            fi
             for k in ${K[@]}
             do
                 setup="
@@ -32,13 +45,13 @@ globals.SetSimulationMode('off')"
                 time_test="testRAEBatch(domain='$domain', problem='$problem', doSampling=True)"
 
                 if [ "$mode" = "n" ]; then
-                    fname="outputs/$domain/normal/K$k.txt"
+                    fname="outputs_with_arbitrary_order/$domain/active/K$k.txt"
                 else
-                    fname="outputs/$domain/lazy/K$k.txt"
+                    fname="outputs_with_arbitrary_order/$domain/lazy/K$k.txt"
                 fi
 
 		        echo "Time test of $domain $problem" >> $fname
-                python3 -m timeit -n 1 -s "$setup" "$time_test" >> $fname
+                python3 -m timeit -n 2 -s "$setup" "$time_test" >> $fname
             done
         done
     done

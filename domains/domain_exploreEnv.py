@@ -6,12 +6,11 @@ import gui
 from timer import globalTimer
 
 
-'''A UAV and several robots explore environment and collect data.
-UAV can only survey whereas robots can survey, monitor, screen, sample and process.
-UAV can fly whereas a robot can only move on the ground. The UAV and robots have limited
+'''Several UAVs and UGVs explore environment and collect data.
+UAV can only survey whereas UGVs can survey, monitor, screen, sample and process.
+UAV can fly whereas a UGV can only move on the ground. The UAV and UGVs have limited
 charge and needs to be charged frequently. They also have a capacity of the amount of data
-they can carry with them. They can store data in the base location. UAV needs to return to
-base location every night.'''
+they can carry with them. They can store data in the base location.'''
 
 # Using Dijsktra's algorithm
 def EE_GETPATH(l0, l1):
@@ -388,6 +387,34 @@ def process_Sim(r, l):
     rae1.state.data.ReleaseLock(r)
     return res
 
+def alienSpotted(l):
+    gui.Simulate("An alien is spotted in location %s", l)
+    return SUCCESS
+
+def handleAlien(r, l):
+    if rae1.state.loc[r] == l:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('negotiate', start) == False):
+            pass
+        gui.Simulate("Robot %s is negotiating with alien.\n" %r)
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s is not in alien's location\n" %r)
+        res = FAILURE
+    return res
+
+def handleAlien_Sim(r, l):
+    if rae1.state.loc[r] == l:
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('negotiate', start) == False):
+            pass
+        gui.Simulate("Robot %s is negotiating with alien.\n" %r)
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s is not in alien's location\n" %r)
+        res = FAILURE
+    return res
+
 def charge(r, c):
     rae1.state.loc.AcquireLock(r)
     rae1.state.pos.AcquireLock(c)
@@ -396,7 +423,7 @@ def charge(r, c):
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
             pass
         rae1.state.charge.AcquireLock(r)
-        rae1.state.charge[r] = 75
+        rae1.state.charge[r] = 100
         gui.Simulate("%s is fully charged\n" %r)
         rae1.state.charge.ReleaseLock(r)
         res = SUCCESS
@@ -415,7 +442,7 @@ def charge_Sim(r, c):
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
             pass
         rae1.state.charge.AcquireLock(r)
-        rae1.state.charge[r] = 75
+        rae1.state.charge[r] = 100
         gui.Simulate("%s is fully charged\n" %r)
         rae1.state.charge.ReleaseLock(r)
         res = SUCCESS
@@ -713,7 +740,7 @@ def transferData_Sim(r1, r2):
         rae1.state.data[r2] += rae1.state.data[r1]
         rae1.state.data[r1] = 0
         res = SUCCESS
-    elif rae1.state.data[r2] < 4:
+    elif rae1.state.data[r2] <= 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
             pass
@@ -727,22 +754,6 @@ def transferData_Sim(r1, r2):
     rae1.state.data.ReleaseLock(r1)
     rae1.state.data.ReleaseLock(r2)
     return res
-
-def Explore_Method2(r, activity, l):
-    rae1.do_task('getEquipment', r, activity)
-    rae1.do_task('moveTo', r, l)
-    if activity == 'survey':
-        rae1.do_command(survey, r, l)
-    elif activity == 'monitor':
-        rae1.do_command(monitor, r, l)
-    elif activity == 'screen':
-        rae1.do_command(screen, r, l)
-    elif activity == 'sample':
-        rae1.do_command(sample, r, l)
-    elif activity == 'process':
-        rae1.do_command(process, r, l)
-    rae1.do_task('depositData', r)
-    return SUCCESS
 
 def Explore_Method1(r, activity, l):
     rae1.do_task('getEquipment', r, activity)
@@ -778,6 +789,25 @@ def GetEquipment_Method2(r, activity):
         rae1.do_command(take, r, rv.EQUIPMENT[activity])
     return SUCCESS
 
+def GetEquipment_Method3(r, activity):
+    if rae1.state.load[r] != rv.EQUIPMENT[activity]:
+        loc = rae1.state.pos[rv.EQUIPMENT[activity]]
+        if loc not in rv.LOCATIONS:
+            robo = loc
+            rae1.do_task('moveTo', r, rae1.state.loc[robo])
+            rae1.state.load.AcquireLock(r)
+            if rae1.state.load[r] != NIL:
+                x = rae1.state.load[r]
+                rae1.state.load.ReleaseLock(r)
+                rae1.do_command(put, r, x)
+            else:
+                rae1.state.load.ReleaseLock(r)
+            rae1.do_command(put, robo, rv.EQUIPMENT[activity])
+            rae1.do_command(take, r, rv.EQUIPMENT[activity])
+        else:
+            return FAILURE
+    return SUCCESS
+
 def MoveTo_MethodHelper(r, l):
     res = SUCCESS
     path = EE_GETPATH(rae1.state.loc[r], l)
@@ -808,20 +838,20 @@ def MoveTo_Method1(r, l):
         res = MoveTo_MethodHelper(r, l)
     return res
 
-def MoveTo_Method2(r, l):
-    if l not in rv.LOCATIONS:
-        gui.Simulate("%s is trying to go to an invalid location\n" %r)
-        res = FAILURE
-    else:
-        dist = EE_GETDISTANCE(rae1.state.loc[r], l)
-        if rae1.state.charge[r] >= dist:
-            res = MoveTo_MethodHelper(r, l)
-        else:
-            gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
-            res = FAILURE
-    return res
+# def MoveTo_Method2(r, l):
+#     if l not in rv.LOCATIONS:
+#         gui.Simulate("%s is trying to go to an invalid location\n" %r)
+#         res = FAILURE
+#     else:
+#         dist = EE_GETDISTANCE(rae1.state.loc[r], l)
+#         if rae1.state.charge[r] >= dist:
+#             res = MoveTo_MethodHelper(r, l)
+#         else:
+#             gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r], r))
+#             res = FAILURE
+#     return res
 
-def MoveTo_Method3(r, l):
+def MoveTo_Method2(r, l):
     if l not in rv.LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
         res = FAILURE
@@ -844,21 +874,21 @@ def FlyTo_Method1(r, l):
         res = FAILURE
     return res
 
-def FlyTo_Method2(r, l):
-    dist = EE_GETDISTANCE(rae1.state.loc[r], l)
-    if r == 'UAV':
-        if rae1.state.charge[r] >= dist:
-            rae1.do_command(fly, r, rae1.state.loc[r], l)
-            res = SUCCESS
-        else:
-            gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r] * 100 / 75, r))
-            res = FAILURE
-    else:
-        gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
-        res = FAILURE
-    return res
+# def FlyTo_Method2(r, l):
+#     dist = EE_GETDISTANCE(rae1.state.loc[r], l)
+#     if r == 'UAV':
+#         if rae1.state.charge[r] >= dist:
+#             rae1.do_command(fly, r, rae1.state.loc[r], l)
+#             res = SUCCESS
+#         else:
+#             gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(rae1.state.charge[r], r))
+#             res = FAILURE
+#     else:
+#         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
+#         res = FAILURE
+#     return res
 
-def FlyTo_Method3(r, l):
+def FlyTo_Method2(r, l):
     dist = EE_GETDISTANCE(rae1.state.loc[r], l)
     if r == 'UAV':
         if rae1.state.charge[r] >= dist:
@@ -904,7 +934,7 @@ def Recharge_Method1(r):
             rae1.do_command(charge, r, c)
             res = SUCCESS
         else:
-            gui.Simulate("%s is stranded without any possibility of charging" %r)
+            gui.Simulate("%s is stranded without any possibility of charging\n" %r)
             res = FAILURE
     else:
         rae1.do_command(charge, r, c)
@@ -924,7 +954,7 @@ def Recharge_Method2(r):
             rae1.do_command(take, r, c)
             res = SUCCESS
         else:
-            gui.Simulate("%s is stranded without any possibility of charging" %r)
+            gui.Simulate("%s is stranded without any possibility of charging\n" %r)
             res = FAILURE
     else:
         rae1.do_command(charge, r, c)
@@ -932,15 +962,54 @@ def Recharge_Method2(r):
         res = SUCCESS
     return res
 
-rv = RV()
-rae1.declare_commands([survey, monitor, screen, sample, process, charge, move, put, take, fly, deposit, transferData],
-                      [survey_Sim, monitor_Sim, screen_Sim, sample_Sim, process_Sim, charge_Sim, move_Sim, put_Sim, take_Sim, fly_Sim, deposit_Sim, transferData_Sim])
+def DoActivities_Method1(r, actList):
+    for act in actList:
+        rae1.do_task('explore', r, act[0], act[1])
+        rae1.do_task('depositData', r)
+    return SUCCESS
 
-rae1.declare_methods('explore', Explore_Method1, Explore_Method2)
-rae1.declare_methods('getEquipment', GetEquipment_Method1, GetEquipment_Method2)
-rae1.declare_methods('moveTo', MoveTo_Method1, MoveTo_Method2, MoveTo_Method3)
-rae1.declare_methods('flyTo', FlyTo_Method1, FlyTo_Method2, FlyTo_Method3)
+def DoActivities_Method2(r, actList):
+    for act in actList:
+        rae1.do_task('explore', r, act[0], act[1])
+    rae1.do_task('depositData', r)
+    return SUCCESS
+
+def DoActivities_Method3(r, actList):
+    for act in actList:
+        rae1.do_task('explore', r, act[0], act[1])
+        rae1.do_task('depositData', r)
+        rae1.do_task('recharge', r)
+    return SUCCESS
+
+def DoActivities_Method4(r, actList):
+    for act in actList:
+        rae1.do_task('explore', r, act[0], act[1])
+        rae1.do_task('recharge', r)
+    rae1.do_task('depositData', r)
+    return SUCCESS
+
+def HandleEmergency_Method1(r, l):
+    rae1.do_task('recharge', r)
+    rae1.do_task('moveTo', r, l)
+    rae1.do_command(handleAlien, r, l)
+    return SUCCESS
+
+def HandleEmergency_Method2(r, l):
+    rae1.do_task('moveTo', r, l)
+    rae1.do_command(handleAlien, r, l)
+    return SUCCESS
+
+rv = RV()
+rae1.declare_commands([survey, monitor, screen, sample, process, charge, move, put, take, fly, deposit, transferData, handleAlien],
+                      [survey_Sim, monitor_Sim, screen_Sim, sample_Sim, process_Sim, charge_Sim, move_Sim, put_Sim, take_Sim, fly_Sim, deposit_Sim, transferData_Sim, handleAlien_Sim])
+
+rae1.declare_methods('explore', Explore_Method1)
+rae1.declare_methods('getEquipment', GetEquipment_Method1, GetEquipment_Method2, GetEquipment_Method3)
+rae1.declare_methods('moveTo', MoveTo_Method1)
+rae1.declare_methods('flyTo', FlyTo_Method1)
 rae1.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
 rae1.declare_methods('depositData', DepositData_Method1, DepositData_Method2)
+rae1.declare_methods('doActivities', DoActivities_Method2, DoActivities_Method4, DoActivities_Method1, DoActivities_Method3)
+rae1.declare_methods('handleEmergency', HandleEmergency_Method2, HandleEmergency_Method1)
 
 

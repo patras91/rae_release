@@ -48,16 +48,17 @@ DURATION.TIME = {
  }
 
 DURATION.COUNTER = {
-    'paint': 5, # for domain IP
-    'assemble': 5,
-    'pack': 5,
-    'move': 10,
-    'take': 2,
-    'put': 2,
-    'wrap': 3,
+    'paint': 1, # for domain IP
+    'assemble': 1,
+    'pack': 1,
+    'move': 1,
+    'take': 1,
+    'put': 1,
+    'wrap': 1,
     'damage': 1,
-    'repair': 5
+    'repair': 1
  }
+
 
 
 rv.MACHINE_LOCATION = {'p1': 5, 'pck1': 4, 'a1': 8, 'p2': 9, 'w1': 7}

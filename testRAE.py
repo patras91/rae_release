@@ -88,26 +88,36 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    taskRes, retryCount = rae1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, taskRes.retcode, retryCount)
+    taskRes, retryCount, commandCount = rae1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, taskRes.retcode, retryCount, commandCount)
 
 def PrintResult(taskInfo):
     for stackid in taskInfo:
-        args, res, retryCount = taskInfo[stackid]
-        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\n')
+        args, res, retryCount, commandCount = taskInfo[stackid]
+        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', commandCount, '\n')
 
 def PrintResultSummary(taskInfo):
     succ = 0
     fail = 0
     retries = 0
+    cmdNet = {}
     for stackid in taskInfo:
-        args, res, retryCount = taskInfo[stackid]
+        args, res, retryCount, commandCount = taskInfo[stackid]
         if res == 'Success':
             succ += 1
         else:
             fail += 1
         retries += retryCount
+        if cmdNet == {}:
+            cmdNet = commandCount
+        else:
+            for cmd in cmdNet:
+                if cmd in cmdNet and cmd in commandCount:
+                    cmdNet[cmd] += commandCount[cmd]
+                elif cmd in commandCount:
+                    cmdNet[cmd] = commandCount[cmd]
     print(succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter())
+    print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
 def StartEnv():
     while(True):

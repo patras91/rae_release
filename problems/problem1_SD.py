@@ -28,14 +28,14 @@ DURATION.TIME = {
  }
 
 DURATION.COUNTER = {
-    'openDoor': 5, #for domain SD
+    'openDoor': 1, #for domain SD
     'holdDoor': 2,
     'passDoor': 3,
-    'releaseDoor': 2,
+    'releaseDoor': 1,
     'closeDoors': 3,
-    'move': 10,
-    'take': 2,
-    'put': 2,
+    'move': 1,
+    'take': 1,
+    'put': 1,
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6]
@@ -49,7 +49,7 @@ def ResetState():
     state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed' }
     state.loc = {'r1': 1, 'r2': 2}
     state.pos = {'o1': 3}
-    state.done = False
+    state.done = {0: False}
 
 tasks = {
     1: ['fetch', 'r1', 'o1', 5],

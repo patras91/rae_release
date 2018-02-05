@@ -16,14 +16,14 @@ DURATION.TIME = {
  }
 
 DURATION.COUNTER = {
-    'put': 2, #for domain CR
-    'take': 2,
-    'perceive': 3,
-    'charge': 5,
-    'move': 10,
-    'moveCharger': 5,
-    'addressEmergency': 15,
-    'wait': 5,
+    'put': 1, #for domain CR
+    'take': 1,
+    'perceive': 1,
+    'charge': 1,
+    'move': 1,
+    'moveCharger': 1,
+    'addressEmergency': 1,
+    'wait': 1,
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -43,7 +43,7 @@ def ResetState():
     state.loc = {'r1': 3, 'r2': 6}
     state.charge = {'r1': 2, 'r2': 3}
     state.load = {'r1': NIL, 'r2': NIL}
-    state.pos = {'c1': 3, 'o1': 8, 'o2': 9}
+    state.pos = {'c1': 1, 'o1': 8, 'o2': 9}
     state.containers = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:['o1'], 9: ['o2']}
     state.emergencyHandling = {'r1': False, 'r2': False}
     state.view = {}

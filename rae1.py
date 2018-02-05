@@ -274,13 +274,7 @@ def InitializeSampling(raeArgs):
         globalTimer.ResetSimCounter()
         raelocals.method = raeArgs.method
         raelocals.candidates = raeArgs.candidates
-
-        ncs = globals.G()
-        ncs.node = rTree.RTNode('ROOT')
-        ncs.state = state.copy()
-        ncs.cost = 0
-        raelocals.NCSList = [ncs] #NCS = Node Cost and State
-
+        raelocals.currentNode = rTree.RTNode("ROOT")
     return samplingMode
 
 def rae1(task, raeArgs):
@@ -291,6 +285,8 @@ def rae1(task, raeArgs):
 
     raelocals.stackid = raeArgs.stack
     raelocals.retryCount = 0
+    raelocals.commandCount = {}
+
     raelocals.refinementList = None  # required for lazy lookahead and concurrent lookahead
     taskArgs = raeArgs.taskArgs
 
@@ -316,28 +312,25 @@ def rae1(task, raeArgs):
     try:
         result = do_task(task, *taskArgs)
         if samplingMode == True:
-            ncsList = raelocals.NCSList
+            resultTree = raelocals.currentNode
 
     except Failed_command as e:
         if verbose > 0:
             print_stack_size(raelocals.stackid, path)
             print('Failed command {}'.format(e))
-        ncs = globals.G()
         result = globals.G()
         result.retcode = 'Failure'
         result.method = None
-        ncs.node = rTree.RTNode(result)
-        ncsList = [ncs]
+        resultTree = rTree.RTNode(result)
+
     except Failed_task as e:
         if verbose > 0:
             print_stack_size(raelocals.stackid, path)
             print('Failed task {}'.format(e))
-        ncs = globals.G()
         result = globals.G()
         result.retcode = 'Failure'
         result.method = None
-        ncs.node = rTree.RTNode(result)
-        ncsList = [ncs]
+        resultTree = rTree.RTNode(result)
     else:
         pass
     if verbose > 1:
@@ -350,25 +343,9 @@ def rae1(task, raeArgs):
 
     EndCriticalRegion()
     if samplingMode == True:
-        return (ncsList, globalTimer.GetSimulationCounter())
+        return (resultTree, globalTimer.GetSimulationCounter())
     else:
-        return (result, raelocals.retryCount)
-
-def GetBest(ncsList):
-    minCost = float('inf')
-    retcode = 'Failure'
-    best = None
-    print(len(ncsList))
-    for ncs in ncsList:
-        if ncs.node.GetRetcode() == 'Success':
-            print("\n")
-            ncs.node.Print()
-            if ncs.cost < minCost:
-                best = ncs.node
-                minCost = ncs.cost
-                retcode = 'Success'
-    return retcode, best
-
+        return (result, raelocals.retryCount, raelocals.commandCount)
 
 def GetCandidateBySampling(candidates, task, taskArgs):
     if verbose > 0:
@@ -380,16 +357,16 @@ def GetCandidateBySampling(candidates, task, taskArgs):
     p.start()
     p.join()
 
-    ncsList, simTime = queue.get()
+    resultTree, simTime = queue.get()
     globalTimer.UpdateSimCounter(simTime)
 
-    retcode, resultTree = GetBest(ncsList)
+    retcode = resultTree.GetRetcode()
 
     if verbose > 0:
         print("Done with simulation. Result = {} \n".format(retcode), colorama.Style.RESET_ALL)
 
     if retcode == 'Failure':
-        random.shuffle(candidates)
+        #random.shuffle(candidates)
         return (candidates[0], candidates[1:])
     else:
         resultList = resultTree.GetPreorderTraversal()
@@ -405,7 +382,7 @@ def GetCandidateBySampling(candidates, task, taskArgs):
 def choose_candidate(candidates, task, taskArgs):
 
     if globals.GetDoSampling() == False:
-        random.shuffle(candidates)
+        #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
 
     elif globals.GetConcurrentMode() == False:
@@ -429,7 +406,7 @@ def choose_candidate(candidates, task, taskArgs):
             pass
 
         if currManager.NoMethodApplicable() == True:
-            random.shuffle(candidates)
+            #random.shuffle(candidates)
             return (candidates[0], candidates[1:])
         else:
             chosen = currManager.GetMethod()
@@ -448,8 +425,7 @@ def SimulateTask(task, taskArgs):
     # If a method has already been supplied
     if type(methodChosen) == types.FunctionType:
         path[raelocals.stackid].append([task, taskArgs])
-        assert(len(raelocals.NCSList) == 1)
-        raelocals.NCSList[0].node.UpdateDummy(methodChosen)
+        raelocals.currentNode.UpdateDummy(methodChosen)
         result = taskProgress(raelocals.stackid, path, methodChosen, taskArgs)
         retcode = result.retcode
 
@@ -460,11 +436,9 @@ def SimulateTask(task, taskArgs):
         if retcode == 'Failure':
             raise Failed_task('{}{}'.format(task, taskArgs))
         elif retcode == 'Success':
-            for ncs in raelocals.NCSList:
-                ncs.node.Update(result)
-                ncs.cost += 1
-                global state
-                ncs.state = state.copy()
+            result.cost += raelocals.currentNode.GetCost()
+            raelocals.currentNode.Update(result)
+            #raelocals.currentNode.IncreaseCost(1)
             return result
         else:
             raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
@@ -475,43 +449,33 @@ def SimulateTask(task, taskArgs):
             raelocals.candidates = None
         else:
             candidates = methods[task][:]
-        random.shuffle(candidates)
+        #random.shuffle(candidates)
         candidates = candidates[0:min(len(candidates), globals.getK())]
         failedTask = True
-
-        nextNCSList = []
-        for ncs in raelocals.NCSList: #NCS = Node Cost State
-            for m in candidates:
-                state.restore(ncs.state)
-                queue = multiprocessing.Queue()
-                p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, m, queue, None])
-                p.start()
-                p.join()
-                ncsListAfterSampling, simTime = queue.get()
-                globalTimer.UpdateSimCounter(simTime)
-
-                for ncsAfterSampling in ncsListAfterSampling:
-                    if ncsAfterSampling.node.GetRetcode() == 'Success':
-                        failedTask = False
-
-                        newNode = ncs.node.Duplicate()
-                        if newNode.value == 'ROOT':
-                            newNode = ncsAfterSampling.node
-                        else:
-                            newNode.AddChild(ncsAfterSampling.node)
-
-                        newNCS = globals.G()
-                        newNCS.node = newNode
-                        newNCS.cost = ncs.cost + ncsAfterSampling.cost
-                        newNCS.state = ncsAfterSampling.state
-
-                        nextNCSList.append(newNCS)
+        minCost = float("inf")
+        for m in candidates:
+            queue = multiprocessing.Queue()
+            p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, m, queue, None])
+            p.start()
+            p.join()
+            resultTree, simTime = queue.get()
+            globalTimer.UpdateSimCounter(simTime)
+            if resultTree.GetRetcode() == 'Success':
+                failedTask = False
+                if resultTree.GetCost() < minCost:
+                    bestResultTree = resultTree
+                    minCost = resultTree.GetCost()
 
         if failedTask == True:
             raise Failed_task('{}{}'.format(task, taskArgs))
         else:
-            raelocals.NCSList = nextNCSList
-            return raelocals.NCSList
+            if raelocals.currentNode.value == 'ROOT':
+                raelocals.currentNode = bestResultTree
+            else:
+                raelocals.currentNode.AddChild(bestResultTree)
+                raelocals.currentNode.IncreaseCost(bestResultTree.GetCost())
+                state.restore(bestResultTree.GetState())
+            return bestResultTree
 
 def taskProgress(stackid, path, m, taskArgs):
     if verbose > 0:
@@ -521,6 +485,7 @@ def taskProgress(stackid, path, m, taskArgs):
     result = globals.G()
     result.retcode = "Failure"
     result.method = None
+    result.cost = 0
     result.state = state.copy()
     try:
         EndCriticalRegion()
@@ -627,12 +592,16 @@ def do_command(cmd, *cmdArgs):
 
     if verbose > 0:
         print_stack_size(raelocals.stackid, path)
-        print('Begin command {}{}'.format(cmd.__name__,cmdArgs))
+        print('Begin command {}{}'.format(cmd.__name__, cmdArgs))
 
     cmdRet = {'state':'running'}
     cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
     cmdThread.start()
-    cost = 0
+    cost = 1
+    if cmd.__name__ in raelocals.commandCount:
+        raelocals.commandCount[cmd.__name__] += 1
+    else:
+        raelocals.commandCount[cmd.__name__] = 1
 
     EndCriticalRegion()
     BeginCriticalRegion(raelocals.stackid)
@@ -641,7 +610,7 @@ def do_command(cmd, *cmdArgs):
         if verbose > 0:
             print_stack_size(raelocals.stackid, path)
             print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
-        cost += 1
+        #cost += 1
         EndCriticalRegion()
         BeginCriticalRegion(raelocals.stackid)
 
@@ -663,11 +632,11 @@ def do_command(cmd, *cmdArgs):
 
     if retcode == 'Failure':
         if globals.GetSamplingMode() == True:
-            raelocals.NCSList[0].cost = float('inf')
+            raelocals.currentNode.IncreaseCost(float('inf'))
         raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
     elif retcode == 'Success':
         if globals.GetSamplingMode() == True:
-            raelocals.NCSList[0].cost += cost
+            raelocals.currentNode.IncreaseCost(cost)
         return retcode
     else:
         raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))

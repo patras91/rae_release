@@ -1,11 +1,11 @@
 #!/bin/sh
 
-echo "Executing tests for RAE-S."
+echo "Executing tests for APE."
 
-for problem in "problem14" #"problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" # "problem1" "problem2"
-#for problem in "problem12" #"problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19" "problem20"
+#for problem in "problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" "problem11" "problem12" "problem13" "problem14" #
+for problem in "problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19"  # "problem20" #
 do
-    for domain in "IP" #"SD" "IP" "CR" "EE"
+    for domain in "EE" #"SD" "IP" "CR" "EE"
     do
         setup="
 import sys
@@ -22,10 +22,10 @@ globals.SetSimulationMode('off')"
         echo $domain $problem
         time_test="testRAEBatch(domain='$domain', problem='$problem', doSampling=False)"
 
-        fname="outputs/$domain/noLA/RAE.txt"
+        fname="outputs_with_arbitrary_order/$domain/RAE.txt"
         #echo '' >> $fname
 
 		echo "Time test of $domain $problem" >> $fname
-        python3 -m timeit -n 1 -s "$setup" "$time_test" >> $fname
+        python3 -m timeit -n 2 -s "$setup" "$time_test" >> $fname
     done
 done
