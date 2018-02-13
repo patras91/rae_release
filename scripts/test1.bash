@@ -1,4 +1,5 @@
 #!/bin/sh
+# This script is to just execute APE with b = 0. So, it is basically RAE
 
 echo "Executing tests for APE."
 

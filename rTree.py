@@ -1,5 +1,6 @@
 __author__ = 'patras'
 import globals
+import pipes
 
 class RTNode():
     def __init__(self, n=None):
@@ -80,7 +81,24 @@ class RTNode():
             newNode.children.append(child.Duplicate())
         return newNode
 
+    def GetInEtcFormat(self):
+        if self.children == []:
+            return self.GetPrettyString(self)
+        else:
+            res =  "("
+            for elem in self.children:
+                res += elem.GetInEtcFormat()
+            res += ")"
+        return res
+
     def Print(self):
+        treeString = self.GetInEtcFormat() + ";"
+        t = pipes.Template()
+        f = t.open('pipefile', 'w')
+        f.write(treeString)
+        f.close()
+
+    def Print_old(self):
         level = {}
         level[0] = [self]
         level[1] = []

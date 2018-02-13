@@ -244,7 +244,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",
                            type=int, default=0, required=False)
-    argparser.add_argument("--d", help="name of the test domain (STE, CR, SD, EE, SOD, IP or SF)",
+    argparser.add_argument("--domain", help="name of the test domain (STE, CR, SD, EE, SOD, IP or SF)",
                            type=str, default='STE', required=False)
     argparser.add_argument("--p", help="identifier for the problem eg. 'problem1', 'problem2', etc",
                            type=str, default="problem1", required=False)
@@ -258,8 +258,12 @@ if __name__ == "__main__":
                            type=str, default='n', required=False)
     argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n')",
                            type=str, default='n', required=False)
-    argparser.add_argument("--K", help="Sampling parameter",
+    argparser.add_argument("--K", help="Search breadth",
                            type=int, default=3, required=False)
+    argparser.add_argument("--sample_b", help="Sample breadth",
+                           type=int, default=1, required=False)
+    argparser.add_argument("--depth_d", help="Search Depth",
+                           type=int, default=float("inf"), required=False)
 
     args = argparser.parse_args()
 
@@ -271,10 +275,12 @@ if __name__ == "__main__":
     globals.SetK(args.K)
     globals.SetLazy(args.lazy)
     globals.SetConcurrent(args.concurrent)
+    globals.SetSampleBreadth(args.sample_b)
+    globals.SetSearchDepth(args.depth_d)
     verbosity(args.v)
     SetMode(args.c)
     globals.SetSimulationMode(args.simMode)
-    testRAE(args.d, args.p, s)
+    testRAE(args.domain, args.p, s)
 
 def testRAEBatch(domain, problem, doSampling):
     p = multiprocessing.Process(target=testRAE, args=(domain, problem, doSampling))

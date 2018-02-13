@@ -1,32 +1,25 @@
-RAE is a refinement acting engine with multiple stacks. Each stack is implemented as a Python thread.
+APE is a refinement acting-and-planning engine with multiple stacks. Each stack is implemented as a Python thread.
 
 We have the following domains in the domain folder.
 
 1. domain_simpleFetch: Robot collecting objects in a harbour
-   --- developed and integrated with RAE: testing needed
 2. domain_simpleOpenDoor: Robot opening a door
-   --- developed and integrated with RAE: testing needed
 3. domain_ste: Robot travelling from one location to another by foot or taxi
-   --- developed and integrated with RAE: testing needed
 4. domain_chargeableRobot: A chargeable robot collecting different objects
-   --- developed and integrated with RAE: testing needed
 5. domain_springDoor: Robot needs to collect objects in an environment with spring doors
-   --- developed and integrated with RAE: testing needed
 6. domain_exploreEnv: Robots and UAV move through an area and collects various data
-   --- developed and integrated with RAE: testing needed
 7. domain_industrialPlant: Orders of compound tasks involving painting, assembly and packing of components are handled
-   --- developed and integrated with RAE: testing needed
 
 HOW TO USE?
 To test on any domain, use the following command in terminal
 
-python testRAE.py [-h] [--v V] [--d D] [--p P] [--s S] [--c C]
+python3 testRAE.py [-h] [--v V] [--domain D] [--p P] [--s S] [--c C]
 optional arguments:
   -h, --help  show this help message and exit
   --v V       verbosity of RAE's debugging output (0, 1 or 2)
-  --d D       name of the test domain (STE, CR, SD, EE, SOD, IP or SF)
+  --domain D       name of the test domain (STE, CR, SD, EE, SOD, IP or SF)
   --p P       identifier for the problem eg. 'problem1', 'problem2', etc
-  --s S       Do you want to use sampling or not? ('y' or 'n')
+  --s S       Do you want to use APE-plan or not? ('y' or 'n')
   --c C       Mode of the clock ('Counter' or 'Clock')
 
 domain codes are as follows:
@@ -48,7 +41,7 @@ problemId_domainCode.py
 For example, a problem of SD domain with problemId 'problem1' should be named problem1_SD.py.
 To test problem1 of Spring door, use the command:
 
-python testRAE.py --d SD --p problem1
+python3 testRAE.py --d SD --p problem1
 
 The commands can be executed in two modes: 'Clock' or 'Counter'.
 By default, the mode is set to 'Counter'.

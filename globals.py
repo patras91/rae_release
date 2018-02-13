@@ -55,3 +55,15 @@ def SetLazy(val):
 
 def GetLazy():
     return g.lazy
+
+def SetSampleBreadth(b):
+    g.sample_b = b
+
+def GetSampleBreadth():
+    return g.sample_b
+
+def SetSearchDepth(d):
+    g.searchDepth = d
+
+def GetSearchDepth():
+    return g.searchDepth

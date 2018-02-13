@@ -1,10 +1,8 @@
 #!/bin/sh
+# This script is to run APE with different values of b for APE-plan
 
 echo "Executing tests for APE."
 
-#for problem in "problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" #
-#for problem in "problem11" "problem12" "problem13" "problem14" # "problem15" #  "problem18" "problem19" "problem20"  "problem19" #"problem17" #
-#do
 for domain in "EE" # "CR" # "SD" "IP"
 do
     if [ "$domain" = "SD" ]; then

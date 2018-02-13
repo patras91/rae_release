@@ -275,6 +275,7 @@ def InitializeSampling(raeArgs):
         raelocals.method = raeArgs.method
         raelocals.candidates = raeArgs.candidates
         raelocals.currentNode = rTree.RTNode("ROOT")
+        raelocals.depth = 0
     return samplingMode
 
 def rae1(task, raeArgs):
@@ -369,6 +370,7 @@ def GetCandidateBySampling(candidates, task, taskArgs):
         #random.shuffle(candidates)
         return (candidates[0], candidates[1:])
     else:
+        resultTree.Print()
         resultList = resultTree.GetPreorderTraversal()
         if raelocals.refinementList == []:
             raelocals.refinementList = None
@@ -413,6 +415,13 @@ def choose_candidate(candidates, task, taskArgs):
             candidates.pop(candidates.index(chosen))
             return (chosen, candidates)
 
+def GetHeuristicEstimate(task, taskArgs):
+    result = globals.G()
+    result.retcode = "Success"
+    result.cost = 1
+    result.method = task
+    return result
+
 def SimulateTask(task, taskArgs):
     global path
 
@@ -425,11 +434,16 @@ def SimulateTask(task, taskArgs):
     # If a method has already been supplied
     if type(methodChosen) == types.FunctionType:
         path[raelocals.stackid].append([task, taskArgs])
+        raelocals.depth += 1
         raelocals.currentNode.UpdateDummy(methodChosen)
-        result = taskProgress(raelocals.stackid, path, methodChosen, taskArgs)
+        if raelocals.depth < globals.GetSearchDepth():
+            result = taskProgress(raelocals.stackid, path, methodChosen, taskArgs)
+        else:
+            result = GetHeuristicEstimate(methodChosen, taskArgs)
         retcode = result.retcode
 
         path[raelocals.stackid].pop()
+        raelocals.depth -= 1
         if verbose > 1:
             print_entire_stack(raelocals.stackid, path)
 
@@ -586,39 +600,50 @@ def do_command(cmd, *cmdArgs):
     """
     global path
     path[raelocals.stackid].append([cmd, cmdArgs])
+    if globals.GetSamplingMode() == True:
+        raelocals.depth += 1
 
     if verbose > 1:
         print_entire_stack(raelocals.stackid, path)
 
-    if verbose > 0:
-        print_stack_size(raelocals.stackid, path)
-        print('Begin command {}{}'.format(cmd.__name__, cmdArgs))
+    getHeur = False
+    if globals.GetSamplingMode() == True:
+        if raelocals.depth > globals.GetSearchDepth():
+            getHeur = True
 
-    cmdRet = {'state':'running'}
-    cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
-    cmdThread.start()
-    cost = 1
-    if cmd.__name__ in raelocals.commandCount:
-        raelocals.commandCount[cmd.__name__] += 1
-    else:
-        raelocals.commandCount[cmd.__name__] = 1
-
-    EndCriticalRegion()
-    BeginCriticalRegion(raelocals.stackid)
-
-    while (cmdRet['state'] == 'running'):
+    if getHeur == False:
         if verbose > 0:
             print_stack_size(raelocals.stackid, path)
-            print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
-        #cost += 1
+            print('Begin command {}{}'.format(cmd.__name__, cmdArgs))
+
+        cmdRet = {'state':'running'}
+        cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
+        cmdThread.start()
+        cost = 1
+        if cmd.__name__ in raelocals.commandCount:
+            raelocals.commandCount[cmd.__name__] += 1
+        else:
+            raelocals.commandCount[cmd.__name__] = 1
+
         EndCriticalRegion()
         BeginCriticalRegion(raelocals.stackid)
 
-    if verbose > 0:
-        print_stack_size(raelocals.stackid, path)
-        print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
+        while (cmdRet['state'] == 'running'):
+            if verbose > 0:
+                print_stack_size(raelocals.stackid, path)
+                print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
+            #cost += 1
+            EndCriticalRegion()
+            BeginCriticalRegion(raelocals.stackid)
 
-    retcode = cmdRet['state']
+        if verbose > 0:
+            print_stack_size(raelocals.stackid, path)
+            print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
+
+        retcode = cmdRet['state']
+    else:
+        retcode = GetHeuristicEstimate(cmd, cmdArgs)
+
     if verbose > 1:
         print_stack_size(raelocals.stackid, path)
         print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
@@ -627,6 +652,9 @@ def do_command(cmd, *cmdArgs):
         print(state)
 
     path[raelocals.stackid].pop()
+    if globals.GetSamplingMode() == True:
+        raelocals.depth -= 1
+
     if verbose > 1:
         print_entire_stack(raelocals.stackid, path)
 
