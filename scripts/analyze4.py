@@ -258,7 +258,7 @@ def GeneratePlots():
     resDict['CR']['lazy']['retryCount'].append(resDict['CR']['lazy']['retryCount'][-1])
     #PlotRetrySideBySide(resDict)
     #PlotRetryTopped(resDict)
-    PlotRetryToppedSep(resDict)
+    #PlotRetryToppedSep(resDict)
 
     resDict['IP']['active']['rinv'].append(resDict['IP']['active']['rinv'][-1])
     resDict['IP']['active']['rinv'].append(resDict['IP']['active']['rinv'][-1])
@@ -298,7 +298,7 @@ def GeneratePlots():
 
     plt.clf()
     #PlotNuAcc(resDict)
-    PlotNuToppedSep(resDict)
+    #PlotNuToppedSep(resDict)
     #PlotNuDet(resDict)
 
 def PlotNu(resDict):
@@ -642,29 +642,29 @@ def PlotSuccessToppedSep(resDict):
     val = [0, 1, 2, 3, 4]
     l = 5
 
-    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['CR'][label1][index1][0:l], width=width, edgecolor='black', hatch="/", label='CR', color=color1, linewidth=2)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['EE'][label1][index1][0:l], width=width, edgecolor='black', hatch="///", label='EE', tick_label=val, color='black', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['CR'][label1][index1][0:l], width=width, edgecolor='black', hatch="/", label='Env. 1', color=color1, linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['EE'][label1][index1][0:l], width=width, edgecolor='black', hatch="///", label='Env. 2', tick_label=val, color='black', linewidth=2)
 
     plt.xlabel('$b$')
     plt.ylabel('success ratio')
-    plt.legend(bbox_to_anchor=(0.1, 1.05), loc=3, ncol=2, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
     #fig = plt.gcf()
     #fig.set_size_inches(40, 10)
 
-    fname = '../../../hiofsm/IJCAI2018/figures/SuccessDeadEnds.png'
+    fname = '../../../fellowships/kulkarni/figures/SuccessDeadEnds.png'
     plt.savefig(fname, bbox_inches='tight')
 
     plt.clf()
-    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['SD'][label1][index1][0:l], width=width, edgecolor='black', hatch=".", label='SD', tick_label=val, color='white', linewidth=2)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['IP'][label1][index1][0:l], width=width, edgecolor='black', hatch="...", label='IP', tick_label=val, color='black', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['SD'][label1][index1][0:l], width=width, edgecolor='black', hatch=".", label='Env. 3', tick_label=val, color='white', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['IP'][label1][index1][0:l], width=width, edgecolor='black', hatch="...", label='Env. 4', tick_label=val, color='black', linewidth=2)
 
     plt.xlabel('$b$')
     plt.ylabel('success ratio')
-    plt.legend(bbox_to_anchor=(0.1, 1.05), loc=3, ncol=2, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
     #fig = plt.gcf()
     #fig.set_size_inches(40, 10)
 
-    fname = '../../../hiofsm/IJCAI2018/figures/SuccessNoDeadEnds.png'
+    fname = '../../../fellowships/kulkarni/figures/SuccessNoDeadEnds.png'
     plt.savefig(fname, bbox_inches='tight')
 
 def PlotRetryTopped(resDict):

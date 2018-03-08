@@ -1,0 +1,140 @@
+Time test of SD problem1
+1 1 7 0 99
+openDoor-11 passDoor-11 holdDoor-6 releaseDoor-6 move-5 take-1
+1 1 5 0 92
+openDoor-9 holdDoor-7 passDoor-9 releaseDoor-7 move-5 take-1
+1 1 2 0 93
+openDoor-8 passDoor-8 holdDoor-7 releaseDoor-7 move-5 take-1
+1 1 6 0 101
+openDoor-9 holdDoor-6 passDoor-9 releaseDoor-6 move-5 take-1
+1 1 5 0 88
+openDoor-7 holdDoor-5 passDoor-7 releaseDoor-5 move-5 take-1
+1 1 5 0 85
+openDoor-8 holdDoor-5 passDoor-8 releaseDoor-5 move-5 take-1
+2 loops, best of 3: 7.29 sec per loop
+Time test of SD problem2
+1 2 3 0 89
+move-10 openDoor-9 passDoor-9 take-3
+0 2 5 0 66
+openDoor-9 holdDoor-6 passDoor-7 releaseDoor-6 move-6 take-3
+1 2 5 0 90
+openDoor-12 passDoor-12 move-10 take-3
+1 2 6 0 107
+move-10 openDoor-11 passDoor-10 take-3 holdDoor-8
+0 2 4 0 54
+openDoor-8 holdDoor-4 passDoor-6 releaseDoor-4 move-10 take-3
+1 2 8 0 114
+move-10 openDoor-12 holdDoor-7 passDoor-12 releaseDoor-7 take-3
+2 loops, best of 3: 8.73 sec per loop
+Time test of SD problem3
+1 1 1 0 90
+openDoor-7 holdDoor-7 passDoor-7 releaseDoor-7 move-4 take-1
+1 1 5 0 89
+openDoor-9 passDoor-9 holdDoor-5 releaseDoor-5 move-4 take-1
+1 1 4 0 87
+openDoor-8 holdDoor-6 passDoor-8 releaseDoor-6 move-4 take-1
+1 1 9 0 103
+openDoor-11 passDoor-11 holdDoor-6 releaseDoor-6 move-4 take-1
+1 1 3 0 77
+openDoor-7 holdDoor-6 passDoor-7 releaseDoor-6 move-4 take-1
+1 1 3 0 82
+openDoor-7 holdDoor-5 passDoor-7 releaseDoor-5 move-4 take-1
+2 loops, best of 3: 6.74 sec per loop
+Time test of SD problem4
+0 2 8 0 92
+openDoor-15 passDoor-15 holdDoor-10 releaseDoor-10 move-13 take-3
+1 2 4 0 84
+move-9 take-2 openDoor-10 holdDoor-6 passDoor-9 releaseDoor-6
+1 2 7 0 104
+openDoor-17 passDoor-15 holdDoor-10 releaseDoor-10 move-10 take-2
+1 2 4 0 91
+openDoor-12 passDoor-11 holdDoor-6 releaseDoor-6 move-9
+1 2 5 0 101
+openDoor-17 passDoor-15 holdDoor-10 releaseDoor-10 move-10 take-2
+1 2 7 0 98
+openDoor-17 holdDoor-9 passDoor-16 releaseDoor-9 move-11 take-2
+2 loops, best of 3: 12.7 sec per loop
+Time test of SD problem5
+1 1 0 0 33
+openDoor-2 holdDoor-2 passDoor-2 releaseDoor-2 take-1 move-2
+1 1 0 0 24
+openDoor-2 passDoor-2 take-1 move-2 holdDoor-1 releaseDoor-1
+1 1 1 0 33
+openDoor-2 holdDoor-2 passDoor-2 releaseDoor-2 take-1 move-2
+1 1 1 0 32
+openDoor-2 holdDoor-2 passDoor-2 releaseDoor-2 take-1 move-2
+1 1 1 0 33
+openDoor-2 holdDoor-2 passDoor-2 releaseDoor-2 take-1 move-2
+1 1 2 0 35
+openDoor-2 holdDoor-2 passDoor-2 releaseDoor-2 take-1 move-2
+2 loops, best of 3: 1.84 sec per loop
+Time test of SD problem6
+1 1 4 0 40
+openDoor-3 passDoor-3 holdDoor-2 releaseDoor-2 take-1 move-2
+1 1 3 0 30
+openDoor-2 passDoor-2 take-1 move-2 holdDoor-1 releaseDoor-1
+1 1 2 0 36
+openDoor-3 passDoor-3 holdDoor-2 releaseDoor-2 take-1 move-2
+1 1 3 0 32
+openDoor-2 holdDoor-2 passDoor-2 releaseDoor-2 take-1 move-2
+1 1 3 0 35
+openDoor-3 passDoor-3 holdDoor-2 releaseDoor-2 take-1 move-2
+1 1 4 0 39
+openDoor-3 passDoor-3 holdDoor-2 releaseDoor-2 take-1 move-2
+2 loops, best of 3: 2.51 sec per loop
+Time test of SD problem7
+1 1 1 0 20
+openDoor-1 passDoor-1 move-4 take-1
+1 1 0 0 17
+openDoor-1 passDoor-1 move-4 take-1
+1 1 0 0 22
+openDoor-1 holdDoor-1 passDoor-1 releaseDoor-1 move-4 take-1
+1 1 0 0 16
+openDoor-1 passDoor-1 move-4 take-1
+1 1 0 0 20
+openDoor-1 passDoor-1 move-4 take-1
+1 1 1 0 23
+openDoor-1 holdDoor-1 passDoor-1 releaseDoor-1 move-4 take-1
+2 loops, best of 3: 1.17 sec per loop
+Time test of SD problem8
+2 2 1 0 59
+openDoor-6 passDoor-6 move-7 take-3
+2 2 0 0 58
+openDoor-6 passDoor-6 move-7 take-3
+2 2 3 0 47
+openDoor-6 holdDoor-2 passDoor-6 releaseDoor-2 move-6 take-3
+2 2 2 0 62
+openDoor-6 holdDoor-5 passDoor-6 releaseDoor-5 move-7 take-3
+1 2 4 0 59
+openDoor-6 holdDoor-4 passDoor-6 releaseDoor-4 move-6 take-3
+2 2 4 0 56
+openDoor-6 holdDoor-4 passDoor-6 releaseDoor-4 move-7 take-3
+2 loops, best of 3: 5.07 sec per loop
+Time test of SD problem9
+1 1 0 0 21
+openDoor-1 holdDoor-1 passDoor-1 releaseDoor-1 move-4 take-1
+1 1 0 0 19
+openDoor-1 passDoor-1 move-4 take-1
+1 1 0 0 16
+openDoor-1 passDoor-1 move-4 take-1
+1 1 1 0 22
+openDoor-1 holdDoor-1 passDoor-1 releaseDoor-1 move-4 take-1
+1 1 0 0 18
+openDoor-1 passDoor-1 move-4 take-1
+1 1 2 0 27
+openDoor-2 passDoor-2 holdDoor-1 releaseDoor-1 move-4 take-1
+2 loops, best of 3: 1.5 sec per loop
+Time test of SD problem10
+2 2 5 0 79
+openDoor-10 passDoor-10 holdDoor-6 releaseDoor-6 move-7 take-3
+2 2 4 0 55
+openDoor-6 passDoor-6 move-7 take-3
+2 2 4 0 63
+openDoor-6 holdDoor-5 passDoor-6 releaseDoor-5 move-7 take-3
+1 2 4 0 65
+openDoor-8 passDoor-7 holdDoor-4 releaseDoor-4 move-7 take-3
+2 2 3 0 66
+openDoor-8 passDoor-8 holdDoor-6 releaseDoor-6 move-7 take-3
+2 2 4 0 72
+openDoor-7 holdDoor-6 passDoor-7 releaseDoor-6 move-7 take-3
+2 loops, best of 3: 7.4 sec per loop

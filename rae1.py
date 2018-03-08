@@ -14,49 +14,37 @@ This has multiple execution stacks
 import sys, pprint
 
 import globals
-import random
 import colorama
 import rTree
 from timer import globalTimer
+from dataStructures import rL_APE, rL_PLAN
+from APE_stack import print_entire_stack, print_stack_size
 ############################################################
 
 ### A goal is identical to a state except for the class name.
 ### I don't know if we'll need it or not, but it was trivial to write,
 ### and it might be useful if we want to reason about goals.
 
-class Goal():
-    """A goal is just a collection of variable bindings."""
-    def __init__(self):
-        pass
+#class Goal():
+ #   """A goal is just a collection of variable bindings."""
+ #   def __init__(self):
+ #       pass
 
-def print_stack_size(stackid, path):
-    stacksize = len(path[stackid])
-    print(' stack {}.{}: '.format(stackid,stacksize),end=' '*stacksize)
-
-def print_entire_stack(stackid, path):
-    if len(path[stackid]) == 0:
-        print(' stack {} = []\n'.format(stackid), end='')
-        return
-
-    print(' stack {} = ['.format(stackid), end='')
-    punctuation = ', '
-    for i in range(0,len(path[stackid])):
-        (name,args) = path[stackid][i]
-        if type(name) is types.FunctionType:
-            name = name.__name__
-        if i >= len(path[stackid]) - 1:
-            punctuation = ']\n'
-        print('{}{}'.format(name, args), end=punctuation)
 
 ### for debugging
 
 verbose = 0
 state = State()
+apeLocals = rL_APE()
+planLocals = rL_PLAN()
+commands = {}
+commandSimulations = {}
+methods = {}
+path = {}
 
 def CleanState():
+    global state
     state = State()
-
-raelocals = threading.local()
 
 def ResetState():
     state.ReleaseLocks()
@@ -78,29 +66,8 @@ def verbosity(level):
     verbose = level
 
 ############################################################
-# Helper functions that may be useful in domain models
-
-def forall(seq,cond):
-    """True if cond(x) holds for all x in seq, otherwise False."""
-    for x in seq:
-        if not cond(x): return False
-    return True
-
-def find_if(cond,seq):
-    """
-    Return the first x in seq such that cond(x) holds, if there is one.
-    Otherwise return None.
-    """
-    for x in seq:
-        if cond(x): return x
-    return None
-
-############################################################
 # Functions to tell Rae1 what the commands and methods are
 
-commands = {}
-commandSimulations = {}
-methods = {}
 
 def declare_commands(cmd_list, cmdSim_list):
     """
@@ -151,7 +118,7 @@ def PrintList(list):
 ############################################################
 # Stuff for debugging printout
 
-path = {}
+
 
 class Failed_command(Exception):
     pass
@@ -199,21 +166,21 @@ class concLA():
         self.thread.start()
 
     def Ready(self):
-        return ((raelocals.refinementList != None and raelocals.refinementList != []) or (self.refinementList != None))
+        return ((apeLocals.GetRefinementList() != None and apeLocals.GetRefinementList() != []) or (self.GetRefinementList() != None))
 
     def NoMethodApplicable(self):
-        return ((raelocals.refinementList == [] or raelocals.refinementList == None) and (self.refinementList == []))
+        return ((apeLocals.GetRefinementList() == [] or apeLocals.GetRefinementList() == None) and (self.GetRefinementList() == []))
 
     def GetMethod(self):
         self.control = 'real'
         self.sem.acquire()
 
-        if raelocals.refinementList == None or raelocals.refinementList == []:
-            raelocals.refinementList = self.refinementList[:]
+        if apeLocals.GetRefinementList() == None or apeLocals.GetRefinementList() == []:
+            apeLocals.SetRefinementList(self.refinementList[:])
             self.refinementList = None
 
-        chosen = raelocals.refinementList[0].method
-        raelocals.refinementList = raelocals.refinementList[1:]
+        chosen = apeLocals.GetRefinementList()[0].GetMethod()
+        apeLocals.SetRefinementList(apeLocals.GetRefinementList()[1:])
         self.candidates.pop(self.candidates.index(chosen))
 
         if self.candidates == []:
@@ -268,85 +235,117 @@ class concLA():
         self.refinementList = []
         self.control = 'exit'
 
-def InitializeSampling(raeArgs):
-    samplingMode = globals.GetSamplingMode()
-    if samplingMode == True:
-        globalTimer.ResetSimCounter()
-        raelocals.method = raeArgs.method
-        raelocals.candidates = raeArgs.candidates
-        raelocals.currentNode = rTree.RTNode("ROOT")
-        raelocals.depth = 0
-    return samplingMode
+def CreateFailureNode():
+    result = globals.G()
+    result.retcode = 'Failure'
+    result.method = None
+    return result
 
-def rae1(task, raeArgs):
+def APE(task, raeArgs):
     """
-    Rae1 is the Rae actor with a single execution stack. The first argument is the name (which
+    APE is the actor with a single execution stack. The first argument is the name (which
     should be a string) of the task to accomplish, and raeArgs are the arguments for the task and other stack parameters.
     """
 
-    raelocals.stackid = raeArgs.stack
-    raelocals.retryCount = 0
-    raelocals.commandCount = {}
+    apeLocals.SetStackId(raeArgs.stack)
+    apeLocals.SetRetryCount(0)
+    apeLocals.SetCommandCount({})
 
-    raelocals.refinementList = None  # required for lazy lookahead and concurrent lookahead
     taskArgs = raeArgs.taskArgs
 
     global path
-    path.update({raelocals.stackid: []})
+    path.update({apeLocals.GetStackId(): []})
 
-    samplingMode = InitializeSampling(raeArgs)
-
+    apeLocals.SetRefinementList(None)
     if globals.GetConcurrentMode() == True:
-        raelocals.conManagerList = []
+        apeLocals.SetConcManagerList([])
 
     if verbose > 0:
-        if samplingMode == False:
-            print('\n---- Rae1: Create stack {}, task {}{}\n'.format(raelocals.stackid, task, taskArgs))
+        print('\n---- APE: Create stack {}, task {}{}\n'.format(apeLocals.GetStackId(), task, taskArgs))
 
-    BeginCriticalRegion(raelocals.stackid)
+    BeginCriticalRegion(apeLocals.GetStackId())
 
     if verbose > 1:
-        print_stack_size(raelocals.stackid, path)
+        print_stack_size(apeLocals.GetStackId(), path)
         print('Initial state is:')
         print(state)
 
     try:
         result = do_task(task, *taskArgs)
-        if samplingMode == True:
-            resultTree = raelocals.currentNode
 
     except Failed_command as e:
         if verbose > 0:
-            print_stack_size(raelocals.stackid, path)
+            print_stack_size(apeLocals.GetStackId(), path)
             print('Failed command {}'.format(e))
-        result = globals.G()
-        result.retcode = 'Failure'
-        result.method = None
-        resultTree = rTree.RTNode(result)
+        result = CreateFailureNode()
 
     except Failed_task as e:
         if verbose > 0:
-            print_stack_size(raelocals.stackid, path)
+            print_stack_size(apeLocals.GetStackId(), path)
             print('Failed task {}'.format(e))
-        result = globals.G()
-        result.retcode = 'Failure'
-        result.method = None
-        resultTree = rTree.RTNode(result)
+        result = CreateFailureNode()
     else:
         pass
     if verbose > 1:
-        print_stack_size(raelocals.stackid, path)
+        print_stack_size(apeLocals.GetStackId(), path)
         print('Final state is:')
         print(state)
+
     if verbose > 0:
-        if samplingMode == False:
-            print("\n---- Rae1: Done with stack %d\n" %raelocals.stackid)
+        print("\n---- APE: Done with stack %d\n" %apeLocals.GetStackId())
 
     EndCriticalRegion()
-    if samplingMode == True:
-        return (resultTree, globalTimer.GetSimulationCounter())
+    return (result, apeLocals.GetRetryCount(), apeLocals.GetCommandCount())
+
+def InitializeSampling(raeArgs):
+    globalTimer.ResetSimCounter()
+    planLocals.SetMethod(raeArgs.method)
+    planLocals.SetCandidates(raeArgs.candidates)
+    planLocals.SetCurrentNode(rTree.RTNode("ROOT"))
+    planLocals.SetDepth(0)
+
+def APEplan(task, raeArgs):
+
+    planLocals.SetStackId(raeArgs.stack)
+
+    taskArgs = raeArgs.taskArgs
+
+    global path
+    path.update({planLocals.GetStackId(): []})
+
+    InitializeSampling(raeArgs)
+
+    BeginCriticalRegion(planLocals.GetStackId())
+
+    if verbose > 1:
+        print_stack_size(planLocals.GetStackId(), path)
+        print('Initial state is:')
+        print(state)
+
+    try:
+        result = do_task(task, *taskArgs)
+        resultTree = planLocals.GetCurrentNode()
+
+    except Failed_command as e:
+        if verbose > 0:
+            print_stack_size(planLocals.GetStackId(), path)
+            print('Failed command {}'.format(e))
+        resultTree = rTree.RTNode(CreateFailureNode())
+
+    except Failed_task as e:
+        if verbose > 0:
+            print_stack_size(planLocals.GetStackId(), path)
+            print('Failed task {}'.format(e))
+        resultTree = rTree.RTNode(CreateFailureNode())
     else:
-        return (result, raelocals.retryCount, raelocals.commandCount)
+        pass
+    if verbose > 1:
+        print_stack_size(planLocals.GetStackId(), path)
+        print('Final state is:')
+        print(state)
+
+    EndCriticalRegion()
+    return (resultTree, globalTimer.GetSimulationCounter())
 
 def GetCandidateBySampling(candidates, task, taskArgs):
     if verbose > 0:
@@ -372,10 +371,10 @@ def GetCandidateBySampling(candidates, task, taskArgs):
     else:
         resultTree.Print()
         resultList = resultTree.GetPreorderTraversal()
-        if raelocals.refinementList == []:
-            raelocals.refinementList = None
+        if apeLocals.GetRefinementList() == []:
+            apeLocals.SetRefinementList(None)
         else:
-            raelocals.refinementList = resultList[1:]
+            apeLocals.SetRefinementList(resultList[1:])
         result = resultList[0]
         m = result.method
         candidates.pop(candidates.index(m))
@@ -388,22 +387,22 @@ def choose_candidate(candidates, task, taskArgs):
         return(candidates[0], candidates[1:])
 
     elif globals.GetConcurrentMode() == False:
-        if (raelocals.refinementList == None or raelocals.refinementList == [] or globals.GetLazy() == False):
+        if (apeLocals.GetRefinementList() == None or apeLocals.GetRefinementList() == [] or globals.GetLazy() == False):
             return GetCandidateBySampling(candidates, task, taskArgs)
 
         else:
             #print("candidates are ", candidates)
-            #PrintList(raelocals.refinementList)
-            chosen = raelocals.refinementList[0].method
-            raelocals.refinementList = raelocals.refinementList[1:]
+            #PrintList(raelocals.GetRefinementList())
+            chosen = apeLocals.GetRefinementList()[0].method
+            apeLocals.SetRefinementList(apeLocals.GetRefinementList()[1:])
             if chosen in candidates:
                 candidates.pop(candidates.index(chosen))
                 return (chosen, candidates)
             else:
-                raelocals.refinementList = None
+                apeLocals.SetRefinementList(None)
                 return GetCandidateBySampling(candidates, task, taskArgs)
     else:
-        currManager = raelocals.conManagerList[-1]
+        currManager = apeLocals.GetConcManagerList()[-1]
         while(currManager.Ready() == False):
             pass
 
@@ -422,45 +421,45 @@ def GetHeuristicEstimate(task, taskArgs):
     result.method = task
     return result
 
-def SimulateTask(task, taskArgs):
+def PlanTask(task, taskArgs):
     global path
 
-    if raelocals.method != None:
-        methodChosen = raelocals.method
-        raelocals.method = None
+    if planLocals.GetMethod() != None:
+        methodChosen = planLocals.GetMethod()
+        planLocals.SetMethod(None)
     else:
         methodChosen = None
 
     # If a method has already been supplied
     if type(methodChosen) == types.FunctionType:
-        path[raelocals.stackid].append([task, taskArgs])
-        raelocals.depth += 1
-        raelocals.currentNode.UpdateDummy(methodChosen)
-        if raelocals.depth < globals.GetSearchDepth():
-            result = taskProgress(raelocals.stackid, path, methodChosen, taskArgs)
+        path[planLocals.GetStackId()].append([task, taskArgs])
+        planLocals.SetDepth(planLocals.GetDepth() + 1)
+        planLocals.GetCurrentNode().UpdateDummy(methodChosen)
+        if planLocals.GetDepth() < globals.GetSearchDepth():
+            result = taskProgress(planLocals.GetStackId(), path, methodChosen, taskArgs)
         else:
             result = GetHeuristicEstimate(methodChosen, taskArgs)
         retcode = result.retcode
 
-        path[raelocals.stackid].pop()
-        raelocals.depth -= 1
+        path[planLocals.GetStackId()].pop()
+        planLocals.SetDepth(planLocals.GetDepth() - 1)
         if verbose > 1:
-            print_entire_stack(raelocals.stackid, path)
+            print_entire_stack(planLocals.GetStackId(), path)
 
         if retcode == 'Failure':
             raise Failed_task('{}{}'.format(task, taskArgs))
         elif retcode == 'Success':
-            result.cost += raelocals.currentNode.GetCost()
-            raelocals.currentNode.Update(result)
+            result.cost += planLocals.GetCurrentNode().GetCost()
+            planLocals.GetCurrentNode().Update(result)
             #raelocals.currentNode.IncreaseCost(1)
             return result
         else:
             raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
     else:
     # need to choose from candidates which may already be supplied
-        if raelocals.candidates != None:
-            candidates = raelocals.candidates[:]
-            raelocals.candidates = None
+        if planLocals.GetCandidates() != None:
+            candidates = planLocals.GetCandidates()[:]
+            planLocals.SetCandidates(None)
         else:
             candidates = methods[task][:]
         #random.shuffle(candidates)
@@ -483,11 +482,11 @@ def SimulateTask(task, taskArgs):
         if failedTask == True:
             raise Failed_task('{}{}'.format(task, taskArgs))
         else:
-            if raelocals.currentNode.value == 'ROOT':
-                raelocals.currentNode = bestResultTree
+            if planLocals.GetCurrentNode().value == 'ROOT':
+                planLocals.SetCurrentNode(bestResultTree)
             else:
-                raelocals.currentNode.AddChild(bestResultTree)
-                raelocals.currentNode.IncreaseCost(bestResultTree.GetCost())
+                planLocals.GetCurrentNode().AddChild(bestResultTree)
+                planLocals.GetCurrentNode().IncreaseCost(bestResultTree.GetCost())
                 state.restore(bestResultTree.GetState())
             return bestResultTree
 
@@ -534,23 +533,23 @@ def taskProgress(stackid, path, m, taskArgs):
 
 def InitializeConcurrentSimulations(task, candidates, taskArgs):
     newManager = concLA(task, taskArgs, candidates)
-    raelocals.conManagerList.append(newManager)
+    apeLocals.GetConcManagerList().append(newManager)
 
 def StopConcurrentSimulations():
-    currManager = raelocals.conManagerList[-1]
+    currManager = apeLocals.GetConcManagerList()[-1]
     currManager.EndSimulations()
-    raelocals.conManagerList.pop()
+    apeLocals.GetConcManagerList.pop()
 
 def DoTaskInRealWorld(task, taskArgs):
     global path
-    path[raelocals.stackid].append([task, taskArgs])
+    path[apeLocals.GetStackId()].append([task, taskArgs])
 
     if verbose > 0:
-        print_stack_size(raelocals.stackid, path)
+        print_stack_size(apeLocals.GetStackId(), path)
         print('Begin task {}{}'.format(task, taskArgs))
 
     if verbose > 1:
-        print_entire_stack(raelocals.stackid, path)
+        print_entire_stack(apeLocals.GetStackId(), path)
 
     retcode = None
     candidates = methods[task][:]
@@ -560,19 +559,19 @@ def DoTaskInRealWorld(task, taskArgs):
 
     while (retcode != 'Success' and candidates != []):
         if retcode == 'Failure':
-            raelocals.refinementList = None
-            raelocals.retryCount += 1
+            apeLocals.SetRefinementList(None)
+            apeLocals.SetRetryCount(apeLocals.GetRetryCount() + 1)
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
         if m != None:
-            result = taskProgress(raelocals.stackid, path, m, taskArgs)
+            result = taskProgress(apeLocals.GetStackId(), path, m, taskArgs)
             retcode = result.retcode
 
-    path[raelocals.stackid].pop()
+    path[apeLocals.GetStackId()].pop()
     if globals.GetConcurrentMode() == True:
         StopConcurrentSimulations()
 
     if verbose > 1:
-        print_entire_stack(raelocals.stackid, path)
+        print_entire_stack(apeLocals.GetStackId(), path)
 
     if retcode == 'Failure' or retcode == None:
         raise Failed_task('{}{}'.format(task, taskArgs))
@@ -586,7 +585,7 @@ def do_task(task, *taskArgs):
     This is the workhorse for rae1. The arguments are the same as for rae1.
     """
     if globals.GetSamplingMode() == True:
-        return SimulateTask(task, taskArgs)
+        return PlanTask(task, taskArgs)
     else:
         return DoTaskInRealWorld(task, taskArgs)
 
@@ -598,46 +597,96 @@ def do_command(cmd, *cmdArgs):
     """
     Perform command cmd(cmdArgs). Last arg must be the current state
     """
-    global path
-    path[raelocals.stackid].append([cmd, cmdArgs])
     if globals.GetSamplingMode() == True:
-        raelocals.depth += 1
+        return SimulateCommand(cmd, cmdArgs)
+    else:
+        return DoCommandInRealWorld(cmd, cmdArgs)
+
+def DoCommandInRealWorld(cmd, cmdArgs):
+    global path
+    path[apeLocals.GetStackId()].append([cmd, cmdArgs])
 
     if verbose > 1:
-        print_entire_stack(raelocals.stackid, path)
+        print_entire_stack(apeLocals.GetStackId(), path)
 
-    getHeur = False
-    if globals.GetSamplingMode() == True:
-        if raelocals.depth > globals.GetSearchDepth():
-            getHeur = True
+    if verbose > 0:
+        print_stack_size(apeLocals.GetStackId(), path)
+        print('Begin command {}{}'.format(cmd.__name__, cmdArgs))
 
-    if getHeur == False:
+    cmdRet = {'state':'running'}
+    cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
+    cmdThread.start()
+    if cmd.__name__ in apeLocals.GetCommandCount():
+        apeLocals.GetCommandCount()[cmd.__name__] += 1
+    else:
+        apeLocals.GetCommandCount()[cmd.__name__] = 1
+
+    EndCriticalRegion()
+    BeginCriticalRegion(apeLocals.GetStackId())
+
+    while (cmdRet['state'] == 'running'):
         if verbose > 0:
-            print_stack_size(raelocals.stackid, path)
+            print_stack_size(apeLocals.GetStackId(), path)
+            print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
+
+        EndCriticalRegion()
+        BeginCriticalRegion(apeLocals.GetStackId())
+
+    if verbose > 0:
+        print_stack_size(apeLocals.GetStackId(), path)
+        print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
+
+    retcode = cmdRet['state']
+
+    if verbose > 1:
+        print_stack_size(apeLocals.GetStackId(), path)
+        print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
+        print_stack_size(apeLocals.GetStackId(), path)
+        print('Current state is')
+        print(state)
+
+    path[apeLocals.GetStackId()].pop()
+
+    if verbose > 1:
+        print_entire_stack(apeLocals.GetStackId(), path)
+
+    if retcode == 'Failure':
+        raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
+    elif retcode == 'Success':
+        return retcode
+    else:
+        raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))
+
+def SimulateCommand(cmd, cmdArgs):
+    global path
+    path[planLocals.GetStackId()].append([cmd, cmdArgs])
+    planLocals.SetDepth(planLocals.GetDepth() + 1)
+
+    if verbose > 1:
+        print_entire_stack(planLocals.GetStackId(), path)
+
+    if planLocals.GetDepth() < globals.GetSearchDepth():
+        if verbose > 0:
+            print_stack_size(planLocals.GetStackId(), path)
             print('Begin command {}{}'.format(cmd.__name__, cmdArgs))
 
         cmdRet = {'state':'running'}
         cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
         cmdThread.start()
         cost = 1
-        if cmd.__name__ in raelocals.commandCount:
-            raelocals.commandCount[cmd.__name__] += 1
-        else:
-            raelocals.commandCount[cmd.__name__] = 1
 
         EndCriticalRegion()
-        BeginCriticalRegion(raelocals.stackid)
+        BeginCriticalRegion(planLocals.GetStackId())
 
         while (cmdRet['state'] == 'running'):
             if verbose > 0:
-                print_stack_size(raelocals.stackid, path)
+                print_stack_size(planLocals.GetStackId(), path)
                 print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
-            #cost += 1
             EndCriticalRegion()
-            BeginCriticalRegion(raelocals.stackid)
+            BeginCriticalRegion(planLocals.GetStackId())
 
         if verbose > 0:
-            print_stack_size(raelocals.stackid, path)
+            print_stack_size(planLocals.GetStackId(), path)
             print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
 
         retcode = cmdRet['state']
@@ -645,26 +694,23 @@ def do_command(cmd, *cmdArgs):
         retcode = GetHeuristicEstimate(cmd, cmdArgs)
 
     if verbose > 1:
-        print_stack_size(raelocals.stackid, path)
+        print_stack_size(planLocals.GetStackId(), path)
         print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
-        print_stack_size(raelocals.stackid, path)
+        print_stack_size(planLocals.GetStackId(), path)
         print('Current state is')
         print(state)
 
-    path[raelocals.stackid].pop()
-    if globals.GetSamplingMode() == True:
-        raelocals.depth -= 1
+    path[planLocals.GetStackId()].pop()
+    planLocals.SetDepth(planLocals.GetDepth() - 1)
 
     if verbose > 1:
-        print_entire_stack(raelocals.stackid, path)
+        print_entire_stack(planLocals.GetStackId(), path)
 
     if retcode == 'Failure':
-        if globals.GetSamplingMode() == True:
-            raelocals.currentNode.IncreaseCost(float('inf'))
+        planLocals.GetCurrentNode().IncreaseCost(float('inf'))
         raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
     elif retcode == 'Success':
-        if globals.GetSamplingMode() == True:
-            raelocals.currentNode.IncreaseCost(cost)
+        planLocals.GetCurrentNode().IncreaseCost(cost)
         return retcode
     else:
         raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))

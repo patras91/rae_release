@@ -1,5 +1,5 @@
 from __future__ import print_function
-from rae1 import ipcArgs, envArgs, verbosity, rae1, ResetState, CleanState
+from rae1 import ipcArgs, envArgs, verbosity, APE, APEplan, ResetState, CleanState
 import threading
 import sys
 sys.path.append('domains/')
@@ -54,8 +54,8 @@ def InitializeDomain(domain, problem):
     if domain in ['SF', 'CR', 'STE', 'SOD', 'SD', 'EE', 'IP', 'test']:
         module = problem + '_' + domain
         global domain_module
-        domain_module = __import__(module)
         CleanState()
+        domain_module = __import__(module)
         domain_module.ResetState()
     else:
         print("Invalid domain\n", domain)
@@ -88,7 +88,7 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    taskRes, retryCount, commandCount = rae1(raeArgs.task, raeArgs)
+    taskRes, retryCount, commandCount = APE(raeArgs.task, raeArgs)
     taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, taskRes.retcode, retryCount, commandCount)
 
 def PrintResult(taskInfo):
@@ -204,7 +204,7 @@ def raeMult():
         #globalTimer.Callibrate(startTime)
 
 def CreateNewStackSimulation(raeArgs):
-    methodTree, simTime = rae1(raeArgs.task, raeArgs)
+    methodTree, simTime = APEplan(raeArgs.task, raeArgs)
     raeArgs.queue.put((methodTree, simTime))
 
 def raeMultSimulator(task, taskArgs, method, queue, candidateMethods):
