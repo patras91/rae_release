@@ -45,7 +45,7 @@ class StateDict():
         self.dict = d
 
     def GetVal(self):
-        return self.dict
+        return dict(self.dict)
 
     def __getitem__(self, item):
         return self.dict[item]

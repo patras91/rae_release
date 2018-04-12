@@ -1,8 +1,9 @@
 from __future__ import print_function
-import types
 import threading
 from state import State
 import multiprocessing
+import numpy
+import random
 
 """
 File rae1.py
@@ -12,7 +13,7 @@ This has multiple execution stacks
 """
 
 import sys, pprint
-
+import os
 import globals
 import colorama
 import rTree
@@ -39,6 +40,7 @@ apeLocals = rL_APE()
 planLocals = rL_PLAN()
 commands = {}
 commandSimulations = {}
+commandProb = {}
 methods = {}
 path = {}
 
@@ -68,7 +70,6 @@ def verbosity(level):
 ############################################################
 # Functions to tell Rae1 what the commands and methods are
 
-
 def declare_commands(cmd_list, cmdSim_list):
     """
     Call this after defining the commands, to tell Rae1 what they are.
@@ -80,6 +81,9 @@ def declare_commands(cmd_list, cmdSim_list):
         key = '_'.join(cmdParts[0:-1])
         commandSimulations[key] = cmd
     return commands
+
+def declare_prob(cmd, pList):
+    commandProb[cmd] = pList
 
 def GetCommand(cmd):
     name = cmd.__name__
@@ -203,7 +207,7 @@ class concLA():
 
             if self.control == 'exit':
                 break
-            p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[self.task, self.taskArgs, None, queue, self.candidates])
+            p = multiprocessing.Process(target=testRAE.APEPlanMain, args=[self.task, self.taskArgs, None, queue, self.candidates])
             self.sem.release()
             p.start()
             p.join()
@@ -297,62 +301,78 @@ def APE(task, raeArgs):
     EndCriticalRegion()
     return (result, apeLocals.GetRetryCount(), apeLocals.GetCommandCount())
 
-def InitializeSampling(raeArgs):
-    globalTimer.ResetSimCounter()
-    planLocals.SetMethod(raeArgs.method)
-    planLocals.SetCandidates(raeArgs.candidates)
-    planLocals.SetCurrentNode(rTree.RTNode("ROOT"))
+def InitializeSampling(m):
+    planLocals.SetCandidates([m])
     planLocals.SetDepth(0)
+    root = rTree.RTNode('root', 'root', 'root')
+    planLocals.SetCurrentNode(root)
 
-def APEplan(task, raeArgs):
+def APEplan(task, planArgs):
 
-    planLocals.SetStackId(raeArgs.stack)
+    planLocals.SetStackId(planArgs.GetStackId())
+    taskArgs = planArgs.GetTaskArgs()
 
-    taskArgs = raeArgs.taskArgs
+    globalTimer.ResetSimCounter()
+    bestFailCount = globals.GetSampleCount() + 1
 
-    global path
-    path.update({planLocals.GetStackId(): []})
-
-    InitializeSampling(raeArgs)
-
-    BeginCriticalRegion(planLocals.GetStackId())
-
-    if verbose > 1:
-        print_stack_size(planLocals.GetStackId(), path)
-        print('Initial state is:')
-        print(state)
-
-    try:
-        result = do_task(task, *taskArgs)
-        resultTree = planLocals.GetCurrentNode()
-
-    except Failed_command as e:
+    saved = state.copy()
+    for m in planArgs.GetCandidates():
         if verbose > 0:
-            print_stack_size(planLocals.GetStackId(), path)
-            print('Failed command {}'.format(e))
-        resultTree = rTree.RTNode(CreateFailureNode())
+            print("Method ", m.__name__)
+        failCount = 0
+        for i in range(0, globals.GetSampleCount()):
+            if verbose > 0:
+                print("Rollout ", i)
 
-    except Failed_task as e:
-        if verbose > 0:
-            print_stack_size(planLocals.GetStackId(), path)
-            print('Failed task {}'.format(e))
-        resultTree = rTree.RTNode(CreateFailureNode())
-    else:
-        pass
-    if verbose > 1:
-        print_stack_size(planLocals.GetStackId(), path)
-        print('Final state is:')
-        print(state)
+            state.restore(saved)
+            InitializeSampling(m)
+            global path
+            path.update({planLocals.GetStackId(): []})
 
-    EndCriticalRegion()
-    return (resultTree, globalTimer.GetSimulationCounter())
+            #BeginCriticalRegion(planLocals.GetStackId())
+
+            if verbose > 1:
+                print_stack_size(planLocals.GetStackId(), path)
+                print('Initial state is:')
+                print(state)
+
+            try:
+                resultTreeRoot = PlanTask(task, taskArgs).GetChild()
+
+            except Failed_command as e:
+                if verbose > 0:
+                    print_stack_size(planLocals.GetStackId(), path)
+                    print('Failed command {}'.format(e))
+                resultTreeRoot = rTree.CreateFailureNode()
+                failCount += 1
+
+            except Failed_task as e:
+                if verbose > 0:
+                    print_stack_size(planLocals.GetStackId(), path)
+                    print('Failed task {}'.format(e))
+                resultTreeRoot = rTree.CreateFailureNode()
+                failCount += 1
+
+            else:
+                pass
+            if verbose > 1:
+                print_stack_size(planLocals.GetStackId(), path)
+                print('Final state is:')
+                print(state)
+
+        if bestFailCount > failCount:
+            bestFailCount = failCount
+            bestResultTree = resultTreeRoot
+
+    #EndCriticalRegion()
+    return (bestResultTree, globalTimer.GetSimulationCounter())
 
 def GetCandidateBySampling(candidates, task, taskArgs):
     if verbose > 0:
         print(colorama.Fore.RED, "Starting simulation for stack")
 
     queue = multiprocessing.Queue()
-    p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, None, queue, candidates])
+    p = multiprocessing.Process(target=testRAE.APEPlanMain, args=[task, taskArgs, queue, candidates])
 
     p.start()
     p.join()
@@ -375,8 +395,7 @@ def GetCandidateBySampling(candidates, task, taskArgs):
             apeLocals.SetRefinementList(None)
         else:
             apeLocals.SetRefinementList(resultList[1:])
-        result = resultList[0]
-        m = result.method
+        m = resultList[0]
         candidates.pop(candidates.index(m))
         return (m, candidates)
 
@@ -421,85 +440,52 @@ def GetHeuristicEstimate(task, taskArgs):
     result.method = task
     return result
 
+def ChooseRandom(l):
+    random.shuffle(l)
+    return l[0]
+
 def PlanTask(task, taskArgs):
+
+    if planLocals.GetCandidates() != None:
+        candidates = planLocals.GetCandidates()[:]
+        planLocals.SetCandidates(None)
+    else:
+        candidates = methods[task][:]
+
+    m = ChooseRandom(candidates)
+    return PlanMethod(m, task, taskArgs)
+
+def PlanMethod(m, task, taskArgs):
     global path
+    path[planLocals.GetStackId()].append([task, taskArgs])
 
-    if planLocals.GetMethod() != None:
-        methodChosen = planLocals.GetMethod()
-        planLocals.SetMethod(None)
+    savedNode = planLocals.GetCurrentNode()
+    newNode = rTree.RTNode(m, taskArgs, 'method')
+    savedNode.AddChild(newNode)
+    planLocals.SetCurrentNode(newNode)
+
+    result = CallMethod(planLocals.GetStackId(), m, taskArgs)
+    retcode = result.retcode
+
+    path[planLocals.GetStackId()].pop()
+    if verbose > 1:
+        print_entire_stack(planLocals.GetStackId(), path)
+
+    if retcode == 'Failure':
+        raise Failed_task('{}{}'.format(task, taskArgs))
+    elif retcode == 'Success':
+        planLocals.SetCurrentNode(savedNode)
+        return savedNode
     else:
-        methodChosen = None
+        raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
 
-    # If a method has already been supplied
-    if type(methodChosen) == types.FunctionType:
-        path[planLocals.GetStackId()].append([task, taskArgs])
-        planLocals.SetDepth(planLocals.GetDepth() + 1)
-        planLocals.GetCurrentNode().UpdateDummy(methodChosen)
-        if planLocals.GetDepth() < globals.GetSearchDepth():
-            result = taskProgress(planLocals.GetStackId(), path, methodChosen, taskArgs)
-        else:
-            result = GetHeuristicEstimate(methodChosen, taskArgs)
-        retcode = result.retcode
-
-        path[planLocals.GetStackId()].pop()
-        planLocals.SetDepth(planLocals.GetDepth() - 1)
-        if verbose > 1:
-            print_entire_stack(planLocals.GetStackId(), path)
-
-        if retcode == 'Failure':
-            raise Failed_task('{}{}'.format(task, taskArgs))
-        elif retcode == 'Success':
-            result.cost += planLocals.GetCurrentNode().GetCost()
-            planLocals.GetCurrentNode().Update(result)
-            #raelocals.currentNode.IncreaseCost(1)
-            return result
-        else:
-            raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
-    else:
-    # need to choose from candidates which may already be supplied
-        if planLocals.GetCandidates() != None:
-            candidates = planLocals.GetCandidates()[:]
-            planLocals.SetCandidates(None)
-        else:
-            candidates = methods[task][:]
-        #random.shuffle(candidates)
-        candidates = candidates[0:min(len(candidates), globals.getK())]
-        failedTask = True
-        minCost = float("inf")
-        for m in candidates:
-            queue = multiprocessing.Queue()
-            p = multiprocessing.Process(target=testRAE.raeMultSimulator, args=[task, taskArgs, m, queue, None])
-            p.start()
-            p.join()
-            resultTree, simTime = queue.get()
-            globalTimer.UpdateSimCounter(simTime)
-            if resultTree.GetRetcode() == 'Success':
-                failedTask = False
-                if resultTree.GetCost() < minCost:
-                    bestResultTree = resultTree
-                    minCost = resultTree.GetCost()
-
-        if failedTask == True:
-            raise Failed_task('{}{}'.format(task, taskArgs))
-        else:
-            if planLocals.GetCurrentNode().value == 'ROOT':
-                planLocals.SetCurrentNode(bestResultTree)
-            else:
-                planLocals.GetCurrentNode().AddChild(bestResultTree)
-                planLocals.GetCurrentNode().IncreaseCost(bestResultTree.GetCost())
-                state.restore(bestResultTree.GetState())
-            return bestResultTree
-
-def taskProgress(stackid, path, m, taskArgs):
+def CallMethod(stackid, m, taskArgs):
     if verbose > 0:
         print_stack_size(stackid, path)
         print('Try method {}{}'.format(m.__name__,taskArgs))
 
-    result = globals.G()
-    result.retcode = "Failure"
-    result.method = None
+    result = CreateFailureNode()
     result.cost = 0
-    result.state = state.copy()
     try:
         EndCriticalRegion()
         BeginCriticalRegion(stackid)
@@ -514,7 +500,6 @@ def taskProgress(stackid, path, m, taskArgs):
         retcode = m(*taskArgs)
         result.method = m
         result.retcode = retcode
-        result.state = state.copy()
     except Failed_command as e:
         if verbose > 0:
             print_stack_size(stackid, path)
@@ -563,7 +548,7 @@ def DoTaskInRealWorld(task, taskArgs):
             apeLocals.SetRetryCount(apeLocals.GetRetryCount() + 1)
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
         if m != None:
-            result = taskProgress(apeLocals.GetStackId(), path, m, taskArgs)
+            result = CallMethod(apeLocals.GetStackId(), m, taskArgs)
             retcode = result.retcode
 
     path[apeLocals.GetStackId()].pop()
@@ -590,8 +575,12 @@ def do_task(task, *taskArgs):
         return DoTaskInRealWorld(task, taskArgs)
 
 def beginCommand(cmd, cmdRet, cmdArgs):
-    cmd = GetCommand(cmd)
-    cmdRet['state'] = cmd(*cmdArgs)
+    cmdPtr = GetCommand(cmd)
+    if globals.GetSamplingMode() == True:
+        p = commandProb[cmd]
+        outcome = numpy.random.choice(len(p), 1, p=p)
+        cmdArgs = cmdArgs + (outcome[0],)
+    cmdRet['state'] = cmdPtr(*cmdArgs)
 
 def do_command(cmd, *cmdArgs):
     """
@@ -665,7 +654,7 @@ def SimulateCommand(cmd, cmdArgs):
     if verbose > 1:
         print_entire_stack(planLocals.GetStackId(), path)
 
-    if planLocals.GetDepth() < globals.GetSearchDepth():
+    if True:
         if verbose > 0:
             print_stack_size(planLocals.GetStackId(), path)
             print('Begin command {}{}'.format(cmd.__name__, cmdArgs))
@@ -690,8 +679,8 @@ def SimulateCommand(cmd, cmdArgs):
             print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
 
         retcode = cmdRet['state']
-    else:
-        retcode = GetHeuristicEstimate(cmd, cmdArgs)
+    #else:
+    #    retcode = GetHeuristicEstimate(cmd, cmdArgs)
 
     if verbose > 1:
         print_stack_size(planLocals.GetStackId(), path)
@@ -707,7 +696,6 @@ def SimulateCommand(cmd, cmdArgs):
         print_entire_stack(planLocals.GetStackId(), path)
 
     if retcode == 'Failure':
-        planLocals.GetCurrentNode().IncreaseCost(float('inf'))
         raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
     elif retcode == 'Success':
         planLocals.GetCurrentNode().IncreaseCost(cost)

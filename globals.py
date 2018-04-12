@@ -67,3 +67,6 @@ def SetSearchDepth(d):
 
 def GetSearchDepth():
     return g.searchDepth
+
+def GetSampleCount():
+    return 5

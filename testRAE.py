@@ -5,6 +5,7 @@ import sys
 sys.path.append('domains/')
 sys.path.append('problems/')
 import argparse
+from dataStructures import PlanArgs
 
 from timer import globalTimer, SetMode
 #from time import time
@@ -203,11 +204,11 @@ def raeMult():
         PrintResultSummary(taskInfo)
         #globalTimer.Callibrate(startTime)
 
-def CreateNewStackSimulation(raeArgs):
-    methodTree, simTime = APEplan(raeArgs.task, raeArgs)
-    raeArgs.queue.put((methodTree, simTime))
+def CreateNewStackSimulation(pArgs, queue):
+    methodTree, simTime = APEplan(pArgs.GetTask(), pArgs)
+    queue.put((methodTree, simTime))
 
-def raeMultSimulator(task, taskArgs, method, queue, candidateMethods):
+def APEPlanMain(task, taskArgs, queue, candidateMethods):
     # Simulating one stack now
     # TODO: Simulate multiple stacks in future
 
@@ -215,18 +216,17 @@ def raeMultSimulator(task, taskArgs, method, queue, candidateMethods):
     globals.SetSamplingMode(True)
     ResetState()
 
-    raeArgs = globals.RaeArgs()
-    raeArgs.taskArgs = taskArgs
-    raeArgs.stack = 1
-    raeArgs.task = task
-    raeArgs.candidates = candidateMethods
-    raeArgs.method = method
-    raeArgs.queue = queue
+    pArgs = PlanArgs()
+    pArgs.SetTaskArgs(taskArgs)
+    pArgs.SetStackId(1)
+    pArgs.SetTask(task)
+    pArgs.SetCandidates(candidateMethods)
+    #pArgs.SetMethod(method)
 
     ipcArgs.nextStack = 0
     ipcArgs.sem = threading.Semaphore(1)
 
-    thread = threading.Thread(target=CreateNewStackSimulation, args=[raeArgs])
+    thread = threading.Thread(target=CreateNewStackSimulation, args=[pArgs, queue])
 
     thread.start()
 

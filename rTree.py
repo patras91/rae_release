@@ -3,55 +3,45 @@ import globals
 import pipes
 
 class RTNode():
-    def __init__(self, n=None):
-        self.value = n
+    def __init__(self, n, args, type):
+        self.label = n
+        self.args = args
+        self.type = type
+        self.cost = 0
         self.children = []
 
-    def Insert(self, m):
-        n = RTNode(m)
-        self.children = self.children + [n]
-        return n
+    def GetLabel(self):
+        return self.label
+
+    def GetArgs(self):
+        return self.args
 
     def GetRetcode(self):
-        if self.value == 'FAILURE':
+        if self.label == "Failure":
             return "Failure"
         else:
-            return self.value.retcode
+            return "Success"
 
     def GetPreorderTraversal(self):
-        if self.value == None:
+        if self.label == None:
             return []
         else:
-            res = [self.value]
+            res = [self.label]
             for node in self.children:
                 res = res + node.GetPreorderTraversal()
             return res
 
     def IncreaseCost(self, c):
-        self.value.cost += 1
+        self.cost += 1
 
     def GetCost(self):
-        return self.value.cost
+        return self.cost
 
     def GetMethod(self):
-        return self.value.method
-
-    def Update(self, result):
-        self.value = result
-
-    def UpdateDummy(self, m):
-        self.value = globals.G()
-        self.value.method = m
-        self.value.cost = 0
+        return self.label
 
     def DeleteChild(self, child):
         self.children.remove(child)
-
-    def GetValue(self):
-        return self.value
-
-    def GetState(self):
-        return self.value.state
 
     def DeleteChildren(self):
         self.children = []
@@ -64,13 +54,13 @@ class RTNode():
         self.children = self.children + [node]
 
     def SetCost(self, c):
-        self.value.cost = c
+        self.cost = c
 
     def GetPrettyString(self, elem):
-        if elem.value == 'ROOT':
-            return elem.value
-        if elem.value.method != None:
-            return elem.value.method.__name__
+        if elem.label == 'root':
+            return elem.label
+        if elem.label != None:
+            return elem.label.__name__
         else:
             return "NONE"
 
@@ -114,3 +104,5 @@ class RTNode():
             next += 1
             level[next] = []
 
+def CreateFailureNode():
+    return RTNode('Failure', 'Failure', 'Failure')

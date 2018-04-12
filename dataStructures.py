@@ -1,24 +1,6 @@
 __author__ = 'patras'
 
-from rTree import RTNode
 import threading
-
-class TVPair():
-    def __init__(self):
-        self.T = None
-        self.V = float('int')
-
-    def SetT(self, tree):
-        self.T = tree
-
-    def GetT(self):
-        return self.T
-
-    def SetV(self, value):
-        self.V = value
-
-    def GetV(self):
-        return self.V
 
 class rL():
     def __init__(self):
@@ -82,3 +64,42 @@ class rL_PLAN(rL):
     def SetDepth(self, d):
         self.rL.depth = d
 
+    def SetRTree(self, T):
+        self.rL.rTree = T
+
+    def GetRTree(self):
+        return self.rL.rTree
+
+class PlanArgs():
+    def __init__(self):
+        pass
+
+    def GetMethod(self):
+        return self.method
+
+    def SetMethod(self, m):
+        self.method = m
+
+    def SetCandidates(self, cand):
+        self.candidates = cand
+
+    def GetCandidates(self):
+        return self.candidates
+
+    def GetStackId(self):
+        return self.stackid
+
+    def SetStackId(self, id):
+        self.stackid = id
+
+    def GetTask(self):
+        return self.task
+
+    def SetTask(self, t):
+        self.task = t
+
+    def GetTaskArgs(self):
+        return self.taskArgs
+
+    def SetTaskArgs(self, args):
+        self.taskArgs = args
