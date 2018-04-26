@@ -7,9 +7,9 @@ import random
 
 """
 File rae1.py
-Author: Dana Nau <nau@cs.umd.edu>, July 7, 2017
-Sunandita Patra <patras@cs.umd.edu>, July 9, 2017
-This has multiple execution stacks
+Authors:
+Dana Nau <nau@cs.umd.edu>, last update: July 7, 2017
+Sunandita Patra <patras@cs.umd.edu>, last update: April 25, 2018
 """
 
 import sys, pprint
@@ -22,34 +22,10 @@ from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
 ############################################################
 
-### A goal is identical to a state except for the class name.
-### I don't know if we'll need it or not, but it was trivial to write,
-### and it might be useful if we want to reason about goals.
-
-#class Goal():
- #   """A goal is just a collection of variable bindings."""
- #   def __init__(self):
- #       pass
-
 
 ### for debugging
 
-verbose = 0
-state = State()
-apeLocals = rL_APE()
-planLocals = rL_PLAN()
-commands = {}
-commandSimulations = {}
-commandProb = {}
-methods = {}
-path = {}
-
-def CleanState():
-    global state
-    state = State()
-
-def ResetState():
-    state.ReleaseLocks()
+verbose = 0     
 
 def verbosity(level):
     """
@@ -67,12 +43,34 @@ def verbosity(level):
     global verbose
     verbose = level
 
+state = State()  # the global state of APE, this is shared by all stacks
+apeLocals = rL_APE() # APE variables that are local to every stack
+planLocals = rL_PLAN() # APEplan variables that are local to every stack
+commands = {} # dictionary of commands, initialized once for every run via the domain file
+commandSimulations = {} # dictionary of descriptive models of commands, initialized once for every run via the domain file
+commandProb = {} # dictionary of probabilities of outcomes of commands, initialized once for every run via the domain file
+methods = {} # dictionary of the list of methods for every task, initialized once for every run via the domain file
+path = {} # global variable shared by all stacks for debugging
+
+def ReinitializeState():   
+    """
+    State is reinitialized before every run, useful in batch runs
+    """
+    global state
+    state = State()
+
+def RemoveLocksFromState():
+    """
+    We get rid of all the locks in the simulated state used in APE-plan because we simulate only one stack.
+    """
+    state.ReleaseLocks()
+
 ############################################################
 # Functions to tell Rae1 what the commands and methods are
 
 def declare_commands(cmd_list, cmdSim_list):
     """
-    Call this after defining the commands, to tell Rae1 what they are.
+    Call this after defining the commands, to tell APE and APE-plan what they are.
     cmd_list must be a list of functions, not strings.
     """
     commands.update({cmd.__name__:cmd for cmd in cmd_list})
@@ -83,11 +81,17 @@ def declare_commands(cmd_list, cmdSim_list):
     return commands
 
 def declare_prob(cmd, pList):
+    """
+    Call this function to declare the probabities of the different outcomes in the descriptive models of commands.
+    """
     commandProb[cmd] = pList
 
 def GetCommand(cmd):
+    """
+        Get the actual operational model of the command or the descriptive model depending on whether we are in planning or acting mode
+    """
     name = cmd.__name__
-    if globals.GetSamplingMode() == True:
+    if globals.GetPlanningMode() == True:
         return commandSimulations[name]
     else:
         return commands[name]
@@ -249,20 +253,22 @@ def APE(task, raeArgs):
     """
     APE is the actor with a single execution stack. The first argument is the name (which
     should be a string) of the task to accomplish, and raeArgs are the arguments for the task and other stack parameters.
+    raeArgs has a stack id, stack, and parameters to the task, taskArgs. 
     """
 
-    apeLocals.SetStackId(raeArgs.stack)
-    apeLocals.SetRetryCount(0)
-    apeLocals.SetCommandCount({})
+    apeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
+    apeLocals.SetRetryCount(0)           # to keep track of the number of retries in the current stack. This is used to calculate retry ratio
+    apeLocals.SetCommandCount({})        # to keep track of the number of instances of every commands executed. Used to calculate the speed to success
+                                         # This is a dictionary to accomodate for commands with different costs.
 
-    taskArgs = raeArgs.taskArgs
+    taskArgs = raeArgs.taskArgs         
 
-    global path
+    global path                          # variable used for debugging
     path.update({apeLocals.GetStackId(): []})
 
-    apeLocals.SetRefinementList(None)
+    apeLocals.SetRefinementList(None)    # used in lazy and concurrent modes
     if globals.GetConcurrentMode() == True:
-        apeLocals.SetConcManagerList([])
+        apeLocals.SetConcManagerList([])  #concurrent manager keeps tracks of the threads in concurrent mode
 
     if verbose > 0:
         print('\n---- APE: Create stack {}, task {}{}\n'.format(apeLocals.GetStackId(), task, taskArgs))
@@ -275,7 +281,7 @@ def APE(task, raeArgs):
         print(state)
 
     try:
-        result = do_task(task, *taskArgs)
+        result = do_task(task, *taskArgs)  # do acting
 
     except Failed_command as e:
         if verbose > 0:
@@ -301,73 +307,115 @@ def APE(task, raeArgs):
     EndCriticalRegion()
     return (result, apeLocals.GetRetryCount(), apeLocals.GetCommandCount())
 
-def InitializeSampling(m):
-    planLocals.SetCandidates([m])
-    planLocals.SetDepth(0)
-    root = rTree.RTNode('root', 'root', 'root')
+def InitializeRollout():
+    """
+    This is a helper function for APEplan
+    When APE-plan is called for the first time, some parameters need to be initialized. 
+    """
+
+    planLocals.SetDepth(0)         # start at depth 0 and go till depth d_max
+    root = rTree.RTNode('root', 'root', 'root') # initialize the root of the refinement tree being built
     planLocals.SetCurrentNode(root)
 
+def UpdateValueDict(valueDict, tree):
+    """
+    Helper function for APEplan
+    """
+    m = tree.GetMethod()
+    if m not in valueDict:
+        valueDict[m] = (0, None)
+    newVal = valueDict[m][0] + 1/tree.GetCost()
+    if valueDict[m][1] == None:
+        newTree = tree
+    else:
+        newTree = valueDict[m][1]
+        if newTree.GetCost() < tree.GetCost():
+            newTree = tree
+    valueDict[m] = (newVal, newTree)
+
+def GetBestTree(valueDict):
+    """
+    Helper function for APEplan
+    """
+    bestValue = 0
+    bestTree = None
+    for m in valueDict:
+        (value, tree) = valueDict[m]
+        if value > bestValue:
+            bestValue = value
+            bestTree = tree
+    return bestTree
+
 def APEplan(task, planArgs):
+    """
+    APEplan is the planner used by APE which plans using the descriptive models of commands.
+    The arguments of APEplan are same as APE.
+    """
 
-    planLocals.SetStackId(planArgs.GetStackId())
+    planLocals.SetStackId(planArgs.GetStackId()) # Right now, the stack id is always set to 1 and is used to switch between 
+                                                 # the main Simulation thread in testRAE.py and APEplan.
+                                                 # This will be more useful if we decide to simulate multiple stacks in future
     taskArgs = planArgs.GetTaskArgs()
+    
+    globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
+    
+    valueDict = {}  # keeps track of the values of each method
 
-    globalTimer.ResetSimCounter()
-    bestFailCount = globals.GetSampleCount() + 1
+    saved = state.copy() # need to save the state before doing a Monte-Carlo rollout
 
-    saved = state.copy()
-    for m in planArgs.GetCandidates():
+    for i in range(0, globals.GetSampleCount()):   
+        """
+        Do a rollout
+        """
         if verbose > 0:
-            print("Method ", m.__name__)
-        failCount = 0
-        for i in range(0, globals.GetSampleCount()):
+            print("Rollout ", i)
+
+        planLocals.SetCandidates(planArgs.GetCandidates())  # only methods from this set will be tried
+        state.restore(saved)
+        InitializeRollout()
+
+        global path   # for debugging
+        path.update({planLocals.GetStackId(): []})
+
+        #BeginCriticalRegion(planLocals.GetStackId())  Not needed for now
+
+        if verbose > 1:
+            print_stack_size(planLocals.GetStackId(), path)
+            print('Initial state is:')
+            print(state)
+
+        try:
+            resultTreeRoot = PlanTask(task, taskArgs).GetChild()  # going GetChild because the root is just a node labelled 'root'
+            UpdateValueDict(valueDict, resultTreeRoot) # update the value dictionary depending on the result of the rollout
+
+        except Failed_command as e:
             if verbose > 0:
-                print("Rollout ", i)
-
-            state.restore(saved)
-            InitializeSampling(m)
-            global path
-            path.update({planLocals.GetStackId(): []})
-
-            #BeginCriticalRegion(planLocals.GetStackId())
-
-            if verbose > 1:
                 print_stack_size(planLocals.GetStackId(), path)
-                print('Initial state is:')
-                print(state)
+                print('Failed command {}'.format(e))
 
-            try:
-                resultTreeRoot = PlanTask(task, taskArgs).GetChild()
-
-            except Failed_command as e:
-                if verbose > 0:
-                    print_stack_size(planLocals.GetStackId(), path)
-                    print('Failed command {}'.format(e))
-                resultTreeRoot = rTree.CreateFailureNode()
-                failCount += 1
-
-            except Failed_task as e:
-                if verbose > 0:
-                    print_stack_size(planLocals.GetStackId(), path)
-                    print('Failed task {}'.format(e))
-                resultTreeRoot = rTree.CreateFailureNode()
-                failCount += 1
-
-            else:
-                pass
-            if verbose > 1:
+        except Failed_task as e:
+            if verbose > 0:
                 print_stack_size(planLocals.GetStackId(), path)
-                print('Final state is:')
-                print(state)
+                print('Failed task {}'.format(e))
+        else:
+            pass
+        if verbose > 1:
+            print_stack_size(planLocals.GetStackId(), path)
+            print('Final state is:')
+            print(state)
 
-        if bestFailCount > failCount:
-            bestFailCount = failCount
-            bestResultTree = resultTreeRoot
+        if valueDict != {}:
+            bestResultTree = GetBestTree(valueDict)
+        else:
+            bestResultTree = rTree.CreateFailureNode()
 
-    #EndCriticalRegion()
+    #EndCriticalRegion()  Not needed for now
     return (bestResultTree, globalTimer.GetSimulationCounter())
 
-def GetCandidateBySampling(candidates, task, taskArgs):
+def GetCandidateByPlanning(candidates, task, taskArgs):
+    """
+    APE calls this functions when it wants suggestions from APE-plan
+    """
     if verbose > 0:
         print(colorama.Fore.RED, "Starting simulation for stack")
 
@@ -389,7 +437,7 @@ def GetCandidateBySampling(candidates, task, taskArgs):
         #random.shuffle(candidates)
         return (candidates[0], candidates[1:])
     else:
-        resultTree.Print()
+        #resultTree.Print()
         resultList = resultTree.GetPreorderTraversal()
         if apeLocals.GetRefinementList() == []:
             apeLocals.SetRefinementList(None)
@@ -400,16 +448,16 @@ def GetCandidateBySampling(candidates, task, taskArgs):
         return (m, candidates)
 
 def choose_candidate(candidates, task, taskArgs):
-
     if globals.GetDoSampling() == False:
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
 
     elif globals.GetConcurrentMode() == False:
         if (apeLocals.GetRefinementList() == None or apeLocals.GetRefinementList() == [] or globals.GetLazy() == False):
-            return GetCandidateBySampling(candidates, task, taskArgs)
+            return GetCandidateByPlanning(candidates, task, taskArgs)
 
-        else:
+            # the following else part is old and might be obsolete, it is for the lazy and concurrent modes of APE-plan
+        else: 
             #print("candidates are ", candidates)
             #PrintList(raelocals.GetRefinementList())
             chosen = apeLocals.GetRefinementList()[0].method
@@ -419,7 +467,7 @@ def choose_candidate(candidates, task, taskArgs):
                 return (chosen, candidates)
             else:
                 apeLocals.SetRefinementList(None)
-                return GetCandidateBySampling(candidates, task, taskArgs)
+                return GetCandidateByPlanning(candidates, task, taskArgs)
     else:
         currManager = apeLocals.GetConcManagerList()[-1]
         while(currManager.Ready() == False):
@@ -434,6 +482,9 @@ def choose_candidate(candidates, task, taskArgs):
             return (chosen, candidates)
 
 def GetHeuristicEstimate(task, taskArgs):
+    """
+    This is incomplete.
+    """
     result = globals.G()
     result.retcode = "Success"
     result.cost = 1
@@ -441,16 +492,20 @@ def GetHeuristicEstimate(task, taskArgs):
     return result
 
 def ChooseRandom(l):
+    """
+    This is a helper function used by PlanTask
+    """
     random.shuffle(l)
     return l[0]
 
 def PlanTask(task, taskArgs):
 
     if planLocals.GetCandidates() != None:
+        # when candidates is a subset of the applicable methods, it is available from planLocals
         candidates = planLocals.GetCandidates()[:]
-        planLocals.SetCandidates(None)
+        planLocals.SetCandidates(None) # resetting planLocals for the rest of the search
     else:
-        candidates = methods[task][:]
+        candidates = methods[task][:] # set of applicable methods
 
     m = ChooseRandom(candidates)
     return PlanMethod(m, task, taskArgs)
@@ -464,8 +519,7 @@ def PlanMethod(m, task, taskArgs):
     savedNode.AddChild(newNode)
     planLocals.SetCurrentNode(newNode)
 
-    result = CallMethod(planLocals.GetStackId(), m, taskArgs)
-    retcode = result.retcode
+    retcode = CallMethod(planLocals.GetStackId(), m, taskArgs)
 
     path[planLocals.GetStackId()].pop()
     if verbose > 1:
@@ -484,8 +538,7 @@ def CallMethod(stackid, m, taskArgs):
         print_stack_size(stackid, path)
         print('Try method {}{}'.format(m.__name__,taskArgs))
 
-    result = CreateFailureNode()
-    result.cost = 0
+    retcode = 'Failure'
     try:
         EndCriticalRegion()
         BeginCriticalRegion(stackid)
@@ -498,8 +551,6 @@ def CallMethod(stackid, m, taskArgs):
             print(state)
 
         retcode = m(*taskArgs)
-        result.method = m
-        result.retcode = retcode
     except Failed_command as e:
         if verbose > 0:
             print_stack_size(stackid, path)
@@ -513,8 +564,8 @@ def CallMethod(stackid, m, taskArgs):
 
     if verbose > 1:
         print_stack_size(stackid, path)
-        print('{} for method {}{}'.format(result.retcode, m.__name__, taskArgs))
-    return result
+        print('{} for method {}{}'.format(retcode, m.__name__, taskArgs))
+    return retcode
 
 def InitializeConcurrentSimulations(task, candidates, taskArgs):
     newManager = concLA(task, taskArgs, candidates)
@@ -526,7 +577,10 @@ def StopConcurrentSimulations():
     apeLocals.GetConcManagerList.pop()
 
 def DoTaskInRealWorld(task, taskArgs):
-    global path
+    """
+    Acting engine
+    """
+    global path # for debugging
     path[apeLocals.GetStackId()].append([task, taskArgs])
 
     if verbose > 0:
@@ -548,8 +602,7 @@ def DoTaskInRealWorld(task, taskArgs):
             apeLocals.SetRetryCount(apeLocals.GetRetryCount() + 1)
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
         if m != None:
-            result = CallMethod(apeLocals.GetStackId(), m, taskArgs)
-            retcode = result.retcode
+            retcode = CallMethod(apeLocals.GetStackId(), m, taskArgs)
 
     path[apeLocals.GetStackId()].pop()
     if globals.GetConcurrentMode() == True:
@@ -566,17 +619,14 @@ def DoTaskInRealWorld(task, taskArgs):
         raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
 
 def do_task(task, *taskArgs):
-    """
-    This is the workhorse for rae1. The arguments are the same as for rae1.
-    """
-    if globals.GetSamplingMode() == True:
+    if globals.GetPlanningMode() == True:
         return PlanTask(task, taskArgs)
     else:
         return DoTaskInRealWorld(task, taskArgs)
 
 def beginCommand(cmd, cmdRet, cmdArgs):
     cmdPtr = GetCommand(cmd)
-    if globals.GetSamplingMode() == True:
+    if globals.GetPlanningMode() == True:
         p = commandProb[cmd]
         outcome = numpy.random.choice(len(p), 1, p=p)
         cmdArgs = cmdArgs + (outcome[0],)
@@ -584,9 +634,9 @@ def beginCommand(cmd, cmdRet, cmdArgs):
 
 def do_command(cmd, *cmdArgs):
     """
-    Perform command cmd(cmdArgs). Last arg must be the current state
+    Perform command cmd(cmdArgs).
     """
-    if globals.GetSamplingMode() == True:
+    if globals.GetPlanningMode() == True:
         return SimulateCommand(cmd, cmdArgs)
     else:
         return DoCommandInRealWorld(cmd, cmdArgs)
@@ -662,7 +712,6 @@ def SimulateCommand(cmd, cmdArgs):
         cmdRet = {'state':'running'}
         cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
         cmdThread.start()
-        cost = 1
 
         EndCriticalRegion()
         BeginCriticalRegion(planLocals.GetStackId())
@@ -698,6 +747,7 @@ def SimulateCommand(cmd, cmdArgs):
     if retcode == 'Failure':
         raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))
     elif retcode == 'Success':
+        cost = 1
         planLocals.GetCurrentNode().IncreaseCost(cost)
         return retcode
     else:

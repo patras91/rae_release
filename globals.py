@@ -17,10 +17,10 @@ g.K = 3
 def SetDoSampling(s):
 	g.doSampling = s
 
-def SetSamplingMode(s):
+def SetPlanningMode(s):
     g.samplingMode = s
 
-def GetSamplingMode():
+def GetPlanningMode():
     return g.samplingMode
 
 def GetDoSampling():

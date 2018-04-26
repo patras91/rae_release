@@ -33,7 +33,7 @@ class Timer():
     def IncrementTime(self):
         if self.mode == 'Counter':
             self.now += 1
-            mode = globals.GetSamplingMode()
+            mode = globals.GetPlanningMode()
             if mode == False:
                 self.realCount += 1
             else:
@@ -54,7 +54,7 @@ class Timer():
         return self.now
 
     def IsCommandExecutionOver(self, cmd, start):
-        mode = globals.GetSamplingMode()
+        mode = globals.GetPlanningMode()
         if mode == False:
             mult = 1  # This is the approx callibrated value
         else:

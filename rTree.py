@@ -3,10 +3,10 @@ import globals
 import pipes
 
 class RTNode():
-    def __init__(self, n, args, type):
+    def __init__(self, n, args, type1):
         self.label = n
         self.args = args
-        self.type = type
+        self.type = type1
         self.cost = 0
         self.children = []
 

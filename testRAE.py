@@ -1,5 +1,5 @@
 from __future__ import print_function
-from rae1 import ipcArgs, envArgs, verbosity, APE, APEplan, ResetState, CleanState
+from rae1 import ipcArgs, envArgs, verbosity, APE, APEplan, RemoveLocksFromState, ReinitializeState
 import threading
 import sys
 sys.path.append('domains/')
@@ -55,7 +55,7 @@ def InitializeDomain(domain, problem):
     if domain in ['SF', 'CR', 'STE', 'SOD', 'SD', 'EE', 'IP', 'test']:
         module = problem + '_' + domain
         global domain_module
-        CleanState()
+        ReinitializeState()
         domain_module = __import__(module)
         domain_module.ResetState()
     else:
@@ -71,7 +71,7 @@ def testRAE(domain, problem, doSampling):
     '''
     InitializeDomain(domain, problem)
     globals.SetDoSampling(doSampling)
-    globals.SetSamplingMode(False) # sampling mode is required to switch between sampling and non-sampling states
+    globals.SetPlanningMode(False) # planning mode is required to switch between acting and planning
     rM = threading.Thread(target=raeMult)
     rM.start()
     gui.start(domain, domain_module.rv) # graphical user interface to show action executions
@@ -213,8 +213,8 @@ def APEPlanMain(task, taskArgs, queue, candidateMethods):
     # TODO: Simulate multiple stacks in future
 
     SetMode('Counter') #Counter mode in simulation
-    globals.SetSamplingMode(True)
-    ResetState()
+    globals.SetPlanningMode(True)
+    RemoveLocksFromState()
 
     pArgs = PlanArgs()
     pArgs.SetTaskArgs(taskArgs)

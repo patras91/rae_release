@@ -36,7 +36,7 @@ class GUI():
             self.root.after(1, self.simulate)
 
 def Simulate(*t):
-    if (globals.GetSamplingMode() == True or globals.GetSimulationMode() == 'off'):
+    if (globals.GetPlanningMode() == True or globals.GetSimulationMode() == 'off'):
         return
     globalQueue.put(t)
 
