@@ -3,7 +3,7 @@
 
 echo "Executing tests for APE."
 
-for domain in "EE" # "CR" # "SD" "IP"
+for domain in "EE" "CR" "SD" "IP"
 do
     if [ "$domain" = "SD" ]; then
         P=("problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10")

@@ -1,6 +1,6 @@
 __author__ = 'patras'
 
-from rae1 import state, do_task, do_command, declare_commands, declare_methods, declare_prob
+from ape import state, do_task, do_command, declare_commands, declare_methods, declare_prob
 from gui import Simulate
 from domain_constants import *
 from timer import globalTimer

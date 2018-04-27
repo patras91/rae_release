@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 from domain_springDoor import *
 from timer import DURATION
-from rae1 import state
+from ape import state
 
 # The domain is as follows:
 #_________________________

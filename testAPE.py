@@ -1,5 +1,5 @@
 from __future__ import print_function
-from rae1 import ipcArgs, envArgs, verbosity, APE, APEplan, RemoveLocksFromState, ReinitializeState
+from ape import ipcArgs, envArgs, verbosity, APE, APEplan, RemoveLocksFromState, ReinitializeState
 import threading
 import sys
 sys.path.append('domains/')
@@ -62,7 +62,7 @@ def InitializeDomain(domain, problem):
         print("Invalid domain\n", domain)
         exit(11)
 
-def testRAE(domain, problem, doSampling):
+def testAPE(domain, problem, useAPEplan):
     '''
     :param domain: the code of the domain
     :param problem: the problem id
@@ -70,7 +70,7 @@ def testRAE(domain, problem, doSampling):
     :return:
     '''
     InitializeDomain(domain, problem)
-    globals.SetDoSampling(doSampling)
+    globals.SetDoSampling(useAPEplan)
     globals.SetPlanningMode(False) # planning mode is required to switch between acting and planning
     rM = threading.Thread(target=raeMult)
     rM.start()
@@ -89,8 +89,8 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    taskRes, retryCount, commandCount = APE(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, taskRes.retcode, retryCount, commandCount)
+    retcode, retryCount, commandCount = APE(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, commandCount)
 
 def PrintResult(taskInfo):
     for stackid in taskInfo:
@@ -204,6 +204,8 @@ def raeMult():
         PrintResultSummary(taskInfo)
         #globalTimer.Callibrate(startTime)
 
+    return taskInfo # for unit tests
+
 def CreateNewStackSimulation(pArgs, queue):
     methodTree, simTime = APEplan(pArgs.GetTask(), pArgs)
     queue.put((methodTree, simTime))
@@ -280,10 +282,10 @@ if __name__ == "__main__":
     verbosity(args.v)
     SetMode(args.c)
     globals.SetSimulationMode(args.simMode)
-    testRAE(args.domain, args.p, s)
+    testAPE(args.domain, args.p, s)
 
-def testRAEBatch(domain, problem, doSampling):
-    p = multiprocessing.Process(target=testRAE, args=(domain, problem, doSampling))
+def testRAEBatch(domain, problem, useAPEplan):
+    p = multiprocessing.Process(target=testAPE, args=(domain, problem, useAPEplan))
     p.start()
     p.join(300)
     if p.is_alive() == True:

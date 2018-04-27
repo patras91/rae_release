@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 from domain_simpleOpenDoor import *
 from timer import DURATION
-from rae1 import state
+from ape import state
 
 DURATION.TIME = {
     'moveBy': 3, # for domain SOD

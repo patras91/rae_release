@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 from domain_ste import *
 from timer import DURATION
-from rae1 import state
+from ape import state
 
 DURATION.TIME = {
     'walk': 60,

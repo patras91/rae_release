@@ -211,13 +211,13 @@ class concLA():
 
             if self.control == 'exit':
                 break
-            p = multiprocessing.Process(target=testRAE.APEPlanMain, args=[self.task, self.taskArgs, None, queue, self.candidates])
+            p = multiprocessing.Process(target=testAPE.APEPlanMain, args=[self.task, self.taskArgs, None, queue, self.candidates])
             self.sem.release()
             p.start()
             p.join()
 
             resultTree, simTime = queue.get()
-            #TODO: Update with new return value of testRAE.raeMultSimulator
+            #TODO: Update with new return value of testAPE.raeMultSimulator
             globalTimer.UpdateSimCounter(simTime)
 
             resultList = resultTree.GetPreorderTraversal()
@@ -281,19 +281,19 @@ def APE(task, raeArgs):
         print(state)
 
     try:
-        result = do_task(task, *taskArgs)  # do acting
+        retcode = do_task(task, *taskArgs)  # do acting
 
     except Failed_command as e:
         if verbose > 0:
             print_stack_size(apeLocals.GetStackId(), path)
             print('Failed command {}'.format(e))
-        result = CreateFailureNode()
+        retcode = 'Failure'
 
     except Failed_task as e:
         if verbose > 0:
             print_stack_size(apeLocals.GetStackId(), path)
             print('Failed task {}'.format(e))
-        result = CreateFailureNode()
+        retcode = 'Failure'
     else:
         pass
     if verbose > 1:
@@ -305,7 +305,7 @@ def APE(task, raeArgs):
         print("\n---- APE: Done with stack %d\n" %apeLocals.GetStackId())
 
     EndCriticalRegion()
-    return (result, apeLocals.GetRetryCount(), apeLocals.GetCommandCount())
+    return (retcode, apeLocals.GetRetryCount(), apeLocals.GetCommandCount())
 
 def InitializeRollout():
     """
@@ -324,7 +324,11 @@ def UpdateValueDict(valueDict, tree):
     m = tree.GetMethod()
     if m not in valueDict:
         valueDict[m] = (0, None)
-    newVal = valueDict[m][0] + 1/tree.GetCost()
+
+    if tree.GetCost() > 0:
+        newVal = valueDict[m][0] + 1/tree.GetCost()
+    else:
+        newVal = float("inf")
     if valueDict[m][1] == None:
         newTree = tree
     else:
@@ -368,7 +372,7 @@ def APEplan(task, planArgs):
         Do a rollout
         """
         if verbose > 0:
-            print("Rollout ", i)
+            print("Rollout ", i + 1)
 
         planLocals.SetCandidates(planArgs.GetCandidates())  # only methods from this set will be tried
         state.restore(saved)
@@ -420,7 +424,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         print(colorama.Fore.RED, "Starting simulation for stack")
 
     queue = multiprocessing.Queue()
-    p = multiprocessing.Process(target=testRAE.APEPlanMain, args=[task, taskArgs, queue, candidates])
+    p = multiprocessing.Process(target=testAPE.APEPlanMain, args=[task, taskArgs, queue, candidates])
 
     p.start()
     p.join()
@@ -528,6 +532,8 @@ def PlanMethod(m, task, taskArgs):
     if retcode == 'Failure':
         raise Failed_task('{}{}'.format(task, taskArgs))
     elif retcode == 'Success':
+        newCost = savedNode.GetCost() + newNode.GetCost()
+        savedNode.SetCost(newCost)
         planLocals.SetCurrentNode(savedNode)
         return savedNode
     else:
@@ -614,7 +620,7 @@ def DoTaskInRealWorld(task, taskArgs):
     if retcode == 'Failure' or retcode == None:
         raise Failed_task('{}{}'.format(task, taskArgs))
     elif retcode == 'Success':
-        return result
+        return retcode
     else:
         raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
 
@@ -753,4 +759,4 @@ def SimulateCommand(cmd, cmdArgs):
     else:
         raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))
 
-import testRAE
+import testAPE

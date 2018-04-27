@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 from domain_chargeableRobot import *
 from timer import DURATION
-from rae1 import state
+from ape import state
 
 DURATION.TIME = {
     'put': 2, #for domain CR

@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 from domain_exploreEnv import *
 from timer import DURATION
-from rae1 import state
+from ape import state
 
 DURATION.TIME = {
     'survey': 5, # for domain EE

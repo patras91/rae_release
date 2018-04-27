@@ -1,5 +1,5 @@
 #!/bin/sh
-# This script is to just execute APE with b = 0. So, it is basically RAE
+# This script is to just execute APE without calling APEplan. So, it is basically RAE
 
 echo "Executing tests for APE."
 
@@ -10,20 +10,19 @@ do
     do
         setup="
 import sys
-sys.path.append('..')
-sys.path.append('../domains/')
-sys.path.append('../problems/')
-from testRAE import verbosity, SetMode, globals, testRAEBatch
+sys.path.append('../..')
+sys.path.append('../../domains/')
+sys.path.append('../../problems/')
+from testAPE import verbosity, SetMode, globals, testRAEBatch
 verbosity(0)
 SetMode('Counter')
-globals.SetK(1)
 globals.SetConcurrent('n')
 globals.SetLazy('n')
 globals.SetSimulationMode('off')"
         echo $domain $problem
-        time_test="testRAEBatch(domain='$domain', problem='$problem', doSampling=False)"
+        time_test="testRAEBatch(domain='$domain', problem='$problem', useAPEplan=False)"
 
-        fname="outputs_with_arbitrary_order/$domain/RAE.txt"
+        fname="outputs/$domain/APE.txt"
         #echo '' >> $fname
 
 		echo "Time test of $domain $problem" >> $fname
