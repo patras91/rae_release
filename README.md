@@ -13,7 +13,7 @@ We have the following domains in the domain folder.
 HOW TO USE?
 To test on any domain, use the following command in terminal
 
-python3 testRAE.py [-h] [--v V] [--domain D] [--p P] [--s S] [--c C]
+python3 testAPE.py [-h] [--v V] [--domain D] [--p P] [--s S] [--c C]
 optional arguments:
   -h, --help  show this help message and exit
   --v V       verbosity of RAE's debugging output (0, 1 or 2)
@@ -41,7 +41,7 @@ problemId_domainCode.py
 For example, a problem of SD domain with problemId 'problem1' should be named problem1_SD.py.
 To test problem1 of Spring door, use the command:
 
-python3 testRAE.py --d SD --p problem1
+python3 testAPE.py --d SD --p problem1
 
 The commands can be executed in two modes: 'Clock' or 'Counter'.
 By default, the mode is set to 'Counter'.
