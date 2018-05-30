@@ -69,4 +69,4 @@ def GetSearchDepth():
     return g.searchDepth
 
 def GetSampleCount():
-    return 5
+    return 20

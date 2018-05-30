@@ -208,19 +208,40 @@ def perceive(l):
     else:
         gui.Simulate("Already perceived\n")
     ape.state.view.ReleaseLock(l)
+
+    count = len(list(key for key in ape.state.view if ape.state.view[key] == True))
+    total = len(rv.LOCATIONS)
+    if count != total:
+        for loc in rv.LOCATIONS:
+            for obj in rv.OBJECTS:
+                if ape.state.pos[obj] == UNK:
+                    ape.UpdatePerceiveProb(perceive, loc, obj, 1/(total-count))
+                elif ape.state.pos[obj] == loc:
+                    ape.UpdatePerceiveProb(perceive, loc, obj, 1)
+                else:
+                    ape.UpdatePerceiveProb(perceive, loc, obj, 0)
     return SUCCESS
 
-p_perceive=[]
-def SetPerceiveProb():
-    for i in range(0, rv.OBJECTCOUNT + 1):
-        p_perceive.append(1/(rv.OBJECTCOUNT + 1))
+p_perceive={}
+def InitProb():
+    for loc in rv.LOCATIONS:
+        p_perceive[loc] = {}
+        for obj in rv.OBJECTS:
+            p = 1/len(rv.LOCATIONS)
+            p_perceive[loc][obj] = [p, 1 - p]
     ape.declare_prob(perceive, p_perceive)
 
+#def UpdatePerceiveProb():
+#    p_perceive=[]
+#    for i in range(0, rv.OBJECTCOUNT + 1):
+#        p_perceive.append()
+
+ape.AddCommandToSpecialList(perceive)
+
 def perceive_Sim(l, outcome):
-    if outcome < rv.OBJECTCOUNT:
-        c = rv.OBJECTS[outcome]
-        ape.state.pos[c] = l
     ape.state.view[l] = True
+    for obj in outcome:
+        ape.state.pos[obj] = l
     return SUCCESS
 
 def MoveTo_Method1(r, l):

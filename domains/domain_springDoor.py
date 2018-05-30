@@ -397,6 +397,25 @@ def Fetch_Method1(r, o, l):
     #ape.state.done[0] = True
     return SUCCESS
 
+def Recover_Method1(r):
+    o = ape.state.load[r]
+    if o != NIL and ape.state.pos[o] = UNK:
+        ape.do_command(senseLoc, o)
+        if ape.state.pos[o] == ape.state.loc[r]:
+            ape.state.do_command(take, r, o)
+        else:
+            ape.state.do_task('moveTo', r, ape.state.pos[o])
+            ape.state.do_command(take, r, o)
+        return SUCCESS
+    else:
+        return FAILURE
+
+def Recover_Method2(r):
+    ape.state.do_command(senseStatus, r)
+    if ape.state.robotStatus[r] == 'broken':
+        ape.state.do_command(repair, r)
+    return SUCCESS
+
 #def CloseDoors_Method1():
 #    while ape.state.done == False:
 #        ape.do_command(closeDoors)
@@ -410,4 +429,8 @@ ape.declare_methods('fetch', Fetch_Method1)
 ape.declare_methods('getHelp', GetHelp_Method1)
 ape.declare_methods('moveTo', MoveTo_Method1)
 ape.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroughDoorway_Method3, MoveThroughDoorway_Method4, MoveThroughDoorway_Method2)
+
+#events
+ape.declare_methods('collide', Recover_Method1, Recover_Method2)
+
 #ape.declare_methods('closeDoors', CloseDoors_Method1)

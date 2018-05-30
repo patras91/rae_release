@@ -3,7 +3,7 @@
 
 echo "Executing tests for APE."
 
-for domain in "EE" #"CR" "SD" "IP"
+for domain in "IP" #"CR" "SD" "IP"
 do
     if [ "$domain" = "SD" ]; then
         P=("problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10")
@@ -15,7 +15,7 @@ do
         P=("problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19" "problem20")
     fi
     if [ "$domain" = "EE" ]; then
-        P=("problem19") # "problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18"
+        P=( "problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18") # "problem19"
     fi
     for problem in ${P[@]}
     do

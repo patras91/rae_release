@@ -3,10 +3,21 @@
 
 echo "Executing tests for APE."
 
-#for problem in "problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" "problem11" "problem12" "problem13" "problem14" #
-for problem in "problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19"  # "problem20" #
+for domain in "CR" #"SD" "IP" "CR" "EE"
 do
-    for domain in "EE" #"SD" "IP" "CR" "EE"
+    if [ "$domain" = "SD" ]; then
+        P=("problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10")
+    fi
+    if [ "$domain" = "IP" ]; then
+        P=("problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" "problem11" "problem12" "problem13" "problem14")
+    fi
+    if [ "$domain" = "CR" ]; then
+        P=("problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19" "problem20")
+    fi
+    if [ "$domain" = "EE" ]; then
+        P=( "problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18") # "problem19"
+    fi
+    for problem in ${P[@]}
     do
         setup="
 import sys

@@ -49,6 +49,7 @@ planLocals = rL_PLAN() # APEplan variables that are local to every stack
 commands = {} # dictionary of commands, initialized once for every run via the domain file
 commandSimulations = {} # dictionary of descriptive models of commands, initialized once for every run via the domain file
 commandProb = {} # dictionary of probabilities of outcomes of commands, initialized once for every run via the domain file
+listCommandsDependingOnParams = [] # list of commands whose descriptive models depend on the parameters
 methods = {} # dictionary of the list of methods for every task, initialized once for every run via the domain file
 path = {} # global variable shared by all stacks for debugging
 
@@ -85,6 +86,14 @@ def declare_prob(cmd, pList):
     Call this function to declare the probabities of the different outcomes in the descriptive models of commands.
     """
     commandProb[cmd] = pList
+
+def UpdatePerceiveProb(comm, l, obj, newp):
+    pList = commandProb[comm][l][obj]
+    #print("Updated value is ", newp)
+    commandProb[comm][l][obj] = [newp, 1 - newp]
+
+def AddCommandToSpecialList(cmd):
+    listCommandsDependingOnParams.append(cmd)
 
 def GetCommand(cmd):
     """
@@ -633,9 +642,20 @@ def do_task(task, *taskArgs):
 def beginCommand(cmd, cmdRet, cmdArgs):
     cmdPtr = GetCommand(cmd)
     if globals.GetPlanningMode() == True:
-        p = commandProb[cmd]
-        outcome = numpy.random.choice(len(p), 1, p=p)
-        cmdArgs = cmdArgs + (outcome[0],)
+        if cmd in listCommandsDependingOnParams:
+            # this code is specific for sensing command, 'perceive'
+            loc = cmdArgs[0]
+            pDict = commandProb[cmd][loc]
+            res = []
+            for obj in pDict:
+                outcome = numpy.random.choice(len(pDict[obj]), 1, p=pDict[obj])
+                if outcome[0] == 0:
+                    res.append(obj)
+        else:
+            p = commandProb[cmd]
+            outcome = numpy.random.choice(len(p), 1, p=p)
+            res = outcome[0]
+        cmdArgs = cmdArgs + (res,)
     cmdRet['state'] = cmdPtr(*cmdArgs)
 
 def do_command(cmd, *cmdArgs):
