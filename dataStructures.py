@@ -38,7 +38,41 @@ class rL_APE(rL):
     def GetCommandCount(self):
         return self.rL.commCount
 
+    def SetCurrentNode(self, node):
+        self.rL.currentNode = node 
+
+    def GetCurrentNode(self):
+        return self.rL.currentNode
+
+    def SetRootNode(self, root):
+        self.rL.rootNode = root
+
+    def GetRootNode(self):
+        return self.rL.rootNode
+
+    def SetMainTask(self, t):
+        self.rL.mainTask = t
+
+    def GetMainTask(self):
+        return self.rL.mainTask
+
+    def SetMainTaskArgs(self, args):
+        self.rL.taskArgs = args
+
+    def GetMainTaskArgs(self):
+        return self.rL.taskArgs
+
+    def SetCommandDone(self, d):
+        self.rL.commandDone = d
+
+    def GetCommandDone(self):
+        return self.rL.commandDone
+
 class rL_PLAN(rL):
+
+    def __init__(self):
+        self.rL = threading.local()
+        self.rL.firstChoice = None
 
     def GetMethod(self):
         return self.rL.method
@@ -64,11 +98,33 @@ class rL_PLAN(rL):
     def SetDepth(self, d):
         self.rL.depth = d
 
-    def SetRTree(self, T):
-        self.rL.rTree = T
+    #def SetRTree(self, T):
+    #    self.rL.rTree = T
 
-    def GetRTree(self):
-        return self.rL.rTree
+    #def GetRTree(self):
+    #    return self.rL.rTree
+
+    def SetFirstChoice(self, m):
+        if self.rL.firstChoice == None:
+            self.rL.firstChoice = m
+
+    def ResetFirstChoice(self):
+        self.rL.firstChoice = None
+
+    def GetFirstChoice(self):
+        return self.rL.firstChoice 
+
+    def SetActingTree(self, t):
+        self.rL.actingTree = t
+
+    def GetActingTree(self):
+        return self.rL.actingTree
+
+    def SetActingTreeCurrPtr(self, ptr):
+        self.rL.atcp = ptr
+
+    def GetActingTreeCurrPtr(self):
+        return self.rL.atcp
 
 class PlanArgs():
     def __init__(self):
@@ -103,3 +159,9 @@ class PlanArgs():
 
     def SetTaskArgs(self, args):
         self.taskArgs = args
+
+    def SetActingTree(self, t):
+        self.actingTree = t
+
+    def GetActingTree(self):
+        return self.actingTree

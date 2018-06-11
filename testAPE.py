@@ -210,7 +210,7 @@ def CreateNewStackSimulation(pArgs, queue):
     methodTree, simTime = APEplan(pArgs.GetTask(), pArgs)
     queue.put((methodTree, simTime))
 
-def APEPlanMain(task, taskArgs, queue, candidateMethods):
+def APEPlanMain(task, taskArgs, queue, candidateMethods, tree):
     # Simulating one stack now
     # TODO: Simulate multiple stacks in future
 
@@ -223,6 +223,7 @@ def APEPlanMain(task, taskArgs, queue, candidateMethods):
     pArgs.SetStackId(1)
     pArgs.SetTask(task)
     pArgs.SetCandidates(candidateMethods)
+    pArgs.SetActingTree(tree)
     #pArgs.SetMethod(method)
 
     ipcArgs.nextStack = 0
@@ -244,15 +245,15 @@ def APEPlanMain(task, taskArgs, queue, candidateMethods):
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",
+    argparser.add_argument("--v", help="verbosity of APE's debugging output (0, 1 or 2)",
                            type=int, default=0, required=False)
-    argparser.add_argument("--domain", help="name of the test domain (STE, CR, SD, EE, SOD, IP or SF)",
-                           type=str, default='STE', required=False)
-    argparser.add_argument("--p", help="identifier for the problem eg. 'problem1', 'problem2', etc",
+    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP)",
+                           type=str, default='CR', required=False)
+    argparser.add_argument("--problem", help="identifier for the problem eg. 'problem1', 'problem2', etc",
                            type=str, default="problem1", required=False)
-    argparser.add_argument("--s", help="Do you want to use sampling or not? ('y' or 'n')",
+    argparser.add_argument("--plan", help="Do you want to use APE-plan or not? ('y' or 'n')",
                            type=str, default='y', required=False)
-    argparser.add_argument("--c", help="Mode of the clock ('Counter' or 'Clock')",
+    argparser.add_argument("--clockMode", help="Mode of the clock ('Counter' or 'Clock')",
                            type=str, default='Counter', required=False)
     argparser.add_argument("--simMode", help="Mode of simulation output ('on' or 'off')",
                            type=str, default='on', required=False)
@@ -260,29 +261,29 @@ if __name__ == "__main__":
                            type=str, default='n', required=False)
     argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n')",
                            type=str, default='n', required=False)
-    argparser.add_argument("--K", help="Search breadth",
-                           type=int, default=3, required=False)
-    argparser.add_argument("--sample_b", help="Sample breadth",
-                           type=int, default=1, required=False)
-    argparser.add_argument("--depth_d", help="Search Depth",
+    argparser.add_argument("--sampleCount", help="Number of samples APE-plan should use",
+                           type=int, default=100, required=False)
+    #argparser.add_argument("--sample_b", help="Sample breadth",
+    #                       type=int, default=1, required=False)
+    argparser.add_argument("--depth", help="Search Depth",
                            type=int, default=float("inf"), required=False)
 
     args = argparser.parse_args()
 
-    if args.s == 'y':
+    if args.plan == 'y':
         s = True
     else:
         s = False
 
-    globals.SetK(args.K)
+    #globals.Set(args.K)
     globals.SetLazy(args.lazy)
     globals.SetConcurrent(args.concurrent)
-    globals.SetSampleBreadth(args.sample_b)
-    globals.SetSearchDepth(args.depth_d)
+    globals.SetSampleCount(args.sampleCount)
+    globals.SetSearchDepth(args.depth)
     verbosity(args.v)
-    SetMode(args.c)
+    SetMode(args.clockMode)
     globals.SetSimulationMode(args.simMode)
-    testAPE(args.domain, args.p, s)
+    testAPE(args.domain, args.problem, s)
 
 def testRAEBatch(domain, problem, useAPEplan):
     p = multiprocessing.Process(target=testAPE, args=(domain, problem, useAPEplan))

@@ -247,8 +247,12 @@ def perceive_Sim(l, outcome):
 def MoveTo_Method1(r, l):
     x = ape.state.loc[r]
     dist = CR_GETDISTANCE(x, l)
-    ape.do_task('nonEmergencyMove', r, x, l, dist)
-    res = SUCCESS
+    if ape.state.charge[r] >= dist:
+        ape.do_task('nonEmergencyMove', r, x, l, dist)
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s does not have enough charge to move\n" %(r))
+        res = FAILURE
     return res
 
 def move(r, l1, l2, dist):
@@ -272,7 +276,7 @@ def move(r, l1, l2, dist):
             res = FAILURE
         elif ape.state.loc[r] == l1 and ape.state.charge[r] < dist:
             gui.Simulate("Robot %s does not have enough charge to move :(\n" %r)
-            ape.state.charge[r] = 0 # should we do this?
+            #ape.state.charge[r] = 0 # should we do this?
             res = FAILURE
         else:
             gui.Simulate("Robot %s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
@@ -290,9 +294,12 @@ def move_Sim(r, l1, l2, dist, outcome):
     if outcome == 0:
         res = SUCCESS
     elif outcome == 1:
-        ape.state.loc[r] = l2
-        ape.state.charge[r] = ape.state.charge[r] - dist
-        res = SUCCESS
+        if ape.state.charge[r] - dist > 0:
+            ape.state.loc[r] = l2 
+            ape.state.charge[r] = ape.state.charge[r] - dist
+            res = SUCCESS
+        else:
+            res = FAILURE
     elif outcome == 2:
         res = FAILURE
     elif outcome == 3:
@@ -369,7 +376,8 @@ def Recharge_Method3(r, c):
             ape.do_command(put, robot, c)
             ape.do_task('moveTo', r, ape.state.pos[c])
     ape.do_command(charge, r, c)
-    ape.do_command(take, r, c)
+    if ape.state.load[r] == NIL:
+        ape.do_command(take, r, c)
     return SUCCESS
 
 def Recharge_Method2(r, c):
@@ -393,7 +401,7 @@ def Recharge_Method1(r, c):
             ape.do_command(put, robot, c)
             ape.do_task('moveTo', r, ape.state.pos[c])
     ape.do_command(charge, r, c)
-    if robot != NIL:
+    if robot != NIL and ape.state.load[robot] != NIL and ape.state.pos[robot] == ape.state.loc[c]:
         ape.do_command(take, robot, c)
     return SUCCESS
 
@@ -432,7 +440,7 @@ def Search_Method2(r, o):
                 break
 
         if toBePerceived != NIL:
-            Recharge_Method1(r, 'c1') # is this allowed?
+            ape.do_task('recharge', r, 'c1') # is this allowed?
             ape.do_task('moveTo', r, toBePerceived)
             ape.do_command(perceive, toBePerceived)
             if ape.state.pos[o] == toBePerceived:

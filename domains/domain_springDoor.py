@@ -399,7 +399,7 @@ def Fetch_Method1(r, o, l):
 
 def Recover_Method1(r):
     o = ape.state.load[r]
-    if o != NIL and ape.state.pos[o] = UNK:
+    if o != NIL and ape.state.pos[o] == UNK:
         ape.do_command(senseLoc, o)
         if ape.state.pos[o] == ape.state.loc[r]:
             ape.state.do_command(take, r, o)

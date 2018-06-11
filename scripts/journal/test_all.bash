@@ -3,7 +3,7 @@
 
 echo "Executing tests for APE."
 
-for domain in "IP" #"CR" "SD" "IP"
+for domain in "CR" #"CR" "SD" "IP"
 do
     if [ "$domain" = "SD" ]; then
         P=("problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10")
@@ -29,11 +29,13 @@ verbosity(0)
 SetMode('Counter')
 globals.SetConcurrent('n')
 globals.SetLazy('n')
+globals.SetSampleCount(100)
+globals.SetSearchDepth(float('inf'))
 globals.SetSimulationMode('off')"
         echo $domain $problem
         time_test="testRAEBatch(domain='$domain', problem='$problem', useAPEplan=True)"
 
-        fname="outputs/$domain/plan.txt"
+        fname="outputs/$domain/plan100.txt"
 
         echo "Time test of $domain $problem" >> $fname
         python3 -m timeit -n 2 -s "$setup" "$time_test" >> $fname

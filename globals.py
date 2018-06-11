@@ -26,11 +26,11 @@ def GetPlanningMode():
 def GetDoSampling():
     return g.doSampling
 
-def SetK(k):
-    g.K = k
+#def SetK(k):
+#    g.K = k
 
-def getK():
-    return g.K
+#def getK():
+#    return g.K
 
 def GetSimulationMode():
     return g.simulationMode
@@ -56,11 +56,11 @@ def SetLazy(val):
 def GetLazy():
     return g.lazy
 
-def SetSampleBreadth(b):
-    g.sample_b = b
+#def SetSampleBreadth(b):
+#    g.sample_b = b
 
-def GetSampleBreadth():
-    return g.sample_b
+#def GetSampleBreadth():
+ #   return g.sample_b
 
 def SetSearchDepth(d):
     g.searchDepth = d
@@ -69,4 +69,7 @@ def GetSearchDepth():
     return g.searchDepth
 
 def GetSampleCount():
-    return 20
+    return g.sampleCount 
+
+def SetSampleCount(count):
+    g.sampleCount = count

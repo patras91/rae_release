@@ -12,7 +12,7 @@ do
         P=("problem1" "problem2" "problem3" "problem4" "problem5" "problem6" "problem7" "problem8" "problem9" "problem10" "problem11" "problem12" "problem13" "problem14")
     fi
     if [ "$domain" = "CR" ]; then
-        P=("problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19" "problem20")
+        P=("problem11") # "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18" "problem19" "problem20")
     fi
     if [ "$domain" = "EE" ]; then
         P=( "problem11" "problem12" "problem13" "problem14" "problem15" "problem16" "problem17" "problem18") # "problem19"
@@ -29,6 +29,8 @@ verbosity(0)
 SetMode('Counter')
 globals.SetConcurrent('n')
 globals.SetLazy('n')
+globals.SetSampleCount(100)
+globals.SetSearchDepth(float('inf'))
 globals.SetSimulationMode('off')"
         echo $domain $problem
         time_test="testRAEBatch(domain='$domain', problem='$problem', useAPEplan=False)"
