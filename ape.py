@@ -9,7 +9,7 @@ import random
 File rae1.py
 Authors:
 Dana Nau <nau@cs.umd.edu>, last update: July 7, 2017
-Sunandita Patra <patras@cs.umd.edu>, last update: April 25, 2018
+Sunandita Patra <patras@cs.umd.edu>, last update: June 11, 2018
 """
 
 import sys, pprint
@@ -352,8 +352,8 @@ def UpdateValueDict(valueDict, tree):
         ph1, ph2, countRollOutsWithm = valueDict[m.__name__]
 
     if tree.GetCost() > 0:
-        if tree.GetCost() != float("inf"):
-            print(m.__name__, "Adding ", 1/tree.GetCost())
+        #if tree.GetCost() != float("inf"):
+        #    print(m.__name__, "Adding ", 1/tree.GetCost())
         newVal = valueDict[m.__name__][0] + 1/tree.GetCost()
         #if tree.GetCost() != float("inf"):
         #    tree.Print()
@@ -381,7 +381,7 @@ def GetBestTree(valueDict):
             bestTree = tree
             best_m = m
 
-    print("best method is ", best_m)
+    #print("best method is ", best_m)
     return bestTree
 
 def APEplan(task, planArgs):
@@ -407,7 +407,6 @@ def APEplan(task, planArgs):
         """
         Do a rollout
         """
-        print("Rollout ", i)
         if verbose > 0:
             print("Rollout ", i + 1)
 
@@ -467,9 +466,9 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
 
     queue = multiprocessing.Queue()
     tree = apeLocals.GetRootNode()
-    tree.Print()
+    #tree.Print()
     
-    print("Calling APE-plan for ", apeLocals.GetMainTask())
+    #print("Calling APE-plan for ", apeLocals.GetMainTask())
     p = multiprocessing.Process(target=testAPE.APEPlanMain, args=[apeLocals.GetMainTask(), apeLocals.GetMainTaskArgs(), queue, candidates, apeLocals.GetRootNode()])
 
     p.start()
@@ -479,16 +478,17 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     globalTimer.UpdateSimCounter(simTime)
 
     retcode = resultTree.GetRetcode()
-    resultTree.Print()
+    #resultTree.Print()
     if verbose > 0:
         print("Done with simulation. Result = {} \n".format(retcode), colorama.Style.RESET_ALL)
 
-    print("retcode is ", retcode)
+    #print("retcode is ", retcode)
+    #resultTree.PrintInTerminal()
     if retcode == 'Failure':
         #random.shuffle(candidates)
         return (candidates[0], candidates[1:])
     else:
-        resultTree.Print()
+        #resultTree.Print()
         #resultTree.PrintInTerminal()
         resultList = resultTree.GetPreorderTraversal()
 
@@ -705,7 +705,8 @@ def beginCommand(cmd, cmdRet, cmdArgs):
                 if outcome[0] == 0:
                     res.append(obj)
         else:
-            p = commandProb[cmd]
+            pFunc = commandProb[cmd]
+            p = pFunc(*cmdArgs)
             outcome = numpy.random.choice(len(p), 1, p=p)
             res = outcome[0]
         cmdArgs = cmdArgs + (res,)

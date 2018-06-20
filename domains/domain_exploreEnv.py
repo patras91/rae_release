@@ -102,7 +102,21 @@ def survey(r, l):
     ape.state.data.ReleaseLock(r)
     return res
 
-ape.declare_prob(survey, [0.7, 0.3])
+def GetProbability_survey(r, l):
+    e = ape.state.load[r]
+    if e not in rv.TYPE:
+        return [0.1, 0.9]
+    elif ape.state.loc[r] == l and rv.TYPE[e] == 'survey' and ape.state.data[r] < 4:
+        return [0.7,0.3]
+    elif ape.state.loc[r] != l:
+        return [0.1, 0.9]
+    elif rv.TYPE[e] != 'survey':
+        return [0.1, 0.9]
+    elif ape.state.data[r] == 4:
+        return [0.05, 0.95]
+
+ape.declare_prob(survey, GetProbability_survey)
+
 def survey_Sim(r, l, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -143,7 +157,23 @@ def monitor(r, l):
     ape.state.data.ReleaseLock(r)
     return res
 
-ape.declare_prob(monitor, [0.7, 0.3])
+def GetProbability_monitor(r, l):
+    e = ape.state.load[r]
+    if e not in rv.TYPE:
+        return [0.1, 0.9]
+    elif ape.state.loc[r] == l and rv.TYPE[e] == 'monitor' and r != 'UAV' and ape.state.data[r] < 4:
+        return [0.7, 0.3]
+    elif ape.state.loc[r] != l:
+        return [0.1, 0.9]
+    elif rv.TYPE[e] != 'monitor':
+        return [0.1, 0.9]
+    elif r == 'UAV':
+        return [0.1, 0.9]
+    elif ape.state.data[r] == 4:
+        return [0.1, 0.9]
+    return res
+
+ape.declare_prob(monitor, GetProbability_monitor)
 def monitor_Sim(r, l, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -184,7 +214,23 @@ def screen(r, l):
     ape.state.data.ReleaseLock(r)
     return res
 
-ape.declare_prob(screen, [0.7, 0.3])
+def GetProbability_screen(r, l):
+    e = ape.state.load[r]
+    if e not in rv.TYPE:
+        return [0.1, 0.9]
+    elif ape.state.loc[r] == l and rv.TYPE[e] == 'screen' and r != 'UAV' and ape.state.data[r] < 4:
+        return [0.7, 0.3]
+    elif ape.state.loc[r] != l:
+        return [0.1, 0.9]
+    elif rv.TYPE[e] != 'screen':
+        return [0.1, 0.9]
+    elif r == 'UAV':
+        return [0.1, 0.9]
+    elif ape.state.data[r] == 4:
+        return [0.1, 0.9]
+    return res
+
+ape.declare_prob(screen, GetProbability_screen)
 def screen_Sim(r, l, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -225,7 +271,23 @@ def sample(r, l):
     ape.state.data.ReleaseLock(r)
     return res
 
-ape.declare_prob(sample, [0.7, 0.3])
+def GetProbability_sample(r, l):
+    e = ape.state.load[r]
+    if e not in rv.TYPE:        
+        return [0.1, 0.9]
+    elif ape.state.loc[r] == l and rv.TYPE[e] == 'sample' and r != 'UAV' and ape.state.data[r] < 4:
+        return [0.7, 0.3]
+    elif ape.state.loc[r] != l:
+        return [0.1, 0.9]
+    elif rv.TYPE[e] != 'sample':
+        return [0.1, 0.9]
+    elif r == 'UAV':
+        return [0.1, 0.9]
+    elif ape.state.data[r] == 4:
+        return [0.1, 0.9]
+    return res
+
+ape.declare_prob(sample, GetProbability_sample)
 def sample_Sim(r, l, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -266,7 +328,24 @@ def process(r, l):
     ape.state.data.ReleaseLock(r)
     return res
 
-ape.declare_prob(process, [0.7, 0.3])
+def GetProbability_process(r, l):
+    e = ape.state.load[r]
+    if e not in rv.TYPE:
+        return [0.1, 0.9]
+    elif ape.state.loc[r] == l and rv.TYPE[e] == 'process' and r != 'UAV' and ape.state.data[r] < 4:
+        return [0.7, 0.3]
+        ape.state.data[r] += 1
+    elif ape.state.loc[r] != l:
+        return [0.1, 0.9]
+    elif rv.TYPE[e] != 'process':
+        return [0.1, 0.9]
+    elif r == 'UAV':
+        return [0.1, 0.9]
+    elif ape.state.data[r] == 4:
+        return [0.1, 0.9]
+    return res
+
+ape.declare_prob(process, GetProbability_process)
 def process_Sim(r, l, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -291,7 +370,13 @@ def handleAlien(r, l):
         res = FAILURE
     return res
 
-ape.declare_prob(handleAlien, [0.5, 0.5])
+def GetProbability_handleAlien(r, l):
+    if ape.state.loc[r] == l:
+        return [0.5, 0.5]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(handleAlien, GetProbability_handleAlien)
 def handleAlien_Sim(r, l, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -318,7 +403,14 @@ def charge(r, c):
     ape.state.pos.ReleaseLock(c)
     return res
 
-ape.declare_prob(charge, [0.8, 0.2])
+def GetProbability_charge(r, c):
+    if ape.state.loc[r] == ape.state.pos[c] or ape.state.pos[c] == r:
+        return [0.8, 0.2]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(charge, GetProbability_charge)
+
 def charge_Sim(r, c, outcome):
     if outcome == 0:
         ape.state.charge[r] = 100
@@ -355,7 +447,20 @@ def move(r, l1, l2):
     ape.state.charge.ReleaseLock(r)
     return res
 
-ape.declare_prob(move, [0.1, 0.7, 0.2])
+def GetProbability_move(r, l1, l2):
+    dist = EE_GETDISTANCE(l1, l2)
+    if l1 == l2:
+        return [1, 0, 0]
+    elif ape.state.loc[r] == l1 and ape.state.charge[r] >= dist:
+        return [0.1, 0.7, 0.2]
+    elif ape.state.loc[r] != l1 and ape.state.charge[r] >= dist:
+        return [0.1, 0.1, 0.8]
+    elif ape.state.loc[r] == l1 and ape.state.charge[r] < dist:
+        return [0.1, 0.1, 0.8]
+    else:
+        return [0.1, 0.1, 0.8]
+
+ape.declare_prob(move, GetProbability_move)
 def move_Sim(r, l1, l2, outcome):
     dist = EE_GETDISTANCE(l1, l2)
     if outcome == 0:
@@ -401,7 +506,23 @@ def fly(r, l1, l2):
     ape.state.charge.ReleaseLock(r)
     return res
 
-ape.declare_prob(fly, [0.1, 0.7, 0.2])
+def GetProbability_fly(r, l1, l2):
+    dist = EE_GETDISTANCE(l1, l2)
+    if r != 'UAV':
+        return [0.1, 0.1, 0.8]
+    elif l1 == l2:
+        return [0.9, 0.05, 0.05]
+    elif ape.state.loc[r] == l1 and ape.state.charge[r] >= dist:
+        return [0.1, 0.7, 0.2]
+    elif ape.state.loc[r] != l1 and ape.state.charge[r] >= dist:
+        return [0.0, 0.1, 0.9]
+    elif ape.state.loc[r] == l1 and ape.state.charge[r] < dist:
+        return [0.0, 0.1, 0.9]
+    else:
+        return [0.0, 0.1, 0.9]
+
+ape.declare_prob(fly, GetProbability_fly)
+
 def fly_Sim(r, l1, l2, outcome):
     dist = EE_GETDISTANCE(l1, l2)
     if outcome == 0:
@@ -438,7 +559,17 @@ def take(r, o):
     ape.state.load.ReleaseLock(r)
     return res
 
-ape.declare_prob(take, [0.9, 0.1])
+def GetProbability_take(r, o):
+    if ape.state.load[r] == NIL:
+        if ape.state.loc[r] == ape.state.pos[o]:
+            return [0.9, 0.1]
+        else:
+            return [0.1, 0.9]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(take, GetProbability_take)
+
 def take_Sim(r, o, outcome):
     if outcome == 0:
         ape.state.pos[o] = r
@@ -466,7 +597,13 @@ def put(r, o):
     ape.state.pos.ReleaseLock(o)
     return res
 
-ape.declare_prob(put, [0.9, 0.1])
+def GetProbability_put(r, o):
+    if ape.state.pos[o] == r:
+       return [0.9, 0.1]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(put, GetProbability_put)
 def put_Sim(r, o, outcome):
     if outcome == 0:
         ape.state.pos[o] = ape.state.loc[r]
@@ -493,7 +630,13 @@ def deposit(r):
     ape.state.data.ReleaseLock(r)
     return res
 
-ape.declare_prob(deposit, [0.9, 0.1])
+def GetProbability_deposit(r):
+    if ape.state.loc[r] == 'base':
+        return [0.8, 0.2]
+    else:
+        return [0.2, 0.8]
+
+ape.declare_prob(deposit, GetProbability_deposit)
 def deposit_Sim(r, outcome):
     if outcome == 0:
         ape.state.data[r] = 0
@@ -534,7 +677,15 @@ def transferData(r1, r2):
     ape.state.data.ReleaseLock(r2)
     return res
 
-ape.declare_prob(transferData, [0.6, 0.2, 0.2])
+def GetProbability_transferData(r1, r2):
+    if ape.state.loc[r1] != ape.state.loc[r2]:
+        return [0.8, 0.1, 0.1]
+    elif ape.state.data[r2] + ape.state.data[r1] <= 4:
+        return [0.1, 0.5, 0.4]
+    elif ape.state.data[r2] < 4:
+        return [0.1, 0.3, 0.6]
+
+ape.declare_prob(transferData, GetProbability_transferData)
 def transferData_Sim(r1, r2, outcome):
     if outcome == 2:
         res = FAILURE

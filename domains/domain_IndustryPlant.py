@@ -77,7 +77,7 @@ def damage(*machines):
         state.cond.ReleaseLock(m)
     return SUCCESS
 
-def repair(m):
+def repairc(m):
     state.cond.AcquireLock(m)
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('repair', start) == False):
@@ -87,8 +87,11 @@ def repair(m):
     state.cond.ReleaseLock(m)
     return SUCCESS
 
-declare_prob(repair, [1])
-def repair_Sim(m, outcome):
+def GetProbability_repairc(m):
+    return [1]
+
+declare_prob(repairc, GetProbability_repairc)
+def repairc_Sim(m, outcome):
     state.cond[m] = OK
     return SUCCESS
 
@@ -122,7 +125,16 @@ def paint(m, o, colour, name):
     state.pos.ReleaseLock(o)
     return res
 
-declare_prob(paint, [0.8, 0.2])
+def GetProbability_paint(m, o, colour, name):
+    if state.pos[o] == rv.MACHINE_LOCATION[m]:
+        if state.cond[m] == OK:
+            return [0.8, 0.2]
+        else:
+            return [0.2, 0.8]
+    else:
+        return [0.2, 0.8]
+
+declare_prob(paint, GetProbability_paint)
 def paint_Sim(m, o, colour, name, outcome):
     if outcome == 0:
         state.pos[name] = rv.MACHINE_LOCATION[m]
@@ -154,7 +166,16 @@ def wrap(m, o, name):
     state.pos.ReleaseLock(o)
     return res
 
-declare_prob(wrap, [0.8, 0.2])
+def GetProbability_wrap(m, o, name):
+    if state.pos[o] == rv.MACHINE_LOCATION[m]:
+        if state.cond[m] == OK:
+            return [0.8, 0.2]
+        else:
+           return [0.2, 0.8]
+    else:
+        return [0.2, 0.8]
+
+declare_prob(wrap, GetProbability_wrap)
 def wrap_Sim(m, o, name, outcome):
     if outcome == 0:
         state.pos[name] = rv.MACHINE_LOCATION[m]
@@ -189,7 +210,16 @@ def assemble(m, p1, p2, name):
     state.pos.ReleaseLock(p2)
     return res
 
-declare_prob(assemble, [0.8, 0.2])
+def GetProbability_assemble(m, p1, p2, name):
+    if state.pos[p1] == rv.MACHINE_LOCATION[m] and state.pos[p2] == rv.MACHINE_LOCATION[m]:
+        if state.cond[m] == OK:
+            return [0.8, 0.2]
+        else:
+            return [0.2, 0.8]
+    else:
+        return [0.2, 0.8]
+
+declare_prob(assemble, GetProbability_assemble)
 def assemble_Sim(m, p1, p2, name, outcome):
     if outcome == 0:
         state.pos[name] = rv.MACHINE_LOCATION[m]
@@ -222,7 +252,16 @@ def pack(m, o1, o2, name):
     state.pos.ReleaseLock(o2)
     return res
 
-declare_prob(pack, [0.8, 0.2])
+def GetProbability_pack(m, o1, o2, name):
+    if state.pos[o1] == rv.MACHINE_LOCATION[m] and state.pos[o2] == rv.MACHINE_LOCATION[m]:
+        if state.cond[m] == OK:
+            return [0.8, 0.2]
+        else:
+            return [0.2, 0.8]
+    else:
+        return [0.2, 0.8]
+
+declare_prob(pack, GetProbability_pack)
 def pack_Sim(m, o1, o2, name, outcome):
     if outcome == 0:
         state.pos[name] = rv.MACHINE_LOCATION[m]
@@ -249,7 +288,14 @@ def take(r, o, l):
     state.pos.ReleaseLock(o)
     return res
 
-declare_prob(take, [0.8, 0.2])
+def GetProbability_take(r, o, l):
+    state.pos.AcquireLock(o)
+    if state.pos[o] == l:
+        return [0.8, 0.2]
+    else:
+        return [0.2, 0.8]
+
+declare_prob(take, GetProbability_take)
 def take_Sim(r, o, l, outcome):
     if outcome == 0:
         state.pos[o] = r
@@ -277,7 +323,13 @@ def put(r, o, l):
     state.pos.ReleaseLock(o)
     return res
 
-declare_prob(put, [0.8, 0.2])
+def GetProbability_put(r, o, l):
+    if state.pos[o] == r:
+        return [0.8, 0.2]
+    else:
+        return [0.2, 0.8]
+
+declare_prob(put, GetProbability_put)
 def put_Sim(r, o, l, outcome):
     if outcome == 0:
         state.pos[o] = l
@@ -304,7 +356,13 @@ def move(r, loc1, loc2):
     state.loc.ReleaseLock(r)
     return res
 
-declare_prob(move, [0.9, 0.1])
+def GetProbability_move(r, loc1, loc2):
+    if state.loc[r] == loc1:
+        return [0.9, 0.1]
+    else:
+        return [0.1, 0.9]
+
+declare_prob(move, GetProbability_move)
 def move_Sim(r, loc1, loc2, outcome):
     if outcome == 0:
         state.loc[r] = loc2
@@ -579,7 +637,7 @@ def Repair_Method1(m):
     if repairBot != NIL:
         if state.loc[repairBot] != rv.MACHINE_LOCATION[m]:
             do_task('moveTo', repairBot, state.loc[repairBot], rv.MACHINE_LOCATION[m])
-        do_command(repair, m)
+        do_command(repairc, m)
         state.status[repairBot] = 'free'
         res = SUCCESS
     else:
@@ -610,8 +668,8 @@ def MoveTo_Method1(r, l1, l2):
     return res
 
 rv = RV()
-declare_commands([paint, assemble, pack, take, put, move, wrap, repair],
-                 [paint_Sim, assemble_Sim, pack_Sim, take_Sim, put_Sim, move_Sim, wrap_Sim, repair_Sim])
+declare_commands([paint, assemble, pack, take, put, move, wrap, repairc],
+                 [paint_Sim, assemble_Sim, pack_Sim, take_Sim, put_Sim, move_Sim, wrap_Sim, repairc_Sim])
 
 declare_methods('paint', Paint_Method1, Paint_Method2)
 declare_methods('assemble', Assemble_Method1, Assemble_Method2)

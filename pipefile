@@ -1,1 +1,1 @@
-(((openDoor,holdDoor,passDoor,releaseDoor)MoveThroughDoorway_Method3,move,move,(openDoor,holdDoor,passDoor,releaseDoor)MoveThroughDoorway_Method3)MoveTo_Method1,take,((((openDoor,passDoor)MoveThroughDoorway_Method1,move,(openDoor,holdDoor,passDoor,releaseDoor)MoveThroughDoorway_Method3)MoveTo_Method1,openDoor,holdDoor,passDoor,releaseDoor,((openDoor,holdDoor,passDoor,releaseDoor)MoveThroughDoorway_Method3,move,(openDoor,holdDoor,passDoor,releaseDoor)MoveThroughDoorway_Method3)MoveTo_Method1)MoveThroughDoorway_Method2,move)MoveTo_Method1)Fetch_Method1;
+MoveTo_Method1;

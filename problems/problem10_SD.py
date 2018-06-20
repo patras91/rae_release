@@ -51,7 +51,7 @@ def ResetState():
 
 tasks = {
     1: ['fetch', 'r1', 'o1', 2],
-    2: ['fetch', 'r2', 'o2', 3]
+  #  2: ['fetch', 'r2', 'o2', 3]
 }
 
 eventsEnv = {

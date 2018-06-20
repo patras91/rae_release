@@ -262,7 +262,7 @@ if __name__ == "__main__":
     argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n')",
                            type=str, default='n', required=False)
     argparser.add_argument("--sampleCount", help="Number of samples APE-plan should use",
-                           type=int, default=100, required=False)
+                           type=int, default=25, required=False)
     #argparser.add_argument("--sample_b", help="Sample breadth",
     #                       type=int, default=1, required=False)
     argparser.add_argument("--depth", help="Search Depth",
@@ -288,7 +288,7 @@ if __name__ == "__main__":
 def testRAEBatch(domain, problem, useAPEplan):
     p = multiprocessing.Process(target=testAPE, args=(domain, problem, useAPEplan))
     p.start()
-    p.join(300)
+    p.join(1200)
     if p.is_alive() == True:
         p.terminate()
         print("-1 -1 -1 -1 -1")

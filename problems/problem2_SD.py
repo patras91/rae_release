@@ -51,8 +51,8 @@ def ResetState():
     state.done = {0: False}
 
 tasks = {
-    1: ['fetch', 'r1', 'o1', 5],
-    2: ['fetch', 'r2', 'o2', 8]
+    #1: ['fetch', 'r1', 'o1', 5],
+    1: ['fetch', 'r2', 'o2', 8]
 }
 
 eventsEnv = {

@@ -59,7 +59,16 @@ def take(r, o):
     ape.state.load.ReleaseLock(r)
     return res
 
-ape.declare_prob(take, [0.8, 0.2])
+def GetProbability_take(r, o):
+    if ape.state.load[r] == NIL:
+        if ape.state.loc[r] == ape.state.pos[o]:
+            return [0.8, 0.2]
+        else:
+            return [0.1, 0.9]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(take, GetProbability_take)
 def take_Sim(r, o, outcome):
     if outcome == 0:
         ape.state.pos[o] = r
@@ -89,7 +98,13 @@ def put(r, o):
     ape.state.pos.ReleaseLock(o)
     return res
 
-ape.declare_prob(put, [0.9, 0.1])
+def GetProbability_put(r, o):
+    if ape.state.pos[o] == r:
+        return [0.9, 0.1]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(put, GetProbability_put)
 def put_Sim(r, o, outcome):
     if outcome == 0:
         ape.state.pos[o] = ape.state.loc[r]
@@ -118,7 +133,13 @@ def charge(r, c):
     ape.state.pos.ReleaseLock(c)
     return res
 
-ape.declare_prob(charge, [0.8, 0.2])
+def GetProbability_charge(r, c):
+    if ape.state.loc[r] == ape.state.pos[c] or ape.state.pos[c] == r:
+        return [0.8, 0.2]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(charge, GetProbability_charge)
 def charge_Sim(r, c, outcome):
     if outcome == 0:
         ape.state.charge[r] = 4
@@ -137,7 +158,10 @@ def moveCharger(c, l):
     ape.state.pos.ReleaseLock(c)
     return SUCCESS
 
-ape.declare_prob(moveCharger, [1])
+def GetProbability_moveCharger(c, l):
+    return [1]
+
+ape.declare_prob(moveCharger, GetProbability_moveCharger)
 def moveCharger_Sim(c, l, outcome):
     ape.state.pos[c] = l
     return SUCCESS
@@ -174,7 +198,19 @@ def moveToEmergency(r, l1, l2, dist):
         ape.state.emergencyHandling.ReleaseLock(r)
     return res
 
-ape.declare_prob(moveToEmergency, [0.1, 0.6, 0.1, 0.1, 0.1])
+def GetProbability_moveToEmergency(r, l1, l2, dist):
+    if l1 == l2:
+        return [0.8, 0.1, 0, 0.1, 0]
+    elif ape.state.loc[r] == l1 and ape.state.charge[r] >= dist:
+        return [0.1, 0.7, 0.1, 0.1, 0]
+    elif ape.state.loc[r] != l1 and ape.state.charge[r] >= dist:
+        return [0.1, 0.1, 0.6, 0.1, 0.1]
+    elif ape.state.loc[r] == l1 and ape.state.charge[r] < dist:
+        return [0.1, 0.1, 0.1, 0.5, 0.2]
+    else:
+        return [0.1, 0.1, 0.1, 0.1, 0.6]
+
+ape.declare_prob(moveToEmergency, GetProbability_moveToEmergency)
 def moveToEmergency_Sim(r, l1, l2, dist, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -289,7 +325,22 @@ def move(r, l1, l2, dist):
     ape.state.emergencyHandling.ReleaseLock(r)
     return res
 
-ape.declare_prob(move, [0.1, 0.7, 0.1, 0.1])
+def GetProbability_move(r, l1, l2, dist):
+    if ape.state.emergencyHandling[r] == False:
+        if l1 == l2:
+            return [0.7, 0.1, 0.1, 0.1]
+        elif ape.state.loc[r] == l1 and ape.state.charge[r] >= dist:
+            return [0.1, 0.7, 0.1, 0.1]
+        elif ape.state.loc[r] != l1 and ape.state.charge[r] >= dist:
+            return [0.1, 0.1, 0.7, 0.1]
+        elif ape.state.loc[r] == l1 and ape.state.charge[r] < dist:
+            return [0.1, 0.1, 0.1, 0.7]
+        else:
+            return [0.1, 0.1, 0.1, 0.7]
+    else:
+        return [0.1, 0.1, 0.1, 0.7]
+
+ape.declare_prob(move, GetProbability_move)
 def move_Sim(r, l1, l2, dist, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -324,7 +375,13 @@ def addressEmergency(r, l, i):
     ape.state.emergencyHandling.ReleaseLock(r)
     return res
 
-ape.declare_prob(addressEmergency, [0.8, 0.2])
+def GetProbability_addressEmergency(r, l, i):
+    if ape.state.loc[r] == l:
+        return [0.8, 0.2]
+    else:
+        return [0.2, 0.8]
+
+ape.declare_prob(addressEmergency, GetProbability_addressEmergency)
 def addressEmergency_Sim(r, l, i, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -341,7 +398,10 @@ def wait(r):
         gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
     return SUCCESS
 
-ape.declare_prob(wait, [1])
+def GetProbability_wait(r):
+    return [1]
+
+ape.declare_prob(wait, GetProbability_wait)
 def wait_Sim(r, outcome):
     ape.state.emergencyHandling[r] = False
     return SUCCESS

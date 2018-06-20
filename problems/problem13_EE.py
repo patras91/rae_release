@@ -82,9 +82,9 @@ def ResetState():
     state.pos = {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base'}
 
 tasks =  {
-    1: ['doActivities', 'UAV', [['survey', 'z1'], ['survey', 'z3'], ['survey', 'z7']]],
-    2: ['doActivities', 'r1', [['process', 'z5'], ['screen', 'z4'], ['sample', 'z2']]],
-    5: ['handleEmergency', 'r1', 'z2']
+    #1: ['doActivities', 'UAV', [['survey', 'z1'], ['survey', 'z3'], ['survey', 'z7']]],
+    1: ['doActivities', 'r1', [['process', 'z5'], ['screen', 'z4'], ['sample', 'z2']]],
+    #10: ['handleEmergency', 'r1', 'z2']
 }
 
 eventsEnv = {

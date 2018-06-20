@@ -87,8 +87,8 @@ def ResetState():
 
 tasks =  {
     1: ['doActivities', 'UAV', [['survey', 'z1'], ['survey', 'z3'], ['survey', 'z4']]],
-    2: ['doActivities', 'r1', [['process', 'z1'], ['screen', 'z4'], ['sample', 'z2']]],
-    3: ['handleEmergency', 'r2', 'z5']
+    #2: ['doActivities', 'r1', [['process', 'z1'], ['screen', 'z4'], ['sample', 'z2']]],
+    #3: ['handleEmergency', 'r2', 'z5']
 }
 
 eventsEnv = {

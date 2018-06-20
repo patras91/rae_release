@@ -37,6 +37,8 @@ rv.EDGES = {
     7: [6, 8],
     8: [7]
 }
+rv.OBJECTS =  {'o1', 'o2'}
+InitProb()
 
 def ResetState():
     state.loc = {'r1': 2}

@@ -72,7 +72,16 @@ def openDoor(r, d):
     ape.state.doorStatus.ReleaseLock(d)
     return res
 
-ape.declare_prob(openDoor, [0.8, 0.2])
+def GetProbability_openDoor(r, d):
+    if ape.state.doorStatus[d] == 'opened':
+        return [1, 0]
+    elif ape.state.load[r] == NIL and (ape.state.doorStatus[d] == 'closed' or ape.state.doorStatus[d] == 'closing'):
+        return [0.8, 0.2]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(openDoor, GetProbability_openDoor)
+
 def openDoor_Sim(r, d, outcome):
     if outcome == 0:
         ape.state.doorStatus[d] = 'opened'
@@ -98,7 +107,14 @@ def passDoor(r, d, l):
     ape.state.doorStatus.ReleaseLock(d)
     return res
 
-ape.declare_prob(passDoor, [0.8, 0.2])
+def GetProbability_passDoor(r, d, l):
+    if ape.state.doorStatus[d] == 'opened' or ape.state.doorStatus[d] == 'held':
+        return [0.8, 0.2]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(passDoor, GetProbability_passDoor)
+
 def passDoor_Sim(r, d, l, outcome):
     if outcome == 0:
         ape.state.loc[r] = l
@@ -128,7 +144,15 @@ def holdDoor(r, d):
     ape.state.load.ReleaseLock(r)
     return res
 
-ape.declare_prob(holdDoor, [0.8, 0.2])
+def GetProbability_holdDoor(r, d):
+    if (ape.state.doorStatus[d] == 'opened' or ape.state.doorStatus[d] == 'closing' or ape.state.doorStatus[d] == 'held') and ape.state.load[r] == NIL:
+        return [0.8, 0.2]
+    elif ape.state.doorStatus[d] == 'closed':
+        return [0.1, 0.9]
+    elif ape.state.load[r] != NIL:
+        return [0.1, 0.9]
+
+ape.declare_prob(holdDoor, GetProbability_holdDoor)
 def holdDoor_Sim(r, d, outcome):
     if outcome == 0:
         ape.state.load[r] = 'H'
@@ -150,7 +174,11 @@ def releaseDoor(r, d):
         gui.Simulate("Robot %s is not holding door %s\n" %(r, d))
     return SUCCESS
 
-ape.declare_prob(releaseDoor, [1])
+def GetProbability_releaseDoor(r, d):
+    return [1]
+
+ape.declare_prob(releaseDoor, GetProbability_releaseDoor)
+
 def releaseDoor_Sim(r, d, outcome):
     if ape.state.doorStatus[d] == 'held' and ape.state.load[r] == 'H':
         ape.state.doorStatus[d] = 'closing'
@@ -179,7 +207,18 @@ def move(r, l1, l2):
     ape.state.loc.ReleaseLock(r)
     return res
 
-ape.declare_prob(move, [0.8, 0.2])
+def GetProbability_move(r, l1, l2):
+    if l1 == l2:
+        return [0.9, 0.1]
+    elif ape.state.loc[r] == l1:
+        if (l1, l2) in rv.DOORLOCATIONS or (l2, l1) in rv.DOORLOCATIONS:
+            return [0.3, 0.7]
+        else:
+            return [0.9, 0.1]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(move, GetProbability_move)
 def move_Sim(r, l1, l2, outcome):
     if outcome == 0:
         ape.state.loc[r] = l2
@@ -208,7 +247,13 @@ def put(r, o):
     ape.state.loc.ReleaseLock(r)
     return res
 
-ape.declare_prob(put, [0.9, 0.1])
+def GetProbability_put(r, o):
+    if ape.state.pos[o] == r:
+        return [0.9, 0.1]
+    else:
+        return [0.4, 0.6]
+
+ape.declare_prob(put, GetProbability_put)
 def put_Sim(r, o, outcome):
     if outcome == 0:
         ape.state.pos[o] = ape.state.loc[r]
@@ -242,7 +287,16 @@ def take(r, o):
     ape.state.loc.ReleaseLock(r)
     return res
 
-ape.declare_prob(take, [0.9, 0.1])
+def GetProbability_take(r, o):
+    if ape.state.load[r] == NIL:
+        if ape.state.loc[r] == ape.state.pos[o]:
+            return [0.9, 0.1]
+        elif ape.state.loc[r] != ape.state.pos[o]:
+            return [0.1, 0.9]
+    else:
+        return [0.1, 0.9]
+
+ape.declare_prob(take, GetProbability_take)
 def take_Sim(r, o, outcome):
     if outcome == 0:
         ape.state.pos[o] = r
@@ -271,7 +325,10 @@ def closeDoors():
             ape.state.doorStatus.ReleaseLock(d)
     return SUCCESS
 
-ape.declare_prob(closeDoors, [1])
+def GetProbability_closeDoors():
+    return [1]
+
+ape.declare_prob(closeDoors, GetProbability_closeDoors)
 def closeDoors_Sim(outcome):
     while(ape.state.done[0] == False):
         for d in rv.DOORS:
@@ -421,6 +478,7 @@ def Recover_Method2(r):
 #        ape.do_command(closeDoors)
 #    return SUCCESS
 
+
 rv = RV()
 ape.declare_commands([openDoor, holdDoor, passDoor, releaseDoor, move, put, take],
                       [openDoor_Sim, holdDoor_Sim, passDoor_Sim, releaseDoor_Sim, move_Sim, put_Sim, take_Sim])
@@ -434,3 +492,5 @@ ape.declare_methods('moveThroughDoorway', MoveThroughDoorway_Method1, MoveThroug
 ape.declare_methods('collide', Recover_Method1, Recover_Method2)
 
 #ape.declare_methods('closeDoors', CloseDoors_Method1)
+
+
