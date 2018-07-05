@@ -2,12 +2,12 @@ __author__ = 'patras'
 import globals
 import pipes
 
-class RTNode():
+class PlanningTree():
     def __init__(self, n, args, type1):
         self.label = n # name of the method or task corresponding to this node
         self.args = args # arguments of the method corresponding to this node
         self.type = type1 # whether this is a task or a method or command
-        self.cost = 0 # total cost of the children of the node
+        self.eff = float("inf") # efficiency of this node
         self.children = [] # list of children of this node
 
     def GetLabel(self):
@@ -16,8 +16,14 @@ class RTNode():
     def GetArgs(self):
         return self.args
 
+    def SetRemainingCandidates(self, mList):
+        self.remCands = mList
+
+    def RemoveFromCandidates(self, m):
+        self.remCands.remove(m)
+
     def GetRetcode(self):
-        if self.label == "Failure" or self.args == "Failure":
+        if self.label == "Failure":
             return "Failure"
         else:
             return "Success"
@@ -31,19 +37,31 @@ class RTNode():
                 res = res + node.GetPreorderTraversal()
             return res
 
-    def IncreaseCost(self, c):
-        self.cost += 1
+    def AddEfficiency(self, e2):
+        e1 = self.eff
+        if e1 == float("inf"):
+            res = e2
+        elif e2 == float("inf"):
+            res = e1
+        else:
+            res = (e1 * e2) / (e1 + e2)
+        self.eff = res
 
-    def GetCost(self):
-        return self.cost
+    def GetEff(self):
+        return self.eff
 
     def GetMethod(self):
-        return self.label
+        if self.type == 'method':
+            return self.label
+        else:
+            print("ERR MSG: Type mistach in Refinement Tree")
+            print("ERR MSG: Asking for method when the type is ", self.type)
+            return None
 
     def DeleteChild(self, child):
         self.children.remove(child)
 
-    def DeleteChildren(self):
+    def DeleteAllChildren(self):
         self.children = []
 
     def GetChild(self):
@@ -53,8 +71,8 @@ class RTNode():
     def AddChild(self, node):
         self.children = self.children + [node]
 
-    def SetCost(self, c):
-        self.cost = c
+    def SetEff(self, e):
+        self.eff = e
 
     def GetPrettyString(self):
         if self.label == 'root' or self.label == 'Failure':
@@ -63,13 +81,6 @@ class RTNode():
             return self.label.__name__
         else:
             return "NONE"
-
-    def Duplicate(self):
-        newNode = RTNode()
-        newNode.value = self.value
-        for child in self.children:
-            newNode.children.append(child.Duplicate())
-        return newNode
 
     def GetInEtcFormat(self):
         if self.children == []:
@@ -94,11 +105,9 @@ class RTNode():
         curr = 0
         next = 1
         print("\n------PLANNING TREE-------")
-        print("COST = ", self.GetCost())
+        print("EFFICIENCY = ", self.GetEff())
         while(level[curr] != []):
-            print(' '.join(self.GetPrettyString() for elem in level[curr]))
-            #if curr == 0 and self.value.method != None:
-            #    print(self.GetCost())
+            print(' '.join(elem.GetPrettyString() for elem in level[curr]))
             for elem in level[curr]:
                 level[next] += elem.children
             curr += 1
@@ -106,20 +115,32 @@ class RTNode():
             level[next] = []
         print("\n------------------------")
 
-def CreateFailureNode(m):
-    tnode = RTNode(m, 'Failure', 'Failure')
-    tnode.SetCost(float("inf"))
+    def copy(self):
+        r = PlanningTree(self.label, self.args, self.type)
+        r.SetEff(self.eff)
+        if self.children == []:
+            return r
+        else:
+            for child in self.children:
+                c_copy = child.copy()
+                r.children = r.children + [c_copy]
+        return r
+
+def CreateFailureNode():
+    tnode = PlanningTree('Failure', 'Failure', 'Failure')
+    tnode.SetEff(0)
     return tnode
 
-class RT_ape():
-    def __init__(self, m, parent):
+class ActingTree():
+    def __init__(self, m):
         self.label = m
-        self.type = True
+        self.type = 'method'
         self.children = []
-        self.parent = parent
+        self.parent = None
 
-    def SetLabel(self, l, ty):
+    def SetLabelAndType(self, l, ty):
         self.label = l
+        assert(ty == 'method' or ty == 'command')
         self.type = ty
 
     def GetLabel(self):
@@ -130,7 +151,8 @@ class RT_ape():
         self.label = None
 
     def AddChild(self):
-        newNode = RT_ape(None, self)
+        newNode = ActingTree(None)
+        newNode.parent = self
         self.children.append(newNode)
         return newNode
 
@@ -170,34 +192,93 @@ class RT_ape():
 
     def GetSuccessor(self):
         if self.children != []:
-            return self.children[0]
+            return self.children[0] # the first child of this node
         else:
-            node = self.parent
-            nodec = self
+            # travel upwards in the tree until you find an ancestor with a next child
+            parent = self.parent
+            curr_child = self
             while(True):
-                if node == None:
-                    return None
+                if parent == None:
+                    return None # No possible successor, you have reached the end of the tree
                 else:
-                    index = node.children.index(nodec)
-                    if index < len(node.children) - 1:
-                        return node.children[index + 1]
-                nodec = node
-                node = node.parent
+                    index = parent.children.index(curr_child)
+                    if index < len(parent.children) - 1: # found the successor!
+                        return parent.children[index + 1]
+                curr_child = parent
+                parent = parent.parent
 
-    def GetNumberOfMethods(self):
-        if self.type == True:
+    def GetSize(self):
+        "returns the number of nodes of the tree with this as root"
+        if self.type == 'method':
             count = 1
             for c in self.children:
-                count += c.GetNumberOfMethods()
-            return count
-        else:
-            return 0
-
-    def GetNumberOfNodes(self):
-        if self.type == True:
-            count = 1
-            for c in self.children:
-                count += c.GetNumberOfNodes()
+                count += c.GetSize()
             return count
         else:
             return 1
+
+class GuideTree():
+    def __init__(self, m):
+        self.label = m
+        self.children = []
+        self.parent = None
+
+    def SetLabel(self, l):
+        self.label = l
+
+    def GetLabel(self):
+        return self.label
+
+    def Clear(self):
+        self.children = []
+        self.label = None
+
+    def AddChild(self):
+        newNode = GuideTree(None)
+        newNode.parent = self
+        self.children.append(newNode)
+        return newNode
+
+    def DeleteChild(self, child):
+        self.children.remove(child)
+
+    def GetPrettyString(self, elem):
+        if elem.label == 'root' or elem.label == "END":
+            return elem.label
+        if elem.label != None:
+            return elem.label.__name__
+        else:
+            return "NONE"
+
+    def Print(self):
+        level = {}
+        level[0] = [self]
+        level[1] = []
+        curr = 0
+        next = 1
+        print("\n------GUIDE TREE-------")
+        while(level[curr] != []):
+            print(' '.join(self.GetPrettyString(elem) for elem in level[curr]))
+            for elem in level[curr]:
+                level[next] += elem.children
+            curr += 1
+            next += 1
+            level[next] = []
+        print("\n------------------------")
+
+    def GetSuccessor(self):
+        if self.children != []:
+            return self.children[0] # the first child of this node
+        else:
+            # travel upwards in the tree until you find an ancestor with a next child
+            parent = self.parent
+            curr_child = self
+            while(True):
+                if parent == None:
+                    return None # No possible successor, you have reached the end of the tree
+                else:
+                    index = parent.children.index(curr_child)
+                    if index < len(parent.children) - 1: # found the successor!
+                        return parent.children[index + 1]
+                curr_child = parent
+                parent = parent.parent

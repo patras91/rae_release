@@ -5,49 +5,56 @@ from domain_constants import *
 from timer import globalTimer
 
 import copy
-import ape
+import importlib
+loader = importlib.find_loader('RAE1_and_RAEplan')
+if loader is not None:
+    import RAE1_and_RAEplan as ape
+else:
+    import ape1_and_apeplan as ape
+
+from state import state
 import gui
 
 def c1():
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('c1', start) == False):
         pass
-    ape.state.value['a'] = 1
+    state.value['a'] = 1
     return SUCCESS
 
 def c1_Sim():
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('c1', start) == False):
         pass
-    ape.state.value['a'] = 1
+    state.value['a'] = 1
     return SUCCESS
 
 def c2():
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('c2', start) == False):
         pass
-    ape.state.value['a'] = 2
+    state.value['a'] = 2
     return SUCCESS
 
 def c2_Sim():
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('c2', start) == False):
         pass
-    ape.state.value['a'] = 2
+    state.value['a'] = 2
     return SUCCESS
 
 def c3():
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('c3', start) == False):
         pass
-    ape.state.value['a'] = 3
+    state.value['a'] = 3
     return SUCCESS
 
 def c3_Sim():
     start = globalTimer.GetTime()
     while(globalTimer.IsCommandExecutionOver('c3', start) == False):
         pass
-    ape.state.value['a'] = 3
+    state.value['a'] = 3
     return SUCCESS
 
 def t1_m1():
@@ -86,11 +93,6 @@ def t2_m2():
     return SUCCESS
 
 def t3_m1():
-    ape.do_command(c3)
-    return SUCCESS
-
-def t2_m2():
-    ape.do_task('t3')
     ape.do_command(c3)
     return SUCCESS
 

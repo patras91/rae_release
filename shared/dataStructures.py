@@ -126,6 +126,37 @@ class rL_PLAN(rL):
     def GetActingTreeCurrPtr(self):
         return self.rL.atcp
 
+    def SetPlanningTree(self, t):
+        self.rL.planningTree = t
+
+    def GetPlanningTree(self):
+        return self.rL.planningTree
+
+    def SetGuideNode(self, g):
+        self.rL.guideNode = g
+
+    def GetGuideNode(self):
+        return self.rL.guideNode
+
+    def GetGuideTree(self):
+        return self.rL.guideTree
+
+    def SetGuideTree(self, g):
+        self.rL.guideTree = g
+
+    def GetBestTree(self):
+        return self.rL.bestTree 
+
+    def SetBestTree(self, t):
+        self.rL.bestTree = t
+    
+    #def SetMode(self, mode):
+    #    assert(mode == "catchUp" or mode == "plan")
+    #    self.rL.mode = mode
+
+    #def GetMode(self):
+    #    return self.rL.mode
+
 class PlanArgs():
     def __init__(self):
         pass
