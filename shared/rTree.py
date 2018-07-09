@@ -16,11 +16,11 @@ class PlanningTree():
     def GetArgs(self):
         return self.args
 
-    def SetRemainingCandidates(self, mList):
-        self.remCands = mList
+    #def SetRemainingCandidates(self, mList):
+    #    self.remCands = mList
 
-    def RemoveFromCandidates(self, m):
-        self.remCands.remove(m)
+    #def RemoveFromCandidates(self, m):
+    #    self.remCands.remove(m)
 
     def GetRetcode(self):
         if self.label == "Failure":
@@ -58,11 +58,13 @@ class PlanningTree():
             print("ERR MSG: Asking for method when the type is ", self.type)
             return None
 
-    def DeleteChild(self, child):
-        self.children.remove(child)
+    #def DeleteChild(self, child):
+    #    self.children.remove(child)
 
     def DeleteAllChildren(self):
+        assert(self.label == "root")
         self.children = []
+        self.SetEff(float("inf"))
 
     def GetChild(self):
         assert(len(self.children) == 1)
@@ -125,6 +127,16 @@ class PlanningTree():
                 c_copy = child.copy()
                 r.children = r.children + [c_copy]
         return r
+
+    def GetSize(self):
+        "returns the number of nodes of the tree with this as root"
+        if self.type == 'method' or self.label == 'root':
+            count = 1
+            for c in self.children:
+                count += c.GetSize()
+            return count
+        else:
+            return 0 # Don't want to count the commands
 
 def CreateFailureNode():
     tnode = PlanningTree('Failure', 'Failure', 'Failure')
@@ -282,3 +294,9 @@ class GuideTree():
                         return parent.children[index + 1]
                 curr_child = parent
                 parent = parent.parent
+
+    def GetSize(self):
+        if self.children == []:
+            return 1
+        else:
+            return 1 + self.children[0].GetSize()

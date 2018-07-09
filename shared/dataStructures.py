@@ -149,7 +149,7 @@ class rL_PLAN(rL):
 
     def SetBestTree(self, t):
         self.rL.bestTree = t
-    
+
     #def SetMode(self, mode):
     #    assert(mode == "catchUp" or mode == "plan")
     #    self.rL.mode = mode
