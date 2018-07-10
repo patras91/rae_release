@@ -110,11 +110,11 @@ def t4_m2():
 
 rv = RV()
 
-ape.declare_commands([c1, c2, c3], [c1_Sim, c2_Sim, c3_Sim])
+ape.declare_commands([c1, c2, c3])
 
-ape.declare_methods('t1', t1_m1, t1_m2)
+ape.declare_methods('t1', t1_m2, t1_m1)
 ape.declare_methods('t11', t11_m1, t11_m2)
 ape.declare_methods('t12', t12_m1, t12_m2)
 ape.declare_methods('t2', t2_m1, t2_m2)
 ape.declare_methods('t3', t3_m1)
-ape.declare_method('t4', t4_m1, t4_m2)
+ape.declare_methods('t4', t4_m1, t4_m2)

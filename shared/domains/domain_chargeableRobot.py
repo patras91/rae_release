@@ -74,16 +74,6 @@ def GetProbability_take(r, o):
     else:
         return [0.1, 0.9]
 
-ape.declare_prob(take, GetProbability_take)
-def take_Sim(r, o, outcome):
-    if outcome == 0:
-        state.pos[o] = r
-        state.load[r] = o
-        res = SUCCESS
-    else:
-        res = FAILURE
-    return res
-
 def put(r, o):
     state.pos.AcquireLock(o)
     if state.pos[o] == r:
@@ -110,7 +100,6 @@ def GetProbability_put(r, o):
     else:
         return [0.1, 0.9]
 
-ape.declare_prob(put, GetProbability_put)
 def put_Sim(r, o, outcome):
     if outcome == 0:
         state.pos[o] = state.loc[r]
@@ -145,7 +134,6 @@ def GetProbability_charge(r, c):
     else:
         return [0.1, 0.9]
 
-ape.declare_prob(charge, GetProbability_charge)
 def charge_Sim(r, c, outcome):
     if outcome == 0:
         state.charge[r] = 4
@@ -167,7 +155,6 @@ def moveCharger(c, l):
 def GetProbability_moveCharger(c, l):
     return [1]
 
-ape.declare_prob(moveCharger, GetProbability_moveCharger)
 def moveCharger_Sim(c, l, outcome):
     state.pos[c] = l
     return SUCCESS
@@ -216,7 +203,6 @@ def GetProbability_moveToEmergency(r, l1, l2, dist):
     else:
         return [0.1, 0.1, 0.1, 0.1, 0.6]
 
-ape.declare_prob(moveToEmergency, GetProbability_moveToEmergency)
 def moveToEmergency_Sim(r, l1, l2, dist, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -256,12 +242,13 @@ def perceive(l):
     if count != total:
         for loc in rv.LOCATIONS:
             for obj in rv.OBJECTS:
-                if state.pos[obj] == UNK:
-                    ape.UpdatePerceiveProb(perceive, loc, obj, 1/(total-count))
-                elif state.pos[obj] == loc:
-                    ape.UpdatePerceiveProb(perceive, loc, obj, 1)
-                else:
-                    ape.UpdatePerceiveProb(perceive, loc, obj, 0)
+                pass
+                #if state.pos[obj] == UNK:
+                #    ape.UpdatePerceiveProb(perceive, loc, obj, 1/(total-count))
+                #elif state.pos[obj] == loc:
+                #    ape.UpdatePerceiveProb(perceive, loc, obj, 1)
+                #else:
+                #    ape.UpdatePerceiveProb(perceive, loc, obj, 0)
     return SUCCESS
 
 p_perceive={}
@@ -271,12 +258,7 @@ def InitProb():
         for obj in rv.OBJECTS:
             p = 1/len(rv.LOCATIONS)
             p_perceive[loc][obj] = [p, 1 - p]
-    ape.declare_prob(perceive, p_perceive)
-
-#def UpdatePerceiveProb():
-#    p_perceive=[]
-#    for i in range(0, rv.OBJECTCOUNT + 1):
-#        p_perceive.append()
+    #ape.declare_prob(perceive, p_perceive)
 
 ape.AddCommandToSpecialList(perceive)
 
@@ -346,7 +328,6 @@ def GetProbability_move(r, l1, l2, dist):
     else:
         return [0.1, 0.1, 0.1, 0.7]
 
-ape.declare_prob(move, GetProbability_move)
 def move_Sim(r, l1, l2, dist, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -387,7 +368,6 @@ def GetProbability_addressEmergency(r, l, i):
     else:
         return [0.2, 0.8]
 
-ape.declare_prob(addressEmergency, GetProbability_addressEmergency)
 def addressEmergency_Sim(r, l, i, outcome):
     if outcome == 0:
         res = SUCCESS
@@ -407,7 +387,6 @@ def wait(r):
 def GetProbability_wait(r):
     return [1]
 
-ape.declare_prob(wait, GetProbability_wait)
 def wait_Sim(r, outcome):
     state.emergencyHandling[r] = False
     return SUCCESS
@@ -602,8 +581,7 @@ def NonEmergencyMove_Method1(r, l1, l2, dist):
     return SUCCESS
 
 rv = RV()
-ape.declare_commands([put, take, perceive, charge, move, moveCharger, moveToEmergency, addressEmergency, wait],
-                      [put_Sim, take_Sim, perceive_Sim, charge_Sim, move_Sim, moveCharger_Sim, moveToEmergency_Sim, addressEmergency_Sim, wait_Sim])
+ape.declare_commands([put, take, perceive, charge, move, moveCharger, moveToEmergency, addressEmergency, wait])
 
 ape.declare_methods('search', Search_Method1, Search_Method2)
 ape.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
