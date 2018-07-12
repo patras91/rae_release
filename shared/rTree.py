@@ -280,6 +280,7 @@ class GuideNode():
         self.label = l
 
     def GetNextState(self):
+        assert(self.nextState != None)
         return self.nextState
 
     def SetNextState(self, s):
@@ -290,7 +291,7 @@ class GuideNode():
 
     def Print(self):
         print("Label: ", self.label)
-        #print("State: ", self.nextState)
+        print("State: ", self.nextState)
 
 class GuideList():
     def __init__(self, l):
@@ -320,8 +321,8 @@ class GuideList():
         self.currIndex = 1
 
     def Print(self):
-        print("length = ", len(self.l))
-        return 
+        #print("length = ", len(self.l))
+        #return 
         print("\n------GUIDE LIST-------")
         index = 0
         while(index != len(self.l)):

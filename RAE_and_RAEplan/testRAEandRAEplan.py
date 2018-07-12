@@ -47,9 +47,9 @@ if __name__ == "__main__":
     argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n') (not implemented yet)",
                            type=str, default='n', required=False)
     argparser.add_argument("--b", help="Number of methods RAEplan should look at",
-                           type=int, default=4, required=False)
-    argparser.add_argument("--k", help="Number of commands samples RAEplan should look at",
                            type=int, default=2, required=False)
+    argparser.add_argument("--k", help="Number of commands samples RAEplan should look at",
+                           type=int, default=1, required=False)
     #argparser.add_argument("--sample_b", help="Sample breadth",
     #                       type=int, default=1, required=False)
     argparser.add_argument("--depth", help="Search Depth",

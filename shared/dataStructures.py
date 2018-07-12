@@ -67,6 +67,12 @@ class rL_PLAN(rL):
     def SetCandidates(self, c):
         self.rL.candidates = c
 
+    def SetState(self, s):
+        self.rL.state = s
+
+    def GetState(self):
+        return self.rL.state
+
     def SetCurrentNode(self, n):
         self.rL.currentNode = n
 
@@ -124,3 +130,9 @@ class PlanArgs():
 
     def SetStackId(self, id):
         self.stackid = id
+
+    def SetState(self, s):
+        self.state = s
+
+    def GetState(self):
+        return self.state

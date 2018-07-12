@@ -216,7 +216,14 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     queue = multiprocessing.Queue()
     actingTree = raeLocals.GetActingTree()
 
-    p = multiprocessing.Process(target=RAE.RAEPlanMain, args=[raeLocals.GetMainTask(), raeLocals.GetMainTaskArgs(), queue, candidates, raeLocals.GetGuideList()])
+    p = multiprocessing.Process(
+        target=RAE.RAEPlanMain, 
+        args=[raeLocals.GetMainTask(), 
+        raeLocals.GetMainTaskArgs(), 
+        queue, 
+        candidates, 
+        GetState().copy(),
+        raeLocals.GetGuideList()])
 
     p.start()
     p.join()
@@ -266,7 +273,7 @@ def DoTaskInRealWorld(task, taskArgs):
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
         node.SetLabelAndType(m, 'method')
         raeLocals.SetCurrentNode(node)
-        
+        node.SetNextState(GetState().copy())
         retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
 
         if candidates == []:
@@ -340,6 +347,7 @@ def RAEplanChoice(task, planArgs):
     planLocals.SetStackId(planArgs.GetStackId()) # Right now, the stack id is always set to 1 and is not important.
                                                  # This will be useful if we decide to simulate multiple stacks in future.
     planLocals.SetCandidates(planArgs.GetCandidates())
+    planLocals.SetState(planArgs.GetState())
 
     taskArgs = planArgs.GetTaskArgs()
     
@@ -397,25 +405,28 @@ def GetCandidates(task):
         # when candidates is a subset of the applicable methods, it is available from planLocals
         candidates = planLocals.GetCandidates()[:]
         planLocals.SetCandidates(None) # resetting planLocals for the rest of the search
+        state = planLocals.GetState()
     else:
         candidates = methods[task][:] # set of applicable methods
-    
+        state = GetState()
+        
     b = globals.Getb()
     cand = candidates[0:min(b - 1, len(candidates))]
-    return cand
+    return cand, state
 
 def FollowGuide_task(task, taskArgs, nextNode):
     m = nextNode.GetLabel()
+    RestoreState(nextNode.GetNextState())
     tree = PlanMethod(m, task, taskArgs)
     return tree
 
-def Reinitialize(m, newNode, guideList, name, args):
+def Reinitialize(m, s, newNode, guideList, name, args):
     guideList.RemoveAllAfter(newNode)
     if m == 'command':
         newNode.SetLabel(name)
-        newNode.SetNextState(GetState().copy())
     else:
         newNode.SetLabel(m)
+    newNode.SetNextState(s)
     
     pRoot = planLocals.GetPlanningTree()
     if pRoot.children == []:
@@ -436,13 +447,13 @@ def Reinitialize(m, newNode, guideList, name, args):
 
 def PlanTask(task, taskArgs):
     # Need to look through several candidates for this task
-    cand = GetCandidates(task)
+    cand, state = GetCandidates(task)
     # TODO : Can do pruning here if efficiency is already lower
     guideList = planLocals.GetGuideList()
     newNode = guideList.append()
 
     for m in cand:
-        firstTask, firstTaskArgs, pRoot = Reinitialize(m, newNode, guideList, task, taskArgs)
+        firstTask, firstTaskArgs, pRoot = Reinitialize(m, state, newNode, guideList, task, taskArgs)
         try:
             do_task(firstTask, *firstTaskArgs) # to recreate the execution stack
             tree = pRoot
@@ -586,7 +597,6 @@ def DoCommandInRealWorld(cmd, cmdArgs):
 def FollowGuide_command(cmd, cmdArgs, nextNode):
     
     assert(cmd == nextNode.GetLabel())
-    
     RestoreState(nextNode.GetNextState())
     
     cost = GetCost(cmd, cmdArgs)
@@ -645,7 +655,7 @@ def PlanCommand(cmd, cmdArgs):
             effList.append(0)
             # No need to plan any further, it will always be 0
         else:
-            firstTask, firstTaskArgs, pRoot = Reinitialize('command', newNode, gL, cmd, cmdArgs)
+            firstTask, firstTaskArgs, pRoot = Reinitialize('command', GetState().copy(), newNode, gL, cmd, cmdArgs)
             
             try:
                 do_task(firstTask, *firstTaskArgs)

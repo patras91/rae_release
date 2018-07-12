@@ -356,7 +356,7 @@ def process_Sim(r, l, outcome):
     return res
 
 def alienSpotted(l):
-    gui.Simulate("An alien is spotted in location %s", l)
+    gui.Simulate("An alien is spotted in location %s \n" %l)
     return SUCCESS
 
 def handleAlien(r, l):
