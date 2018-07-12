@@ -77,7 +77,8 @@ def t11_m2():
     return SUCCESS
 
 def t12_m1():
-    ape.do_command(c2)
+    ape.do_task('t6')
+    ape.do_command(c1)
     return SUCCESS
 
 def t12_m2():
@@ -104,17 +105,28 @@ def t3_m1():
 
 def t4_m1():
     ape.do_command(c4)
+    return SUCCESS
 
 def t4_m2():
     ape.do_command(c5)
+    return SUCCESS
+
+def t6_m1():
+    ape.do_command(c4)
+    return SUCCESS
+
+def t6_m2():
+    ape.do_command(c5)
+    return SUCCESS
 
 rv = RV()
 
-ape.declare_commands([c1, c2, c3])
+ape.declare_commands([c1, c2, c3, c4, c5])
 
-ape.declare_methods('t1', t1_m2, t1_m1)
+ape.declare_methods('t1', t1_m1, t1_m2)
 ape.declare_methods('t11', t11_m1, t11_m2)
 ape.declare_methods('t12', t12_m1, t12_m2)
 ape.declare_methods('t2', t2_m1, t2_m2)
 ape.declare_methods('t3', t3_m1)
 ape.declare_methods('t4', t4_m1, t4_m2)
+ape.declare_methods('t6', t6_m1, t6_m2)

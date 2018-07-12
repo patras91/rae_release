@@ -16,12 +16,6 @@ class PlanningTree():
     def GetArgs(self):
         return self.args
 
-    #def SetRemainingCandidates(self, mList):
-    #    self.remCands = mList
-
-    #def RemoveFromCandidates(self, m):
-    #    self.remCands.remove(m)
-
     def GetRetcode(self):
         if self.label == "Failure":
             return "Failure"
@@ -57,9 +51,6 @@ class PlanningTree():
             print("ERR MSG: Type mistach in Refinement Tree")
             print("ERR MSG: Asking for method when the type is ", self.type)
             return None
-
-    #def DeleteChild(self, child):
-    #    self.children.remove(child)
 
     def DeleteAllChildren(self):
         assert(self.label == "root")
@@ -143,12 +134,13 @@ def CreateFailureNode():
     tnode.SetEff(0)
     return tnode
 
-class ActingTree():
+class ActingNode():
     def __init__(self, m):
         self.label = m
         self.type = 'method'
         self.children = []
         self.parent = None
+        self.nextState = None
 
     def SetLabelAndType(self, l, ty):
         self.label = l
@@ -163,14 +155,14 @@ class ActingTree():
         self.label = None
 
     def AddChild(self):
-        newNode = ActingTree(None)
+        newNode = ActingNode(None)
         newNode.parent = self
         self.children.append(newNode)
         return newNode
 
     def GetPrettyString(self, elem):
-        if elem.label == 'root' or elem.label == "END":
-            return elem.label
+        if elem.label == 'root':
+            return 'root'
         if elem.label != None:
             return elem.label.__name__
         else:
@@ -192,7 +184,7 @@ class ActingTree():
         level[1] = []
         curr = 0
         next = 1
-        print("\n------ACTING TREE-------")
+
         while(level[curr] != []):
             print(' '.join(self.GetPrettyString(elem) for elem in level[curr]))
             for elem in level[curr]:
@@ -200,7 +192,6 @@ class ActingTree():
             curr += 1
             next += 1
             level[next] = []
-        print("\n------------------------")
 
     def GetSuccessor(self):
         if self.children != []:
@@ -229,74 +220,116 @@ class ActingTree():
         else:
             return 1
 
-class GuideTree():
-    def __init__(self, m):
+    def GetPreorderTraversal(self):
+        if self.label == None:
+            return []
+        else:
+            res = [self]
+            for node in self.children:
+                res = res + node.GetPreorderTraversal()
+            return res
+
+class ActingTree():
+    def __init__(self):
+        self.root = ActingNode('root')
+        self.currPtr = self.root
+
+    def GetCurrNode(self):
+        return self.currPtr
+
+    def SetCurrNode(self, n):
+        self.currPtr = n
+
+    def SetNextState(self, s):
+        self.currPtr.SetNextState(s)
+
+    def GetNextState(self):
+        return self.currPtr.GetNextState()
+
+    def GetGuideList(self):
+        l1 = self.root.GetPreorderTraversal()
+        l2 = [GuideNode(elem.GetLabel(), elem.GetNextState()) for elem in l1]
+        l = GuideList(l2)
+        return l
+
+    def GetPreOrderTraversal(self):
+        return self.root.GetPreorderTraversal()
+
+    def Print(self):
+        print("\n------ACTING TREE-------")
+        self.root.Print()
+        print("\n------------------------")
+
+    def GetSize(self):
+        return self.root.GetSize()
+
+class GuideNode():
+    def __init__(self, m, s):
         self.label = m
-        self.children = []
-        self.parent = None
+        self.nextState = s
+
+    def GetPrettyString(self):
+        if self.label == 'root':
+            return self.label
+        if self.label != None:
+            return self.label.__name__
+        else:
+            return "NONE"
 
     def SetLabel(self, l):
         self.label = l
 
+    def GetNextState(self):
+        return self.nextState
+
+    def SetNextState(self, s):
+        self.nextState = s
+
     def GetLabel(self):
         return self.label
 
-    def Clear(self):
-        self.children = []
-        self.label = None
+    def Print(self):
+        print("Label: ", self.label)
+        #print("State: ", self.nextState)
 
-    def AddChild(self):
-        newNode = GuideTree(None)
-        newNode.parent = self
-        self.children.append(newNode)
-        return newNode
+class GuideList():
+    def __init__(self, l):
+        self.l = l
+        self.currIndex = 1
 
-    def DeleteChild(self, child):
-        self.children.remove(child)
-
-    def GetPrettyString(self, elem):
-        if elem.label == 'root' or elem.label == "END":
-            return elem.label
-        if elem.label != None:
-            return elem.label.__name__
+    def GetNext(self):
+        if self.currIndex == len(self.l):
+            return None
         else:
-            return "NONE"
+            node = self.l[self.currIndex]
+            self.currIndex += 1
+            return node
+
+    def append(self, m=None, s=None):
+        assert(len(self.l) == self.currIndex)
+        n = GuideNode(m, s)
+        self.l.append(n)
+        return n
+
+    def RemoveAllAfter(self, n):
+        if n.GetLabel() != None:
+            index = self.l.index(n)
+            self.l = self.l[0:index + 1]
+
+    def ResetPtr(self):
+        self.currIndex = 1
 
     def Print(self):
-        level = {}
-        level[0] = [self]
-        level[1] = []
-        curr = 0
-        next = 1
-        print("\n------GUIDE TREE-------")
-        while(level[curr] != []):
-            print(' '.join(self.GetPrettyString(elem) for elem in level[curr]))
-            for elem in level[curr]:
-                level[next] += elem.children
-            curr += 1
-            next += 1
-            level[next] = []
+        print("length = ", len(self.l))
+        return 
+        print("\n------GUIDE LIST-------")
+        index = 0
+        while(index != len(self.l)):
+            if index == self.currIndex:
+                print(" ----> ")
+            self.l[index].Print()
+            index += 1
         print("\n------------------------")
 
-    def GetSuccessor(self):
-        if self.children != []:
-            return self.children[0] # the first child of this node
-        else:
-            # travel upwards in the tree until you find an ancestor with a next child
-            parent = self.parent
-            curr_child = self
-            while(True):
-                if parent == None:
-                    return None # No possible successor, you have reached the end of the tree
-                else:
-                    index = parent.children.index(curr_child)
-                    if index < len(parent.children) - 1: # found the successor!
-                        return parent.children[index + 1]
-                curr_child = parent
-                parent = parent.parent
-
-    def GetSize(self):
-        if self.children == []:
-            return 1
-        else:
-            return 1 + self.children[0].GetSize()
+    def GetStartState(self):
+        return self.l[0].GetNextState()

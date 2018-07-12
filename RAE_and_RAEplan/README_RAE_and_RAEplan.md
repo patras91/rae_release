@@ -7,7 +7,7 @@ We have the following domains in the domains folder.
 3. domain_exploreEnv: Robots and UAV move through an area and collects various data
 4. domain_industrialPlant: Orders of compound tasks involving painting, assembly and packing of components are handled
 
-# The following may not work as expected: not tested recently
+The following may not work as expected: not tested recently
 5. domain_simpleFetch: Robot collecting objects in a harbour
 6. domain_simpleOpenDoor: Robot opening a door
 7. domain_ste: Robot travelling from one location to another by foot or taxi

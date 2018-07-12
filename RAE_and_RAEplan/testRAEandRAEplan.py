@@ -3,6 +3,7 @@ import sys
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
 sys.path.append('../shared/problems/')
+sys.setrecursionlimit(3000)
 import argparse
 import gui
 import globals
@@ -73,6 +74,9 @@ if __name__ == "__main__":
     testRAEandRAEplan(args.domain, args.problem, s)
 
 def testBatch(domain, problem, useRAEplan):
+    SetMode('Counter')
+    verbosity(0)
+    globals.SetShowOutputs('off')
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
     p.join(1200)

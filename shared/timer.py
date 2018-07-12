@@ -58,7 +58,7 @@ class Timer():
         if mode == False:
             mult = 1  # This is the approx callibrated value
         else:
-            mult = 1
+            return True
         if self.mode == 'Counter':
             if self.now - start < DURATION.COUNTER[cmd] * mult:
                 over = False

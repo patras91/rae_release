@@ -17,23 +17,25 @@ DURATION.TIME = {
     'put': 2,
     'move': 10,
     'charge': 5,
-    'negotiate': 5
+    'negotiate': 5,
+    'handleAlien': 5
  }
 
 DURATION.COUNTER = {
-    'survey': 1, # for domain EE
-    'monitor': 1,
-    'screen': 1,
-    'sample': 1,
-    'process': 1,
-    'fly': 1,
+    'survey': 5, # for domain EE
+    'monitor': 5,
+    'screen': 5,
+    'sample': 5,
+    'process': 5,
+    'fly': 3,
     'deposit': 1,
     'transferData': 1,
-    'take': 1,
-    'put': 1,
-    'move': 1,
-    'charge': 1,
-    'negotiate': 1
+    'take': 2,
+    'put': 2,
+    'move': 10,
+    'charge': 5,
+    'negotiate': 5,
+    'handleAlien': 5
  }
 
 rv.TYPE = {'e1': 'survey', 'e2': 'monitor', 'e3': 'screen', 'e4': 'sample', 'e5':'process'}

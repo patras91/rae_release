@@ -190,7 +190,7 @@ def CreateNewStackSimulation(pArgs, queue):
     tree, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
     queue.put((tree, planningTime))
 
-def RAEPlanMain(task, taskArgs, queue, candidateMethods, tree):
+def RAEPlanMain(task, taskArgs, queue, candidateMethods, gL):
     # Simulating one stack now
     # TODO: Simulate multiple stacks in future
 
@@ -203,8 +203,7 @@ def RAEPlanMain(task, taskArgs, queue, candidateMethods, tree):
     pArgs.SetStackId(1)
     pArgs.SetTask(task)
     pArgs.SetCandidates(candidateMethods)
-    pArgs.SetActingTree(tree)
-    #pArgs.SetMethod(method)
+    pArgs.SetGuideList(gL)
 
     ipcArgs.nextStack = 0
     ipcArgs.sem = threading.Semaphore(1)

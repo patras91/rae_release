@@ -1,13 +1,6 @@
 __author__ = 'patras'
 
-import importlib
-loader = importlib.find_loader('RAE1_and_RAEplan')
-if loader is not None:
-    from RAE1_and_RAEplan import *
-else:
-    from ape1_and_apeplan import *
-
-from state import state
+from ape import state, do_task, do_command, declare_commands, declare_methods, declare_prob
 from gui import Simulate
 from domain_constants import *
 from timer import globalTimer
@@ -97,6 +90,7 @@ def repairc(m):
 def GetProbability_repairc(m):
     return [1]
 
+declare_prob(repairc, GetProbability_repairc)
 def repairc_Sim(m, outcome):
     state.cond[m] = OK
     return SUCCESS
@@ -140,6 +134,7 @@ def GetProbability_paint(m, o, colour, name):
     else:
         return [0.2, 0.8]
 
+declare_prob(paint, GetProbability_paint)
 def paint_Sim(m, o, colour, name, outcome):
     if outcome == 0:
         state.pos[name] = rv.MACHINE_LOCATION[m]
@@ -180,6 +175,7 @@ def GetProbability_wrap(m, o, name):
     else:
         return [0.2, 0.8]
 
+declare_prob(wrap, GetProbability_wrap)
 def wrap_Sim(m, o, name, outcome):
     if outcome == 0:
         state.pos[name] = rv.MACHINE_LOCATION[m]
@@ -223,6 +219,7 @@ def GetProbability_assemble(m, p1, p2, name):
     else:
         return [0.2, 0.8]
 
+declare_prob(assemble, GetProbability_assemble)
 def assemble_Sim(m, p1, p2, name, outcome):
     if outcome == 0:
         state.pos[name] = rv.MACHINE_LOCATION[m]
@@ -264,6 +261,7 @@ def GetProbability_pack(m, o1, o2, name):
     else:
         return [0.2, 0.8]
 
+declare_prob(pack, GetProbability_pack)
 def pack_Sim(m, o1, o2, name, outcome):
     if outcome == 0:
         state.pos[name] = rv.MACHINE_LOCATION[m]
@@ -273,7 +271,6 @@ def pack_Sim(m, o1, o2, name, outcome):
     return res
 
 def take(r, o, l):
-    print(state)
     state.pos.AcquireLock(o)
     if state.pos[o] == l:
         state.load.AcquireLock(r)
@@ -298,6 +295,7 @@ def GetProbability_take(r, o, l):
     else:
         return [0.2, 0.8]
 
+declare_prob(take, GetProbability_take)
 def take_Sim(r, o, l, outcome):
     if outcome == 0:
         state.pos[o] = r
@@ -331,6 +329,7 @@ def GetProbability_put(r, o, l):
     else:
         return [0.2, 0.8]
 
+declare_prob(put, GetProbability_put)
 def put_Sim(r, o, l, outcome):
     if outcome == 0:
         state.pos[o] = l
@@ -363,6 +362,7 @@ def GetProbability_move(r, loc1, loc2):
     else:
         return [0.1, 0.9]
 
+declare_prob(move, GetProbability_move)
 def move_Sim(r, loc1, loc2, outcome):
     if outcome == 0:
         state.loc[r] = loc2
@@ -599,7 +599,6 @@ def Wrap_Method2(name, o):
 def Order_Method1(taskArgs):
     taskName = taskArgs[0]
     args = taskArgs[1:]
-    GetNewName.current = 0
     name = GetNewName()
     do_task(taskName, name, *args)
     do_task('deliver', name, rv.BUFFERS['output'])
@@ -669,15 +668,8 @@ def MoveTo_Method1(r, l1, l2):
     return res
 
 rv = RV()
-declare_commands([
-    paint, 
-    assemble, 
-    pack, 
-    take, 
-    put, 
-    move, 
-    wrap, 
-    repairc])
+declare_commands([paint, assemble, pack, take, put, move, wrap, repairc],
+                 [paint_Sim, assemble_Sim, pack_Sim, take_Sim, put_Sim, move_Sim, wrap_Sim, repairc_Sim])
 
 declare_methods('paint', Paint_Method1, Paint_Method2)
 declare_methods('assemble', Assemble_Method1, Assemble_Method2)
