@@ -504,22 +504,6 @@ def PlanMethod(m, task, taskArgs):
 
 def beginCommand(cmd, cmdRet, cmdArgs):
     cmdPtr = GetCommand(cmd)
-    #if globals.GetPlanningMode() == True:
-    #    if cmd in listCommandsDependingOnParams:
-    #        # this code is specific for sensing command, 'perceive'
-    #        loc = cmdArgs[0]
-    #        pDict = commandProb[cmd][loc]
-    #        res = []
-    #        for obj in pDict:
-    #            outcome = numpy.random.choice(len(pDict[obj]), 1, p=pDict[obj])
-    #            if outcome[0] == 0:
-    #                res.append(obj)
-    #    else:
-    #        pFunc = commandProb[cmd]
-    #        p = pFunc(*cmdArgs)
-    #        outcome = numpy.random.choice(len(p), 1, p=p)
-    #        res = outcome[0]
-    #    cmdArgs = cmdArgs + (res,)
     cmdRet['state'] = cmdPtr(*cmdArgs)
 
 def do_command(cmd, *cmdArgs):

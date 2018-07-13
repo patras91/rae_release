@@ -15,6 +15,37 @@ else:
 import gui
 from state import state
 from timer import globalTimer
+import numpy 
+import globals
+
+commandProb = {
+    'take': [0.8, 0.2],
+    'put': [0.9, 0.1],
+}
+
+def Sense(cmd):
+    if cmd == 'perceive':
+        if globals.GetPlanningMode() == True:
+            return 
+        return
+
+    #    if cmd in listCommandsDependingOnParams:
+    #        # this code is specific for sensing command, 'perceive'
+    #        loc = cmdArgs[0]
+    #        pDict = commandProb[cmd][loc]
+    #        res = []
+    #        for obj in pDict:
+    #            outcome = numpy.random.choice(len(pDict[obj]), 1, p=pDict[obj])
+    #            if outcome[0] == 0:
+    #                res.append(obj)
+    #    else:
+    p = commandProb[cmd]
+    outcome = numpy.random.choice(len(p), 1, p=p)
+    res = outcome[0]
+    if res == 0:
+        return SUCCESS
+    else:
+        return FAILURE
 
 # Using Dijsktra's algorithm
 def CR_GETDISTANCE(l0, l1):
@@ -54,10 +85,13 @@ def take(r, o):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
                 pass
-            gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
-            state.pos[o] = r
-            state.load[r] = o
-            res = SUCCESS
+            res = Sense('take')
+            if res == SUCCESS:
+                gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
+                state.pos[o] = r
+                state.load[r] = o
+            else:
+                gui.Simulate("Non-deterministic event has made the take command fail\n")
         else:
             gui.Simulate("Robot %s is not at object %s's location\n" %(r, o))
             res = FAILURE
@@ -67,15 +101,6 @@ def take(r, o):
         res = FAILURE
     state.load.ReleaseLock(r)
     return res
-
-def GetProbability_take(r, o):
-    if state.load[r] == NIL:
-        if state.loc[r] == state.pos[o]:
-            return [0.8, 0.2]
-        else:
-            return [0.1, 0.9]
-    else:
-        return [0.1, 0.9]
 
 def put(r, o):
     state.pos.AcquireLock(o)
@@ -96,12 +121,6 @@ def put(r, o):
         res = FAILURE
     state.pos.ReleaseLock(o)
     return res
-
-def GetProbability_put(r, o):
-    if state.pos[o] == r:
-        return [0.9, 0.1]
-    else:
-        return [0.1, 0.9]
 
 def put_Sim(r, o, outcome):
     if outcome == 0:
@@ -230,6 +249,7 @@ def perceive(l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
             pass
+        Sense('perceive')
         for c in state.containers[l]:
             state.pos.AcquireLock(c)
             state.pos[c] = l

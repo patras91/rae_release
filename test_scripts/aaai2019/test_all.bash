@@ -29,12 +29,12 @@ sys.path.append('../../shared/problems/')
 sys.path.append('../../shared/')
 sys.setrecursionlimit(3000)
 from testRAEandRAEplan import globals, testBatch
-globals.Setb(2)
+globals.Setb(3)
 globals.Setk($k)"
             echo $domain $problem $k
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"
 
-            fname="$domain/plan_b_2_k_$k.txt"
+            fname="$domain/plan_b_3_k_$k.txt"
 
             echo "Time test of $domain $problem $sampleCount" >> $fname
             python3 -m timeit -n 2 -s "$setup" "$time_test" >> $fname
