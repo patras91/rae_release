@@ -15,37 +15,8 @@ else:
 import gui
 from state import state
 from timer import globalTimer
-import numpy 
 import globals
 
-commandProb = {
-    'take': [0.8, 0.2],
-    'put': [0.9, 0.1],
-}
-
-def Sense(cmd):
-    if cmd == 'perceive':
-        if globals.GetPlanningMode() == True:
-            return 
-        return
-
-    #    if cmd in listCommandsDependingOnParams:
-    #        # this code is specific for sensing command, 'perceive'
-    #        loc = cmdArgs[0]
-    #        pDict = commandProb[cmd][loc]
-    #        res = []
-    #        for obj in pDict:
-    #            outcome = numpy.random.choice(len(pDict[obj]), 1, p=pDict[obj])
-    #            if outcome[0] == 0:
-    #                res.append(obj)
-    #    else:
-    p = commandProb[cmd]
-    outcome = numpy.random.choice(len(p), 1, p=p)
-    res = outcome[0]
-    if res == 0:
-        return SUCCESS
-    else:
-        return FAILURE
 
 # Using Dijsktra's algorithm
 def CR_GETDISTANCE(l0, l1):
@@ -110,25 +81,19 @@ def put(r, o):
         state.load.AcquireLock(r)
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
             pass
-        gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,state.loc[r]))
-        state.pos[o] = state.loc[r]
-        state.load[r] = NIL
+        res = Sense('put')
+        if res == SUCCESS:    
+            gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,state.loc[r]))
+            state.pos[o] = state.loc[r]
+            state.load[r] = NIL
+        else:
+            gui.Simulate("Robot %s has failed to put %s because of some internal error")
         state.loc.ReleaseLock(r)
         state.load.ReleaseLock(r)
-        res = SUCCESS
     else:
         gui.Simulate("Object %s is not with robot %s\n" %(o,r))
         res = FAILURE
     state.pos.ReleaseLock(o)
-    return res
-
-def put_Sim(r, o, outcome):
-    if outcome == 0:
-        state.pos[o] = state.loc[r]
-        state.load[r] = NIL
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def charge(r, c):
@@ -139,10 +104,13 @@ def charge(r, c):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
             pass
-        state.charge[r] = 4
-        gui.Simulate("Robot %s is fully charged\n" %r)
+        res = Sense('charge')
+        if res == SUCCESS:
+            state.charge[r] = 4
+            gui.Simulate("Robot %s is fully charged\n" %r)
+        else:
+            gui.Simulate("Charging of robot %s failed due to some internal error.\n" %r)
         state.charge.ReleaseLock(r)
-        res = SUCCESS
     else:
         gui.Simulate("Robot %s is not in the charger's location or it doesn't have the charger with it\n" %r)
         res = FAILURE
@@ -150,35 +118,11 @@ def charge(r, c):
     state.pos.ReleaseLock(c)
     return res
 
-def GetProbability_charge(r, c):
-    if state.loc[r] == state.pos[c] or state.pos[c] == r:
-        return [0.8, 0.2]
-    else:
-        return [0.1, 0.9]
-
-def charge_Sim(r, c, outcome):
-    if outcome == 0:
-        state.charge[r] = 4
-        res = SUCCESS
-    else:
-        res = FAILURE
-    return res
-
 def moveCharger(c, l):
-    #start = globalTimer.GetTime()
-    #while(globalTimer.IsCommandExecutionOver('moveCharger', start) == False):
-    #	pass
     state.pos.AcquireLock(c)
     gui.Simulate("Charger %s is moved to location %s\n" %(c,l))
     state.pos[c] = l
     state.pos.ReleaseLock(c)
-    return SUCCESS
-
-def GetProbability_moveCharger(c, l):
-    return [1]
-
-def moveCharger_Sim(c, l, outcome):
-    state.pos[c] = l
     return SUCCESS
 
 def moveToEmergency(r, l1, l2, dist):
@@ -191,10 +135,13 @@ def moveToEmergency(r, l1, l2, dist):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
            pass
-        gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
-        state.loc[r] = l2
-        state.charge[r] = state.charge[r] - dist
-        res = SUCCESS
+        res = Sense('moveToEmergency')
+        if res == SUCCESS:
+            gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+            state.loc[r] = l2
+            state.charge[r] = state.charge[r] - dist
+        else:
+            gui.Simulate("Moving failed due to some internal error\n")
     elif state.loc[r] != l1 and state.charge[r] >= dist:
         gui.Simulate("Robot %s is not in location %d\n" %(r, l1))
         res = FAILURE
@@ -213,36 +160,6 @@ def moveToEmergency(r, l1, l2, dist):
         state.emergencyHandling.ReleaseLock(r)
     return res
 
-def GetProbability_moveToEmergency(r, l1, l2, dist):
-    if l1 == l2:
-        return [0.8, 0.1, 0, 0.1, 0]
-    elif state.loc[r] == l1 and state.charge[r] >= dist:
-        return [0.1, 0.7, 0.1, 0.1, 0]
-    elif state.loc[r] != l1 and state.charge[r] >= dist:
-        return [0.1, 0.1, 0.6, 0.1, 0.1]
-    elif state.loc[r] == l1 and state.charge[r] < dist:
-        return [0.1, 0.1, 0.1, 0.5, 0.2]
-    else:
-        return [0.1, 0.1, 0.1, 0.1, 0.6]
-
-def moveToEmergency_Sim(r, l1, l2, dist, outcome):
-    if outcome == 0:
-        res = SUCCESS
-    elif outcome == 1:
-        state.loc[r] = l2
-        state.charge[r] = state.charge[r] - dist
-        res = SUCCESS
-    elif outcome == 2:
-        res = FAILURE
-    elif outcome == 3:
-        state.charge[r] = 0 # should we do this?
-        res = FAILURE
-    else:
-        res = FAILURE
-    if res == FAILURE:
-        state.emergencyHandling[r] = False
-    return res
-
 def perceive(l):
     state.view.AcquireLock(l)
     if state.view[l] == False:
@@ -259,46 +176,6 @@ def perceive(l):
     else:
         gui.Simulate("Already perceived\n")
     state.view.ReleaseLock(l)
-
-    count = len(list(key for key in state.view if state.view[key] == True))
-    total = len(rv.LOCATIONS)
-    if count != total:
-        for loc in rv.LOCATIONS:
-            for obj in rv.OBJECTS:
-                pass
-                #if state.pos[obj] == UNK:
-                #    ape.UpdatePerceiveProb(perceive, loc, obj, 1/(total-count))
-                #elif state.pos[obj] == loc:
-                #    ape.UpdatePerceiveProb(perceive, loc, obj, 1)
-                #else:
-                #    ape.UpdatePerceiveProb(perceive, loc, obj, 0)
-    return SUCCESS
-
-p_perceive={}
-def InitProb():
-    for loc in rv.LOCATIONS:
-        p_perceive[loc] = {}
-        for obj in rv.OBJECTS:
-            p = 1/len(rv.LOCATIONS)
-            p_perceive[loc][obj] = [p, 1 - p]
-    #ape.declare_prob(perceive, p_perceive)
-
-ape.AddCommandToSpecialList(perceive)
-
-def perceive_Sim(l, outcome):
-    state.view[l] = True
-    for obj in outcome:
-        state.pos[obj] = l
-    return SUCCESS
-
-def MoveTo_Method1(r, l):
-    x = state.loc[r]
-    dist = CR_GETDISTANCE(x, l)
-    if state.charge[r] >= dist:
-        ape.do_task('nonEmergencyMove', r, x, l, dist)
-    else:
-        gui.Simulate("Robot %s does not have enough charge to move\n" %(r))
-        ape.do_command(fail)
     return SUCCESS
 
 def move(r, l1, l2, dist):
@@ -313,14 +190,18 @@ def move(r, l1, l2, dist):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('move', start) == False):
                pass
-            gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
-            state.loc[r] = l2
-            state.charge[r] = state.charge[r] - dist
-            res = SUCCESS
+            res = Sense('move')
+            if res == SUCCESS:
+                gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+                state.loc[r] = l2
+                state.charge[r] = state.charge[r] - dist
+            else:
+                gui.Simulate("Robot %s failed to move due to some internal failure\n" %r)
         elif state.loc[r] != l1 and state.charge[r] >= dist:
             gui.Simulate("Robot %s is not in location %d\n" %(r, l1))
             res = FAILURE
         elif state.loc[r] == l1 and state.charge[r] < dist:
+            print("here")
             gui.Simulate("Robot %s does not have enough charge to move :(\n" %r)
             #state.charge[r] = 0 # should we do this?
             res = FAILURE
@@ -335,38 +216,6 @@ def move(r, l1, l2, dist):
     state.emergencyHandling.ReleaseLock(r)
     return res
 
-def GetProbability_move(r, l1, l2, dist):
-    if state.emergencyHandling[r] == False:
-        if l1 == l2:
-            return [0.7, 0.1, 0.1, 0.1]
-        elif state.loc[r] == l1 and state.charge[r] >= dist:
-            return [0.1, 0.7, 0.1, 0.1]
-        elif state.loc[r] != l1 and state.charge[r] >= dist:
-            return [0.1, 0.1, 0.7, 0.1]
-        elif state.loc[r] == l1 and state.charge[r] < dist:
-            return [0.1, 0.1, 0.1, 0.7]
-        else:
-            return [0.1, 0.1, 0.1, 0.7]
-    else:
-        return [0.1, 0.1, 0.1, 0.7]
-
-def move_Sim(r, l1, l2, dist, outcome):
-    if outcome == 0:
-        res = SUCCESS
-    elif outcome == 1:
-        if state.charge[r] - dist > 0:
-            state.loc[r] = l2 
-            state.charge[r] = state.charge[r] - dist
-            res = SUCCESS
-        else:
-            res = FAILURE
-    elif outcome == 2:
-        res = FAILURE
-    elif outcome == 3:
-        state.charge[r] = 0 # should we do this?
-        res = FAILURE
-    return res
-
 def addressEmergency(r, l, i):
     state.loc.AcquireLock(r)
     state.emergencyHandling.AcquireLock(r)
@@ -374,8 +223,11 @@ def addressEmergency(r, l, i):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('addressEmergency', start) == False):
             pass
-        gui.Simulate("Robot %s has addressed emergency %d\n" %(r, i))
-        res = SUCCESS
+        res = Sense('addressEmergency')
+        if res == SUCCESS:
+            gui.Simulate("Robot %s has addressed emergency %d\n" %(r, i))
+        else:
+            gui.Simulate("Robot %s has failed to address emergency due to some internal error \n" %s)
     else:
         gui.Simulate("Robot %s has failed to address emergency %d\n" %(r, i))
         res = FAILURE
@@ -384,33 +236,13 @@ def addressEmergency(r, l, i):
     state.emergencyHandling.ReleaseLock(r)
     return res
 
-def GetProbability_addressEmergency(r, l, i):
-    if state.loc[r] == l:
-        return [0.8, 0.2]
-    else:
-        return [0.2, 0.8]
-
-def addressEmergency_Sim(r, l, i, outcome):
-    if outcome == 0:
-        res = SUCCESS
-    else:
-        res = FAILURE
-    state.emergencyHandling[r] = False
-    return res
-
 def wait(r):
     while(state.emergencyHandling[r] == True):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('wait', start) == False):
             pass
         gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
-    return SUCCESS
-
-def GetProbability_wait(r):
-    return [1]
-
-def wait_Sim(r, outcome):
-    state.emergencyHandling[r] = False
+        Sense('wait')
     return SUCCESS
 
 # def Recharge_Method1(r, c):
@@ -602,6 +434,17 @@ def NonEmergencyMove_Method1(r, l1, l2, dist):
         ape.do_command(move, r, l1, l2, dist)
     return SUCCESS
 
+
+def MoveTo_Method1(r, l):
+    x = state.loc[r]
+    dist = CR_GETDISTANCE(x, l)
+    if state.charge[r] >= dist:
+        ape.do_task('nonEmergencyMove', r, x, l, dist)
+    else:
+        gui.Simulate("Robot %s does not have enough charge to move\n" %(r))
+        ape.do_command(fail)
+    return SUCCESS
+
 rv = RV()
 ape.declare_commands([put, take, perceive, charge, move, moveCharger, moveToEmergency, addressEmergency, wait, fail])
 
@@ -614,3 +457,4 @@ ape.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)
 
 #ape.declare_methods('relocateCharger', RelocateCharger_Method1)
 
+from env_chargeableRobot import *

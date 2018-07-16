@@ -29,7 +29,6 @@ DURATION.COUNTER = {
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8]
 rv.EDGES = {1: [7], 2: [8], 3: [8], 4: [8], 5: [7], 6: [7], 7:[1, 5, 6, 8], 8: [2, 3, 4, 7]}
 rv.OBJECTS =  {'o1', 'o2'}
-InitProb()
 
 def ResetState():
     state.loc = {'r1': 1}
