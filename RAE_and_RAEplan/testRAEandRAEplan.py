@@ -3,7 +3,7 @@ import sys
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
 sys.path.append('../shared/problems/')
-sys.setrecursionlimit(3000)
+sys.setrecursionlimit(6000)
 import argparse
 import gui
 import globals

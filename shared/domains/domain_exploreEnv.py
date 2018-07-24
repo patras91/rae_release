@@ -11,7 +11,7 @@ else:
 from state import state
 import gui
 from timer import globalTimer
-
+from env_exploreEnv import *
 
 '''Several UAVs and UGVs explore environment and collect data.
 UAV can only survey whereas UGVs can survey, monitor, screen, sample and process.
@@ -92,9 +92,12 @@ def survey(r, l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('survey', start) == False):
             pass
-        gui.Simulate("%s has surveyed the location %s\n" %(r, l))
-        res = SUCCESS
-        state.data[r] += 1
+        res = Sense('survey')
+        if res == SUCCESS:
+            state.data[r] += 1
+            gui.Simulate("%s has surveyed the location %s\n" %(r, l))
+        else:
+            gui.Simulate("%s has failed to do survey %d due to an internal error.\n" %(r,l))
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
@@ -109,27 +112,6 @@ def survey(r, l):
     state.data.ReleaseLock(r)
     return res
 
-def GetProbability_survey(r, l):
-    e = state.load[r]
-    if e not in rv.TYPE:
-        return [0.1, 0.9]
-    elif state.loc[r] == l and rv.TYPE[e] == 'survey' and state.data[r] < 4:
-        return [0.7,0.3]
-    elif state.loc[r] != l:
-        return [0.1, 0.9]
-    elif rv.TYPE[e] != 'survey':
-        return [0.1, 0.9]
-    elif state.data[r] == 4:
-        return [0.05, 0.95]
-
-def survey_Sim(r, l, outcome):
-    if outcome == 0:
-        res = SUCCESS
-        state.data[r] += 1
-    elif outcome == 1:
-        res = FAILURE
-    return res
-
 def monitor(r, l):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
@@ -142,9 +124,12 @@ def monitor(r, l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('monitor', start) == False):
             pass
-        gui.Simulate("%s has monitored the location\n" %r)
-        res = SUCCESS
-        state.data[r] += 1
+        res = Sense('monitor')
+        if res == SUCCESS:
+            gui.Simulate("%s has monitored the location\n" %r)
+            state.data[r] += 1
+        else:
+            gui.Simulate("Monitoring has failed due to some internal error\n")
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
@@ -162,30 +147,6 @@ def monitor(r, l):
     state.data.ReleaseLock(r)
     return res
 
-def GetProbability_monitor(r, l):
-    e = state.load[r]
-    if e not in rv.TYPE:
-        return [0.1, 0.9]
-    elif state.loc[r] == l and rv.TYPE[e] == 'monitor' and r != 'UAV' and state.data[r] < 4:
-        return [0.7, 0.3]
-    elif state.loc[r] != l:
-        return [0.1, 0.9]
-    elif rv.TYPE[e] != 'monitor':
-        return [0.1, 0.9]
-    elif r == 'UAV':
-        return [0.1, 0.9]
-    elif state.data[r] == 4:
-        return [0.1, 0.9]
-    return res
-
-def monitor_Sim(r, l, outcome):
-    if outcome == 0:
-        res = SUCCESS
-        state.data[r] += 1
-    elif outcome == 1:
-        res = FAILURE
-    return res
-
 def screen(r, l):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
@@ -198,9 +159,12 @@ def screen(r, l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('screen', start) == False):
             pass
-        gui.Simulate("%s has screened the location\n" %r)
-        res = SUCCESS
-        state.data[r] += 1
+        res = Sense('screen')
+        if res == SUCCESS:
+            gui.Simulate("%s has screened the location\n" %r)
+            state.data[r] += 1
+        else:
+            gui.Simulate("Screening failed due to some internal error\n")
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
@@ -218,30 +182,6 @@ def screen(r, l):
     state.data.ReleaseLock(r)
     return res
 
-def GetProbability_screen(r, l):
-    e = state.load[r]
-    if e not in rv.TYPE:
-        return [0.1, 0.9]
-    elif state.loc[r] == l and rv.TYPE[e] == 'screen' and r != 'UAV' and state.data[r] < 4:
-        return [0.7, 0.3]
-    elif state.loc[r] != l:
-        return [0.1, 0.9]
-    elif rv.TYPE[e] != 'screen':
-        return [0.1, 0.9]
-    elif r == 'UAV':
-        return [0.1, 0.9]
-    elif state.data[r] == 4:
-        return [0.1, 0.9]
-    return res
-
-def screen_Sim(r, l, outcome):
-    if outcome == 0:
-        res = SUCCESS
-        state.data[r] += 1
-    elif outcome == 1:
-        res = FAILURE
-    return res
-
 def sample(r, l):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
@@ -254,9 +194,12 @@ def sample(r, l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('sample', start) == False):
             pass
-        gui.Simulate("%s has sampled the location\n" %r)
-        res = SUCCESS
-        state.data[r] += 1
+        res = Sense('sample')
+        if res == SUCCESS:
+            gui.Simulate("%s has sampled the location\n" %r)
+            state.data[r] += 1
+        else:
+            gui.Simulate("Sampling failed due to internal error\n")
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
@@ -274,30 +217,6 @@ def sample(r, l):
     state.data.ReleaseLock(r)
     return res
 
-def GetProbability_sample(r, l):
-    e = state.load[r]
-    if e not in rv.TYPE:        
-        return [0.1, 0.9]
-    elif state.loc[r] == l and rv.TYPE[e] == 'sample' and r != 'UAV' and state.data[r] < 4:
-        return [0.7, 0.3]
-    elif state.loc[r] != l:
-        return [0.1, 0.9]
-    elif rv.TYPE[e] != 'sample':
-        return [0.1, 0.9]
-    elif r == 'UAV':
-        return [0.1, 0.9]
-    elif state.data[r] == 4:
-        return [0.1, 0.9]
-    return res
-
-def sample_Sim(r, l, outcome):
-    if outcome == 0:
-        res = SUCCESS
-        state.data[r] += 1
-    elif outcome == 1:
-        res = FAILURE
-    return res
-
 def process(r, l):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
@@ -310,9 +229,12 @@ def process(r, l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('process', start) == False):
             pass
-        gui.Simulate("%s has processed the location\n" %r)
-        res = SUCCESS
-        state.data[r] += 1
+        res = Sense('process')
+        if res == SUCCESS:
+            gui.Simulate("%s has processed the location\n" %r)
+            state.data[r] += 1
+        else:
+            gui.Simulate("Processing failed due to an internal error\n")
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
@@ -328,31 +250,6 @@ def process(r, l):
     state.load.ReleaseLock(r)
     state.loc.ReleaseLock(r)
     state.data.ReleaseLock(r)
-    return res
-
-def GetProbability_process(r, l):
-    e = state.load[r]
-    if e not in rv.TYPE:
-        return [0.1, 0.9]
-    elif state.loc[r] == l and rv.TYPE[e] == 'process' and r != 'UAV' and state.data[r] < 4:
-        return [0.7, 0.3]
-        state.data[r] += 1
-    elif state.loc[r] != l:
-        return [0.1, 0.9]
-    elif rv.TYPE[e] != 'process':
-        return [0.1, 0.9]
-    elif r == 'UAV':
-        return [0.1, 0.9]
-    elif state.data[r] == 4:
-        return [0.1, 0.9]
-    return res
-
-def process_Sim(r, l, outcome):
-    if outcome == 0:
-        res = SUCCESS
-        state.data[r] += 1
-    elif outcome == 1:
-        res = FAILURE
     return res
 
 def alienSpotted(l):
@@ -371,19 +268,6 @@ def handleAlien(r, l):
         res = FAILURE
     return res
 
-def GetProbability_handleAlien(r, l):
-    if state.loc[r] == l:
-        return [0.5, 0.5]
-    else:
-        return [0.1, 0.9]
-
-def handleAlien_Sim(r, l, outcome):
-    if outcome == 0:
-        res = SUCCESS
-    else:
-        res = FAILURE
-    return res
-
 def charge(r, c):
     state.loc.AcquireLock(r)
     state.pos.AcquireLock(c)
@@ -391,30 +275,19 @@ def charge(r, c):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('charge', start) == False):
             pass
-        state.charge.AcquireLock(r)
-        state.charge[r] = 100
-        gui.Simulate("%s is fully charged\n" %r)
-        state.charge.ReleaseLock(r)
-        res = SUCCESS
+        res = Sense('charge')
+        if res == SUCCESS:
+            state.charge.AcquireLock(r)
+            state.charge[r] = 100
+            gui.Simulate("%s is fully charged\n" %r)
+            state.charge.ReleaseLock(r)
+        else:
+            gui.Simulate("Charging failed due to some internal error.\n")
     else:
         gui.Simulate("%s is not in the charger's location or it doesn't have the charger with it\n" %r)
         res = FAILURE
     state.loc.ReleaseLock(r)
     state.pos.ReleaseLock(c)
-    return res
-
-def GetProbability_charge(r, c):
-    if state.loc[r] == state.pos[c] or state.pos[c] == r:
-        return [0.8, 0.2]
-    else:
-        return [0.1, 0.9]
-
-def charge_Sim(r, c, outcome):
-    if outcome == 0:
-        state.charge[r] = 100
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def move(r, l1, l2):
@@ -428,10 +301,13 @@ def move(r, l1, l2):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
             pass
-        gui.Simulate("%s has moved from %s to %s\n" %(r, l1, l2))
-        state.loc[r] = l2
-        state.charge[r] = state.charge[r] - dist
-        res = SUCCESS
+        res = Sense('move')
+        if res == SUCCESS:
+            gui.Simulate("%s has moved from %s to %s\n" %(r, l1, l2))
+            state.loc[r] = l2
+            state.charge[r] = state.charge[r] - dist
+        else:
+            gui.Simulate("Move failed due to an internal error.\n")
     elif state.loc[r] != l1 and state.charge[r] >= dist:
         gui.Simulate("%s is not in location %s\n" %(r, l1))
         res = FAILURE
@@ -445,33 +321,7 @@ def move(r, l1, l2):
     state.charge.ReleaseLock(r)
     return res
 
-def GetProbability_move(r, l1, l2):
-    dist = EE_GETDISTANCE(l1, l2)
-    if l1 == l2:
-        return [1, 0, 0]
-    elif state.loc[r] == l1 and state.charge[r] >= dist:
-        return [0.1, 0.7, 0.2]
-    elif state.loc[r] != l1 and state.charge[r] >= dist:
-        return [0.1, 0.1, 0.8]
-    elif state.loc[r] == l1 and state.charge[r] < dist:
-        return [0.1, 0.1, 0.8]
-    else:
-        return [0.1, 0.1, 0.8]
-
-def move_Sim(r, l1, l2, outcome):
-    dist = EE_GETDISTANCE(l1, l2)
-    if outcome == 0:
-        res = SUCCESS
-    elif outcome == 1:
-        state.loc[r] = l2
-        state.charge[r] = state.charge[r] - dist
-        res = SUCCESS
-    elif outcome == 2:
-        res = FAILURE
-    return res
-
 def fly(r, l1, l2):
-
     state.loc.AcquireLock(r)
     state.charge.AcquireLock(r)
 
@@ -486,10 +336,13 @@ def fly(r, l1, l2):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('fly', start) == False):
             pass
-        gui.Simulate("%s has flied from %s to %s\n" %(r, l1, l2))
-        state.loc[r] = l2
-        state.charge[r] = state.charge[r] - dist
-        res = SUCCESS
+        res = Sense('fly')
+        if res == SUCCESS:
+            gui.Simulate("%s has flied from %s to %s\n" %(r, l1, l2))
+            state.loc[r] = l2
+            state.charge[r] = state.charge[r] - dist
+        else:
+            gui.Simulate("Flying failed due to an internal error.\n")
     elif state.loc[r] != l1 and state.charge[r] >= dist:
         gui.Simulate("%s is not in location %s\n" %(r, l1))
         res = FAILURE
@@ -503,33 +356,6 @@ def fly(r, l1, l2):
     state.charge.ReleaseLock(r)
     return res
 
-def GetProbability_fly(r, l1, l2):
-    dist = EE_GETDISTANCE(l1, l2)
-    if r != 'UAV':
-        return [0.1, 0.1, 0.8]
-    elif l1 == l2:
-        return [0.9, 0.05, 0.05]
-    elif state.loc[r] == l1 and state.charge[r] >= dist:
-        return [0.1, 0.7, 0.2]
-    elif state.loc[r] != l1 and state.charge[r] >= dist:
-        return [0.0, 0.1, 0.9]
-    elif state.loc[r] == l1 and state.charge[r] < dist:
-        return [0.0, 0.1, 0.9]
-    else:
-        return [0.0, 0.1, 0.9]
-
-def fly_Sim(r, l1, l2, outcome):
-    dist = EE_GETDISTANCE(l1, l2)
-    if outcome == 0:
-        res = SUCCESS
-    elif outcome == 1:
-        state.loc[r] = l2
-        state.charge[r] = state.charge[r] - dist
-        res = SUCCESS
-    elif outcome == 2:
-        res = FAILURE
-    return res
-
 def take(r, o):
     state.load.AcquireLock(r)
     if state.load[r] == NIL:
@@ -539,10 +365,13 @@ def take(r, o):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
                 pass
-            gui.Simulate("%s has picked up %s\n" %(r, o))
-            state.pos[o] = r
-            state.load[r] = o
-            res = SUCCESS
+            res = Sense('take')
+            if res == SUCCESS:
+                gui.Simulate("%s has picked up %s\n" %(r, o))
+                state.pos[o] = r
+                state.load[r] = o
+            else:
+                gui.Simulate("Take failed due to an internal failure.\n")
         else:
             gui.Simulate("%s is not at %s's location\n" %(r, o))
             res = FAILURE
@@ -554,24 +383,6 @@ def take(r, o):
     state.load.ReleaseLock(r)
     return res
 
-def GetProbability_take(r, o):
-    if state.load[r] == NIL:
-        if state.loc[r] == state.pos[o]:
-            return [0.9, 0.1]
-        else:
-            return [0.1, 0.9]
-    else:
-        return [0.1, 0.9]
-
-def take_Sim(r, o, outcome):
-    if outcome == 0:
-        state.pos[o] = r
-        state.load[r] = o
-        res = SUCCESS
-    else:
-        res = FAILURE
-    return res
-
 def put(r, o):
     state.loc.AcquireLock(r)
     state.pos.AcquireLock(o)
@@ -579,30 +390,18 @@ def put(r, o):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
             pass
-        state.pos[o] = state.loc[r]
-        state.load[r] = NIL
-        gui.Simulate("%s has put %s at location %s\n" %(r,o,state.loc[r]))
-        res = SUCCESS
+        res = Sense('put')
+        if res == SUCCESS:
+            state.pos[o] = state.loc[r]
+            state.load[r] = NIL
+            gui.Simulate("%s has put %s at location %s\n" %(r,o,state.loc[r]))
+        else:
+            gui.Simulate("put failed due to an internal error.\n")
     else:
         gui.Simulate("%s is not with %s\n" %(o,r))
         res = FAILURE
     state.loc.ReleaseLock(r)
     state.pos.ReleaseLock(o)
-    return res
-
-def GetProbability_put(r, o):
-    if state.pos[o] == r:
-       return [0.9, 0.1]
-    else:
-        return [0.1, 0.9]
-
-def put_Sim(r, o, outcome):
-    if outcome == 0:
-        state.pos[o] = state.loc[r]
-        state.load[r] = NIL
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def deposit(r):
@@ -612,28 +411,17 @@ def deposit(r):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('deposit', start) == False):
             pass
-        gui.Simulate("%s has deposited data in the base\n" %r)
-        state.data[r] = 0
-        res = SUCCESS
+        res = Sense('deposit')
+        if res == SUCCESS:
+            gui.Simulate("%s has deposited data in the base\n" %r)
+            state.data[r] = 0
+        else:
+            gui.Simulate("Deposit failed due to an internal error.\n")
     else:
         gui.Simulate("%s is not in base, so it cannot deposit data.\n" %r)
         res = FAILURE
     state.loc.ReleaseLock(r)
     state.data.ReleaseLock(r)
-    return res
-
-def GetProbability_deposit(r):
-    if state.loc[r] == 'base':
-        return [0.8, 0.2]
-    else:
-        return [0.2, 0.8]
-
-def deposit_Sim(r, outcome):
-    if outcome == 0:
-        state.data[r] = 0
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def transferData(r1, r2):
@@ -649,45 +437,31 @@ def transferData(r1, r2):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
             pass
-        gui.Simulate("%s transfered data to %s\n" %(r1, r2))
-        state.data[r2] += state.data[r1]
-        state.data[r1] = 0
-        res = SUCCESS
+        res = Sense('transferData')
+        if res == SUCCESS:
+            gui.Simulate("%s transfered data to %s\n" %(r1, r2))
+            state.data[r2] += state.data[r1]
+            state.data[r1] = 0
+        else:
+            gui.Simulate("Transfer data failed due to an internal error.\n")
+
     elif state.data[r2] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('transferData', start) == False):
             pass
-        t = 4 - state.data[r2]
-        state.data[r2] = 4
-        state.data[r1] -= t
-        gui.Simulate("%s transfered data to %s\n" %(r1, r2))
-        res = SUCCESS
+        res = Sense('transferData')
+        if res == SUCCESS:
+            t = 4 - state.data[r2]
+            state.data[r2] = 4
+            state.data[r1] -= t
+            gui.Simulate("%s transfered data to %s\n" %(r1, r2))
+        else:
+            gui.Simulate("Transfer data failed due to an internal error.\n")
+
     state.loc.ReleaseLock(r1)
     state.loc.ReleaseLock(r2)
     state.data.ReleaseLock(r1)
     state.data.ReleaseLock(r2)
-    return res
-
-def GetProbability_transferData(r1, r2):
-    if state.loc[r1] != state.loc[r2]:
-        return [0.8, 0.1, 0.1]
-    elif state.data[r2] + state.data[r1] <= 4:
-        return [0.1, 0.5, 0.4]
-    elif state.data[r2] < 4:
-        return [0.1, 0.3, 0.6]
-
-def transferData_Sim(r1, r2, outcome):
-    if outcome == 2:
-        res = FAILURE
-    elif outcome == 0:
-        state.data[r2] += state.data[r1]
-        state.data[r1] = 0
-        res = SUCCESS
-    elif outcome == 1:
-        t = 4 - state.data[r2]
-        state.data[r2] = 4
-        state.data[r1] -= t
-        res = SUCCESS
     return res
 
 def Explore_Method1(r, activity, l):
@@ -703,13 +477,11 @@ def Explore_Method1(r, activity, l):
         ape.do_command(sample, r, l)
     elif activity == 'process':
         ape.do_command(process, r, l)
-    return SUCCESS
 
 def GetEquipment_Method1(r, activity):
     if state.load[r] != rv.EQUIPMENT[activity]:
         ape.do_task('moveTo', r, state.pos[rv.EQUIPMENT[activity]])
         ape.do_command(take, r, rv.EQUIPMENT[activity])
-    return SUCCESS
 
 def GetEquipment_Method2(r, activity):
     if state.load[r] != rv.EQUIPMENT[activity]:
@@ -722,7 +494,6 @@ def GetEquipment_Method2(r, activity):
         else:
             state.load.ReleaseLock(r)
         ape.do_command(take, r, rv.EQUIPMENT[activity])
-    return SUCCESS
 
 def GetEquipment_Method3(r, activity):
     if state.load[r] != rv.EQUIPMENT[activity]:
@@ -740,11 +511,9 @@ def GetEquipment_Method3(r, activity):
             ape.do_command(put, robo, rv.EQUIPMENT[activity])
             ape.do_command(take, r, rv.EQUIPMENT[activity])
         else:
-            return FAILURE
-    return SUCCESS
+            ape.do_command(fail)
 
 def MoveTo_MethodHelper(r, l):
-    res = SUCCESS
     path = EE_GETPATH(state.loc[r], l)
     if path == {}:
         gui.Simulate("%s is already at location %s \n" %(r, l))
@@ -752,91 +521,54 @@ def MoveTo_MethodHelper(r, l):
         lTemp = state.loc[r]
         if lTemp not in path:
             gui.Simulate("%s is out of its path to %s\n" %(r, l))
-            res = FAILURE
+            ape.do_command(fail)
         else:
             while(lTemp != l):
                 lNext = path[lTemp]
                 ape.do_command(move, r, lTemp, lNext)
                 if lNext != state.loc[r]:
                     gui.Simulate("%s is out of its path to %s\n" %(r, l))
-                    res = FAILURE
-                    break
+                    ape.do_command(fail)
                 else:
                     lTemp = lNext
-    return res
 
 def MoveTo_Method1(r, l):
     if l not in rv.LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
-        res = FAILURE
+        ape.do_command(fail)
     else:
-        res = MoveTo_MethodHelper(r, l)
-    return res
-
-# def MoveTo_Method2(r, l):
-#     if l not in rv.LOCATIONS:
-#         gui.Simulate("%s is trying to go to an invalid location\n" %r)
-#         res = FAILURE
-#     else:
-#         dist = EE_GETDISTANCE(state.loc[r], l)
-#         if state.charge[r] >= dist:
-#             res = MoveTo_MethodHelper(r, l)
-#         else:
-#             gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(state.charge[r], r))
-#             res = FAILURE
-#     return res
+        MoveTo_MethodHelper(r, l)
 
 def MoveTo_Method2(r, l):
     if l not in rv.LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
-        res = FAILURE
+        ape.do_command(fail)
     else:
         dist = EE_GETDISTANCE(state.loc[r], l)
         if state.charge[r] >= dist:
-            res = MoveTo_MethodHelper(r, l)
+            MoveTo_MethodHelper(r, l)
         else:
             ape.do_task('recharge', r)
             ape.do_task('moveTo', r, l)
-            res = SUCCESS
-    return res
 
 def FlyTo_Method1(r, l):
     if r == 'UAV':
         ape.do_command(fly, r, state.loc[r], l)
-        res = SUCCESS
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
-        res = FAILURE
-    return res
-
-# def FlyTo_Method2(r, l):
-#     dist = EE_GETDISTANCE(state.loc[r], l)
-#     if r == 'UAV':
-#         if state.charge[r] >= dist:
-#             ape.do_command(fly, r, state.loc[r], l)
-#             res = SUCCESS
-#         else:
-#             gui.Simulate("Insufficient charge! only %.2f%%. %s cannot move\n" %(state.charge[r], r))
-#             res = FAILURE
-#     else:
-#         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
-#         res = FAILURE
-#     return res
+        ape.do_command(fail)
 
 def FlyTo_Method2(r, l):
     dist = EE_GETDISTANCE(state.loc[r], l)
     if r == 'UAV':
         if state.charge[r] >= dist:
             ape.do_command(fly, r, state.loc[r], l)
-            res = SUCCESS
         else:
             ape.do_task('recharge', r)
             ape.do_task('flyTo', r, l)
-            res = SUCCESS
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def DepositData_Method1(r):
     if state.data[r] > 0:
@@ -844,7 +576,6 @@ def DepositData_Method1(r):
         ape.do_command(deposit, r)
     else:
         gui.Simulate("%s has no data to deposit.\n" %r)
-    return SUCCESS
 
 def DepositData_Method2(r):
     if state.data[r] > 0:
@@ -855,84 +586,71 @@ def DepositData_Method2(r):
         ape.do_command(deposit, 'UAV')
     else:
         gui.Simulate("%s has no data to deposit.\n" %r)
-    return SUCCESS
 
 def Recharge_Method1(r):
     c = 'c1'
     if state.pos[c] not in rv.LOCATIONS and state.pos[c] != r:
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
-        res = FAILURE
+        ape.do_command(fail)
     elif state.loc[r] != state.pos[c] and state.pos[c] != r:
         dist = EE_GETDISTANCE(state.loc[r], state.pos[c])
         if state.charge[r] >= dist:
             ape.do_task('moveTo', r, state.pos[c])
             ape.do_command(charge, r, c)
-            res = SUCCESS
         else:
             gui.Simulate("%s is stranded without any possibility of charging\n" %r)
-            res = FAILURE
+            ape.do_command(fail)
     else:
         ape.do_command(charge, r, c)
-        res = SUCCESS
-    return res
 
 def Recharge_Method2(r):
     c = 'c1'
     if state.pos[c] not in rv.LOCATIONS and state.pos[c] != r:
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
-        res = FAILURE
+        ape.do_command(fail)
     elif state.loc[r] != state.pos[c] and state.pos[c] != r:
         dist = EE_GETDISTANCE(state.loc[r], state.pos[c])
         if state.charge[r] >= dist:
             ape.do_task('moveTo', r, state.pos[c])
             ape.do_command(charge, r, c)
             ape.do_command(take, r, c)
-            res = SUCCESS
         else:
             gui.Simulate("%s is stranded without any possibility of charging\n" %r)
-            res = FAILURE
+            ape.do_command(fail)
     else:
         ape.do_command(charge, r, c)
         ape.do_command(take, r, c)
-        res = SUCCESS
-    return res
 
 def DoActivities_Method1(r, actList):
     for act in actList:
         ape.do_task('explore', r, act[0], act[1])
         ape.do_task('depositData', r)
-    return SUCCESS
 
 def DoActivities_Method2(r, actList):
     for act in actList:
         ape.do_task('explore', r, act[0], act[1])
     ape.do_task('depositData', r)
-    return SUCCESS
 
 def DoActivities_Method3(r, actList):
     for act in actList:
         ape.do_task('explore', r, act[0], act[1])
         ape.do_task('depositData', r)
         ape.do_task('recharge', r)
-    return SUCCESS
 
 def DoActivities_Method4(r, actList):
     for act in actList:
         ape.do_task('explore', r, act[0], act[1])
         ape.do_task('recharge', r)
     ape.do_task('depositData', r)
-    return SUCCESS
 
 def HandleEmergency_Method1(r, l):
     ape.do_task('recharge', r)
     ape.do_task('moveTo', r, l)
     ape.do_command(handleAlien, r, l)
-    return SUCCESS
 
 def HandleEmergency_Method2(r, l):
     ape.do_task('moveTo', r, l)
     ape.do_command(handleAlien, r, l)
-    return SUCCESS
 
 rv = RV()
 ape.declare_commands([

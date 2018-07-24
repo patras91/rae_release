@@ -192,7 +192,11 @@ def RAE1(task, raeArgs):
         print("\n---- APE: Done with stack %d\n" %raeLocals.GetStackId())
 
     EndCriticalRegion()
-    return (retcode, raeLocals.GetRetryCount(), raeLocals.GetCommandCount())
+
+    if retcode == 'Failure':
+        raeLocals.SetEfficiency(0)
+
+    return (retcode, raeLocals.GetRetryCount(), raeLocals.GetEfficiency())
 
 def InitializeStackLocals(task, raeArgs):
     raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
@@ -205,6 +209,7 @@ def InitializeStackLocals(task, raeArgs):
     aT = rTree.ActingTree()
     aT.SetNextState(GetState().copy())
     raeLocals.SetActingTree(aT)
+    raeLocals.SetEfficiency(float("inf"))
     
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -311,7 +316,8 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
             print('Current state is:'.format(stackid))
             PrintState()
 
-        retcode = m(*taskArgs)  # This is the main job of this function, CallMethod
+        m(*taskArgs)  # This is the main job of this function, CallMethod
+        retcode = 'Success'
     except Failed_command as e:
         if verbose > 0:
             print_stack_size(stackid, path)
@@ -568,6 +574,10 @@ def DoCommandInRealWorld(cmd, cmdArgs):
 
     path[raeLocals.GetStackId()].pop()
 
+    cost = GetCost(cmd, cmdArgs)
+    eff = raeLocals.GetEfficiency()
+    raeLocals.SetEfficiency(addEfficiency(eff, 1/cost))
+
     if verbose > 1:
         print_entire_stack(raeLocals.GetStackId(), path)
 
@@ -666,6 +676,8 @@ def PlanCommand(cmd, cmdArgs):
     raise Search_Done
 
 def GetCost(cmd, cmdArgs):
+    if cmd.__name__ == "fail":
+        return 10
     cost = DURATION.COUNTER[cmd.__name__]
     return cost
 

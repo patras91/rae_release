@@ -69,31 +69,17 @@ def openDoor(r, d):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('openDoor', start) == False):
 	        pass
-        gui.Simulate("Robot %s has opened door %s\n" %(r, d))
-        state.doorStatus[d] = 'opened'
-        res = SUCCESS
+        res = Sense('openDoor')
+        if res == SUCCESS:
+            gui.Simulate("Robot %s has opened door %s\n" %(r, d))
+            state.doorStatus[d] = 'opened'
+        else:
+            gui.Simulate("Unlatching has failed due to an internal error\n")
     else:
         gui.Simulate("Robot %s is not free to open door %s or the door is not closed\n" %(r, d))
         res = FAILURE
     state.load.ReleaseLock(r)
     state.doorStatus.ReleaseLock(d)
-    return res
-
-def GetProbability_openDoor(r, d):
-    if state.doorStatus[d] == 'opened':
-        return [1, 0]
-    elif state.load[r] == NIL and (state.doorStatus[d] == 'closed' or state.doorStatus[d] == 'closing'):
-        return [0.8, 0.2]
-    else:
-        return [0.1, 0.9]
-
-
-def openDoor_Sim(r, d, outcome):
-    if outcome == 0:
-        state.doorStatus[d] = 'opened'
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def passDoor(r, d, l):
@@ -111,20 +97,6 @@ def passDoor(r, d, l):
         res = FAILURE
     state.loc.ReleaseLock(r)
     state.doorStatus.ReleaseLock(d)
-    return res
-
-def GetProbability_passDoor(r, d, l):
-    if state.doorStatus[d] == 'opened' or state.doorStatus[d] == 'held':
-        return [0.8, 0.2]
-    else:
-        return [0.1, 0.9]
-
-def passDoor_Sim(r, d, l, outcome):
-    if outcome == 0:
-        state.loc[r] = l
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def holdDoor(r, d):
@@ -148,23 +120,6 @@ def holdDoor(r, d):
     state.load.ReleaseLock(r)
     return res
 
-def GetProbability_holdDoor(r, d):
-    if (state.doorStatus[d] == 'opened' or state.doorStatus[d] == 'closing' or state.doorStatus[d] == 'held') and state.load[r] == NIL:
-        return [0.8, 0.2]
-    elif state.doorStatus[d] == 'closed':
-        return [0.1, 0.9]
-    elif state.load[r] != NIL:
-        return [0.1, 0.9]
-
-def holdDoor_Sim(r, d, outcome):
-    if outcome == 0:
-        state.load[r] = 'H'
-        state.doorStatus[d] = 'held'
-        res = SUCCESS
-    else:
-        res = FAILURE
-    return res
-
 def releaseDoor(r, d):
     if state.doorStatus[d] == 'held' and state.load[r] == 'H':
         start = globalTimer.GetTime()
@@ -175,15 +130,6 @@ def releaseDoor(r, d):
         state.load[r] = NIL
     else:
         gui.Simulate("Robot %s is not holding door %s\n" %(r, d))
-    return SUCCESS
-
-def GetProbability_releaseDoor(r, d):
-    return [1]
-
-def releaseDoor_Sim(r, d, outcome):
-    if state.doorStatus[d] == 'held' and state.load[r] == 'H':
-        state.doorStatus[d] = 'closing'
-        state.load[r] = NIL
     return SUCCESS
 
 def move(r, l1, l2):
@@ -199,32 +145,16 @@ def move(r, l1, l2):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('move', start) == False):
                 pass
-            gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
-            state.loc[r] = l2
-            res = SUCCESS
+            res = Sense('move')
+            if res == SUCCESS:
+                gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+                state.loc[r] = l2
+            else:
+                gui.Simulate("Move has failed due to some internal failure.\n")
     else:
         gui.Simulate("Invalid move by robot %s\n" %r)
         res = FAILURE
     state.loc.ReleaseLock(r)
-    return res
-
-def GetProbability_move(r, l1, l2):
-    if l1 == l2:
-        return [0.9, 0.1]
-    elif state.loc[r] == l1:
-        if (l1, l2) in rv.DOORLOCATIONS or (l2, l1) in rv.DOORLOCATIONS:
-            return [0.3, 0.7]
-        else:
-            return [0.9, 0.1]
-    else:
-        return [0.1, 0.9]
-
-def move_Sim(r, l1, l2, outcome):
-    if outcome == 0:
-        state.loc[r] = l2
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def put(r, o):
@@ -235,31 +165,19 @@ def put(r, o):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
 	        pass
-        state.pos[o] = state.loc[r]
-        state.load[r] = NIL
-        gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,state.loc[r]))
-        res = SUCCESS
+        res = Sense('put')
+        if res == SUCCESS:
+            state.pos[o] = state.loc[r]
+            state.load[r] = NIL
+            gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,state.loc[r]))
+        else:
+            gui.Simulate("put has failed due to some internal failure.\n")
     else:
         gui.Simulate("Object %s is not with robot %s\n" %(o,r))
         res = FAILURE
     state.pos.ReleaseLock(o)
     state.load.ReleaseLock(r)
     state.loc.ReleaseLock(r)
-    return res
-
-def GetProbability_put(r, o):
-    if state.pos[o] == r:
-        return [0.9, 0.1]
-    else:
-        return [0.4, 0.6]
-
-def put_Sim(r, o, outcome):
-    if outcome == 0:
-        state.pos[o] = state.loc[r]
-        state.load[r] = NIL
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def take(r, o):
@@ -271,10 +189,13 @@ def take(r, o):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
 	            pass
-            gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
-            state.pos[o] = r
-            state.load[r] = o
-            res = SUCCESS
+            res = Sense(take)
+            if res == SUCCESS:
+                gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
+                state.pos[o] = r
+                state.load[r] = o
+            else:
+                gui.Simulate("take failed due to some internal error.\n")
         elif state.loc[r] != state.pos[o]:
             gui.Simulate("Robot %s is not at object %s's location\n" %(r, o))
             res = FAILURE
@@ -284,24 +205,6 @@ def take(r, o):
     state.pos.ReleaseLock(o)
     state.load.ReleaseLock(r)
     state.loc.ReleaseLock(r)
-    return res
-
-def GetProbability_take(r, o):
-    if state.load[r] == NIL:
-        if state.loc[r] == state.pos[o]:
-            return [0.9, 0.1]
-        elif state.loc[r] != state.pos[o]:
-            return [0.1, 0.9]
-    else:
-        return [0.1, 0.9]
-
-def take_Sim(r, o, outcome):
-    if outcome == 0:
-        state.pos[o] = r
-        state.load[r] = o
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def closeDoors():
@@ -323,28 +226,14 @@ def closeDoors():
             state.doorStatus.ReleaseLock(d)
     return SUCCESS
 
-def GetProbability_closeDoors():
-    return [1]
-
-def closeDoors_Sim(outcome):
-    while(state.done[0] == False):
-        for d in rv.DOORS:
-            if state.doorStatus[d] == 'opened':
-                state.doorStatus[d] = 'closing'
-            elif state.doorStatus[d] == 'closing' or state.doorStatus[d] == 'closed':
-                state.doorStatus[d] = 'closed'
-    return SUCCESS
-
 def MoveThroughDoorway_Method3(r, d, l):
     if state.load[r] == NIL:
         ape.do_command(openDoor, r, d)
         ape.do_command(holdDoor, r, d)
         ape.do_command(passDoor, r, d, l)
         ape.do_command(releaseDoor, r, d)
-        res = SUCCESS
     else:
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def Restore(r, loc, cargo):
     ape.do_task('moveTo', r, loc)
@@ -355,7 +244,7 @@ def MoveThroughDoorway_Method2(r, d, l):
     if state.load[r] != NIL:
          params = GetHelp_Method1(r)
          if params == FAILURE:
-             res = FAILURE
+             ape.do_command(fail)
          else:
             r2, l2, cargo = params
             ape.do_command(openDoor, r2, d)
@@ -363,10 +252,8 @@ def MoveThroughDoorway_Method2(r, d, l):
             ape.do_command(passDoor, r, d, l)
             ape.do_command(releaseDoor, r2, d)
             Restore(r2, l2, cargo)
-            res = SUCCESS
     else:
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def MoveThroughDoorway_Method4(r, d, l):
     if state.load[r] != NIL:
@@ -375,26 +262,21 @@ def MoveThroughDoorway_Method4(r, d, l):
             ape.do_command(put, r, obj)
         else:
             gui.Simulate("%r is holding another door\n" %r)
-            return FAILURE
+            ape.do_command(fail)
         ape.do_command(openDoor, r, d)
         ape.do_command(take, r, obj)
         ape.do_command(passDoor, r, d, l)
-        res = SUCCESS
     else:
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def MoveThroughDoorway_Method1(r, d, l):
     if state.load[r] == NIL:
         ape.do_command(openDoor, r, d)
         ape.do_command(passDoor, r, d, l)
-        res = SUCCESS
     else:
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def MoveTo_Method1(r, l):
-    res = SUCCESS
     x = state.loc[r]
     path = SD_GETPATH(x, l)
     if path == {}:
@@ -410,11 +292,9 @@ def MoveTo_Method1(r, l):
             else:
                 ape.do_command(move, r, lTemp, lNext)
             if lNext != state.loc[r]:
-                res = FAILURE
-                break
+                ape.do_command(fail)
             else:
                 lTemp = lNext
-    return res
 
 def GetHelp_Method1(r):
     if r == rv.ROBOTS[0]:
@@ -433,7 +313,7 @@ def GetHelp_Method1(r):
             ape.do_command(put, r2, load_r2)
         else:
             gui.Simulate("%s is holding another door\n" %r2)
-            return FAILURE
+            ape.do_command(fail)
     ape.do_task('moveTo', r2, state.loc[r])
     return r2, loc_r2, load_r2
 
@@ -445,11 +325,9 @@ def Fetch_Method1(r, o, l):
             ape.do_command(put, r, load_r)
         else:
             gui.Simulate("%s is holding another door\n" %r)
-            return FAILURE
+            ape.do_command(fail)
     ape.do_command(take, r, o)
     ape.do_task('moveTo', r, l)
-    #state.done[0] = True
-    return SUCCESS
 
 def Recover_Method1(r):
     o = state.load[r]
@@ -460,21 +338,13 @@ def Recover_Method1(r):
         else:
             state.do_task('moveTo', r, state.pos[o])
             state.do_command(take, r, o)
-        return SUCCESS
     else:
-        return FAILURE
+        ape.do_command(fail)
 
 def Recover_Method2(r):
     state.do_command(senseStatus, r)
     if state.robotStatus[r] == 'broken':
         state.do_command(repair, r)
-    return SUCCESS
-
-#def CloseDoors_Method1():
-#    while state.done == False:
-#        ape.do_command(closeDoors)
-#    return SUCCESS
-
 
 rv = RV()
 ape.declare_commands([

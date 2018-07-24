@@ -16,14 +16,14 @@ DURATION.TIME = {
  }
 
 DURATION.COUNTER = {
-    'put': 1, #for domain CR
-    'take': 1,
-    'perceive': 1,
-    'charge': 1,
-    'move': 1,
-    'moveCharger': 1,
-    'addressEmergency': 1,
-    'wait': 1,
+    'put': 2, #for domain CR
+    'take': 2,
+    'perceive': 3,
+    'charge': 5,
+    'move': 10,
+    'moveCharger': 5,
+    'addressEmergency': 15,
+    'wait': 5,
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -39,7 +39,7 @@ rv.EDGES = {
     9: [2]
 }
 rv.OBJECTS =  {'o1', 'o2'}
-InitProb()
+rv.ROBOTS = {'r1', 'r2'}
 
 def ResetState():
     state.loc = {'r1': 3}

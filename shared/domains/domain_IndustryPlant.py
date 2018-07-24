@@ -11,6 +11,7 @@ from state import state
 from gui import Simulate
 from domain_constants import *
 from timer import globalTimer
+from env_IndustryPlant import *
 
 # Using Dijsktra's algorithm
 def IP_GETDISTANCE(l0, l1):
@@ -94,13 +95,6 @@ def repairc(m):
     state.cond.ReleaseLock(m)
     return SUCCESS
 
-def GetProbability_repairc(m):
-    return [1]
-
-def repairc_Sim(m, outcome):
-    state.cond[m] = OK
-    return SUCCESS
-
 def GetNewName():
     GetNewName.current += 1
     return 'TMPOBJECT' + GetNewName.current.__str__()
@@ -112,41 +106,24 @@ def paint(m, o, colour, name):
     if state.pos[o] == rv.MACHINE_LOCATION[m]:
         if state.cond[m] == OK:
             state.status.AcquireLock(m)
-            #Simulate("%s is colouring %s with colour %s and naming it %s\n" %(m, o, colour, name))
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('paint', start) == False):
                 pass
-            state.pos[name] = rv.MACHINE_LOCATION[m]
-            state.status[m] = 'free'
-            res = SUCCESS
+            res = Sense('paint')
+            if res == SUCCESS:
+                state.pos[name] = rv.MACHINE_LOCATION[m]
+                state.status[m] = 'free'
+            else:
+                Simulate("Painting has failed due to an internal failure.\n")
             state.status.ReleaseLock(m)
         else:
             Simulate("%s is damaged\n" %m)
             res = FAILURE
 
     else:
-        #Simulate("%s is not in painting machine %s's location\n" %(o, m))
         Simulate("object not in machine location", o, m, rv)
         res = FAILURE
     state.pos.ReleaseLock(o)
-    return res
-
-def GetProbability_paint(m, o, colour, name):
-    if state.pos[o] == rv.MACHINE_LOCATION[m]:
-        if state.cond[m] == OK:
-            return [0.8, 0.2]
-        else:
-            return [0.2, 0.8]
-    else:
-        return [0.2, 0.8]
-
-def paint_Sim(m, o, colour, name, outcome):
-    if outcome == 0:
-        state.pos[name] = rv.MACHINE_LOCATION[m]
-        state.status[m] = 'free'
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def wrap(m, o, name):
@@ -158,9 +135,12 @@ def wrap(m, o, name):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('wrap', start) == False):
                 pass
-            state.pos[name] = rv.MACHINE_LOCATION[m]
-            state.status[m] = 'free'
-            res = SUCCESS
+            res = Sense('wrap')
+            if res == SUCCESS:
+                state.pos[name] = rv.MACHINE_LOCATION[m]
+                state.status[m] = 'free'
+            else:
+                Simulate("Wrapping failed due to some internal failure\n")
             state.status.ReleaseLock(m)
         else:
            Simulate("%s is damaged\n" %m)
@@ -169,24 +149,6 @@ def wrap(m, o, name):
         Simulate("%s is not in wrapping machine's location\n" %o)
         res = FAILURE
     state.pos.ReleaseLock(o)
-    return res
-
-def GetProbability_wrap(m, o, name):
-    if state.pos[o] == rv.MACHINE_LOCATION[m]:
-        if state.cond[m] == OK:
-            return [0.8, 0.2]
-        else:
-           return [0.2, 0.8]
-    else:
-        return [0.2, 0.8]
-
-def wrap_Sim(m, o, name, outcome):
-    if outcome == 0:
-        state.pos[name] = rv.MACHINE_LOCATION[m]
-        state.status[m] = 'free'
-        res = SUCCESS
-    else:
-       res = FAILURE
     return res
 
 def assemble(m, p1, p2, name):
@@ -199,10 +161,13 @@ def assemble(m, p1, p2, name):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('assemble', start) == False):
                 pass
-            Simulate("Assembled parts %s and %s and naming it %s\n" %(p1, p2, name))
-            state.pos[name] = rv.MACHINE_LOCATION[m]
-            state.status[m] = 'free'
-            res = SUCCESS
+            res = Sense('assemble')
+            if res == SUCCESS:
+                Simulate("Assembled parts %s and %s and naming it %s\n" %(p1, p2, name))
+                state.pos[name] = rv.MACHINE_LOCATION[m]
+                state.status[m] = 'free'
+            else:
+                Simulate("Assemble failed due to some internal failure.\n")
             state.status.ReleaseLock(m)
         else:
            Simulate("%s is damaged\n" %m)
@@ -214,24 +179,6 @@ def assemble(m, p1, p2, name):
     state.pos.ReleaseLock(p2)
     return res
 
-def GetProbability_assemble(m, p1, p2, name):
-    if state.pos[p1] == rv.MACHINE_LOCATION[m] and state.pos[p2] == rv.MACHINE_LOCATION[m]:
-        if state.cond[m] == OK:
-            return [0.8, 0.2]
-        else:
-            return [0.2, 0.8]
-    else:
-        return [0.2, 0.8]
-
-def assemble_Sim(m, p1, p2, name, outcome):
-    if outcome == 0:
-        state.pos[name] = rv.MACHINE_LOCATION[m]
-        state.status[m] = 'free'
-        res = SUCCESS
-    else:
-       res = FAILURE
-    return res
-
 def pack(m, o1, o2, name):
     state.pos.AcquireLock(o1)
     state.pos.AcquireLock(o2)
@@ -241,10 +188,13 @@ def pack(m, o1, o2, name):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('pack', start) == False):
                 pass
-            Simulate("Packed objects %s and %s and naming it %s\n" %(o1, o2, name))
-            state.pos[name] = rv.MACHINE_LOCATION[m]
+            res = Sense('pack')
+            if res == SUCCESS:
+                Simulate("Packed objects %s and %s and naming it %s\n" %(o1, o2, name))
+                state.pos[name] = rv.MACHINE_LOCATION[m]
+            else:
+                Simulate("pack failed due to some internal failure.\n")
             state.status.ReleaseLock(m)
-            res = SUCCESS
         else:
            Simulate("%s is damaged\n" %m)
            res = FAILURE
@@ -255,23 +205,6 @@ def pack(m, o1, o2, name):
     state.pos.ReleaseLock(o2)
     return res
 
-def GetProbability_pack(m, o1, o2, name):
-    if state.pos[o1] == rv.MACHINE_LOCATION[m] and state.pos[o2] == rv.MACHINE_LOCATION[m]:
-        if state.cond[m] == OK:
-            return [0.8, 0.2]
-        else:
-            return [0.2, 0.8]
-    else:
-        return [0.2, 0.8]
-
-def pack_Sim(m, o1, o2, name, outcome):
-    if outcome == 0:
-        state.pos[name] = rv.MACHINE_LOCATION[m]
-        res = SUCCESS
-    else:
-       res = FAILURE
-    return res
-
 def take(r, o, l):
     print(state)
     state.pos.AcquireLock(o)
@@ -280,31 +213,18 @@ def take(r, o, l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('take', start) == False):
             pass
-        state.pos[o] = r
-        state.load[r] = o
+        res = Sense('take')
+        if res == SUCCESS:
+            state.pos[o] = r
+            state.load[r] = o
+            Simulate("Robot %s has taken object %s at location %d\n" %(r,o,l))
+        else:
+            Simulate("Take has failed due to an internal failure.\n")
         state.load.ReleaseLock(r)
-        Simulate("Robot %s has taken object %s at location %d\n" %(r,o,l))
-        res = SUCCESS
     else:
         Simulate("Object %s is not at location %d\n" %(o,l))
         res = FAILURE
     state.pos.ReleaseLock(o)
-    return res
-
-def GetProbability_take(r, o, l):
-    state.pos.AcquireLock(o)
-    if state.pos[o] == l:
-        return [0.8, 0.2]
-    else:
-        return [0.2, 0.8]
-
-def take_Sim(r, o, l, outcome):
-    if outcome == 0:
-        state.pos[o] = r
-        state.load[r] = o
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def put(r, o, l):
@@ -314,30 +234,18 @@ def put(r, o, l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('put', start) == False):
             pass
-        state.pos[o] = l
-        state.load[r] = NIL
+        res = Sense('put')
+        if res == SUCCESS:
+            state.pos[o] = l
+            state.load[r] = NIL
+            Simulate("Robot %s has put object %s at location %d\n" %(r,o,l))
+        else:
+            Simulate("put has failed due to some internal failure.\n")
         state.load.ReleaseLock(r)
-        Simulate("Robot %s has put object %s at location %d\n" %(r,o,l))
-        res = SUCCESS
     else:
         Simulate("Object %s is not with robot %s\n" %(o,r))
         res = FAILURE
     state.pos.ReleaseLock(o)
-    return res
-
-def GetProbability_put(r, o, l):
-    if state.pos[o] == r:
-        return [0.8, 0.2]
-    else:
-        return [0.2, 0.8]
-
-def put_Sim(r, o, l, outcome):
-    if outcome == 0:
-        state.pos[o] = l
-        state.load[r] = NIL
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def move(r, loc1, loc2):
@@ -346,29 +254,18 @@ def move(r, loc1, loc2):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
             pass
-        state.loc[r] = loc2
-        #Simulate("%s has moved from %s to %s\n" %(r, loc1, loc2))
-        Simulate('move', r, loc1, loc2)
-        res = SUCCESS
+        res = Sense('move')
+        if res == SUCCESS:
+            state.loc[r] = loc2
+            #Simulate("%s has moved from %s to %s\n" %(r, loc1, loc2))
+            Simulate('move', r, loc1, loc2)
+        else:
+            Simulate("Move has failed due to some internal failure.\n")
     else:
         #Simulate("%s is not in location %s\n" %(r, loc1))
         Simulate("not in location", r, loc1)
         res = FAILURE
     state.loc.ReleaseLock(r)
-    return res
-
-def GetProbability_move(r, loc1, loc2):
-    if state.loc[r] == loc1:
-        return [0.9, 0.1]
-    else:
-        return [0.1, 0.9]
-
-def move_Sim(r, loc1, loc2, outcome):
-    if outcome == 0:
-        state.loc[r] = loc2
-        res = SUCCESS
-    else:
-        res = FAILURE
     return res
 
 def Delegate(o, o_name):
@@ -404,14 +301,12 @@ def Paint_Method1(name, *args):
             if GetLocation(o_name) != rv.MACHINE_LOCATION[m]:
                 do_task('deliver', o_name, rv.MACHINE_LOCATION[m])
             do_command(paint, m, o_name, colour, name)
-            res = SUCCESS
         else:
             Simulate("Machine %s for painting is damaged " %m)
-            res = FAILURE
+            ape.do_command(fail)
     else:
         Simulate("There are no machines free to paint.\n")
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def Paint_Method2(name, *args):
     o = args[0]
@@ -429,11 +324,9 @@ def Paint_Method2(name, *args):
         if GetLocation(o_name) != rv.MACHINE_LOCATION[m]:
             do_task('deliver', o_name, rv.MACHINE_LOCATION[m])
         do_command(paint, m, o_name, colour, name)
-        res = SUCCESS
     else:
         Simulate("There are no machines free to paint.\n")
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def Assemble_Method2(name, *args):
     part1 = args[0]
@@ -459,11 +352,9 @@ def Assemble_Method2(name, *args):
         if GetLocation(o_name2) != rv.MACHINE_LOCATION[m]:
             do_task('deliver', o_name2, rv.MACHINE_LOCATION[m])
         do_command(assemble, m, o_name1, o_name2, name)
-        res = SUCCESS
     else:
         Simulate("There are no machines free to assemble.\n")
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def Assemble_Method1(name, *args):
     part1 = args[0]
@@ -495,8 +386,6 @@ def Assemble_Method1(name, *args):
 
     do_command(assemble, m, o_name1, o_name2, name)
 
-    return SUCCESS
-
 def Pack_Method2(name, *args):
     o1 = args[0]
     o2 = args[1]
@@ -521,11 +410,9 @@ def Pack_Method2(name, *args):
         if GetLocation(o_name2) != rv.MACHINE_LOCATION[m]:
             do_task('deliver', o_name2, rv.MACHINE_LOCATION[m])
         do_command(pack, m, o_name1, o_name2, name)
-        res = SUCCESS
     else:
         Simulate("There are no machines free to pack.\n")
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def Pack_Method1(name, *args):
     o1 = args[0]
@@ -542,7 +429,7 @@ def Pack_Method1(name, *args):
             do_task('repair', m)
     else:
         Simulate("There are no machines free to pack.\n")
-        return FAILURE
+        ape.do_command(fail)
 
     if GetLocation(o_name1) != rv.MACHINE_LOCATION[m]:
         do_task('deliver', o_name1, rv.MACHINE_LOCATION[m])
@@ -557,8 +444,6 @@ def Pack_Method1(name, *args):
         do_task('deliver', o_name2, rv.MACHINE_LOCATION[m])
     do_command(pack, m, o_name1, o_name2, name)
 
-    return SUCCESS
-
 def Wrap_Method1(name, o):
     if isinstance(o, list):
         o_name = GetNewName()
@@ -571,11 +456,9 @@ def Wrap_Method1(name, o):
         if GetLocation(o_name) != rv.MACHINE_LOCATION[m]:
             do_task('deliver', o_name, rv.MACHINE_LOCATION[m])
         do_command(wrap, m, o_name, name)
-        res = SUCCESS
     else:
         Simulate("There are no machines free to wrap.\n")
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def Wrap_Method2(name, o):
     if isinstance(o, list):
@@ -590,11 +473,9 @@ def Wrap_Method2(name, o):
         if GetLocation(o_name) != rv.MACHINE_LOCATION[m]:
             do_task('deliver', o_name, rv.MACHINE_LOCATION[m])
         do_command(wrap, m, o_name, name)
-        res = SUCCESS
     else:
         Simulate("There are no machines free to wrap.\n")
-        res = FAILURE
-    return res
+        ape.do_command(fail)
 
 def Order_Method1(taskArgs):
     taskName = taskArgs[0]
@@ -603,7 +484,6 @@ def Order_Method1(taskArgs):
     name = GetNewName()
     do_task(taskName, name, *args)
     do_task('deliver', name, rv.BUFFERS['output'])
-    return SUCCESS
 
 def GetRobot(loc):
     free = [r for r in rv.ROBOTS if state.status[r] == 'free']
@@ -627,10 +507,9 @@ def Deliver_Method1(o, l):
             do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], l)
         do_command(put, deliveryRobot, o, l)
         state.status[deliveryRobot] = 'free'
-        res = SUCCESS
     else:
         Simulate("No robot free to deliver %s to location %s\n" %(o, l))
-        res = FAILURE
+        ape.do_command(fail)
     return res
 
 def Repair_Method1(m):
@@ -640,14 +519,12 @@ def Repair_Method1(m):
             do_task('moveTo', repairBot, state.loc[repairBot], rv.MACHINE_LOCATION[m])
         do_command(repairc, m)
         state.status[repairBot] = 'free'
-        res = SUCCESS
     else:
         Simulate("No robot is free to repair %s\n" %m)
-        res = FAILURE
+        ape.do_command(fail)
     return res
 
 def MoveTo_Method1(r, l1, l2):
-    res = SUCCESS
     path = IP_GETPATH(l1, l2)
     if path == {}:
         Simulate("%s is already at location %s \n" %(r, l2))
@@ -655,18 +532,16 @@ def MoveTo_Method1(r, l1, l2):
         lTemp = state.loc[r]
         if lTemp not in path:
             Simulate("%s is out of its path to %s\n" %(r, l2))
-            res = FAILURE
+            ape.do_command(fail)
         else:
             while(lTemp != l2):
                 lNext = path[lTemp]
                 do_command(move, r, lTemp, lNext)
                 if lNext != state.loc[r]:
                     Simulate("%s is out of its path to %s\n" %(r, l2))
-                    res = FAILURE
-                    break
+                    ape.do_command(fail)
                 else:
                     lTemp = lNext
-    return res
 
 rv = RV()
 declare_commands([

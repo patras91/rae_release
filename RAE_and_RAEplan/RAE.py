@@ -69,36 +69,29 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    retcode, retryCount, commandCount = RAE1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, commandCount)
+    retcode, retryCount, eff = RAE1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff)
 
 def PrintResult(taskInfo):
     for stackid in taskInfo:
-        args, res, retryCount, commandCount = taskInfo[stackid]
-        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', commandCount, '\n')
+        args, res, retryCount, eff = taskInfo[stackid]
+        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', eff, '\n')
 
 def PrintResultSummary(taskInfo):
     succ = 0
     fail = 0
     retries = 0
-    cmdNet = {}
+    effTotal = float("inf")
     for stackid in taskInfo:
-        args, res, retryCount, commandCount = taskInfo[stackid]
+        args, res, retryCount, eff = taskInfo[stackid]
         if res == 'Success':
             succ += 1
         else:
             fail += 1
         retries += retryCount
-        if cmdNet == {}:
-            cmdNet = commandCount
-        else:
-            for cmd in cmdNet:
-                if cmd in cmdNet and cmd in commandCount:
-                    cmdNet[cmd] += commandCount[cmd]
-                elif cmd in commandCount:
-                    cmdNet[cmd] = commandCount[cmd]
-    print(succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter())
-    print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
+        effTotal += eff
+    print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal)
+    #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
 def StartEnv():
     while(True):

@@ -38,7 +38,7 @@ rv.EDGES = {
     8: [5, 7]
 }
 rv.OBJECTS =  {'o1', 'o2'}
-InitProb()
+rv.ROBOTS = {'r1', 'r2'}
 
 def ResetState():
     state.loc = {'r1': 1, 'r2': 6}
