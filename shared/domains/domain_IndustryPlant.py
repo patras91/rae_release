@@ -38,6 +38,7 @@ def IP_GETDISTANCE(l0, l1):
             if l not in visitedDistances or dist < visitedDistances[l]:
                 visitedDistances[l] = dist
 
+    print(visitedDistances)
     return visitedDistances[l1]
 
 # Using Dijsktra's algorithm
@@ -74,6 +75,9 @@ def IP_GETPATH(l0, l1):
 
     return path2
 
+def fail():
+    return FAILURE
+
 def damage(*machines):
     for m in machines:
         state.cond.AcquireLock(m)
@@ -88,7 +92,7 @@ def damage(*machines):
 def repairc(m):
     state.cond.AcquireLock(m)
     start = globalTimer.GetTime()
-    while(globalTimer.IsCommandExecutionOver('repair', start) == False):
+    while(globalTimer.IsCommandExecutionOver('repairc', start) == False):
         pass
     Simulate("Machine %s is repaired\n" %m)
     state.cond[m] = OK
@@ -96,10 +100,12 @@ def repairc(m):
     return SUCCESS
 
 def GetNewName():
-    GetNewName.current += 1
-    return 'TMPOBJECT' + GetNewName.current.__str__()
-
-GetNewName.current = 0
+    state.name.AcquireLock('counter')
+    state.name['counter'] += 1
+    state.name.ReleaseLock('counter')
+    newName = 'TMPOBJECT' + state.name['counter'].__str__()
+    print("new name is ", newName)
+    return newName
 
 def paint(m, o, colour, name):
     state.pos.AcquireLock(o)
@@ -206,7 +212,6 @@ def pack(m, o1, o2, name):
     return res
 
 def take(r, o, l):
-    print(state)
     state.pos.AcquireLock(o)
     if state.pos[o] == l:
         state.load.AcquireLock(r)
@@ -275,6 +280,10 @@ def Delegate(o, o_name):
 
 def GetMachine(job, loc):
     free = [m for m in rv.MACHINES[job] if state.status[m] == 'free']
+    if loc in rv.ROBOTS:
+        r = loc
+        do_command(put, r, state.load[r], state.loc[r])
+        loc = state.loc[r]
     dist = [IP_GETDISTANCE(loc, rv.MACHINE_LOCATION[m]) for m in free]
     if free == []:
         return NIL
@@ -303,10 +312,10 @@ def Paint_Method1(name, *args):
             do_command(paint, m, o_name, colour, name)
         else:
             Simulate("Machine %s for painting is damaged " %m)
-            ape.do_command(fail)
+            do_command(fail)
     else:
         Simulate("There are no machines free to paint.\n")
-        ape.do_command(fail)
+        do_command(fail)
 
 def Paint_Method2(name, *args):
     o = args[0]
@@ -326,7 +335,7 @@ def Paint_Method2(name, *args):
         do_command(paint, m, o_name, colour, name)
     else:
         Simulate("There are no machines free to paint.\n")
-        ape.do_command(fail)
+        do_command(fail)
 
 def Assemble_Method2(name, *args):
     part1 = args[0]
@@ -354,7 +363,7 @@ def Assemble_Method2(name, *args):
         do_command(assemble, m, o_name1, o_name2, name)
     else:
         Simulate("There are no machines free to assemble.\n")
-        ape.do_command(fail)
+        do_command(fail)
 
 def Assemble_Method1(name, *args):
     part1 = args[0]
@@ -412,7 +421,7 @@ def Pack_Method2(name, *args):
         do_command(pack, m, o_name1, o_name2, name)
     else:
         Simulate("There are no machines free to pack.\n")
-        ape.do_command(fail)
+        do_command(fail)
 
 def Pack_Method1(name, *args):
     o1 = args[0]
@@ -429,7 +438,7 @@ def Pack_Method1(name, *args):
             do_task('repair', m)
     else:
         Simulate("There are no machines free to pack.\n")
-        ape.do_command(fail)
+        do_command(fail)
 
     if GetLocation(o_name1) != rv.MACHINE_LOCATION[m]:
         do_task('deliver', o_name1, rv.MACHINE_LOCATION[m])
@@ -458,7 +467,7 @@ def Wrap_Method1(name, o):
         do_command(wrap, m, o_name, name)
     else:
         Simulate("There are no machines free to wrap.\n")
-        ape.do_command(fail)
+        do_command(fail)
 
 def Wrap_Method2(name, o):
     if isinstance(o, list):
@@ -475,12 +484,11 @@ def Wrap_Method2(name, o):
         do_command(wrap, m, o_name, name)
     else:
         Simulate("There are no machines free to wrap.\n")
-        ape.do_command(fail)
+        do_command(fail)
 
 def Order_Method1(taskArgs):
     taskName = taskArgs[0]
     args = taskArgs[1:]
-    GetNewName.current = 0
     name = GetNewName()
     do_task(taskName, name, *args)
     do_task('deliver', name, rv.BUFFERS['output'])
@@ -509,8 +517,18 @@ def Deliver_Method1(o, l):
         state.status[deliveryRobot] = 'free'
     else:
         Simulate("No robot free to deliver %s to location %s\n" %(o, l))
-        ape.do_command(fail)
-    return res
+        do_command(fail)
+
+def Deliver_Method2(o, l):
+    loc_o = GetLocation(o)
+    if loc_o in rv.ROBOTS:
+        r = loc_o
+        do_task('moveTo', r, state.loc[r], l)
+        do_command(put, r, o, l)
+        state.status[r] = 'free'
+    else:
+        Simulate("Object %s is not with any robot. \n" %o)
+        do_command(fail)
 
 def Repair_Method1(m):
     repairBot = GetRobot(rv.MACHINE_LOCATION[m])
@@ -521,8 +539,7 @@ def Repair_Method1(m):
         state.status[repairBot] = 'free'
     else:
         Simulate("No robot is free to repair %s\n" %m)
-        ape.do_command(fail)
-    return res
+        do_command(fail)
 
 def MoveTo_Method1(r, l1, l2):
     path = IP_GETPATH(l1, l2)
@@ -532,14 +549,14 @@ def MoveTo_Method1(r, l1, l2):
         lTemp = state.loc[r]
         if lTemp not in path:
             Simulate("%s is out of its path to %s\n" %(r, l2))
-            ape.do_command(fail)
+            do_command(fail)
         else:
             while(lTemp != l2):
                 lNext = path[lTemp]
                 do_command(move, r, lTemp, lNext)
                 if lNext != state.loc[r]:
                     Simulate("%s is out of its path to %s\n" %(r, l2))
-                    ape.do_command(fail)
+                    do_command(fail)
                 else:
                     lTemp = lNext
 
@@ -552,13 +569,14 @@ declare_commands([
     put, 
     move, 
     wrap, 
-    repairc])
+    repairc,
+    fail])
 
 declare_methods('paint', Paint_Method1, Paint_Method2)
 declare_methods('assemble', Assemble_Method1, Assemble_Method2)
 declare_methods('pack', Pack_Method1, Pack_Method2)
 declare_methods('wrap', Wrap_Method1, Wrap_Method2)
-declare_methods('deliver', Deliver_Method1)
+declare_methods('deliver', Deliver_Method1, Deliver_Method2)
 declare_methods('order', Order_Method1)
 declare_methods('repair', Repair_Method1)
 declare_methods('moveTo', MoveTo_Method1)

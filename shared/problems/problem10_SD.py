@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 from domain_springDoor import *
 from timer import DURATION
-from ape import state
+from state import state
 
 
 
@@ -18,14 +18,14 @@ DURATION.TIME = {
  }
 
 DURATION.COUNTER = {
-    'openDoor': 1, #for domain SD
+    'openDoor': 5, #for domain SD
     'holdDoor': 2,
     'passDoor': 3,
-    'releaseDoor': 1,
+    'releaseDoor': 2,
     'closeDoors': 3,
-    'move': 1,
-    'take': 1,
-    'put': 1,
+    'move': 10,
+    'take': 2,
+    'put': 2,
  }
 
 

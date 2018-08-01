@@ -59,6 +59,9 @@ def SD_GETPATH(l0, l1):
     return path2
 #****************************************************************
 
+def fail():
+    return FAILURE
+
 def openDoor(r, d):
     state.load.AcquireLock(r)
     state.doorStatus.AcquireLock(d)
@@ -189,7 +192,7 @@ def take(r, o):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('take', start) == False):
 	            pass
-            res = Sense(take)
+            res = Sense('take')
             if res == SUCCESS:
                 gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
                 state.pos[o] = r
@@ -354,7 +357,8 @@ ape.declare_commands([
     releaseDoor, 
     move, 
     put, 
-    take],)
+    take,
+    fail],)
 
 ape.declare_methods('fetch', Fetch_Method1)
 ape.declare_methods('getHelp', GetHelp_Method1)
@@ -370,4 +374,4 @@ ape.declare_methods('collide', Recover_Method1, Recover_Method2)
 
 #ape.declare_methods('closeDoors', CloseDoors_Method1)
 
-
+from env_springDoor import *

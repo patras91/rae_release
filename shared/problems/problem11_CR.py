@@ -10,9 +10,10 @@ DURATION.TIME = {
     'perceive': 3,
     'charge': 5,
     'move': 10,
+    'moveToEmergency': 10,
     'moveCharger': 5,
     'addressEmergency': 15,
-    'wait': 5,
+    'wait': 5
  }
 
 DURATION.COUNTER = {
@@ -21,6 +22,7 @@ DURATION.COUNTER = {
     'perceive': 3,
     'charge': 5,
     'move': 10,
+    'moveToEmergency': 10,
     'moveCharger': 5,
     'addressEmergency': 15,
     'wait': 5,

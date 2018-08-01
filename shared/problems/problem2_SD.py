@@ -27,14 +27,14 @@ DURATION.TIME = {
  }
 
 DURATION.COUNTER = {
-    'openDoor': 1, #for domain SD
+    'openDoor': 5, #for domain SD
     'holdDoor': 2,
     'passDoor': 3,
-    'releaseDoor': 1,
+    'releaseDoor': 2,
     'closeDoors': 3,
-    'move': 1,
-    'take': 1,
-    'put': 1,
+    'move': 10,
+    'take': 2,
+    'put': 2,
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8]

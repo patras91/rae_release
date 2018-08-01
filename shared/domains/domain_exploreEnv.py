@@ -80,6 +80,9 @@ def EE_GETDISTANCE(l0, l1):
 
     return visitedDistances[l1]
 
+def fail():
+    return FAILURE
+
 def survey(r, l):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
@@ -97,7 +100,7 @@ def survey(r, l):
             state.data[r] += 1
             gui.Simulate("%s has surveyed the location %s\n" %(r, l))
         else:
-            gui.Simulate("%s has failed to do survey %d due to an internal error.\n" %(r,l))
+            gui.Simulate("%s has failed to do survey %s due to an internal error.\n" %(r,l))
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
@@ -457,6 +460,9 @@ def transferData(r1, r2):
             gui.Simulate("%s transfered data to %s\n" %(r1, r2))
         else:
             gui.Simulate("Transfer data failed due to an internal error.\n")
+    else:
+        gui.Simulate("There is no space in %s to get data\n" %r2)
+        res = FAILURE
 
     state.loc.ReleaseLock(r1)
     state.loc.ReleaseLock(r2)
@@ -666,7 +672,8 @@ ape.declare_commands([
     fly, 
     deposit, 
     transferData, 
-    handleAlien])
+    handleAlien,
+    fail])
                       
 ape.declare_methods('explore', Explore_Method1)
 ape.declare_methods('getEquipment', GetEquipment_Method1, GetEquipment_Method2, GetEquipment_Method3)

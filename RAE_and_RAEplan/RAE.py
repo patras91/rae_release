@@ -81,7 +81,7 @@ def PrintResultSummary(taskInfo):
     succ = 0
     fail = 0
     retries = 0
-    effTotal = float("inf")
+    effTotal = 0
     for stackid in taskInfo:
         args, res, retryCount, eff = taskInfo[stackid]
         if res == 'Success':

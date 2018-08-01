@@ -44,19 +44,19 @@ DURATION.TIME = {
     'put': 2,
     'wrap': 3,
     'damage': 1,
-    'repair': 5
+    'repairc': 5
  }
 
 DURATION.COUNTER = {
-    'paint': 1, # for domain IP
-    'assemble': 1,
-    'pack': 1,
-    'move': 1,
-    'take': 1,
-    'put': 1,
-    'wrap': 1,
+    'paint': 5, # for domain IP
+    'assemble': 5,
+    'pack': 5,
+    'move': 10,
+    'take': 2,
+    'put': 2,
+    'wrap': 3,
     'damage': 1,
-    'repair': 1
+    'repairc': 5
  }
 
 rv.MACHINE_LOCATION = {'p1': 3, 'pck1': 4, 'a1': 8, 'p2': 9, 'w1': 7}
@@ -67,6 +67,7 @@ rv.EDGES = {1: [2], 2: [1, 3, 5], 3: [2, 4, 6], 4: [3, 7], 5: [2, 6, 8], 6: [3, 
 rv.ROBOTS = ['r1', 'r2', 'r3']
 
 def ResetState():
+    state.name = {'counter': 0}
     state.load = {'r1': NIL, 'r2': NIL, 'r3': NIL}
     state.loc = {'r1': 2, 'r2': 4, 'r3': 6}
     state.status = {'r1': 'free', 'r2': 'free', 'r3': 'free', 'p1': 'free', 'a1': 'free', 'pck1': 'free', 'p2': 'free', 'w1': 'free'}

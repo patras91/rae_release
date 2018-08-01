@@ -13,6 +13,7 @@ DURATION.TIME = {
     'moveCharger': 5,
     'addressEmergency': 15,
     'wait': 5,
+    'moveToEmergency': 10,
  }
 
 DURATION.COUNTER = {
@@ -24,6 +25,7 @@ DURATION.COUNTER = {
     'moveCharger': 5,
     'addressEmergency': 15,
     'wait': 5,
+    'moveToEmergency': 10,
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
