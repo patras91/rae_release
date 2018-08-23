@@ -194,9 +194,8 @@ def move(r, l1, l2, dist):
             gui.Simulate("Robot %s is not in location %d\n" %(r, l1))
             res = FAILURE
         elif state.loc[r] == l1 and state.charge[r] < dist:
-            print("here")
             gui.Simulate("Robot %s does not have enough charge to move :(\n" %r)
-            #state.charge[r] = 0 # should we do this?
+            state.charge[r] = 0 # should we do this?
             res = FAILURE
         else:
             gui.Simulate("Robot %s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
@@ -239,6 +238,7 @@ def wait(r):
     return SUCCESS
 
 def Recharge_Method3(r, c):
+    """ Robot r charges and carries the charger with it """
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
         if state.pos[c] in rv.LOCATIONS:
             ape.do_task('moveTo', r, state.pos[c])
@@ -247,10 +247,10 @@ def Recharge_Method3(r, c):
             ape.do_command(put, robot, c)
             ape.do_task('moveTo', r, state.pos[c])
     ape.do_command(charge, r, c)
-    if state.load[r] == NIL:
-        ape.do_command(take, r, c)
+    ape.do_command(take, r, c)
 
 def Recharge_Method2(r, c):
+    """ Robot r charges and goes not carry the charger with it """
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
         if state.pos[c] in rv.LOCATIONS:
             ape.do_task('moveTo', r, state.pos[c])
@@ -261,6 +261,7 @@ def Recharge_Method2(r, c):
     ape.do_command(charge, r, c)
 
 def Recharge_Method1(r, c):
+    """ When the charger is with another robot and that robot takes the charger back """ 
     robot = NIL
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
         if state.pos[c] in rv.LOCATIONS:
@@ -270,7 +271,7 @@ def Recharge_Method1(r, c):
             ape.do_command(put, robot, c)
             ape.do_task('moveTo', r, state.pos[c])
     ape.do_command(charge, r, c)
-    if robot != NIL and state.load[robot] != NIL and state.pos[robot] == state.loc[c]:
+    if robot != NIL:
         ape.do_command(take, robot, c)
 
 def Search_Method1(r, o):
@@ -370,6 +371,7 @@ def MoveTo_Method1(r, l):
     if state.charge[r] >= dist:
         ape.do_task('nonEmergencyMove', r, x, l, dist)
     else:
+        state.charge[r] = 0
         gui.Simulate("Robot %s does not have enough charge to move from %d to %d\n" %(r, x, l))
         ape.do_command(fail)
 
@@ -378,7 +380,7 @@ ape.declare_commands([put, take, perceive, charge, move, moveToEmergency, addres
 
 ape.declare_methods('search', Search_Method1, Search_Method2)
 ape.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
-ape.declare_methods('recharge', Recharge_Method2, Recharge_Method3, Recharge_Method1)
+ape.declare_methods('recharge', Recharge_Method1, Recharge_Method3, Recharge_Method2)
 ape.declare_methods('moveTo', MoveTo_Method1)
 ape.declare_methods('emergency', Emergency_Method1)
 ape.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)

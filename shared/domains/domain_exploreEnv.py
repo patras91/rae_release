@@ -328,7 +328,7 @@ def fly(r, l1, l2):
     state.loc.AcquireLock(r)
     state.charge.AcquireLock(r)
 
-    dist = EE_GETDISTANCE(l1, l2)
+    dist = EE_GETDISTANCE(l1, l2)/2
     if r != 'UAV':
         gui.Simulate("%s cannot fly\n" %r)
         res = FAILURE
@@ -339,7 +339,7 @@ def fly(r, l1, l2):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('fly', start) == False):
             pass
-        res = Sense('fly')
+        res = SenseFly()
         if res == SUCCESS:
             gui.Simulate("%s has flied from %s to %s\n" %(r, l1, l2))
             state.loc[r] = l2
@@ -350,7 +350,8 @@ def fly(r, l1, l2):
         gui.Simulate("%s is not in location %s\n" %(r, l1))
         res = FAILURE
     elif state.loc[r] == l1 and state.charge[r] < dist:
-        gui.Simulate("%s does not have any charge to move :(\n" %r)
+        gui.Simulate("%s does not have any charge to fly :( charge = %d but distance = %d \n" %(r,state.charge[r], dist))
+        state.charge[r] = 0
         res = FAILURE
     else:
         gui.Simulate("%s is not at location %s and it doesn't have enough charge!\n" %(r, l1))
@@ -485,25 +486,36 @@ def Explore_Method1(r, activity, l):
         ape.do_command(process, r, l)
 
 def GetEquipment_Method1(r, activity):
-    if state.load[r] != rv.EQUIPMENT[activity]:
-        ape.do_task('moveTo', r, state.pos[rv.EQUIPMENT[activity]])
-        ape.do_command(take, r, rv.EQUIPMENT[activity])
+    """ When the equipment is at a particular location and r does not carry any load""" 
+    e = rv.EQUIPMENT[activity]
+    if state.load[r] != e and state.pos[e] in rv.LOCATIONS:
+        ape.do_task('moveTo', r, state.pos[e])
+        ape.do_command(take, r, e)
+    else:
+        ape.do_command(fail)
 
 def GetEquipment_Method2(r, activity):
-    if state.load[r] != rv.EQUIPMENT[activity]:
-        ape.do_task('moveTo', r, state.pos[rv.EQUIPMENT[activity]])
+    """ When r is already carrying some load and equipment is at a particular location"""
+    e = rv.EQUIPMENT[activity]
+    if state.load[r] != e and state.pos[e] in rv.LOCATIONS:
+        ape.do_task('moveTo', r, state.pos[e])
         state.load.AcquireLock(r)
         if state.load[r] != NIL:
-            x = state.load[r]
+            o = state.load[r]
             state.load.ReleaseLock(r)
-            ape.do_command(put, r, x)
+            ape.do_command(put, r, o)
         else:
             state.load.ReleaseLock(r)
-        ape.do_command(take, r, rv.EQUIPMENT[activity])
+            ape.do_command(fail)
+        ape.do_command(take, r, e)
+    else:
+        ape.do_command(fail)
 
 def GetEquipment_Method3(r, activity):
-    if state.load[r] != rv.EQUIPMENT[activity]:
-        loc = state.pos[rv.EQUIPMENT[activity]]
+    """  When the equipment is with another robot """
+    e = rv.EQUIPMENT[activity]
+    if state.load[r] != e:
+        loc = state.pos[e]
         if loc not in rv.LOCATIONS:
             robo = loc
             ape.do_task('moveTo', r, state.loc[robo])
@@ -514,10 +526,12 @@ def GetEquipment_Method3(r, activity):
                 ape.do_command(put, r, x)
             else:
                 state.load.ReleaseLock(r)
-            ape.do_command(put, robo, rv.EQUIPMENT[activity])
-            ape.do_command(take, r, rv.EQUIPMENT[activity])
+            ape.do_command(put, robo, e)
+            ape.do_command(take, r, e)
         else:
             ape.do_command(fail)
+    else:
+        ape.do_command(fail)
 
 def MoveTo_MethodHelper(r, l):
     path = EE_GETPATH(state.loc[r], l)
@@ -545,17 +559,17 @@ def MoveTo_Method1(r, l):
     else:
         MoveTo_MethodHelper(r, l)
 
-def MoveTo_Method2(r, l):
-    if l not in rv.LOCATIONS:
-        gui.Simulate("%s is trying to go to an invalid location\n" %r)
-        ape.do_command(fail)
-    else:
-        dist = EE_GETDISTANCE(state.loc[r], l)
-        if state.charge[r] >= dist:
-            MoveTo_MethodHelper(r, l)
-        else:
-            ape.do_task('recharge', r)
-            ape.do_task('moveTo', r, l)
+#def MoveTo_Method2(r, l):
+#    if l not in rv.LOCATIONS:
+#        gui.Simulate("%s is trying to go to an invalid location\n" %r)
+#        ape.do_command(fail)
+#    else:
+#        dist = EE_GETDISTANCE(state.loc[r], l)
+#        if state.charge[r] >= dist:
+#            MoveTo_MethodHelper(r, l)
+#        else:
+#            ape.do_task('recharge', r)
+#            ape.do_task('moveTo', r, l)
 
 def FlyTo_Method1(r, l):
     if r == 'UAV':
@@ -567,11 +581,8 @@ def FlyTo_Method1(r, l):
 def FlyTo_Method2(r, l):
     dist = EE_GETDISTANCE(state.loc[r], l)
     if r == 'UAV':
-        if state.charge[r] >= dist:
-            ape.do_command(fly, r, state.loc[r], l)
-        else:
-            ape.do_task('recharge', r)
-            ape.do_task('flyTo', r, l)
+        ape.do_task('recharge', r)
+        ape.do_command(fly, r, state.loc[r], l)
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
         ape.do_command(fail)
@@ -582,6 +593,7 @@ def DepositData_Method1(r):
         ape.do_command(deposit, r)
     else:
         gui.Simulate("%s has no data to deposit.\n" %r)
+        ape.do_command(fail)
 
 def DepositData_Method2(r):
     if state.data[r] > 0:
@@ -592,6 +604,7 @@ def DepositData_Method2(r):
         ape.do_command(deposit, 'UAV')
     else:
         gui.Simulate("%s has no data to deposit.\n" %r)
+        ape.do_command(fail)
 
 def Recharge_Method1(r):
     c = 'c1'
@@ -675,13 +688,38 @@ ape.declare_commands([
     handleAlien,
     fail])
                       
-ape.declare_methods('explore', Explore_Method1)
-ape.declare_methods('getEquipment', GetEquipment_Method1, GetEquipment_Method2, GetEquipment_Method3)
-ape.declare_methods('moveTo', MoveTo_Method1)
-ape.declare_methods('flyTo', FlyTo_Method1)
-ape.declare_methods('recharge', Recharge_Method1, Recharge_Method2)
-ape.declare_methods('depositData', DepositData_Method1, DepositData_Method2)
-ape.declare_methods('doActivities', DoActivities_Method2, DoActivities_Method4, DoActivities_Method1, DoActivities_Method3)
-ape.declare_methods('handleEmergency', HandleEmergency_Method2, HandleEmergency_Method1)
+ape.declare_methods('explore', 
+    Explore_Method1)
+
+ape.declare_methods('getEquipment', 
+    GetEquipment_Method1, 
+    GetEquipment_Method2, 
+    GetEquipment_Method3)
+
+ape.declare_methods('moveTo', 
+    MoveTo_Method1)
+#    MoveTo_Method2)
+
+ape.declare_methods('flyTo', 
+    FlyTo_Method1,
+    FlyTo_Method2)
+
+ape.declare_methods('recharge', 
+    Recharge_Method1,
+    Recharge_Method2)
+
+ape.declare_methods('depositData', 
+    DepositData_Method1,
+    DepositData_Method2)
+
+ape.declare_methods('doActivities', 
+    DoActivities_Method2, 
+    DoActivities_Method4, 
+    DoActivities_Method1, 
+    DoActivities_Method3)
+
+ape.declare_methods('handleEmergency', 
+    HandleEmergency_Method2, 
+    HandleEmergency_Method1)
 
 

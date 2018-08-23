@@ -62,7 +62,7 @@ def SD_GETPATH(l0, l1):
 def fail():
     return FAILURE
 
-def openDoor(r, d):
+def unlatch1(r, d):
     state.load.AcquireLock(r)
     state.doorStatus.AcquireLock(d)
     if state.doorStatus[d] == 'opened':
@@ -70,9 +70,32 @@ def openDoor(r, d):
         res = SUCCESS
     elif state.load[r] == NIL and (state.doorStatus[d] == 'closed' or state.doorStatus[d] == 'closing'):
         start = globalTimer.GetTime()
-        while(globalTimer.IsCommandExecutionOver('openDoor', start) == False):
+        while(globalTimer.IsCommandExecutionOver('unlatch1', start) == False):
 	        pass
-        res = Sense('openDoor')
+        res = Sense('unlatch1')
+        if res == SUCCESS:
+            gui.Simulate("Robot %s has opened door %s\n" %(r, d))
+            state.doorStatus[d] = 'opened'
+        else:
+            gui.Simulate("Unlatching has failed due to an internal error\n")
+    else:
+        gui.Simulate("Robot %s is not free to open door %s or the door is not closed\n" %(r, d))
+        res = FAILURE
+    state.load.ReleaseLock(r)
+    state.doorStatus.ReleaseLock(d)
+    return res
+
+def unlatch2(r, d):
+    state.load.AcquireLock(r)
+    state.doorStatus.AcquireLock(d)
+    if state.doorStatus[d] == 'opened':
+        gui.Simulate("Door %s is already open\n" %d)
+        res = SUCCESS
+    elif state.load[r] == NIL and (state.doorStatus[d] == 'closed' or state.doorStatus[d] == 'closing'):
+        start = globalTimer.GetTime()
+        while(globalTimer.IsCommandExecutionOver('unlatch2', start) == False):
+            pass
+        res = Sense('unlatch2')
         if res == SUCCESS:
             gui.Simulate("Robot %s has opened door %s\n" %(r, d))
             state.doorStatus[d] = 'opened'
@@ -92,9 +115,13 @@ def passDoor(r, d, l):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('passDoor', start) == False):
 	        pass
-        gui.Simulate("Robot %s has passed the door %s\n" %(r, d))
-        state.loc[r] = l
-        res = SUCCESS
+        res = Sense('passDoor', d)
+        if res == SUCCESS:
+            state.loc[r] = l
+            gui.Simulate("Robot %s has passed the door %s\n" %(r, d))
+        else:
+            gui.Simulate("Robot %s is not able to pass door %s\n" %(r, d))
+        state.doorType[d] = rv.DOORTYPES[d]
     else:
         gui.Simulate("Robot %s is not able to pass door %s\n" %(r, d))
         res = FAILURE
@@ -129,7 +156,7 @@ def releaseDoor(r, d):
         while(globalTimer.IsCommandExecutionOver('releaseDoor', start) == False):
 	        pass
         gui.Simulate("Robot %s has released the the door %s\n" %(r, d))
-        state.doorStatus[d] = 'closing'
+        state.doorStatus[d] = 'closed'
         state.load[r] = NIL
     else:
         gui.Simulate("Robot %s is not holding door %s\n" %(r, d))
@@ -230,8 +257,9 @@ def closeDoors():
     return SUCCESS
 
 def MoveThroughDoorway_Method3(r, d, l):
-    if state.load[r] == NIL:
-        ape.do_command(openDoor, r, d)
+    """ For a robot passing a spring door without any load """
+    if state.load[r] == NIL and (state.doorType[d] == 'spring' or state.doorType[d] == UNK):
+        ape.do_task('unlatch', r, d)
         ape.do_command(holdDoor, r, d)
         ape.do_command(passDoor, r, d, l)
         ape.do_command(releaseDoor, r, d)
@@ -244,13 +272,14 @@ def Restore(r, loc, cargo):
         ape.do_command(take, r, cargo)
 
 def MoveThroughDoorway_Method2(r, d, l):
-    if state.load[r] != NIL:
+    """ For a robot passing a spring door with a load """
+    if state.load[r] != NIL and (state.doorType[d] == 'spring' or state.doorType[d] == UNK):
          params = GetHelp_Method1(r)
          if params == FAILURE:
              ape.do_command(fail)
          else:
             r2, l2, cargo = params
-            ape.do_command(openDoor, r2, d)
+            ape.do_task('unlatch', r2, d)
             ape.do_command(holdDoor, r2, d)
             ape.do_command(passDoor, r, d, l)
             ape.do_command(releaseDoor, r2, d)
@@ -259,22 +288,24 @@ def MoveThroughDoorway_Method2(r, d, l):
         ape.do_command(fail)
 
 def MoveThroughDoorway_Method4(r, d, l):
-    if state.load[r] != NIL:
+    """ For a robot passing a normal door with a load """
+    if state.load[r] != NIL and (state.doorType[d] == 'ordinary' or state.doorType[d] == UNK):
         obj = state.load[r]
         if obj != 'H':
             ape.do_command(put, r, obj)
         else:
             gui.Simulate("%r is holding another door\n" %r)
             ape.do_command(fail)
-        ape.do_command(openDoor, r, d)
+        ape.do_task('unlatch', r, d)
         ape.do_command(take, r, obj)
         ape.do_command(passDoor, r, d, l)
     else:
         ape.do_command(fail)
 
 def MoveThroughDoorway_Method1(r, d, l):
-    if state.load[r] == NIL:
-        ape.do_command(openDoor, r, d)
+    """ For a robot passing a normal door without a load """
+    if state.load[r] == NIL and (state.doorType[d] == 'ordinary' or state.doorType[d] == UNK):
+        ape.do_task('unlatch', r, d)
         ape.do_command(passDoor, r, d, l)
     else:
         ape.do_command(fail)
@@ -345,19 +376,26 @@ def Recover_Method1(r):
         ape.do_command(fail)
 
 def Recover_Method2(r):
-    state.do_command(senseStatus, r)
+    ape.do_command(senseStatus, r)
     if state.robotStatus[r] == 'broken':
         state.do_command(repair, r)
 
+def Unlatch_Method1(r, d):
+    ape.do_command(unlatch1, r, d)
+
+def Unlatch_Method2(r, d):
+    ape.do_command(unlatch2, r, d)
+
 rv = RV()
-ape.declare_commands([
-    openDoor, 
+ape.declare_commands([ 
     holdDoor, 
     passDoor, 
     releaseDoor, 
     move, 
     put, 
     take,
+    unlatch1,
+    unlatch2,
     fail],)
 
 ape.declare_methods('fetch', Fetch_Method1)
@@ -368,6 +406,7 @@ ape.declare_methods('moveThroughDoorway',
     MoveThroughDoorway_Method3,
     MoveThroughDoorway_Method4,
     MoveThroughDoorway_Method2)
+ape.declare_methods('unlatch', Unlatch_Method1, Unlatch_Method2)
 
 #events
 ape.declare_methods('collide', Recover_Method1, Recover_Method2)

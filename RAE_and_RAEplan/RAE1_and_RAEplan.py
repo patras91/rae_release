@@ -83,7 +83,7 @@ def GetCommand(cmd):
     name = cmd.__name__
     return commands[name]
 
-def declare_methods(task_name,*method_list):
+def declare_methods(task_name, *method_list):
     """
     Call this once for each task, to tell Rae1 what the methods are.
     task_name must be a string.
@@ -326,12 +326,11 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
         if verbose > 0:
             print_stack_size(stackid, path)
             print('Failed task {}'.format(e))
-    else:
-        pass
 
     if verbose > 1:
         print_stack_size(stackid, path)
         print('{} for method {}{}'.format(retcode, m.__name__, taskArgs))
+
     return retcode
 
 def do_task(task, *taskArgs):
@@ -417,7 +416,7 @@ def GetCandidates(task):
         state = GetState()
         
     b = globals.Getb()
-    cand = candidates[0:min(b - 1, len(candidates))]
+    cand = candidates[0:min(b, len(candidates))]
     return cand, state
 
 def FollowGuide_task(task, taskArgs, nextNode):
@@ -430,6 +429,7 @@ def Reinitialize(m, s, newNode, guideList, name, args):
     guideList.RemoveAllAfter(newNode)
     if m == 'command':
         newNode.SetLabel(name)
+        newNode.SetCost(GetCost(name, args))
     else:
         newNode.SetLabel(m)
     newNode.SetNextState(s)
@@ -451,11 +451,26 @@ def Reinitialize(m, s, newNode, guideList, name, args):
 
     return firstTask, firstTaskArgs, pRoot
 
+def GetBestEff():
+    """ Helper function for PlanTask """
+    bestTree = planLocals.GetBestTree()
+    if bestTree != None:
+        bestEff = bestTree.GetEff()
+    else:
+        bestEff = 0
+    return bestEff
+
 def PlanTask(task, taskArgs):
     # Need to look through several candidates for this task
     cand, state = GetCandidates(task)
-    # TODO : Can do pruning here if efficiency is already lower
+
     guideList = planLocals.GetGuideList()
+
+    # Pruning here if efficiency is already lower
+    currEff = guideList.GetEff()
+    if currEff <= GetBestEff():
+        raise Failed_task('{}{}'.format(task, taskArgs))
+
     newNode = guideList.append()
 
     for m in cand:
@@ -464,15 +479,11 @@ def PlanTask(task, taskArgs):
             do_task(firstTask, *firstTaskArgs) # to recreate the execution stack
             tree = pRoot
             assert(planLocals.GetCurrentNode() == pRoot)
-            bestTree = planLocals.GetBestTree()
-            if bestTree != None:
-                bestEff = bestTree.GetEff()
-            else:
-                bestEff = 0
+            
+            bestEff = GetBestEff()
 
             if tree.GetEff() > bestEff:
-                bestTree = tree.copy()
-                planLocals.SetBestTree(bestTree)
+                planLocals.SetBestTree(tree.copy())
         except Failed_task:
             planLocals.SetCurrentNode(pRoot)
         except Search_Done:
@@ -574,7 +585,10 @@ def DoCommandInRealWorld(cmd, cmdArgs):
 
     path[raeLocals.GetStackId()].pop()
 
-    cost = GetCost(cmd, cmdArgs)
+    if cmd.__name__ == "fail":
+        cost = 20
+    else:
+        cost = GetCost(cmd, cmdArgs)
     eff = raeLocals.GetEfficiency()
     raeLocals.SetEfficiency(addEfficiency(eff, 1/cost))
 
@@ -636,33 +650,57 @@ def CallCommand_OperationalModel(cmd, cmdArgs):
 
     return retcode
 
+def IndexOf(s, l):
+    """ Helper function of PlanCommand """
+    i = 0
+    for item in l:
+        if item.EqualTo(s):
+            return i
+        i += 1 
+    return -1
+
 def PlanCommand(cmd, cmdArgs):
     savedState = GetState().copy()
     gL = planLocals.GetGuideList()
     newNode = gL.append()
     effList = []
+
+    outcomeStates = []
+    effs = []
+
     for i in range(0, globals.Getk()):
         RestoreState(savedState)
         retcode = CallCommand_OperationalModel(cmd, cmdArgs)
-        
+        nextState = GetState().copy()
+
         if retcode == 'Failure':
             effList.append(0)
             # No need to plan any further, it will always be 0
         else:
-            firstTask, firstTaskArgs, pRoot = Reinitialize('command', GetState().copy(), newNode, gL, cmd, cmdArgs)
-            
-            try:
-                do_task(firstTask, *firstTaskArgs)
-            except Search_Done:
-                pass
-            except Failed_task:
-                effList.append(0)
-                continue
+            index = IndexOf(nextState, outcomeStates)
+            if index != -1:
+                # this state has already been planned for, so just use the previous result
+                effList.append(effs[index])
+            else:
+                firstTask, firstTaskArgs, pRoot = Reinitialize('command', nextState, newNode, gL, cmd, cmdArgs)
+                
+                try:
+                    do_task(firstTask, *firstTaskArgs)
+                except Search_Done:
+                    pass
+                except Failed_task:
+                    effList.append(0)
+                    outcomeStates.append(nextState)
+                    effs.append(0)
+                    continue
 
-            tree = pRoot
-            assert(planLocals.GetCurrentNode() == pRoot)
-            
-            effList.append(tree.GetEff())
+                tree = pRoot
+                e = tree.GetEff()
+                assert(planLocals.GetCurrentNode() == pRoot)
+                
+                effList.append(e)
+                outcomeStates.append(nextState)
+                effs.append(e)
     
     avgEff = TakeAvg(effList)
     bestTree = planLocals.GetBestTree()
@@ -676,8 +714,7 @@ def PlanCommand(cmd, cmdArgs):
     raise Search_Done
 
 def GetCost(cmd, cmdArgs):
-    if cmd.__name__ == "fail":
-        return 10
+    assert(cmd.__name__ != "fail")
     cost = DURATION.COUNTER[cmd.__name__]
     return cost
 

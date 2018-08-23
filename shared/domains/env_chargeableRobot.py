@@ -5,12 +5,12 @@ from domain_chargeableRobot import rv
 from domain_constants import *
 
 commandProb = {
-    'take': [0.8, 0.2],
-    'put': [0.9, 0.1],
-    'charge': [0.8, 0.2],
-    'moveToEmergency': [0.8, 0.2],
-    'move': [0.8, 0.2],
-    'addressEmergency': [0.9, 0.1],
+    'take': [0.98, 0.02],
+    'put': [0.99, 0.01],
+    'charge': [0.98, 0.02],
+    'moveToEmergency': [0.99, 0.01],
+    'move': [0.95, 0.05],
+    'addressEmergency': [0.98, 0.02],
 }
 
 def Sense(cmd):
@@ -25,7 +25,7 @@ def Sense(cmd):
                 state.emergencyHandling[r] = False
     else:
         p = commandProb[cmd]
-        outcome = numpy.random.choice(len(p), 1, p=p)
+        outcome = numpy.random.choice(len(p), 50, p=p)
         res = outcome[0]
         if res == 0:
             return SUCCESS
@@ -47,5 +47,5 @@ def SenseObjects():
                     prob[l] = 1/total
             p = list(prob.values())
             locs = list(prob.keys())
-            locIndex = numpy.random.choice(len(p), 1, p=p)
+            locIndex = numpy.random.choice(len(p), 50, p=p)
             state.containers[locs[locIndex[0]]].append(o)

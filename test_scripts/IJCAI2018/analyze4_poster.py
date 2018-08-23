@@ -298,7 +298,7 @@ def GeneratePlots():
 
     plt.clf()
     #PlotNuAcc(resDict)
-    #PlotNuToppedSep(resDict)
+    PlotNuToppedSep(resDict)
     #PlotNuDet(resDict)
 
 def PlotNu(resDict):
@@ -373,35 +373,53 @@ def PlotNuToppedSep(resDict):
     index1 = 'nu'
     label1 = "active"
     #label3 = "Lazy"
-    color1 = 'white'
+    color1 = 'red'
 
     width = 0.25
     val = [0, 1, 2, 3, 4]
     l = 5
 
-    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['CR'][label1][index1][0:l], width=width, edgecolor='black', hatch="/", label='CR', color=color1, linewidth=2)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['EE'][label1][index1][0:l], width=width, edgecolor='black', hatch="///", label='EE', tick_label=val, color='black', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 0 * width), 
+        resDict['CR'][label1][index1][0:l],
+         width=width, edgecolor='black', 
+         label='CR', 
+         color='red', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 1.25 * width), 
+        resDict['EE'][label1][index1][0:l], 
+        width=width, edgecolor='black', 
+         label='EE', 
+        tick_label=val, color='blue', 
+        linewidth=2)
 
-    plt.xlabel('$b$')
+    plt.xlabel('Search breadth $b$')
     plt.ylabel('Speed $\\nu$') # for {}'.format(domain))
-    plt.legend(bbox_to_anchor=(0.1, 1.05), loc=3, ncol=2, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(0.1, 1.05), 
+        loc=3, ncol=2, borderaxespad=0.)
     #fig = plt.gcf()
     #fig.set_size_inches(40, 10)
 
-    fname = '../../../hiofsm/IJCAI2018/figures/NuDeadEnds.png'
+    fname = 'NuDeadEnds.png'
     plt.savefig(fname, bbox_inches='tight')
 
     plt.clf()
-    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['SD'][label1][index1][0:l], width=width, edgecolor='black', hatch=".", label='SD', tick_label=val, color='white', linewidth=2)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['IP'][label1][index1][0:l], width=width, edgecolor='black', hatch="...", label='IP', tick_label=val, color='black', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 0 * width), 
+        resDict['SD'][label1][index1][0:l], 
+        width=width, edgecolor='black', 
+        label='SD', tick_label=val,
+        color='orange', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 1.25 * width), 
+        resDict['IP'][label1][index1][0:l], 
+        width=width, edgecolor='black', 
+         label='IP', 
+        tick_label=val, color='green', linewidth=2)
 
-    plt.xlabel('$b$')
+    plt.xlabel('Search breadth $b$')
     plt.ylabel('Speed $\\nu$') # for {}'.format(domain))
     plt.legend(bbox_to_anchor=(0.1, 1.05), loc=3, ncol=2, borderaxespad=0.)
     #fig = plt.gcf()
     #fig.set_size_inches(40, 10)
 
-    fname = '../../../hiofsm/IJCAI2018/figures/NuNoDeadEnds.png'
+    fname = 'NuNoDeadEnds.png'
     plt.savefig(fname, bbox_inches='tight')
 
 def CheckIn(l, e):
@@ -642,10 +660,20 @@ def PlotSuccessToppedSep(resDict):
     val = [0, 1, 2, 3, 4]
     l = 5
 
-    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['CR'][label1][index1][0:l], width=width, edgecolor='black',  label='CR', color='orange', linewidth=2)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['EE'][label1][index1][0:l], width=width, edgecolor='black',  label='EE', tick_label=val, color='green', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 0 * width), 
+        resDict['CR'][label1][index1][0:l], 
+        width=width, 
+        edgecolor='black',  
+        label='CR', 
+        color='red', 
+        linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 1.25 * width), 
+        resDict['EE'][label1][index1][0:l], 
+        width=width, edgecolor='black',  
+        label='EE', tick_label=val, 
+        color='blue', linewidth=2)
 
-    plt.xlabel('Search breadth')
+    plt.xlabel('Search breadth $b$')
     plt.ylabel('Success ratio')
     plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
     #fig = plt.gcf()
@@ -655,12 +683,21 @@ def PlotSuccessToppedSep(resDict):
     plt.savefig(fname, bbox_inches='tight')
 
     plt.clf()
-    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['SD'][label1][index1][0:l], width=width, edgecolor='black', label='Env. 3', tick_label=val, color='orange', linewidth=2)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['IP'][label1][index1][0:l], width=width, edgecolor='black', label='Env. 4', tick_label=val, color='green', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 0 * width), 
+        resDict['SD'][label1][index1][0:l],
+        width=width, edgecolor='black', 
+        label='SD', tick_label=val, 
+        color='orange', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 1.25 * width), 
+        resDict['IP'][label1][index1][0:l], 
+        width=width, edgecolor='black', 
+        label='IP', tick_label=val, 
+        color='green', linewidth=2)
 
-    plt.xlabel('Search breadth')
+    plt.xlabel('Search breadth $b$')
     plt.ylabel('Success ratio')
-    plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(0.0, 1.05), 
+        loc=3, ncol=2, borderaxespad=0.)
     #fig = plt.gcf()
     #fig.set_size_inches(40, 10)
 
@@ -699,10 +736,16 @@ def PlotRetryToppedSep(resDict):
     width = 0.25
     val = [0, 1, 2, 3, 4]
     l = 5
-    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['EE'][label1][index1][0:l], width=width, edgecolor='black', label='EE', color='blue', linewidth=2)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['CR'][label1][index1][0:l], width=width, edgecolor='black', label='CR', tick_label=val, color='red', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 0 * width), 
+        resDict['EE'][label1][index1][0:l], 
+        width=width, edgecolor='black', 
+        label='EE', color='red', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 1.25 * width), 
+        resDict['CR'][label1][index1][0:l], 
+        width=width, edgecolor='black', label='CR', 
+        tick_label=val, color='blue', linewidth=2)
 
-    plt.xlabel('$b$')
+    plt.xlabel('Search breadth $b$')
     plt.ylabel('retry ratio')
     plt.legend(bbox_to_anchor=(0.6, 0.9), loc=2, borderaxespad=0.)
     #fig = plt.gcf()
@@ -712,10 +755,17 @@ def PlotRetryToppedSep(resDict):
     plt.savefig(fname, bbox_inches='tight')
 
     plt.clf()
-    plt.bar(EditToFitBarPlot(val, 0 * width), resDict['SD'][label1][index1][0:l], width=width, edgecolor='black',  label='SD', tick_label=val, color='blue', linewidth=2)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), resDict['IP'][label1][index1][0:l], width=width, edgecolor='black',  label='IP', tick_label=val, color='red', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 0 * width), 
+        resDict['SD'][label1][index1][0:l], 
+        width=width, edgecolor='black',  
+        label='SD', tick_label=val, 
+        color='orange', linewidth=2)
+    plt.bar(EditToFitBarPlot(val, 1.25 * width), 
+        resDict['IP'][label1][index1][0:l], 
+        width=width, edgecolor='black',  
+        label='IP', tick_label=val, color='green', linewidth=2)
 
-    plt.xlabel('Searth breadth')
+    plt.xlabel('Search breadth $b$')
     plt.ylabel('Retry ratio')
     plt.legend(bbox_to_anchor=(0.6, 0.9), loc=2, borderaxespad=0.)
     #fig = plt.gcf()

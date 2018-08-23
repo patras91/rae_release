@@ -2,7 +2,10 @@ import threading
 import sys
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
-sys.path.append('../shared/problems/')
+sys.path.append('../shared/problems/SD')
+sys.path.append('../shared/problems/CR')
+sys.path.append('../shared/problems/IP')
+sys.path.append('../shared/problems/EE')
 sys.setrecursionlimit(6000)
 import argparse
 import gui
@@ -79,7 +82,7 @@ def testBatch(domain, problem, useRAEplan):
     globals.SetShowOutputs('off')
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
-    p.join(1200)
+    p.join(1800)
     if p.is_alive() == True:
         p.terminate()
-        print("-1 -1 -1 -1 -1")
+        print("0 1 0 0 0 0")

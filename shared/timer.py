@@ -54,6 +54,7 @@ class Timer():
         return self.now
 
     def IsCommandExecutionOver(self, cmd, start):
+        return True
         mode = globals.GetPlanningMode()
         if mode == False:
             mult = 1  # This is the approx callibrated value

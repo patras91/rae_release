@@ -38,7 +38,6 @@ def IP_GETDISTANCE(l0, l1):
             if l not in visitedDistances or dist < visitedDistances[l]:
                 visitedDistances[l] = dist
 
-    print(visitedDistances)
     return visitedDistances[l1]
 
 # Using Dijsktra's algorithm
@@ -104,7 +103,6 @@ def GetNewName():
     state.name['counter'] += 1
     state.name.ReleaseLock('counter')
     newName = 'TMPOBJECT' + state.name['counter'].__str__()
-    print("new name is ", newName)
     return newName
 
 def paint(m, o, colour, name):
@@ -263,9 +261,9 @@ def move(r, loc1, loc2):
         if res == SUCCESS:
             state.loc[r] = loc2
             #Simulate("%s has moved from %s to %s\n" %(r, loc1, loc2))
-            Simulate('move', r, loc1, loc2)
+            Simulate('move', r, loc1, loc2, "\n")
         else:
-            Simulate("Move has failed due to some internal failure.\n")
+            Simulate("Move of %s has failed due to some internal failure.\n" %r)
     else:
         #Simulate("%s is not in location %s\n" %(r, loc1))
         Simulate("not in location", r, loc1)
@@ -493,7 +491,7 @@ def Order_Method1(taskArgs):
     do_task(taskName, name, *args)
     do_task('deliver', name, rv.BUFFERS['output'])
 
-def GetRobot(loc):
+def GetRobot_Method1(loc):
     free = [r for r in rv.ROBOTS if state.status[r] == 'free']
     dist = [IP_GETDISTANCE(loc, state.loc[r]) for r in free]
     if dist != []:
@@ -506,17 +504,21 @@ def GetRobot(loc):
 
 def Deliver_Method1(o, l):
     loc_o = GetLocation(o)
-    deliveryRobot = GetRobot(loc_o)
-    if deliveryRobot != NIL:
-        if state.loc[deliveryRobot] != loc_o:
-            do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], loc_o)
-        do_command(take, deliveryRobot, o, loc_o)
-        if state.loc[deliveryRobot] != l:
-            do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], l)
-        do_command(put, deliveryRobot, o, l)
-        state.status[deliveryRobot] = 'free'
+    if loc_o in rv.LOCATIONS:
+        deliveryRobot = GetRobot(loc_o)
+        if deliveryRobot != NIL:
+            if state.loc[deliveryRobot] != loc_o:
+                do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], loc_o)
+            do_command(take, deliveryRobot, o, loc_o)
+            if state.loc[deliveryRobot] != l:
+                do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], l)
+            do_command(put, deliveryRobot, o, l)
+            state.status[deliveryRobot] = 'free'
+        else:
+            Simulate("No robot free to deliver %s to location %s\n" %(o, l))
+            do_command(fail)
     else:
-        Simulate("No robot free to deliver %s to location %s\n" %(o, l))
+        Simulate("Some robot is carrying the object %s \n" %o)
         do_command(fail)
 
 def Deliver_Method2(o, l):
@@ -580,3 +582,4 @@ declare_methods('deliver', Deliver_Method1, Deliver_Method2)
 declare_methods('order', Order_Method1)
 declare_methods('repair', Repair_Method1)
 declare_methods('moveTo', MoveTo_Method1)
+declare_commands('getRobot', GetRobot_Method1, GetRobot_Method2, GetRobot_Method3)

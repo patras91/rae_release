@@ -37,6 +37,18 @@ class State():
     def Print(self):
         print(self)
 
+    def EqualTo(self, s):
+        for (key1, val1) in vars(self).items():
+            for sub_k1 in val1:
+                if key1 not in vars(s):
+                    return False
+                else:
+                    if sub_k1 not in vars(s)[key1]:
+                        return False
+                    elif vars(s)[key1][sub_k1] != val1[sub_k1]:
+                        return False
+        return True
+
 class StateDict():
     def __init__(self, d):
         if hasattr(d, '__iter__'):
@@ -114,3 +126,14 @@ def RestoreState(s):
 
 def GetState():
     return state
+
+if __name__=="__main__":
+    s = State()
+    s.a = {1:3, 2:5}
+    s.b = {5:20}
+    t = State()
+    t.a = {1:0, 2:5}
+    t.b = {2:10, 5:20}
+    print(s.EqualTo(t))
+    t.a[1] = 3
+    print(s.EqualTo(t))

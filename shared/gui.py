@@ -11,7 +11,7 @@ globalQueue = Queue()
 class GUI():
     def __init__(self, domain, rv):
         self.domain = domain
-        if domain == 'IP':
+        if domain == 'IP_':
             turtle.Screen()
             tdraw.draw_problem(title="IP_1", rv=rv)
             while(True):
@@ -24,7 +24,7 @@ class GUI():
             self.root.mainloop()
 
     def simulate(self):
-        if self.domain == 'IP':
+        if self.domain == 'IP_':
             if globalQueue.empty() == False:
                 t = globalQueue.get()
                 tdraw.simulate(t)

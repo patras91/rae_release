@@ -1,6 +1,7 @@
 __author__ = 'patras'
 import globals
 import pipes
+from timer import DURATION
 
 class PlanningTree():
     def __init__(self, n, args, type1):
@@ -229,6 +230,13 @@ class ActingNode():
                 res = res + node.GetPreorderTraversal()
             return res
 
+    def GetCost(self):
+        if self.type == 'command':
+            assert(self.label.__name__ != "fail")
+            return DURATION.COUNTER[self.label.__name__]
+        else:
+            return 0
+
 class ActingTree():
     def __init__(self):
         self.root = ActingNode('root')
@@ -248,7 +256,7 @@ class ActingTree():
 
     def GetGuideList(self):
         l1 = self.root.GetPreorderTraversal()
-        l2 = [GuideNode(elem.GetLabel(), elem.GetNextState()) for elem in l1]
+        l2 = [GuideNode(elem.GetLabel(), elem.GetNextState(), elem.GetCost()) for elem in l1]
         l = GuideList(l2)
         return l
 
@@ -264,9 +272,10 @@ class ActingTree():
         return self.root.GetSize()
 
 class GuideNode():
-    def __init__(self, m, s):
+    def __init__(self, m, s, c):
         self.label = m
         self.nextState = s
+        self.cost = c
 
     def GetPrettyString(self):
         if self.label == 'root':
@@ -278,6 +287,9 @@ class GuideNode():
 
     def SetLabel(self, l):
         self.label = l
+
+    def SetCost(self, c):
+        self.cost = c
 
     def GetNextState(self):
         assert(self.nextState != None)
@@ -293,6 +305,9 @@ class GuideNode():
         print("Label: ", self.label)
         print("State: ", self.nextState)
 
+    def GetCost(self):
+        return self.cost
+
 class GuideList():
     def __init__(self, l):
         self.l = l
@@ -306,9 +321,9 @@ class GuideList():
             self.currIndex += 1
             return node
 
-    def append(self, m=None, s=None):
+    def append(self, m=None, s=None, c=0):
         assert(len(self.l) == self.currIndex)
-        n = GuideNode(m, s)
+        n = GuideNode(m, s, c)
         self.l.append(n)
         return n
 
@@ -334,3 +349,13 @@ class GuideList():
 
     def GetStartState(self):
         return self.l[0].GetNextState()
+
+    def GetEff(self):
+        cost = 0
+        for item in self.l:
+            cost += item.GetCost()
+
+        if cost == 0:
+            return float("inf")
+        else:
+            return 1/cost
