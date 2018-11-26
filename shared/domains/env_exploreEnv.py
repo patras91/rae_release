@@ -11,9 +11,8 @@ commandProb = {
     'take': [1, 0],
     'put': [1, 0],
     'charge': [0.96, 0.04],
-    'move': [0.95, 0.05],
-    'fly': [0.94, 0.06],
-    'deposit': [0.95, 0.05],
+    'move': [0.85, 0.15],
+    'deposit': [0.80, 0.20],
     'transferData': [1, 0],
 }
 
@@ -30,7 +29,7 @@ def SenseFly():
     if state.storm['active'] == True:
         p = [0.5, 0.5]
     else:
-        p = [0.94, 0.06]
+        p = [0.90, 0.10]
 
     outcome = numpy.random.choice(len(p), 50, p=p)
     res = outcome[0]

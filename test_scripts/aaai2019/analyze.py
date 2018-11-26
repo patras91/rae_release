@@ -1,25 +1,20 @@
 __author__ = 'patras'
 import matplotlib.pyplot as plt
 import csv
+import argparse
 
 B = {
     'SD': [1, 2, 3, 4],
     'EE': [1, 2, 3],
-    'IP': [1, 2],
+    'IP': [1, 2, 3],
     'CR': [1, 2, 3],
 }
 
 K = {
-    'SD': [0, 1,2,3,4],
-    'EE': [0, 1, 2, 3, 4, 8, 12, 16],
-    'IP': [0, 1, 2],
-    'CR': [0, 1, 2, 3, 4, 8, 12, 16],
-}
-penalty = {
-    'SD': 0.2,
-    'EE': 0.1,
-    'CR': 0.0,
-    'IP': 0.1
+    'SD': [0, 3, 5, 7, 10],
+    'EE': [0, 3, 5, 7, 10], #, 20, 50, 75, 100],
+    'IP': [0, 3, 5, 7, 10],
+    'CR': [0, 3, 5, 7, 10], #20, 30, 40, 50, 60, 70, 75, 80, 90, 100],
 }
 
 succCases = {
@@ -100,6 +95,37 @@ def PopulateHelper(res, domain, f_rae, k):
     res['actTime'].append(actTime)
     res['nu'].append(nu / totalTasks)
 
+def PopulateHelper1(domain, f_rae, k):
+
+    line = f_rae.readline()
+    
+    time = 0
+    
+    while(line != ''):
+
+        parts = line.split(' ')
+
+        if parts[0] == 'Time':
+
+            for i in range(0, 1):
+                
+
+                counts = f_rae.readline()
+
+
+            secTimeLine = f_rae.readline()
+            parts = secTimeLine.split()
+            t = float(parts[5])
+            unit = parts[6]
+            if unit == "msec":
+                t = t / 1000
+            time += t
+
+        line = f_rae.readline()
+
+    print("running time = ", time)
+
+
 def Populate(res, domain):
     for b in B[domain]:
         for k in K[domain]:
@@ -115,6 +141,24 @@ def Populate(res, domain):
                 print(fname)
                 PopulateHelper(res[b], domain, open(fname), k)
                 fptr.close()
+
+def CalculateRunningTime(domain):
+    for b in B[domain]:
+        for k in K[domain]:
+            print("b = ", b, ", k = ", k)
+            if k == 0:
+                f_rae_name = "{}/RAE.txt".format(domain)
+                f_rae = open(f_rae_name, "r")
+                #print(f_rae_name)
+                PopulateHelper1(domain, f_rae, k)
+                f_rae.close()
+            else:
+                fname = '{}/plan_b_{}_k_{}.txt'.format(domain, b, k)
+                fptr = open(fname)
+                #print(fname)
+                PopulateHelper1(domain, open(fname), k)
+                fptr.close()
+
 
 def GeneratePlots():
     resDict = {
@@ -134,9 +178,12 @@ def GeneratePlots():
                 'actTime': [],
                 'nu': []
             }
-    Populate(resDict['CR'], 'CR')
-    Populate(resDict['SD'], 'SD')
-    Populate(resDict['EE'], 'EE')
+    #Populate(resDict['CR'], 'CR')
+    #Populate(resDict['SD'], 'SD')
+    #Populate(resDict['IP'], 'IP')
+    for d in D:
+        Populate(resDict[d], d)
+        #CalculateRunningTime(d)
 
     plt.clf()
     font = {
@@ -148,12 +195,13 @@ def GeneratePlots():
 
     PlotNuAAAI(resDict)
 
-    PlotRetryRatio(resDict)
+    #PlotRetryRatio(resDict)
 
-    PlotSuccessRatio(resDict)
+    #PlotSuccessRatio(resDict)
+
+
 
 def PlotNuAAAI(resDict):
-    D = ['CR', 'EE', 'SD']
     index1 = 'nu'
     width = 0.25
     #K = [0, 1, 2, 3, 4, 8, 16]
@@ -161,12 +209,12 @@ def PlotNuAAAI(resDict):
     for domain in D:
         plt.clf()
         fname = 'Nu_{}.png'.format(domain)
-        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=2, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=2, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
         line3, = plt.plot(K[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         if domain == 'SD':
-            line4, = plt.plot(K[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
+            line4, = plt.plot(K[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')        
         #plt.legend(bbox_to_anchor=(1.05, 0.9), loc=2, borderaxespad=0.)
                 
         # Create a legend for the first line.
@@ -184,7 +232,9 @@ def PlotNuAAAI(resDict):
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
             
         plt.xlabel('k')
-        plt.ylabel('Efficiency, $\\nu$') 
+        plt.xticks([0, 3, 5, 7, 10],
+           ['0', '3', '5', '7', '10'])
+        plt.ylabel('Efficiency, $E$') 
         plt.savefig(fname, bbox_inches='tight')
 
 def CheckIn(l, e):
@@ -204,14 +254,13 @@ def normalize(l):
     return lret
 
 def PlotRetryRatio(resDict):
-    D = ['CR', 'EE', 'SD']
     index1 = 'retryRatio'
     width = 0.25
 
     for domain in D:
         plt.clf()
-        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=2, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=2, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
         line3, = plt.plot(K[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         if domain == 'SD':
@@ -219,19 +268,20 @@ def PlotRetryRatio(resDict):
         
         fname = 'RetryRatio_{}.png'.format(domain)
         plt.xlabel('k')
+        plt.xticks([0, 3, 5, 7, 10],
+           ['0', '3', '5', '7', '10'])
         plt.ylabel('Retry Ratio')
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotSuccessRatio(resDict):
-    D = ['CR', 'EE', 'SD']
     index1 = 'successRatio'
     width = 0.25
 
     for domain in D:
         plt.clf()
-        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=2, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=2, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
         line3, = plt.plot(K[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         if domain == 'SD':
@@ -239,10 +289,11 @@ def PlotSuccessRatio(resDict):
         
         fname = 'SuccessRatio_{}.png'.format(domain)
         plt.xlabel('k')
+        plt.xticks([0, 3, 5, 7, 10],
+           ['0', '3', '5', '7', '10'])
         plt.ylabel('Success Ratio')
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
         plt.savefig(fname, bbox_inches='tight')
-
 
 def GetSum(*l):
     size = len(l[0])
@@ -271,5 +322,14 @@ def Plot(val, res, domain, plotMode, ii):
     #plt.legend(bbox_to_anchor=(1.05, 0.9), loc=2, borderaxespad=0.)
     #plt.savefig(fname, bbox_inches='tight')
 
+D = None
+
 if __name__=="__main__":
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--d", help="domain",
+                           type=str, required=True)
+    args = argparser.parse_args()
+    print(" k is ", K['EE'])
+
+    D = [args.d]
     GeneratePlots()

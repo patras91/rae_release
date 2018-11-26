@@ -250,7 +250,7 @@ def Recharge_Method3(r, c):
     ape.do_command(take, r, c)
 
 def Recharge_Method2(r, c):
-    """ Robot r charges and goes not carry the charger with it """
+    """ Robot r charges and does not carry the charger with it """
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
         if state.pos[c] in rv.LOCATIONS:
             ape.do_task('moveTo', r, state.pos[c])
@@ -380,7 +380,7 @@ ape.declare_commands([put, take, perceive, charge, move, moveToEmergency, addres
 
 ape.declare_methods('search', Search_Method1, Search_Method2)
 ape.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
-ape.declare_methods('recharge', Recharge_Method1, Recharge_Method3, Recharge_Method2)
+ape.declare_methods('recharge', Recharge_Method1, Recharge_Method2, Recharge_Method3)
 ape.declare_methods('moveTo', MoveTo_Method1)
 ape.declare_methods('emergency', Emergency_Method1)
 ape.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)

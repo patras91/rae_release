@@ -5,9 +5,9 @@ from domain_chargeableRobot import rv
 from domain_constants import *
 
 commandProb = {
-    'take': [0.98, 0.02],
+    'take': [0.9, 0.1],
     'put': [0.99, 0.01],
-    'charge': [0.98, 0.02],
+    'charge': [0.90, 0.10],
     'moveToEmergency': [0.99, 0.01],
     'move': [0.95, 0.05],
     'addressEmergency': [0.98, 0.02],

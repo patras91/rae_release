@@ -28,6 +28,17 @@ DURATION.COUNTER = {
     'put': 2,
  }
 
+#
+#   _______________________________________
+#  |      |      |        |       |   r2  |
+#  |      |      |    r1  |    o1 |       |
+#  |   5  d1  2  |    3   |   4   d2  6   |
+#  |      |      |        |       |       |
+#  |______|______|___d3___|_______|_______|
+#                |        |
+#                |   1    |  
+#                |     o2 | 
+#                |________| 
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6]
 rv.EDGES = {
@@ -46,13 +57,13 @@ rv.DOORTYPES = { 'd1': 'ordinary', 'd2': 'ordinary', 'd3': 'ordinary'}
 def ResetState():
     state.load = {'r1': NIL, 'r2': NIL}
     state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed'}
-    state.loc = {'r1': 5, 'r2': 6}
+    state.loc = {'r1': 3, 'r2': 6}
     state.pos = {'o1': 4, 'o2': 1}
     state.done = {0: False}
     state.doorType = {'d1': UNK, 'd2': UNK, 'd3': UNK}
 
 tasks = {
-    1: ['fetch', 'r1', 'o1', 2],
+    5: [['fetch', 'r1', 'o1', 2]],
 }
 
 eventsEnv = {

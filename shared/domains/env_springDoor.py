@@ -4,7 +4,7 @@ from domain_springDoor import rv
 from state import state
 
 commandProb = {
-    'unlatch1': [0.95, 0.05],
+    'unlatch1': [0.8, 0.2],
     'unlatch2': [0.5, 0.5],
     'take': [1, 0],
     'put': [1, 0],

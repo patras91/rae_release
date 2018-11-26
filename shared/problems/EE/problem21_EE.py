@@ -47,7 +47,9 @@ DURATION.COUNTER = {
 #      z7      \_________________z4
 #
 #
-# tests w/ charging
+# tests w/ charging 
+# success with RAE
+
 rv.TYPE = {'e1': 'survey', 'e2': 'monitor', 'e3': 'screen', 'e4': 'sample', 'e5':'process'}
 rv.EQUIPMENT = {'survey': 'e1', 'monitor': 'e2', 'screen': 'e3', 'sample': 'e4', 'process': 'e5'}
 rv.LOCATIONS = ['base', 'z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7']
@@ -95,7 +97,7 @@ def ResetState():
     state.storm = {'active': False}
     
 tasks =  {
-    1: ['flyTo', 'UAV', 'z3'],
+    2: [['flyTo', 'UAV', 'z3']],
     #3: ['explore', 'r1', 'process', 'z5'],
     #5: ['handleEmergency', 'r1', 'z2']
 }

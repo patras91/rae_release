@@ -60,8 +60,8 @@ def ResetState():
     state.doorType = {'d1': UNK, 'd2': UNK, 'd3': UNK}
 
 tasks = {
-    1: ['moveTo', 'r2', 1],
-    2: ['fetch', 'r1', 'o1', 1]
+    2: [['moveTo', 'r2', 1]],
+    3: [['fetch', 'r1', 'o1', 1]]
 }
 
 eventsEnv = {

@@ -40,6 +40,9 @@ class rL_APE(rL):
     def SetCurrentNode(self, node):
         self.rL.aT.SetCurrNode(node) 
 
+    def GetCurrentNode(self):
+        return self.rL.aT.GetCurrNode()
+
     def GetCurrentNodes(self):
         aT = self.rL.aT
         parent = aT.GetCurrNode()

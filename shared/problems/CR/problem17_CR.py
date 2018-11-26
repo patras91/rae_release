@@ -54,9 +54,9 @@ def ResetState():
         state.view[l] = False
 
 tasks = {
-    1: ['fetch', 'r1', 'o1'],
-    2: ['fetch', 'r2', 'o2'],
-    3: ['emergency', 'r1', 4, 1]
+    2: [['fetch', 'r1', 'o1']],
+    3: [['fetch', 'r2', 'o2']],
+    5: [['emergency', 'r1', 4, 1]]
 
 }
 

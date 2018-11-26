@@ -196,9 +196,11 @@ def RAE1(task, raeArgs):
     if retcode == 'Failure':
         raeLocals.SetEfficiency(0)
 
+    raeLocals.GetActingTree().PrintUsingGraphviz()
     return (retcode, raeLocals.GetRetryCount(), raeLocals.GetEfficiency())
 
 def InitializeStackLocals(task, raeArgs):
+    """ Initialize the local variables of a stack used during acting """
     raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
     raeLocals.SetRetryCount(0)           # to keep track of the number of retries in the current stack. This is used to calculate retry ratio
     raeLocals.SetCommandCount({})        # to keep track of the number of instances of every commands executed. Used to calculate the speed to success
@@ -207,7 +209,7 @@ def InitializeStackLocals(task, raeArgs):
     raeLocals.SetMainTaskArgs(raeArgs.taskArgs)
 
     aT = rTree.ActingTree()
-    aT.SetNextState(GetState().copy())
+    aT.SetPrevState(GetState().copy())
     raeLocals.SetActingTree(aT)
     raeLocals.SetEfficiency(float("inf"))
     
@@ -226,7 +228,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         args=[raeLocals.GetMainTask(), 
         raeLocals.GetMainTaskArgs(), 
         queue, 
-        candidates, 
+        candidates,
         GetState().copy(),
         raeLocals.GetGuideList()])
 
@@ -262,7 +264,6 @@ def DoTaskInRealWorld(task, taskArgs):
     """
     Function to do the task in real world
     """
-
     PushToPath(task, taskArgs)
     v_begin(task, taskArgs)
 
@@ -275,10 +276,11 @@ def DoTaskInRealWorld(task, taskArgs):
     while (retcode != 'Success'):
 
         node.Clear() # Clear it on every iteration for a fresh start
+        node.SetPrevState(GetState().copy())
+
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
         node.SetLabelAndType(m, 'method')
         raeLocals.SetCurrentNode(node)
-        node.SetNextState(GetState().copy())
         retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
 
         if candidates == []:
@@ -306,8 +308,12 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
 
     retcode = 'Failure'
     try:
-        EndCriticalRegion()
-        BeginCriticalRegion(stackid)
+        if globals.GetPlanningMode() == False:
+            EndCriticalRegion()
+            BeginCriticalRegion(stackid)
+            node = raeLocals.GetCurrentNode()
+            node.SetPrevState(GetState().copy())
+
         if verbose > 0:
             print_stack_size(stackid, path)
             print("Executing method {}{}".format(m.__name__, taskArgs))
@@ -403,25 +409,28 @@ def RAEplanChoice(task, planArgs):
         print('Final state is:')
         PrintState()
 
+    plannedTree.PrintUsingGraphviz()
     return (plannedTree, globalTimer.GetSimulationCounter())
     
 def GetCandidates(task):
+    """ Called from PlanTask """
     if planLocals.GetCandidates() != None:
         # when candidates is a subset of the applicable methods, it is available from planLocals
         candidates = planLocals.GetCandidates()[:]
         planLocals.SetCandidates(None) # resetting planLocals for the rest of the search
-        state = planLocals.GetState()
+        prevState = planLocals.GetState()
     else:
         candidates = methods[task][:] # set of applicable methods
-        state = GetState()
+        prevState = GetState()
         
     b = globals.Getb()
     cand = candidates[0:min(b, len(candidates))]
-    return cand, state
+    return cand, prevState
 
 def FollowGuide_task(task, taskArgs, nextNode):
     m = nextNode.GetLabel()
-    RestoreState(nextNode.GetNextState())
+    RestoreState(nextNode.GetPrevState())
+    #assert(m in methods[task])
     tree = PlanMethod(m, task, taskArgs)
     return tree
 
@@ -430,9 +439,10 @@ def Reinitialize(m, s, newNode, guideList, name, args):
     if m == 'command':
         newNode.SetLabel(name)
         newNode.SetCost(GetCost(name, args))
+        newNode.SetNextState(s)
     else:
         newNode.SetLabel(m)
-    newNode.SetNextState(s)
+        newNode.SetPrevState(s)
     
     pRoot = planLocals.GetPlanningTree()
     if pRoot.children == []:
@@ -473,6 +483,7 @@ def PlanTask(task, taskArgs):
 
     newNode = guideList.append()
 
+    #planLocals.GetPlanningTree().PrintUsingGraphviz()
     for m in cand:
         firstTask, firstTaskArgs, pRoot = Reinitialize(m, state, newNode, guideList, task, taskArgs)
         try:
@@ -493,7 +504,7 @@ def PlanTask(task, taskArgs):
 
 def PlanMethod(m, task, taskArgs):
     global path
-    path[planLocals.GetStackId()].append([task, taskArgs])
+    #path[planLocals.GetStackId()].append([task, taskArgs])
     savedNode = planLocals.GetCurrentNode()
     
     newNode = rTree.PlanningTree(m, taskArgs, 'method')
@@ -502,7 +513,7 @@ def PlanMethod(m, task, taskArgs):
 
     retcode = CallMethod_OperationalModel(planLocals.GetStackId(), m, taskArgs)
 
-    path[planLocals.GetStackId()].pop()
+    #path[planLocals.GetStackId()].pop()
     if verbose > 1:
         print_entire_stack(planLocals.GetStackId(), path)
 
@@ -573,12 +584,13 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     retcode = cmdRet['state']
 
     par, cmdNode = raeLocals.GetCurrentNodes()
+
     cmdNode.SetLabelAndType(cmd, 'command')
     cmdNode.SetNextState(GetState().copy())
 
     if verbose > 1:
         print_stack_size(raeLocals.GetStackId(), path)
-        print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
+        print('Command {}{} returned {}'.format(cmd.__name__, cmdArgs, retcode))
         print_stack_size(raeLocals.GetStackId(), path)
         print('Current state is')
         PrintState()
@@ -623,15 +635,17 @@ def CallCommand_OperationalModel(cmd, cmdArgs):
     cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
     cmdThread.start()
 
-    EndCriticalRegion()
-    BeginCriticalRegion(planLocals.GetStackId())
+    if globals.GetPlanningMode() == False:
+        EndCriticalRegion()
+        BeginCriticalRegion(planLocals.GetStackId())
 
     while (cmdRet['state'] == 'running'):
         if verbose > 0:
             print_stack_size(planLocals.GetStackId(), path)
             print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
-        EndCriticalRegion()
-        BeginCriticalRegion(planLocals.GetStackId())
+        if globals.GetPlanningMode() == False:
+            EndCriticalRegion()
+            BeginCriticalRegion(planLocals.GetStackId())
 
     if verbose > 0:
         print_stack_size(planLocals.GetStackId(), path)
@@ -692,6 +706,7 @@ def PlanCommand(cmd, cmdArgs):
                     effList.append(0)
                     outcomeStates.append(nextState)
                     effs.append(0)
+                    planLocals.SetCurrentNode(pRoot)
                     continue
 
                 tree = pRoot
