@@ -10,14 +10,14 @@ else:
 
 from state import state
 import gui
-from timer import globalTimer
+from timer import globalTimer, DURATION
 import globals
 
 def fail():
     return FAILURE
 
-# Using Dijsktra's algorithm
-def PD_GETDISTANCE(l0, l1):
+# Using Dijsktra's algorithm for ground distance
+def OF_GETDISTANCE_GROUND(l0, l1):
     visitedDistances = {l0: 0}
     locs = list(rv.LOCATIONS)
 
@@ -36,12 +36,58 @@ def PD_GETDISTANCE(l0, l1):
         locs.remove(min_loc)
         current_dist = visitedDistances[min_loc]
 
-        for l in rv.EDGES[min_loc]:
-            dist = current_dist + 1
+        for l in rv.GROUND_EDGES[min_loc]:
+            if min_loc < l:
+                dist = current_dist + rv.GROUND_WEIGHTS[(min_loc, l)]
+            else:
+                dist = current_dist + rv.GROUND_WEIGHTS[(l, min_loc)]
+
             if l not in visitedDistances or dist < visitedDistances[l]:
                 visitedDistances[l] = dist
 
     return visitedDistances[l1]
+
+
+# Using Dijsktra's algorithm for air distance
+def OF_GETDISTANCE_AIR(l0, l1):
+    visitedDistances = {l0: 0}
+    locs = list(rv.AIRPORTS)
+
+    while locs:
+        min_loc = None
+        for loc in locs:
+            if loc in visitedDistances:
+                if min_loc is None:
+                    min_loc = loc
+                elif visitedDistances[loc] < visitedDistances[min_loc]:
+                    min_loc = loc
+
+        if min_loc is None:
+            break
+
+        locs.remove(min_loc)
+        current_dist = visitedDistances[min_loc]
+
+        for l in rv.AIR_EDGES[min_loc]:
+            if min_loc < l:
+                dist = current_dist + rv.AIR_WEIGHTS[(min_loc, l)]
+            else:
+                dist = current_dist + rv.AIR_WEIGHTS[(l, min_loc)]
+
+            if l not in visitedDistances or dist < visitedDistances[l]:
+                visitedDistances[l] = dist
+
+    return visitedDistances[l1]
+
+
+# a dummy action that does nothing for 1 time unit
+def dummyAction():
+    start = globalTimer.GetTime()
+    while (globalTimer.IsCommandExecutionOver('dummyAction', start) == False):
+        pass
+
+    return SUCCESS
+
 
 def Order_Method1(item, l, type):
     # order from item i of shipping type type, to location l
@@ -51,15 +97,18 @@ def Order_Method1(item, l, type):
 
 # Refinement methods for find
 
+
 def Find_Method1(item):
     # search an online database
     loc_item = state.loc[item]
     if loc_item == UNK:
-        ape.do_command(lookupDB, item, state.NationalDatabase)
+        ape.do_command(lookupDB, item)
 
-def lookupDB(item, database):
+
+def lookupDB(item):
     state.loc.AcquireLock(item)
-    database.AcquireLock(item)
+    state.NationalDatabase.AcquireLock(item)
+
     start = globalTimer.GetTime()
 
     while(globalTimer.IsCommandExecutionOver('lookupDB', start) == False):
@@ -67,10 +116,10 @@ def lookupDB(item, database):
 
     res = Sense('lookupDB')
     if res == SUCCESS:
-        gui.Simulate("Found item %s from database \n" % item)
-        state.loc[item] = database[item]
+        gui.Simulate("Found item %s from database\n" % item)
+        state.loc[item] = state.NationalDatabase[item]
     else:
-        gui.Simulate("Database %database is down \n" % (item, database))
+        gui.Simulate("National database is down\n")
 
     state.NationalDatabase.ReleaseLock(item)
     state.loc.ReleaseLock(item)
@@ -90,18 +139,36 @@ def Find_Method3(item):
 '''
 
 # Refinement methods for pack
-
+# TODO get rid of the dummyAction from here and put
+# into moveRobot if possible
 def Pack_Method1(item):
     ape.do_task('getRobot', state.loc[item])
     r = state.var1['temp']
+
+    #TODO do I need to lock this?
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[item])
     ape.do_command(moveRobot, r, state.loc[r], state.loc[item])
+
+    while dist > 0:
+        ape.do_command(dummyAction)
+        dist -= 1
+
     ape.do_command(pickup, r, item)
 
     ape.do_task('getMachine', state.loc[r])
     m = state.var1['temp1']
+
+    # TODO do I need to lock this?
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
     ape.do_command(moveRobot, r, state.loc[r], state.loc[m])
+
+    while dist > 0:
+        ape.do_command(dummyAction)
+        dist -= 1
+
     ape.do_command(loadMachine, r, m, item)
     ape.do_command(wrap, m, item)
+
 
 def moveRobot(r, l1, l2):
     state.loc.AcquireLock(r)
@@ -109,13 +176,14 @@ def moveRobot(r, l1, l2):
     if l1 == l2:
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
-    elif state.loc[r] == l1:
-        start = globalTimer.GetTime()
 
-        #TODO how to make the command durration dependent on distance
-        while(globalTimer.IsCommandExecutionOver('moveRobot', start) == False):
-           pass
+    elif l2 not in rv.ROBOTS[r]:
+        gui.Simulate("Robot %s can't leave the factory\n" % r)
+        res = FAILURE
+
+    elif state.loc[r] == l1:
         res = Sense('moveRobot')
+
         if res == SUCCESS:
             gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
             state.loc[r] = l2
@@ -169,6 +237,8 @@ def loadMachine(r, m, item):
     state.loc.AcquireLock(r)
     state.loc.AcquireLock(m)
     state.loc.AcquireLock(item)
+    state.busy.AcquireLock(r)
+    state.busy.AcquireLock(m)
 
     if state.loc[r] != state.loc[m]:
         gui.Simulate("Robot %s isn't at machine %s" % (r, m))
@@ -184,9 +254,13 @@ def loadMachine(r, m, item):
             gui.Simulate("Robot %s loaded machine %s with item %s\n" % (r, m, item))
             state.load[r] = NIL
             state.loc[item] = state.loc[m]
+            state.busy[r] = False
+            state.busy[m] = item
         else:
             gui.Simulate("Robot %s failed to load machine %s\n" % (r, m))
 
+    state.busy.ReleaseLock(m)
+    state.busy.ReleaseLock(r)
     state.loc.ReleaseLock(item)
     state.loc.ReleaseLock(m)
     state.loc.ReleaseLock(r)
@@ -218,10 +292,10 @@ def acquireRobot(r):
 
     return res
 
-
+#TODO could have a problem b/c not locking state.loc[r]
 def GetRobot_Method1(l):
     # return the robot which is nearest
-    r0 = min(rv.ROBOTS, key=lambda r: PD_GETDISTANCE(state.loc[r], l))
+    r0 = min(list(rv.ROBOTS), key=lambda r: OF_GETDISTANCE_GROUND(state.loc[r], l))
 
     res = ape.do_command(acquireRobot, r0)
 
@@ -236,18 +310,54 @@ def GetRobot_Method2(l):
     # return the one which is already going to l or nearby areas
     gui.Simulate("Method not implemented")
     ape.do_command(fail)
-
-def GetRobot_Method3(l):
-    # return the one which is free
-    gui.Simulate("Method not implemented")
-    ape.do_command(fail)
 '''
+
+#TODO could have a problem b/c not locking state.busy[r]
+def GetRobot_Method3(l):
+    # return the one which is free, given it's in the factory
+    r0 = NIL
+
+    for r in list(rv.ROBOTS):
+        if state.busy[r] == False and l in rv.ROBOTS[r]:
+            r0 = r
+            break
+
+    if r0 == NIL:
+        return FAILURE
+
+    res = ape.do_command(acquireRobot, r0)
+
+    state.var1.AcquireLock('temp')
+    state.var1['temp'] = r0
+    state.var1.ReleaseLock('temp')
+
+    return res
+
 
 # Refinement methods for getMachine
 
 def GetMachine_Method1(l):
     # return the machine closest to the sent location (robot's loc)
-    m0 = min(rv.MACHINES, key=lambda m: PD_GETDISTANCE(state.loc[m], l))
+    m0 = min(rv.MACHINES, key=lambda m: OF_GETDISTANCE_GROUND(state.loc[m], l))
+
+    state.var1.AcquireLock('temp1')
+    state.var1['temp1'] = m0
+    state.var1.ReleaseLock('temp1')
+
+    return SUCCESS
+
+#TODO could have a problem b/c not locking state.busy[r]
+def GetMachine_Method2(l):
+    # return a machine that isn't busy and in the factory
+    m0 = NIL
+
+    for m in rv.MACHINES:
+        if state.busy[m] == False and l in rv.MACHINES[m]:
+            m0 = m
+            break
+
+    if m0 == NIL:
+        return FAILURE
 
     state.var1.AcquireLock('temp1')
     state.var1['temp1'] = m0
@@ -258,9 +368,13 @@ def GetMachine_Method1(l):
 def wrap(m, item):
     state.loc.AcquireLock(m)
     state.loc.AcquireLock(item)
+    state.busy.AcquireLock(m)
 
     if state.loc[m] != state.loc[item]:
         gui.Simulate("Machine %s not loaded with item %s\n" % (m,item))
+        res = FAILURE
+    elif state.busy[m] != item:
+        gui.Simulate("Machine %s is busy\n" % m)
         res = FAILURE
     else:
         start = globalTimer.GetTime()
@@ -271,61 +385,137 @@ def wrap(m, item):
 
         if res == SUCCESS:
             gui.Simulate("Machine %s wrapped item %s\n" % (m, item))
+            state.busy[m] = False
         else:
             gui.Simulate("Machine %s jammed. Failed to wrap %s\n" % (m, item))
 
+    state.busy.ReleaseLock(m)
     state.loc.ReleaseLock(item)
     state.loc.ReleaseLock(m)
 
     return res
 
+
 # Refinement methods for deliver
+
 
 def Deliver_Method1(item, l, type):
     if type == 'slow':
         '''Search for the transport that minimizes the cost:
                 there can be multiple methods fo doing this
         '''
-        gui.Simulate("%s is an unsupported delivery type\n" % type)
-        ape.do_command(fail)
+        dist = OF_GETDISTANCE_GROUND(state.loc[item], l)
+        dist = dist * 5 + 15
+
+        ape.do_command(groundShip, item, l)
+
+        while dist > 0:
+            #ape.do_command(dummyAction)
+            dist -= 1
     elif type == 'fast':
         ''' Search for the fastest flight/ground transportation
         '''
-        ape.do_command(groundShip, item, l)
+        ape.do_task('fastShip', item, l)
     else:
         gui.Simulate("%s is an unsupported delivery type\n" % type)
         ape.do_command(fail)
 
+
+def FastShip_Method1(item, l):
+    # Flies by going to the airport closest to item and flying to
+    # the airport closest to l
+
+    # find the closest airport to item's location
+    a0 = min(rv.AIRPORTS, key=lambda a: OF_GETDISTANCE_GROUND(state.loc[item],a))
+
+    dist = OF_GETDISTANCE_GROUND(state.loc[item], a0)
+    dist = dist*5+15
+
+    ape.do_command(groundShip, item, a0)
+
+    while dist > 0:
+        #ape.do_command(dummyAction)
+        dist -= 1
+
+    # now find the closest airport to item's destination
+    a1 = min(rv.AIRPORTS, key=lambda a: OF_GETDISTANCE_GROUND(a, l))
+
+    dist = OF_GETDISTANCE_AIR(state.loc[item], a1)
+    dist = dist*1+100
+
+    ape.do_command(airShip, item, a1)
+
+    while dist > 0:
+        #ape.do_command(dummyAction)
+        dist -= 1
+
+    # ship the item to the final destination
+    dist = OF_GETDISTANCE_GROUND(state.loc[item], l)
+    dist = dist * 5 + 15
+
+    ape.do_command(groundShip, item, l)
+
+    while dist > 0:
+        #ape.do_command(dummyAction)
+        dist -= 1
+
+
+def FastShip_Method2(item, l):
+    # Ships the item by ground
+    dist = OF_GETDISTANCE_GROUND(state.loc[item], l)
+    dist = dist * 5 + 15
+
+    ape.do_command(groundShip, item, l)
+
+    while dist > 0:
+        #ape.do_command(dummyAction)
+        dist -= 1
+
+# TODO figure out if I can build the dummy action directly into groundShip
 def groundShip(item, l):
     state.loc.AcquireLock(item)
 
-    start = globalTimer.GetTime()
-    while (globalTimer.IsCommandExecutionOver('groundShip', start) == False):
-        pass
-
-    res = Sense('wrap')
+    res = Sense('groundShip')
 
     if res == SUCCESS:
-        gui.Simulate("Delivered item %s\n" % item)
+        gui.Simulate("Ground shipped item %s to loc %s\n" % (item, l))
         state.loc[item] = l
     else:
         gui.Simulate("Failed to deliver item %s\n" % item)
 
-    state.loc.ReleaseLock
+    state.loc.ReleaseLock(item)
+
+    return res
+
+
+def airShip(item, l):
+    state.loc.AcquireLock(item)
+
+    res = Sense('airShip')
+
+    if res == SUCCESS:
+        gui.Simulate("Flew item %s to loc %s\n" % (item, l))
+        state.loc[item] = l
+    else:
+        gui.Simulate("Failed to send item %s\n" % item)
+
+    state.loc.ReleaseLock(item)
 
     return res
 
 rv = RV()
-ape.declare_commands([lookupDB, fail, moveRobot, wrap, pickup, acquireRobot, loadMachine, groundShip])
+ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
+                      loadMachine, groundShip, airShip, dummyAction, moveRobot])
 
 ape.declare_methods('order', Order_Method1)
 ape.declare_methods('find', Find_Method1)
 ape.declare_methods('pack', Pack_Method1)
-ape.declare_methods('getRobot', GetRobot_Method1)
-ape.declare_methods('getMachine', GetMachine_Method1)
+ape.declare_methods('getRobot', GetRobot_Method1, GetRobot_Method3)
+ape.declare_methods('getMachine', GetMachine_Method1, GetMachine_Method2)
 ape.declare_methods('deliver', Deliver_Method1)
+ape.declare_methods('fastShip', FastShip_Method1, FastShip_Method2)
 
 
-from env_packageDelivery import *
+from env_orderFulfillment import *
 
 
