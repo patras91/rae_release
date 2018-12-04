@@ -142,7 +142,7 @@ def Find_Method3(item):
 # TODO get rid of the dummyAction from here and put
 # into moveRobot if possible
 def Pack_Method1(item):
-    ape.do_task('getRobot', state.loc[item])
+    ape.do_task('getRobot', state.loc[item], rv.OBJ_WEIGHT[item])
     r = state.var1['temp']
 
     #TODO do I need to lock this?
@@ -225,6 +225,13 @@ def pickup(r, item):
         res = FAILURE
     elif state.loc[r] != state.loc[item]:
         gui.Simulate("Robot %s and item %s are in different locations" % (r, item))
+        res = FAILURE
+    elif rv.OBJ_WEIGHT[item] > rv.ROBOT_CAPACITY[r]:
+        start = globalTimer.GetTime()
+        while (globalTimer.IsCommandExecutionOver('pickup', start) == False):
+            pass
+
+        gui.Simulate("Item %s is too heavy for robot %s to pick up\n" % (item, r))
         res = FAILURE
     else:
         start = globalTimer.GetTime()
@@ -359,7 +366,7 @@ def freeRobot(r):
     return res
 
 #TODO could have a problem b/c not locking state.loc[r]
-def GetRobot_Method1(l):
+def GetRobot_Method1(l, c):
     # return the robot which is nearest
     r0 = min(list(rv.ROBOTS), key=lambda r: OF_GETDISTANCE_GROUND(state.loc[r], l))
 
@@ -379,12 +386,33 @@ def GetRobot_Method2(l):
 '''
 
 #TODO could have a problem b/c not locking state.busy[r]
-def GetRobot_Method3(l):
+def GetRobot_Method3(l, c):
     # return the one which is free, given it's in the factory
     r0 = NIL
 
     for r in list(rv.ROBOTS):
         if state.busy[r] == False and l in rv.ROBOTS[r]:
+            r0 = r
+            break
+
+    if r0 == NIL:
+        return FAILURE
+
+    res = ape.do_command(acquireRobot, r0)
+
+    state.var1.AcquireLock('temp')
+    state.var1['temp'] = r0
+    state.var1.ReleaseLock('temp')
+
+    return res
+
+def GetRobot_Method4(l, c):
+    # return one which has a high enough capacity,
+    # given it's in the factory
+    r0 = NIL
+
+    for r in list(rv.ROBOTS):
+        if rv.ROBOT_CAPACITY[r] >= c and l in rv.ROBOTS[r]:
             r0 = r
             break
 
@@ -585,7 +613,7 @@ ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
 ape.declare_methods('order', Order_Method1)
 ape.declare_methods('find', Find_Method1)
 ape.declare_methods('pack', Pack_Method1)
-ape.declare_methods('getRobot', GetRobot_Method1, GetRobot_Method3)
+ape.declare_methods('getRobot', GetRobot_Method1, GetRobot_Method3, GetRobot_Method4)
 ape.declare_methods('getMachine', GetMachine_Method1, GetMachine_Method2)
 ape.declare_methods('deliver', Deliver_Method1)
 ape.declare_methods('fastShip', FastShip_Method1, FastShip_Method2)
