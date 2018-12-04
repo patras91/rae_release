@@ -169,6 +169,23 @@ def Pack_Method1(item):
     ape.do_command(loadMachine, r, m, item)
     ape.do_command(wrap, m, item)
 
+    # now move item to the shipping doc
+    ape.do_command(pickup, r, item)
+
+    # TODO do I need to lock this?
+    doc = rv.SHIPPING_DOC[rv.ROBOTS[r]]
+
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], doc)
+    ape.do_command(moveRobot, r, state.loc[r], doc)
+
+    while dist > 0:
+        ape.do_command(dummyAction)
+        dist -= 1
+
+    ape.do_command(putdown, r, item)
+    ape.do_command(freeRobot, r)
+
+
 
 def moveRobot(r, l1, l2):
     state.loc.AcquireLock(r)
@@ -231,13 +248,39 @@ def pickup(r, item):
 
     return res
 
+def putdown(r, item):
+    state.load.AcquireLock(r)
+    state.loc.AcquireLock(r)
+    state.loc.AcquireLock(item)
+
+    if state.load[r] != item:
+        gui.Simulate("Robot %s is not carrying the object %s\n" % (r, item))
+        res = FAILURE
+    else:
+        start = globalTimer.GetTime()
+        while (globalTimer.IsCommandExecutionOver('putdown', start) == False):
+            pass
+        res = Sense('putdown')
+
+        if res == SUCCESS:
+            gui.Simulate("Robot %s put down %s at loc %s\n" % (r, item, state.loc[r]))
+            state.loc[item] = state.loc[r]
+            state.load[r] = NIL
+        else:
+            gui.Simulate("Robot %s failed to put down %s\n" % (r, item))
+
+    state.loc.ReleaseLock(item)
+    state.loc.ReleaseLock(r)
+    state.load.ReleaseLock(r)
+
+    return res
+
 
 def loadMachine(r, m, item):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
     state.loc.AcquireLock(m)
     state.loc.AcquireLock(item)
-    state.busy.AcquireLock(r)
     state.busy.AcquireLock(m)
 
     if state.loc[r] != state.loc[m]:
@@ -254,13 +297,11 @@ def loadMachine(r, m, item):
             gui.Simulate("Robot %s loaded machine %s with item %s\n" % (r, m, item))
             state.load[r] = NIL
             state.loc[item] = state.loc[m]
-            state.busy[r] = False
             state.busy[m] = item
         else:
             gui.Simulate("Robot %s failed to load machine %s\n" % (r, m))
 
     state.busy.ReleaseLock(m)
-    state.busy.ReleaseLock(r)
     state.loc.ReleaseLock(item)
     state.loc.ReleaseLock(m)
     state.loc.ReleaseLock(r)
@@ -283,8 +324,33 @@ def acquireRobot(r):
         gui.Simulate("Robot %s is carrying an object\n" % r)
         res = FAILURE
     else:
+        start = globalTimer.GetTime()
+        while (globalTimer.IsCommandExecutionOver('acquireRobot', start) == False):
+            pass
+
         gui.Simulate("Robot %s is acquired for a new task\n" % r)
         state.busy[r] = True
+        res = SUCCESS
+
+    state.load.ReleaseLock(r)
+    state.busy.ReleaseLock(r)
+
+    return res
+
+def freeRobot(r):
+    state.busy.AcquireLock(r)
+    state.load.AcquireLock(r)
+
+    if state.load[r] != NIL:
+        gui.Simulate("Robot %s is carrying an object\n" % r)
+        res = FAILURE
+    else:
+        start = globalTimer.GetTime()
+        while (globalTimer.IsCommandExecutionOver('freeRobot', start) == False):
+            pass
+
+        gui.Simulate("Robot %s is now free\n" % r)
+        state.busy[r] = False
         res = SUCCESS
 
     state.load.ReleaseLock(r)
@@ -475,13 +541,17 @@ def FastShip_Method2(item, l):
 def groundShip(item, l):
     state.loc.AcquireLock(item)
 
-    res = Sense('groundShip')
-
-    if res == SUCCESS:
-        gui.Simulate("Ground shipped item %s to loc %s\n" % (item, l))
-        state.loc[item] = l
+    if state.loc[item] in rv.FACTORY_UNION and state.loc[item] not in rv.SHIPPING_DOC.values():
+        print("Vals:",rv.SHIPPING_DOC.values())
+        gui.Simulate("Item %s is at loc %s, not in a shipping doc\n" % (item,state.loc[item]))
+        res = FAILURE
     else:
-        gui.Simulate("Failed to deliver item %s\n" % item)
+        res = Sense('groundShip')
+        if res == SUCCESS:
+            gui.Simulate("Ground shipped item %s to loc %s\n" % (item, l))
+            state.loc[item] = l
+        else:
+            gui.Simulate("Failed to deliver item %s\n" % item)
 
     state.loc.ReleaseLock(item)
 
@@ -491,13 +561,17 @@ def groundShip(item, l):
 def airShip(item, l):
     state.loc.AcquireLock(item)
 
-    res = Sense('airShip')
-
-    if res == SUCCESS:
-        gui.Simulate("Flew item %s to loc %s\n" % (item, l))
-        state.loc[item] = l
+    if state.loc[item] not in rv.AIRPORTS:
+        gui.Simulate("Item %s not in an airport\n" % item)
+        res = FAILURE
     else:
-        gui.Simulate("Failed to send item %s\n" % item)
+        res = Sense('airShip')
+
+        if res == SUCCESS:
+            gui.Simulate("Flew item %s to loc %s\n" % (item, l))
+            state.loc[item] = l
+        else:
+            gui.Simulate("Failed to send item %s\n" % item)
 
     state.loc.ReleaseLock(item)
 
@@ -505,7 +579,8 @@ def airShip(item, l):
 
 rv = RV()
 ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
-                      loadMachine, groundShip, airShip, dummyAction, moveRobot])
+                      loadMachine, groundShip, airShip, dummyAction,
+                      moveRobot, freeRobot, putdown])
 
 ape.declare_methods('order', Order_Method1)
 ape.declare_methods('find', Find_Method1)

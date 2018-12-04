@@ -9,6 +9,7 @@ commandProb = {
     'moveRobot': [0.97, 0.03],
     'wrap': [0.97, 0.03],
     'pickup': [0.95, 0.05],
+    'putdown': [0.95, 0.05],
     'load': [0.99, 0.01],
     'groundShip': [0.99, 0.01],
     'airShip': [0.99, 0.01]
