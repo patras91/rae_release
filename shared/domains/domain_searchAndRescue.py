@@ -1,9 +1,27 @@
 __author__ = 'patras'
 
-'''A robot is searching for an object in the environment consisting of n locations.
-It has a battery that needs to be recharged after some moves.
-A move consumes 1/4 of the battery capacity.
-Recharger is only at one location'''
+''' Search and Rescue domain:
+    There are some natural disasters happening in an area.
+    Robots do search and rescue in a known map.
+
+    wheeled robots
+    UAVs
+    Sensing: Infrared imaging, detect spots, use vision
+    lower altitute
+    require or does not require?
+
+    send locations
+    ground location: roads or trails
+
+    legged bots: slow and need to recharge
+    wheeled bots carry charger
+
+    the area may not be geometric
+
+    search pattern
+
+    start with some map of the road, but it might become unusable
+'''
 
 from domain_constants import *
 import importlib
@@ -15,35 +33,14 @@ else:
 import gui
 from state import state
 from timer import globalTimer
+import math
 import globals
 
-
 # Using Dijsktra's algorithm
-def CR_GETDISTANCE(l0, l1):
-    visitedDistances = {l0: 0}
-    locs = list(rv.LOCATIONS)
-
-    while locs:
-        min_loc = None
-        for loc in locs:
-            if loc in visitedDistances:
-                if min_loc is None:
-                    min_loc = loc
-                elif visitedDistances[loc] < visitedDistances[min_loc]:
-                    min_loc = loc
-
-        if min_loc is None:
-            break
-
-        locs.remove(min_loc)
-        current_dist = visitedDistances[min_loc]
-
-        for l in rv.EDGES[min_loc]:
-            dist = current_dist + 1
-            if l not in visitedDistances or dist < visitedDistances[l]:
-                visitedDistances[l] = dist
-
-    return visitedDistances[l1]
+def SR_GETDISTANCE(l0, l1):
+    (x0, y0) = l0
+    (x1, y1) = l1
+    return math.sqrt((x1 - x0)*(x1 - x0) + (y1 -y0)*(y1-y0))
 
 def fail():
     return FAILURE
@@ -367,7 +364,7 @@ def NonEmergencyMove_Method1(r, l1, l2, dist):
 
 def MoveTo_Method1(r, l):
     x = state.loc[r]
-    dist = CR_GETDISTANCE(x, l)
+    dist = SR_GETDISTANCE(x, l)
     if state.charge[r] >= dist:
         ape.do_task('nonEmergencyMove', r, x, l, dist)
     else:
@@ -385,4 +382,4 @@ ape.declare_methods('moveTo', MoveTo_Method1)
 ape.declare_methods('emergency', Emergency_Method1)
 ape.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)
 
-from env_chargeableRobot import *
+from env_searchAndRescue import *

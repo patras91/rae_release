@@ -54,7 +54,7 @@ def ResetState():
         state.view[l] = False
 
 tasks = {
-    1: ['search', 'r1', 'o1']
+    3: [['search', 'r1', 'o1']]
 }
 
 eventsEnv = {

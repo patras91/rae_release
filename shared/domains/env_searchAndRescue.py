@@ -1,7 +1,7 @@
 import globals
 import numpy
 from state import state
-from domain_chargeableRobot import rv
+from domain_searchAndRescue import rv
 from domain_constants import *
 
 commandProb = {

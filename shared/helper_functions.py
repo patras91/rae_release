@@ -19,8 +19,9 @@ def PrintList(list):
         print('Refinement list: [', ' '.join(item.method.__name__ for item in list), ']')
 
 def TakeAvg(eList):
-	total = float("inf")
-	for eff in eList:
-		total = addEfficiency(total, eff)
-
-	return total * len(eList)
+	#total = float("inf")
+    total = 0
+    for eff in eList:
+        total += eff
+	#return total * len(eList)
+    return total / len(eList)

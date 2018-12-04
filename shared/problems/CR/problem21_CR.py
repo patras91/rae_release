@@ -31,13 +31,14 @@ DURATION.COUNTER = {
  #  1  5  6 
  #   \ | /      
  #    \|/
- #     7
+ #     7 (r1) charge = 4, c1 is at location 7
  #     |
  #     |
  #     8
  #    /|\
  #   / | \
  #  2  3  4
+ # (o1)
  # Tests fetch with enough charge and position of object known
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -57,7 +58,7 @@ def ResetState():
         state.view[l] = False
 
 tasks = {
-    1: ['fetch', 'r1', 'o1'],
+    1: [['fetch', 'r1', 'o1']],
 }
 
 eventsEnv = {

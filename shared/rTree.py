@@ -2,6 +2,7 @@ __author__ = 'patras'
 import globals
 import pipes
 from timer import DURATION
+from graphviz import Digraph
 
 class PlanningTree():
     def __init__(self, n, args, type1):
@@ -84,13 +85,34 @@ class PlanningTree():
             res += ")" + self.GetPrettyString()            
         return res
 
-    def Print(self):
+    def PrintUsingPipeline(self):
         treeString = self.GetInEtcFormat() + ";"
         #print(treeString)
         t = pipes.Template()
         f = t.open('pipefile', 'w')
         f.write(treeString)
         f.close()
+
+    def PrintUsingGraphviz(self, name='visual'):
+        g = Digraph('G', filename=name, format="png")
+
+        level = {}
+        level[0] = [(self, 0)] # tuple of node and node id
+        level[1] = []
+        curr = 0
+        next = 1
+        newId = 1
+        while(level[curr] != []):
+            for elem, nodeid in level[curr]:
+                elemString = elem.GetPrettyString() + "_" + str(nodeid)
+                for child in elem.children:
+                    g.edge(elemString, child.GetPrettyString() + "_" + str(newId))
+                    level[next].append((child, newId))
+                    newId += 1
+            curr += 1
+            next += 1
+            level[next] = []
+        g.view()
 
     def PrintInTerminal(self):
         level = {}
@@ -142,6 +164,7 @@ class ActingNode():
         self.children = []
         self.parent = None
         self.nextState = None
+        self.prevState = None
 
     def SetLabelAndType(self, l, ty):
         self.label = l
@@ -175,6 +198,12 @@ class ActingNode():
     def GetNextState(self):
         return self.nextState
 
+    def SetPrevState(self, s):
+        self.prevState = s
+
+    def GetPrevState(self):
+        return self.prevState
+
     def GetChild(self):
         assert(len(self.children) == 1)
         return self.children[0]
@@ -193,6 +222,27 @@ class ActingNode():
             curr += 1
             next += 1
             level[next] = []
+
+    def PrintUsingGraphViz(self, name):
+        g = Digraph('G', filename=name, format="png")
+
+        level = {}
+        level[0] = [(self, 0)] # tuple of node and node id
+        level[1] = []
+        curr = 0
+        next = 1
+        newId = 1
+        while(level[curr] != []):
+            for elem, nodeid in level[curr]:
+                elemString = self.GetPrettyString(elem) + "_" + str(nodeid)
+                for child in elem.children:
+                    g.edge(elemString, self.GetPrettyString(child) + "_" + str(newId))
+                    level[next].append((child, newId))
+                    newId += 1
+            curr += 1
+            next += 1
+            level[next] = []
+        g.view()
 
     def GetSuccessor(self):
         if self.children != []:
@@ -254,9 +304,15 @@ class ActingTree():
     def GetNextState(self):
         return self.currPtr.GetNextState()
 
+    def SetPrevState(self, s):
+        self.currPtr.SetPrevState(s)
+
+    def GetPrevState(self):
+        return self.currPtr.GetPrevState()
+
     def GetGuideList(self):
         l1 = self.root.GetPreorderTraversal()
-        l2 = [GuideNode(elem.GetLabel(), elem.GetNextState(), elem.GetCost()) for elem in l1]
+        l2 = [GuideNode(elem.GetLabel(), elem.GetPrevState(), elem.GetNextState(), elem.GetCost()) for elem in l1]
         l = GuideList(l2)
         return l
 
@@ -271,10 +327,14 @@ class ActingTree():
     def GetSize(self):
         return self.root.GetSize()
 
+    def PrintUsingGraphviz(self, name='actingTree'):
+        self.root.PrintUsingGraphViz(name)
+
 class GuideNode():
-    def __init__(self, m, s, c):
+    def __init__(self, m, s1, s2, c):
         self.label = m
-        self.nextState = s
+        self.prevState = s1
+        self.nextState = s2
         self.cost = c
 
     def GetPrettyString(self):
@@ -298,12 +358,20 @@ class GuideNode():
     def SetNextState(self, s):
         self.nextState = s
 
+    def GetPrevState(self):
+        assert(self.prevState != None)
+        return self.prevState
+
+    def SetPrevState(self, s):
+        self.prevState = s
+
     def GetLabel(self):
         return self.label
 
     def Print(self):
         print("Label: ", self.label)
-        print("State: ", self.nextState)
+        print("Previous State: ", self.prevState)
+        print("Next State: ", self.nextState)
 
     def GetCost(self):
         return self.cost
@@ -321,9 +389,9 @@ class GuideList():
             self.currIndex += 1
             return node
 
-    def append(self, m=None, s=None, c=0):
+    def append(self, m=None, s1=None, s2=None, c=0):
         assert(len(self.l) == self.currIndex)
-        n = GuideNode(m, s, c)
+        n = GuideNode(m, s1, s2, c)
         self.l.append(n)
         return n
 
@@ -348,7 +416,7 @@ class GuideList():
         print("\n------------------------")
 
     def GetStartState(self):
-        return self.l[0].GetNextState()
+        return self.l[0].GetPrevState()
 
     def GetEff(self):
         cost = 0

@@ -511,23 +511,23 @@ def GetEquipment_Method2(r, activity):
     else:
         ape.do_command(fail)
 
-def GetEquipment_Method3(r, activity):
+def GetEquipment_Method3(r1, activity):
     """  When the equipment is with another robot """
     e = rv.EQUIPMENT[activity]
-    if state.load[r] != e:
+    if state.load[r1] != e:
         loc = state.pos[e]
         if loc not in rv.LOCATIONS:
-            robo = loc
-            ape.do_task('moveTo', r, state.loc[robo])
-            state.load.AcquireLock(r)
-            if state.load[r] != NIL:
-                x = state.load[r]
-                state.load.ReleaseLock(r)
-                ape.do_command(put, r, x)
+            r2 = loc
+            ape.do_task('moveTo', r, state.loc[r2])
+            state.load.AcquireLock(r1)
+            if state.load[r1] != NIL:
+                x = state.load[r1]
+                state.load.ReleaseLock(r1)
+                ape.do_command(put, r1, x)
             else:
-                state.load.ReleaseLock(r)
-            ape.do_command(put, robo, e)
-            ape.do_command(take, r, e)
+                state.load.ReleaseLock(r1)
+            ape.do_command(put, r2, e)
+            ape.do_command(take, r1, e)
         else:
             ape.do_command(fail)
     else:
@@ -643,11 +643,6 @@ def Recharge_Method2(r):
 def DoActivities_Method1(r, actList):
     for act in actList:
         ape.do_task('explore', r, act[0], act[1])
-        ape.do_task('depositData', r)
-
-def DoActivities_Method2(r, actList):
-    for act in actList:
-        ape.do_task('explore', r, act[0], act[1])
     ape.do_task('depositData', r)
 
 def DoActivities_Method3(r, actList):
@@ -656,7 +651,7 @@ def DoActivities_Method3(r, actList):
         ape.do_task('depositData', r)
         ape.do_task('recharge', r)
 
-def DoActivities_Method4(r, actList):
+def DoActivities_Method2(r, actList):
     for act in actList:
         ape.do_task('explore', r, act[0], act[1])
         ape.do_task('recharge', r)
@@ -669,6 +664,10 @@ def HandleEmergency_Method1(r, l):
 
 def HandleEmergency_Method2(r, l):
     ape.do_task('moveTo', r, l)
+    ape.do_command(handleAlien, r, l)
+
+def HandleEmergency_Method3(r, l):
+    ape.do_task('flyTo', r, l)
     ape.do_command(handleAlien, r, l)
 
 rv = RV()
@@ -713,13 +712,13 @@ ape.declare_methods('depositData',
     DepositData_Method2)
 
 ape.declare_methods('doActivities', 
-    DoActivities_Method2, 
-    DoActivities_Method4, 
     DoActivities_Method1, 
+    DoActivities_Method2, 
     DoActivities_Method3)
 
 ape.declare_methods('handleEmergency', 
     HandleEmergency_Method2, 
-    HandleEmergency_Method1)
+    HandleEmergency_Method1,
+    HandleEmergency_Method3)
 
 

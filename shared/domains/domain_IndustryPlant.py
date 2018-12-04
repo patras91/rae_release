@@ -11,7 +11,7 @@ from state import state
 from gui import Simulate
 from domain_constants import *
 from timer import globalTimer
-from env_IndustryPlant import *
+
 
 # Using Dijsktra's algorithm
 def IP_GETDISTANCE(l0, l1):
@@ -257,7 +257,7 @@ def move(r, loc1, loc2):
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('move', start) == False):
             pass
-        res = Sense('move')
+        res = SenseMove(loc1)
         if res == SUCCESS:
             state.loc[r] = loc2
             #Simulate("%s has moved from %s to %s\n" %(r, loc1, loc2))
@@ -316,6 +316,7 @@ def Paint_Method1(name, *args):
         do_command(fail)
 
 def Paint_Method2(name, *args):
+    "repairs machine if it is damaged"
     o = args[0]
     colour = args[1]
     if isinstance(o, list):
@@ -491,32 +492,63 @@ def Order_Method1(taskArgs):
     do_task(taskName, name, *args)
     do_task('deliver', name, rv.BUFFERS['output'])
 
+#def GetRobot_Method3(loc):
+#   free = [r for r in rv.ROBOTS if state.status[r] == 'free']
+#    dist = [IP_GETDISTANCE(loc, state.loc[r]) for r in free]
+#    if dist != []:
+#        r = free[dist.index(min(dist))]
+#        state.status[r] = 'busy'
+#        state.deliveryRobot[0] = r
+#    else:
+#        do_command(fail)
+
 def GetRobot_Method1(loc):
-    free = [r for r in rv.ROBOTS if state.status[r] == 'free']
-    dist = [IP_GETDISTANCE(loc, state.loc[r]) for r in free]
-    if dist != []:
-        r = free[dist.index(min(dist))]
-        deliveryRobot = r
-        state.status[r] = 'busy'
+    r = rv.ROBOTS[0]
+    if state.status[r] == 'busy':
+        Simulate("No robot is free to deliver to location %s\n" %(loc))
+        do_command(fail)
     else:
-        deliveryRobot = NIL
-    return deliveryRobot
+        state.deliveryRobot[0] = r
+
+def GetRobot_Method2(loc):
+    r = rv.ROBOTS[1]
+    if state.status[r] == 'busy':
+        Simulate("No robot is free to deliver to location %s\n" %(loc))
+        do_command(fail)
+    else:
+        state.deliveryRobot[0] = r
+
+def GetRobot_Method3(loc):
+    r = rv.ROBOTS[2]
+    if state.status[r] == 'busy':
+        Simulate("No robot is free to deliver to location %s\n" %(loc))
+        do_command(fail)
+    else:
+        state.deliveryRobot[0] = r
+
+# def GetRobot_Method1(loc):
+#     free = [r for r in rv.ROBOTS if state.status[r] == 'free']
+#     dist = [IP_GETDISTANCE(loc, state.loc[r]) for r in free]
+#     if dist != []:
+#         r = free[dist.index(min(dist))]
+#         deliveryRobot = r
+#         state.status[r] = 'busy'
+#     else:
+#         deliveryRobot = NIL
+#     return deliveryRobot
 
 def Deliver_Method1(o, l):
     loc_o = GetLocation(o)
     if loc_o in rv.LOCATIONS:
-        deliveryRobot = GetRobot(loc_o)
-        if deliveryRobot != NIL:
-            if state.loc[deliveryRobot] != loc_o:
-                do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], loc_o)
-            do_command(take, deliveryRobot, o, loc_o)
-            if state.loc[deliveryRobot] != l:
-                do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], l)
-            do_command(put, deliveryRobot, o, l)
-            state.status[deliveryRobot] = 'free'
-        else:
-            Simulate("No robot free to deliver %s to location %s\n" %(o, l))
-            do_command(fail)
+        do_task('getRobot', loc_o)
+        deliveryRobot = state.deliveryRobot[0]
+        if state.loc[deliveryRobot] != loc_o:
+            do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], loc_o)
+        do_command(take, deliveryRobot, o, loc_o)
+        if state.loc[deliveryRobot] != l:
+            do_task('moveTo', deliveryRobot, state.loc[deliveryRobot], l)
+        do_command(put, deliveryRobot, o, l)
+        state.status[deliveryRobot] = 'free'
     else:
         Simulate("Some robot is carrying the object %s \n" %o)
         do_command(fail)
@@ -533,7 +565,8 @@ def Deliver_Method2(o, l):
         do_command(fail)
 
 def Repair_Method1(m):
-    repairBot = GetRobot(rv.MACHINE_LOCATION[m])
+    do_task('getRobot', rv.MACHINE_LOCATION[m])
+    repairBot = state.deliveryRobot[0]
     if repairBot != NIL:
         if state.loc[repairBot] != rv.MACHINE_LOCATION[m]:
             do_task('moveTo', repairBot, state.loc[repairBot], rv.MACHINE_LOCATION[m])
@@ -582,4 +615,6 @@ declare_methods('deliver', Deliver_Method1, Deliver_Method2)
 declare_methods('order', Order_Method1)
 declare_methods('repair', Repair_Method1)
 declare_methods('moveTo', MoveTo_Method1)
-declare_commands('getRobot', GetRobot_Method1, GetRobot_Method2, GetRobot_Method3)
+declare_methods('getRobot', GetRobot_Method1, GetRobot_Method2, GetRobot_Method3)
+
+from env_IndustryPlant import *

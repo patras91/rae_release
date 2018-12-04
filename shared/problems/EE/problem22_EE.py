@@ -95,7 +95,7 @@ def ResetState():
     state.storm = {'active': False}
     
 tasks =  {
-    1: ['flyTo', 'UAV', 'z2'],
+    1: [['flyTo', 'UAV', 'z2']],
     #3: ['explore', 'r1', 'process', 'z5'],
     #5: ['handleEmergency', 'r1', 'z2']
 }

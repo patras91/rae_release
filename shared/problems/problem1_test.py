@@ -24,7 +24,7 @@ def ResetState():
     state.value = {'a': 0}
 
 tasks = {
-    1: ['t1'],
+    5: [['t1']],
 }
 
 eventsEnv = {}
