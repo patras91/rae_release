@@ -9,8 +9,20 @@ class PlanningTree():
         self.label = n # name of the method or task corresponding to this node
         self.args = args # arguments of the method corresponding to this node
         self.type = type1 # whether this is a task or a method or command
-        self.eff = float("inf") # efficiency of this node
+        
         self.children = [] # list of children of this node
+
+        # only for RAEplan
+        self.eff = float("inf") # efficiency of this node
+
+        # only for APEplan 
+        self.state = None # state needs to be restored after planning for sub-tasks
+
+    def GetState(self):
+        return self.state
+
+    def SetState(self, s):
+        self.state = s
 
     def GetLabel(self):
         return self.label
@@ -151,6 +163,16 @@ class PlanningTree():
             return count
         else:
             return 0 # Don't want to count the commands
+
+    def GetNumberOfCommands(self):
+        "returns the number of commands of this tree"
+        if self.type == 'method' or self.label == 'root':
+            count = 0
+            for c in self.children:
+                count += c.GetSize()
+            return count
+        else:
+            return 1 # Count the commands
 
 def CreateFailureNode():
     tnode = PlanningTree('Failure', 'Failure', 'Failure')

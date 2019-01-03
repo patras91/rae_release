@@ -5,12 +5,14 @@ from domain_searchAndRescue import rv
 from domain_constants import *
 
 commandProb = {
-    'take': [0.9, 0.1],
-    'put': [0.99, 0.01],
-    'charge': [0.90, 0.10],
-    'moveToEmergency': [0.99, 0.01],
-    'move': [0.95, 0.05],
-    'addressEmergency': [0.98, 0.02],
+    'giveSupportToPerson': [0.9, 0.1],
+    'clearLocation': [0.8, 0.2],
+    'inspectPerson': [0.8, 0.2],
+    'moveEuclidean': [0.95, 0.05],
+    'moveCurved': [0.95, 0.05],
+    'moveManhattan': [0.95, 0.05],
+    'fly': [0.9, 0.1],
+    'inspectLocation': [0.98, 0.02],
 }
 
 def Sense(cmd):

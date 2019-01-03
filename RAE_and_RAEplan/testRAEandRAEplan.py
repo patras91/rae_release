@@ -7,6 +7,7 @@ sys.path.append('../shared/problems/CR')
 sys.path.append('../shared/problems/IP')
 sys.path.append('../shared/problems/EE')
 sys.path.append('../shared/problems/PD')
+sys.path.append('../shared/problems/SR')
 sys.setrecursionlimit(6000)
 import argparse
 import gui
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",
                            type=int, default=0, required=False)
-    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP)",
+    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP, PD, SR)",
                            type=str, default='CR', required=False)
     argparser.add_argument("--problem", help="identifier for the problem eg. 'problem1', 'problem2', etc",
                            type=str, default="problem11", required=False)
@@ -54,8 +55,6 @@ if __name__ == "__main__":
                            type=int, default=2, required=False)
     argparser.add_argument("--k", help="Number of commands samples RAEplan should look at",
                            type=int, default=1, required=False)
-    #argparser.add_argument("--sample_b", help="Sample breadth",
-    #                       type=int, default=1, required=False)
     argparser.add_argument("--depth", help="Search Depth",
                            type=int, default=float("inf"), required=False)
 

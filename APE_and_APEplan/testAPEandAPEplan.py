@@ -2,7 +2,8 @@ import threading
 import sys
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
-sys.path.append('../shared/problems/')
+sys.path.append('../shared/problems/SR')
+sys.path.append('../shared/problems/SD')
 import argparse
 import gui
 import globals
@@ -31,11 +32,11 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",
                            type=int, default=0, required=False)
-    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP)",
+    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP, PD, SR)",
                            type=str, default='CR', required=False)
     argparser.add_argument("--problem", help="identifier for the problem eg. 'problem1', 'problem2', etc",
                            type=str, default="problem11", required=False)
-    argparser.add_argument("--plan", help="Do you want to use RAEplan or not? ('y' or 'n')",
+    argparser.add_argument("--plan", help="Do you want to use APEplan or not? ('y' or 'n')",
                            type=str, default='y', required=False)
     argparser.add_argument("--clockMode", help="Mode of the clock ('Counter' or 'Clock')",
                            type=str, default='Counter', required=False)
@@ -65,9 +66,14 @@ if __name__ == "__main__":
     testAPEandAPEplan(args.domain, args.problem, s)
 
 def testBatch(domain, problem, useRAEplan):
+    SetMode('Counter')
+    verbosity(0)
+    globals.SetShowOutputs('off')
+    globals.SetLazy('n')
+    globals.SetConcurrent('n')
     p = multiprocessing.Process(target=testAPEandAPEplan, args=(domain, problem, useRAEplan))
     p.start()
-    p.join(1200)
+    p.join(1800)
     if p.is_alive() == True:
         p.terminate()
-        print("-1 -1 -1 -1 -1")
+        print("0 1 0 0 0 0")

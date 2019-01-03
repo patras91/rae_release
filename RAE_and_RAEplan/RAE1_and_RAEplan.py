@@ -5,6 +5,7 @@ import multiprocessing
 import numpy
 import random
 from helper_functions import *
+import types
 
 """
 File RAE1_and_RAEplan.py
@@ -196,7 +197,7 @@ def RAE1(task, raeArgs):
     if retcode == 'Failure':
         raeLocals.SetEfficiency(0)
 
-    raeLocals.GetActingTree().PrintUsingGraphviz()
+    #raeLocals.GetActingTree().PrintUsingGraphviz()
     return (retcode, raeLocals.GetRetryCount(), raeLocals.GetEfficiency())
 
 def InitializeStackLocals(task, raeArgs):
@@ -409,7 +410,6 @@ def RAEplanChoice(task, planArgs):
         print('Final state is:')
         PrintState()
 
-    plannedTree.PrintUsingGraphviz()
     return (plannedTree, globalTimer.GetSimulationCounter())
     
 def GetCandidates(task):
@@ -483,7 +483,6 @@ def PlanTask(task, taskArgs):
 
     newNode = guideList.append()
 
-    #planLocals.GetPlanningTree().PrintUsingGraphviz()
     for m in cand:
         firstTask, firstTaskArgs, pRoot = Reinitialize(m, state, newNode, guideList, task, taskArgs)
         try:
@@ -731,7 +730,10 @@ def PlanCommand(cmd, cmdArgs):
 def GetCost(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")
     cost = DURATION.COUNTER[cmd.__name__]
-    return cost
+    if type(cost) == types.FunctionType:
+        return cost(*cmdArgs)
+    else:
+        return cost
 
 ## Verbosity functions 
 
