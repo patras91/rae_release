@@ -4,8 +4,6 @@ import importlib
 loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
     from RAE1_and_RAEplan import *
-else:
-    from ape1_and_apeplan import *
 
 from state import state
 from gui import Simulate

@@ -9,9 +9,7 @@ from domain_constants import *
 import importlib
 loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
-    import RAE1_and_RAEplan as ape
-else:
-    import ape1_and_apeplan as ape
+    import RAE1_and_RAEplan as alg
 import gui
 from state import state
 from timer import globalTimer
@@ -174,9 +172,9 @@ def MoveTo_Method1(r, l): # takes the straight path
     if state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Euclidean(x, l)
         gui.Simulate("Euclidean distance = %d " %dist)
-        ape.do_command(moveEuclidean, r, x, l, dist)
+        alg.do_command(moveEuclidean, r, x, l, dist)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def SR_GETDISTANCE_Manhattan(l0, l1):
     (x1, y1) = l0
@@ -188,9 +186,9 @@ def MoveTo_Method2(r, l): # takes a Manhattan path
     if state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Manhattan(x, l)
         gui.Simulate("Manhattan distance = %d " %dist)
-        ape.do_command(moveManhattan, r, x, l, dist) 
+        alg.do_command(moveManhattan, r, x, l, dist) 
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def SR_GETDISTANCE_Curved(l0, l1):
     diameter = SR_GETDISTANCE_Euclidean(l0, l1)
@@ -201,37 +199,37 @@ def MoveTo_Method3(r, l): # takes a curved path
     if state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Curved(x, l)
         gui.Simulate("Curved distance = %d " %dist)
-        ape.do_command(moveCurved, r, x, l, dist) 
+        alg.do_command(moveCurved, r, x, l, dist) 
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def MoveTo_Method4(r, l):
     x = state.loc[r]
     if state.robotType[r] == 'uav':
-        ape.do_command(fly, r, x, l)
+        alg.do_command(fly, r, x, l)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def Rescue_Method1(r, p):
-    ape.do_task('moveTo', r, state.loc[p])
-    ape.do_task('helpPerson', r, p)
+    alg.do_task('moveTo', r, state.loc[p])
+    alg.do_task('helpPerson', r, p)
 
 def HelpPerson_Method1(r, p):
-    ape.do_command(inspectPerson, r, p)
+    alg.do_command(inspectPerson, r, p)
     if state.status[p] == 'injured':
-        ape.do_command(giveSupportToPerson, r, p)
+        alg.do_command(giveSupportToPerson, r, p)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def HelpPerson_Method2(r, p):
-    ape.do_command(inspectLocation, r, state.loc[r])
+    alg.do_command(inspectLocation, r, state.loc[r])
     if state.status[state.loc[r]] == 'hasDebri':
-        ape.do_command(clearLocation, r, state.loc[r]) 
+        alg.do_command(clearLocation, r, state.loc[r]) 
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 rv = RV()
-ape.declare_commands([
+alg.declare_commands([
     moveEuclidean,
     moveCurved,
     moveManhattan,
@@ -243,18 +241,18 @@ ape.declare_commands([
     fail
     ])
 
-ape.declare_methods('moveTo', 
+alg.declare_methods('moveTo', 
     MoveTo_Method4,
     MoveTo_Method3, 
     MoveTo_Method2, 
     MoveTo_Method1,
     )
 
-ape.declare_methods('rescue',
+alg.declare_methods('rescue',
     Rescue_Method1,
     )
 
-ape.declare_methods('helpPerson',
+alg.declare_methods('helpPerson',
     HelpPerson_Method1, 
     HelpPerson_Method2
     )
