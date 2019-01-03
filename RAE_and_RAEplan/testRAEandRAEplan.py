@@ -25,7 +25,7 @@ def testRAEandRAEplan(domain, problem, useRAEplan):
     :return:
     '''
     domain_module = InitializeDomain(domain, problem)
-    globals.SetDoSampling(useRAEplan)
+    globals.SetDoPlanning(useRAEplan)
     globals.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     rM = threading.Thread(target=raeMult)
@@ -65,12 +65,8 @@ if __name__ == "__main__":
     else:
         s = False
 
-    #globals.Set(args.K)
-    globals.SetLazy('n')
-    globals.SetConcurrent('n')
     globals.Setb(args.b)
     globals.Setk(args.k)
-    globals.SetSearchDepth(args.depth)
     verbosity(args.v)
     SetMode(args.clockMode)
     globals.SetShowOutputs(args.showOutputs)

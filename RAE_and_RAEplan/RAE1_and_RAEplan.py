@@ -255,7 +255,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         return (m, candidates)
 
 def choose_candidate(candidates, task, taskArgs):
-    if globals.GetDoSampling() == False or len(candidates) == 1:
+    if globals.DoPlanning() == False or len(candidates) == 1:
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
     else:
