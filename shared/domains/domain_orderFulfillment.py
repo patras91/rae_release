@@ -48,37 +48,6 @@ def OF_GETDISTANCE_GROUND(l0, l1):
     return visitedDistances[l1]
 
 
-# Using Dijsktra's algorithm for air distance
-def OF_GETDISTANCE_AIR(l0, l1):
-    visitedDistances = {l0: 0}
-    locs = list(rv.AIRPORTS)
-
-    while locs:
-        min_loc = None
-        for loc in locs:
-            if loc in visitedDistances:
-                if min_loc is None:
-                    min_loc = loc
-                elif visitedDistances[loc] < visitedDistances[min_loc]:
-                    min_loc = loc
-
-        if min_loc is None:
-            break
-
-        locs.remove(min_loc)
-        current_dist = visitedDistances[min_loc]
-
-        for l in rv.AIR_EDGES[min_loc]:
-            if min_loc < l:
-                dist = current_dist + rv.AIR_WEIGHTS[(min_loc, l)]
-            else:
-                dist = current_dist + rv.AIR_WEIGHTS[(l, min_loc)]
-
-            if l not in visitedDistances or dist < visitedDistances[l]:
-                visitedDistances[l] = dist
-
-    return visitedDistances[l1]
-
 
 # a dummy action that does nothing for 1 time unit
 def dummyAction():
@@ -89,11 +58,10 @@ def dummyAction():
     return SUCCESS
 
 
-def Order_Method1(item, l, type):
+def Order_Method1(item, l):
     # order from item i of shipping type type, to location l
     ape.do_task('find', item)
     ape.do_task('pack', item)
-    ape.do_task('deliver', item, l, type)
 
 # Refinement methods for find
 
@@ -184,6 +152,8 @@ def Pack_Method1(item):
 
     ape.do_command(putdown, r, item)
     ape.do_command(freeRobot, r)
+
+    gui.Simulate("Item %s has been placed in the shipping doc\n" % item)
 
 
 
@@ -490,124 +460,10 @@ def wrap(m, item):
     return res
 
 
-# Refinement methods for deliver
-
-
-def Deliver_Method1(item, l, type):
-    if type == 'slow':
-        '''Search for the transport that minimizes the cost:
-                there can be multiple methods fo doing this
-        '''
-        dist = OF_GETDISTANCE_GROUND(state.loc[item], l)
-        dist = dist * 5 + 15
-
-        ape.do_command(groundShip, item, l)
-
-        while dist > 0:
-            #ape.do_command(dummyAction)
-            dist -= 1
-    elif type == 'fast':
-        ''' Search for the fastest flight/ground transportation
-        '''
-        ape.do_task('fastShip', item, l)
-    else:
-        gui.Simulate("%s is an unsupported delivery type\n" % type)
-        ape.do_command(fail)
-
-
-def FastShip_Method1(item, l):
-    # Flies by going to the airport closest to item and flying to
-    # the airport closest to l
-
-    # find the closest airport to item's location
-    a0 = min(rv.AIRPORTS, key=lambda a: OF_GETDISTANCE_GROUND(state.loc[item],a))
-
-    dist = OF_GETDISTANCE_GROUND(state.loc[item], a0)
-    dist = dist*5+15
-
-    ape.do_command(groundShip, item, a0)
-
-    while dist > 0:
-        #ape.do_command(dummyAction)
-        dist -= 1
-
-    # now find the closest airport to item's destination
-    a1 = min(rv.AIRPORTS, key=lambda a: OF_GETDISTANCE_GROUND(a, l))
-
-    dist = OF_GETDISTANCE_AIR(state.loc[item], a1)
-    dist = dist*1+100
-
-    ape.do_command(airShip, item, a1)
-
-    while dist > 0:
-        #ape.do_command(dummyAction)
-        dist -= 1
-
-    # ship the item to the final destination
-    dist = OF_GETDISTANCE_GROUND(state.loc[item], l)
-    dist = dist * 5 + 15
-
-    ape.do_command(groundShip, item, l)
-
-    while dist > 0:
-        #ape.do_command(dummyAction)
-        dist -= 1
-
-
-def FastShip_Method2(item, l):
-    # Ships the item by ground
-    dist = OF_GETDISTANCE_GROUND(state.loc[item], l)
-    dist = dist * 5 + 15
-
-    ape.do_command(groundShip, item, l)
-
-    while dist > 0:
-        #ape.do_command(dummyAction)
-        dist -= 1
-
-# TODO figure out if I can build the dummy action directly into groundShip
-def groundShip(item, l):
-    state.loc.AcquireLock(item)
-
-    if state.loc[item] in rv.FACTORY_UNION and state.loc[item] not in rv.SHIPPING_DOC.values():
-        print("Vals:",rv.SHIPPING_DOC.values())
-        gui.Simulate("Item %s is at loc %s, not in a shipping doc\n" % (item,state.loc[item]))
-        res = FAILURE
-    else:
-        res = Sense('groundShip')
-        if res == SUCCESS:
-            gui.Simulate("Ground shipped item %s to loc %s\n" % (item, l))
-            state.loc[item] = l
-        else:
-            gui.Simulate("Failed to deliver item %s\n" % item)
-
-    state.loc.ReleaseLock(item)
-
-    return res
-
-
-def airShip(item, l):
-    state.loc.AcquireLock(item)
-
-    if state.loc[item] not in rv.AIRPORTS:
-        gui.Simulate("Item %s not in an airport\n" % item)
-        res = FAILURE
-    else:
-        res = Sense('airShip')
-
-        if res == SUCCESS:
-            gui.Simulate("Flew item %s to loc %s\n" % (item, l))
-            state.loc[item] = l
-        else:
-            gui.Simulate("Failed to send item %s\n" % item)
-
-    state.loc.ReleaseLock(item)
-
-    return res
 
 rv = RV()
 ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
-                      loadMachine, groundShip, airShip, dummyAction,
+                      loadMachine, dummyAction,
                       moveRobot, freeRobot, putdown])
 
 ape.declare_methods('order', Order_Method1)
@@ -615,8 +471,6 @@ ape.declare_methods('find', Find_Method1)
 ape.declare_methods('pack', Pack_Method1)
 ape.declare_methods('getRobot', GetRobot_Method1, GetRobot_Method3, GetRobot_Method4)
 ape.declare_methods('getMachine', GetMachine_Method1, GetMachine_Method2)
-ape.declare_methods('deliver', Deliver_Method1)
-ape.declare_methods('fastShip', FastShip_Method1, FastShip_Method2)
 
 
 from env_orderFulfillment import *
