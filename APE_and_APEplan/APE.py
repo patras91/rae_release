@@ -5,6 +5,7 @@ from timer import globalTimer, SetMode
 #from time import time
 from state import ReinitializeState, RemoveLocksFromState
 import threading
+import colorama
 import globals
 
 __author__ = 'patras'
@@ -30,13 +31,13 @@ def GetNextAlive(lastActiveStack, numstacks, threadList):
 
     return nextAlive
 
-def GetNewTask():
+def GetNewTasks():
     '''
     :return: gets the new task that appears in the problem at the current time
     '''
-    GetNewTask.counter += 1
-    if GetNewTask.counter in domain_module.tasks:
-        return domain_module.tasks[GetNewTask.counter]
+    GetNewTasks.counter += 1
+    if GetNewTasks.counter in domain_module.tasks:
+        return domain_module.tasks[GetNewTasks.counter]
     else:
         return []
 
@@ -46,7 +47,7 @@ def InitializeDomain(domain, problem):
     :param problem: id of the problem
     :return:none
     '''
-    if domain in ['CR', 'SD', 'EE', 'IP', 'test']:
+    if domain in ['CR', 'SD', 'EE', 'IP', 'PD', 'SR', 'test']:
         module = problem + '_' + domain
         global domain_module
         ReinitializeState()    # useful for batch runs to start with the first state
@@ -69,26 +70,28 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    retcode, retryCount, commandCount = APE1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, commandCount)
+    retcode, retryCount, commandCount, eff = APE1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, commandCount, eff)
 
 def PrintResult(taskInfo):
     for stackid in taskInfo:
-        args, res, retryCount, commandCount = taskInfo[stackid]
-        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', commandCount, '\n')
+        args, res, retryCount, commandCount, eff = taskInfo[stackid]
+        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', commandCount, '\t\t', eff, '\n')
 
 def PrintResultSummary(taskInfo):
     succ = 0
     fail = 0
     retries = 0
     cmdNet = {}
+    effTotal = 0
     for stackid in taskInfo:
-        args, res, retryCount, commandCount = taskInfo[stackid]
+        args, res, retryCount, commandCount, eff = taskInfo[stackid]
         if res == 'Success':
             succ += 1
         else:
             fail += 1
         retries += retryCount
+        effTotal += eff
         if cmdNet == {}:
             cmdNet = commandCount
         else:
@@ -97,8 +100,8 @@ def PrintResultSummary(taskInfo):
                     cmdNet[cmd] += commandCount[cmd]
                 elif cmd in commandCount:
                     cmdNet[cmd] = commandCount[cmd]
-    print(succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter())
-    print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
+    print(succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal)
+    #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
 def StartEnv():
     while(True):
@@ -120,12 +123,14 @@ def StartEnv():
         envArgs.sem.release()
 
 def raeMult():
+    if globals.GetShowOutputs() == 'on':
+        print("Starting APE\n", colorama.Style.RESET_ALL)
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
     ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
     ipcArgs.threadList = [] #keeps track of all the stacks in RAE Agenda
     lastActiveStack = 0 #keeps track of the last stack that was Progressed
     numstacks = 0 #keeps track of the total number of stacks
-    GetNewTask.counter = 0
+    GetNewTasks.counter = 0
     StartEnv.counter = 0
     taskInfo = {}
 
@@ -144,19 +149,19 @@ def raeMult():
 
             if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
 
-                taskParams = GetNewTask()
+                taskParams = GetNewTasks()
                 if taskParams != []:
+                
+                    for newTask in taskParams:
+                        numstacks = numstacks + 1
+                        raeArgs = globals.RaeArgs()
+                        raeArgs.stack = numstacks
+                        raeArgs.task = newTask[0]
+                        raeArgs.taskArgs = newTask[1:]
+                        ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, raeArgs)))
+                        ipcArgs.threadList[numstacks-1].start()
 
-                    numstacks = numstacks + 1
-                    raeArgs = globals.RaeArgs()
-                    raeArgs.stack = numstacks
-                    raeArgs.task = taskParams[0]
-                    raeArgs.taskArgs = taskParams[1:]
-
-                    ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, raeArgs)))
-                    ipcArgs.threadList[numstacks-1].start()
-
-                lastActiveStack = 0
+                lastActiveStack = 0 # for the environment
 
                 envArgs.envActive = True
                 envArgs.sem.release()
@@ -166,17 +171,21 @@ def raeMult():
 
                 globalTimer.IncrementTime()
 
-            res = GetNextAlive(lastActiveStack, numstacks, ipcArgs.threadList)
+            if numstacks > 0:
+                res = GetNextAlive(lastActiveStack, numstacks, ipcArgs.threadList)
 
-            if res != -1:
-                ipcArgs.nextStack = res
-                lastActiveStack = res
-                ipcArgs.sem.release()
+                if res != -1:
+                    ipcArgs.nextStack = res
+                    lastActiveStack = res
+                    ipcArgs.sem.release()
+                else:
+                    envArgs.envActive = True
+                    envArgs.exit = True
+                    envArgs.sem.release()
+                    break
             else:
-                envArgs.envActive = True
-                envArgs.exit = True
-                envArgs.sem.release()
-                break
+                ipcArgs.sem.release()
+                
     if globals.GetShowOutputs() == 'on':
         print("----Done with RAE----\n")
         PrintResult(taskInfo)
@@ -190,7 +199,7 @@ def CreateNewStackSimulation(pArgs, queue):
     tree, planningTime = APEplan(pArgs.GetTask(), pArgs)
     queue.put((tree, planningTime))
 
-def APEPlanMain(task, taskArgs, queue, candidateMethods, tree):
+def APEPlanMain(task, taskArgs, queue, candidateMethods):
     # Simulating one stack now
     # TODO: Simulate multiple stacks in future
 
@@ -203,22 +212,20 @@ def APEPlanMain(task, taskArgs, queue, candidateMethods, tree):
     pArgs.SetStackId(1)
     pArgs.SetTask(task)
     pArgs.SetCandidates(candidateMethods)
-    pArgs.SetActingTree(tree)
-    #pArgs.SetMethod(method)
 
-    ipcArgs.nextStack = 0
-    ipcArgs.sem = threading.Semaphore(1)
+    #ipcArgs.nextStack = 0
+    #ipcArgs.sem = threading.Semaphore(1)
 
     thread = threading.Thread(target=CreateNewStackSimulation, args=[pArgs, queue])
 
     thread.start()
-
-    while(True):
-        if ipcArgs.nextStack == 0 or thread.isAlive() == False:
-            ipcArgs.sem.acquire()
-            globalTimer.IncrementTime()
-            if thread.isAlive() == False:
-                break
-            else:
-                ipcArgs.nextStack = 1
-                ipcArgs.sem.release()
+    thread.join()
+    #while(True):
+    #    if ipcArgs.nextStack == 0 or thread.isAlive() == False:
+    #        ipcArgs.sem.acquire()
+    #        globalTimer.IncrementTime()
+    #        if thread.isAlive() == False:
+    #            break
+    #        else:
+    #            ipcArgs.nextStack = 1
+    #            ipcArgs.sem.release()

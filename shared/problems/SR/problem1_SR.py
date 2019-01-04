@@ -4,43 +4,41 @@ from domain_searchAndRescue import *
 from timer import DURATION
 from state import state
 
-DURATION.TIME = {
-    'put': 2, #for domain SR
-    'take': 2,
-    'perceive': 3,
-    'charge': 5,
-    'move': 10,
-    'moveToEmergency': 10,
-    'moveCharger': 5,
-    'addressEmergency': 15,
-    'wait': 5
+def GetCostOfMove(r, l1, l2, dist):
+    return dist
+
+DURATION.COUNTER = {
+    'giveSupportToPerson': 15,
+    'clearLocation': 5,
+    'inspectPerson': 20,
+    'moveEuclidean': GetCostOfMove,
+    'moveCurved': GetCostOfMove,
+    'moveManhattan': GetCostOfMove,
+    'fly': 15,
+    'inspectLocation': 5,
  }
 
 DURATION.COUNTER = {
-    'put': 2, #for domain SR
-    'take': 2,
-    'perceive': 3,
-    'charge': 5,
-    'move': 10,
-    'moveToEmergency': 10,
-    'moveCharger': 5,
-    'addressEmergency': 15,
-    'wait': 5,
+    'giveSupportToPerson': 15,
+    'clearLocation': 5,
+    'inspectPerson': 20,
+    'moveEuclidean': GetCostOfMove,
+    'moveCurved': GetCostOfMove,
+    'moveManhattan': GetCostOfMove,
+    'fly': 15,
+    'inspectLocation': 5,
  }
 
 rv.WHEELEDROBOTS = {'w1'}
 rv.LARGEROBOTS = {'r1'}
-rv.CHARGERS = {'c1'}
+rv.OBSTACLES = {}
 
 def ResetState():
     state.loc = {'r1': (1,1), 'w1': (1,1)}
-    state.charge = {'w1':10, 'r1': 100}
-    state.load = {'w1': NIL, 'r1': NIL}
-    state.pos = {'c1': (1,1)} 
-    state.busy = {'w1': False, 'r1': False}
+    state.robotType = {'r1': 'large', 'w1': 'wheeled'}
 
 tasks = {
-    1: [['rescue', 'p1', (5,5)]]
+    1: [['moveTo', 'r1', (5,5)]]
 }
 
 eventsEnv = {
