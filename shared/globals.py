@@ -21,7 +21,7 @@ def SetPlanningMode(s):
 def GetPlanningMode():
     return g.planningMode
 
-def SetDoPlanning():
+def GetDoPlanning():
     return g.doPlanning
 
 def GetShowOutputs():

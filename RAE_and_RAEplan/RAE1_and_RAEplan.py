@@ -1,11 +1,4 @@
 from __future__ import print_function
-import threading
-from state import GetState, PrintState, RestoreState
-import multiprocessing
-import numpy
-import random
-from helper_functions import *
-import types
 
 """
 File RAE1_and_RAEplan.py
@@ -13,6 +6,13 @@ Author:
 Sunandita Patra <patras@cs.umd.edu>
 """
 
+import threading
+from state import GetState, PrintState, RestoreState
+import multiprocessing
+import numpy
+import random
+from helper_functions import *
+import types
 import sys, pprint
 import os
 import globals
@@ -52,12 +52,9 @@ commands = {} # dictionary of commands, initialized once for every run via the d
 raeLocals = rL_APE() # APE variables that are local to every stack
 
 #only RAEplan
-commandSimulations = {} # dictionary of descriptive models of commands, initialized once for every run via the domain file
 planLocals = rL_PLAN() # APEplan_systematic variables that are local to every call to APEplan_systematic, 
                        # we need this to be thread local because we have multiple stacks in APE as 
                        # multiple threads and each thread call its own APEplan_systematic
-commandProb = {} # dictionary of probabilities of outcomes of commands, initialized once for every run via the domain file
-listCommandsDependingOnParams = [] # list of commands whose descriptive models depend on the parameters
 
 ############################################################
 # Functions to tell Rae1 what the commands and methods are
@@ -69,13 +66,6 @@ def declare_commands(cmd_list):
     """
     commands.update({cmd.__name__:cmd for cmd in cmd_list})
     return commands
-
-def UpdatePerceiveProb(comm, l, obj, newp):
-    pList = commandProb[comm][l][obj]
-    commandProb[comm][l][obj] = [newp, 1 - newp]
-
-def AddCommandToSpecialList(cmd):
-    listCommandsDependingOnParams.append(cmd)
 
 def GetCommand(cmd):
     """
@@ -255,7 +245,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         return (m, candidates)
 
 def choose_candidate(candidates, task, taskArgs):
-    if globals.DoPlanning() == False or len(candidates) == 1:
+    if globals.GetDoPlanning() == False or len(candidates) == 1:
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
     else:
