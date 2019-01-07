@@ -584,7 +584,7 @@ def DoCommandInRealWorld(cmd, cmdArgs):
 
     par, cmdNode = raeLocals.GetCurrentNodes()
 
-    cmdNode.SetLabelAndType(cmd, 'command')
+    cmdNode.SetLabelAndType(cmd, 'command', cmdArgs)
     cmdNode.SetNextState(GetState().copy())
 
     if verbose > 1:

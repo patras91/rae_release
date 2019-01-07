@@ -3,6 +3,7 @@ import globals
 import pipes
 from timer import DURATION
 from graphviz import Digraph
+import types
 
 class PlanningTree():
     def __init__(self, n, args, type1):
@@ -188,10 +189,13 @@ class ActingNode():
         self.nextState = None
         self.prevState = None
 
-    def SetLabelAndType(self, l, ty):
+    def SetLabelAndType(self, l, ty, cmdArgs=None):
         self.label = l
         assert(ty == 'method' or ty == 'command')
         self.type = ty
+        if ty == 'command':
+            assert(cmdArgs != None)
+            self.cmdArgs = cmdArgs
 
     def GetLabel(self):
         return self.label
@@ -305,7 +309,11 @@ class ActingNode():
     def GetCost(self):
         if self.type == 'command':
             assert(self.label.__name__ != "fail")
-            return DURATION.COUNTER[self.label.__name__]
+            cost = DURATION.COUNTER[self.label.__name__]
+            if type(cost) == types.FunctionType:
+                return cost(*self.cmdArgs)
+            else:
+                return cost
         else:
             return 0
 
