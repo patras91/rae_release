@@ -1,7 +1,7 @@
 import globals
 import numpy
 from state import state
-from domain_chargeableRobot import rv
+from domain_orderFulfillment import rv
 from domain_constants import *
 
 commandProb = {
@@ -10,9 +10,7 @@ commandProb = {
     'wrap': [0.97, 0.03],
     'pickup': [0.95, 0.05],
     'putdown': [0.95, 0.05],
-    'load': [0.99, 0.01],
-    'groundShip': [0.99, 0.01],
-    'airShip': [0.99, 0.01]
+    'load': [0.99, 0.01]
 }
 
 def Sense(cmd):

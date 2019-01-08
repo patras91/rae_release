@@ -14,9 +14,7 @@ DURATION.TIME = {
     'freeRobot': 1,
     'loadMachine': 3,
     'dummyAction': 1,
-    'moveRobot': 1,
-    'groundShip': 1,
-    'airShip': 1
+    'moveRobot': 1
  }
 
 DURATION.COUNTER = {
@@ -29,9 +27,7 @@ DURATION.COUNTER = {
     'freeRobot': 1,
     'loadMachine': 3,
     'dummyAction': 1,
-    'moveRobot': 1,
-    'groundShip': 1,
-    'airShip': 1
+    'moveRobot': 1
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7]

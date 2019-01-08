@@ -48,16 +48,6 @@ def OF_GETDISTANCE_GROUND(l0, l1):
     return visitedDistances[l1]
 
 
-
-# a dummy action that does nothing for 1 time unit
-def dummyAction():
-    start = globalTimer.GetTime()
-    while (globalTimer.IsCommandExecutionOver('dummyAction', start) == False):
-        pass
-
-    return SUCCESS
-
-
 def Order_Method1(item, l):
     # order from item i of shipping type type, to location l
     ape.do_task('find', item)
@@ -107,19 +97,14 @@ def Find_Method3(item):
 '''
 
 # Refinement methods for pack
-# TODO get rid of the dummyAction from here and put
-# into moveRobot if possible
+
 def Pack_Method1(item):
     ape.do_task('getRobot', state.loc[item], rv.OBJ_WEIGHT[item])
     r = state.var1['temp']
 
     #TODO do I need to lock this?
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[item])
-    ape.do_command(moveRobot, r, state.loc[r], state.loc[item])
-
-    while dist > 0:
-        ape.do_command(dummyAction)
-        dist -= 1
+    ape.do_command(moveRobot, r, state.loc[r], state.loc[item], dist)
 
     ape.do_command(pickup, r, item)
 
@@ -128,11 +113,7 @@ def Pack_Method1(item):
 
     # TODO do I need to lock this?
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
-    ape.do_command(moveRobot, r, state.loc[r], state.loc[m])
-
-    while dist > 0:
-        ape.do_command(dummyAction)
-        dist -= 1
+    ape.do_command(moveRobot, r, state.loc[r], state.loc[m], dist)
 
     ape.do_command(loadMachine, r, m, item)
     ape.do_command(wrap, m, item)
@@ -144,11 +125,7 @@ def Pack_Method1(item):
     doc = rv.SHIPPING_DOC[rv.ROBOTS[r]]
 
     dist = OF_GETDISTANCE_GROUND(state.loc[r], doc)
-    ape.do_command(moveRobot, r, state.loc[r], doc)
-
-    while dist > 0:
-        ape.do_command(dummyAction)
-        dist -= 1
+    ape.do_command(moveRobot, r, state.loc[r], doc, dist)
 
     ape.do_command(putdown, r, item)
     ape.do_command(freeRobot, r)
@@ -157,7 +134,7 @@ def Pack_Method1(item):
 
 
 
-def moveRobot(r, l1, l2):
+def moveRobot(r, l1, l2, dist):
     state.loc.AcquireLock(r)
 
     if l1 == l2:
@@ -463,8 +440,7 @@ def wrap(m, item):
 
 rv = RV()
 ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
-                      loadMachine, dummyAction,
-                      moveRobot, freeRobot, putdown])
+                      loadMachine, moveRobot, freeRobot, putdown])
 
 ape.declare_methods('order', Order_Method1)
 ape.declare_methods('find', Find_Method1)

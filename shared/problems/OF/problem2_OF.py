@@ -4,6 +4,11 @@ from domain_orderFulfillment import *
 from timer import DURATION
 from state import state
 
+
+def GetCostOfMove(r, loc1, loc2, dist):
+    return 1 + dist
+
+
 DURATION.TIME = {
     'lookupDB': 2,
     'wrap': 5,
@@ -13,8 +18,7 @@ DURATION.TIME = {
     'acquireRobot': 1,
     'freeRobot': 1,
     'loadMachine': 3,
-    'dummyAction': 1,
-    'moveRobot': 1,
+    'moveRobot': GetCostOfMove
  }
 
 DURATION.COUNTER = {
@@ -26,8 +30,7 @@ DURATION.COUNTER = {
     'acquireRobot': 1,
     'freeRobot': 1,
     'loadMachine': 3,
-    'dummyAction': 1,
-    'moveRobot': 1,
+    'moveRobot': GetCostOfMove
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7]
