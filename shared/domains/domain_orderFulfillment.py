@@ -141,7 +141,11 @@ def moveRobot(r, l1, l2, dist):
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
 
-    elif l2 not in rv.ROBOTS[r]:
+    elif r in rv.ROBOTS and l2 not in rv.ROBOTS[r]:
+        gui.Simulate("Robot %s can't leave the factory\n" % r)
+        res = FAILURE
+
+    elif r not in rv.ROBOTS and l2 not in rv.REPAIR_BOT[r]:
         gui.Simulate("Robot %s can't leave the factory\n" % r)
         res = FAILURE
 
@@ -312,6 +316,7 @@ def freeRobot(r):
 
     return res
 
+
 #TODO could have a problem b/c not locking state.loc[r]
 def GetRobot_Method1(l, c):
     # return the robot which is nearest
@@ -387,6 +392,7 @@ def GetMachine_Method1(l):
 
     return SUCCESS
 
+
 #TODO could have a problem b/c not locking state.busy[r]
 def GetMachine_Method2(l):
     # return a machine that isn't busy and in the factory
@@ -406,10 +412,47 @@ def GetMachine_Method2(l):
 
     return SUCCESS
 
+
+def GetMachine_Method3(l):
+    # selection of method1, but also repairs machine
+    m0 = min(rv.MACHINES, key=lambda m: OF_GETDISTANCE_GROUND(state.loc[m], l))
+
+    state.var1.AcquireLock('temp1')
+    state.var1['temp1'] = m0
+    state.var1.ReleaseLock('temp1')
+
+    ape.do_task('fixMachine', m0)
+
+    return SUCCESS
+
+
+def GetMachine_Method4(l):
+    # selection of method2, but also repairs machine
+    m0 = NIL
+
+    for m in rv.MACHINES:
+        if state.busy[m] == False and l in rv.MACHINES[m]:
+            m0 = m
+            break
+
+    if m0 == NIL:
+        return FAILURE
+
+    state.var1.AcquireLock('temp1')
+    state.var1['temp1'] = m0
+    state.var1.ReleaseLock('temp1')
+
+    ape.do_task('fixMachine', m0)
+
+    return SUCCESS
+
+
+
 def wrap(m, item):
     state.loc.AcquireLock(m)
     state.loc.AcquireLock(item)
     state.busy.AcquireLock(m)
+    state.numUses.AcquireLock(m)
 
     if state.loc[m] != state.loc[item]:
         gui.Simulate("Machine %s not loaded with item %s\n" % (m,item))
@@ -422,7 +465,8 @@ def wrap(m, item):
         while (globalTimer.IsCommandExecutionOver('wrap', start) == False):
             pass
 
-        res = Sense('wrap')
+        state.numUses[m] += 1
+        res = SenseWrap(state.numUses[m])
 
         if res == SUCCESS:
             gui.Simulate("Machine %s wrapped item %s\n" % (m, item))
@@ -430,8 +474,64 @@ def wrap(m, item):
         else:
             gui.Simulate("Machine %s jammed. Failed to wrap %s\n" % (m, item))
 
+    state.numUses.ReleaseLock(m)
     state.busy.ReleaseLock(m)
     state.loc.ReleaseLock(item)
+    state.loc.ReleaseLock(m)
+
+    return res
+
+
+def FixMachine_Method1(m):
+    # return the one which is free, given it's in the factory
+    rf0 = NIL
+
+    for r in list(rv.REPAIR_BOT):
+        if state.busy[r] == False and state.loc[m] in rv.REPAIR_BOT[r]:
+            rf0 = r
+            break
+
+    if rf0 == NIL:
+        return FAILURE
+
+    ape.do_command(acquireRobot, rf0)
+
+    # move the robot to the machine
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
+    ape.do_command(moveRobot, r, state.loc[r], state.loc[m], dist)
+
+    # repair thte machine
+    ape.do_command(repair, r, m)
+
+
+def repair(r, m):
+    state.loc.AcquireLock(m)
+    state.loc.AcquireLock(r)
+    state.busy.AcquireLock(m)
+    state.numUses.AcquireLock(m)
+
+    if state.loc[m] != state.loc[r]:
+        gui.Simulate("%s is not in same location as %s\n" % (r,m))
+        res = FAILURE
+    elif state.busy[m] != False:
+        gui.Simulate("Machine %s is busy\n" % m)
+        res = FAILURE
+    else:
+        start = globalTimer.GetTime()
+        while (globalTimer.IsCommandExecutionOver('repair', start) == False):
+            pass
+
+        res = Sense('repair')
+
+        if res == SUCCESS:
+            gui.Simulate("Robot %s repaired machine %s\n" % (r, m))
+            state.numUses[m] /= 2
+        else:
+            gui.Simulate("Machine %s wasn't repaired\n" % m)
+
+    state.numUses.ReleaseLock(m)
+    state.busy.ReleaseLock(m)
+    state.loc.ReleaseLock(r)
     state.loc.ReleaseLock(m)
 
     return res
@@ -440,13 +540,14 @@ def wrap(m, item):
 
 rv = RV()
 ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
-                      loadMachine, moveRobot, freeRobot, putdown])
+                      loadMachine, moveRobot, freeRobot, putdown, repair])
 
 ape.declare_methods('order', Order_Method1)
 ape.declare_methods('find', Find_Method1)
 ape.declare_methods('pack', Pack_Method1)
 ape.declare_methods('getRobot', GetRobot_Method1, GetRobot_Method3, GetRobot_Method4)
-ape.declare_methods('getMachine', GetMachine_Method1, GetMachine_Method2)
+ape.declare_methods('getMachine', GetMachine_Method1, GetMachine_Method2, GetMachine_Method3, GetMachine_Method4)
+ape.declare_methods('fixMachine', FixMachine_Method1)
 
 
 from env_orderFulfillment import *
