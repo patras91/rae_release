@@ -164,6 +164,32 @@ def clearLocation(r, l):
     gui.Simulate("Robot %s has cleared location %s \n" %(r, str(l)))
     return SUCCESS
 
+def replenishSupplies(r):
+    if state.loc[r] == (1,1):
+        state.hasMedicine[r] = True
+        gui.Simulate("Robot %s has replenished supplies at the base.\n" %r)
+        res = SUCCESS
+    else:
+        gui.Simulate("Robot %s is not at the base.\n" %r)
+        res = FAILURE
+
+    return res
+
+def transfer(r1, r2):
+    if state.loc[r1] == state.loc[r2]:
+        if state.hasMedicine[r1] == True:
+            state.hasMedicine[r2] = True
+            gui.Simulate("Robot %s has transferred medicine to %s.\n" %(r1, r2))
+            res = SUCCESS
+        else:
+            gui.Simulate("Robot %s does not have medicines.\n" %r1)
+            res = FAILURE
+    else:
+        gui.Simulate("Robots %s and %s are in different locations.\n" %(r1, r2))
+        res = FAILURE
+
+    return res
+
 def SR_GETDISTANCE_Euclidean(l0, l1):
     (x0, y0) = l0
     (x1, y1) = l1
@@ -230,6 +256,27 @@ def HelpPerson_Method2(r, p):
     else:
         ape.do_command(fail)
 
+def GetSupplies_Method1(r, l):
+    r2 = None
+    nearestDist = float("inf")
+    for r1 in rv.WHEELEDROBOTS:
+        if state.hasMedicine[r1] == True:
+            dist = SR_GETDISTANCE_Euclidean(state.loc[r], state.loc[r1])
+            if dist < nearestDist:
+                nearestDist = dist
+                r2 = r1
+    if r2 != None:
+        ape.do_task('moveTo', r, state.loc[r2])
+        ape.do_command(transfer, r2, r)
+        ape.do_task('moveTo', r, l)
+    else:
+        ape.do_command(fail)
+
+def GetSupplies_Method2(r, l):
+    ape.do_task('moveTo', r, (1,1))
+    ape.do_command(replenishSupplies, r)
+    ape.do_task('moveTo', r, l)
+
 rv = RV()
 ape.declare_commands([
     moveEuclidean,
@@ -240,6 +287,8 @@ ape.declare_commands([
     clearLocation,
     inspectLocation,
     inspectPerson,
+    transfer,
+    replenishSupplies,
     fail
     ])
 
@@ -257,6 +306,11 @@ ape.declare_methods('rescue',
 ape.declare_methods('helpPerson',
     HelpPerson_Method1, 
     HelpPerson_Method2
+    )
+
+ape.declare_methods('getSupplies',
+    GetSupplies_Method1,
+    GetSupplies_Method2
     )
 
 from env_searchAndRescue import *
