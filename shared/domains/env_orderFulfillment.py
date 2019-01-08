@@ -10,7 +10,7 @@ commandProb = {
     'wrap': [0.97, 0.03],
     'pickup': [0.95, 0.05],
     'putdown': [0.95, 0.05],
-    'load': [0.99, 0.01]
+    'loadMachine': [0.99, 0.01]
 }
 
 def Sense(cmd):

@@ -3,33 +3,52 @@ __author__ = 'mason'
 from domain_orderFulfillment import *
 from timer import DURATION
 from state import state
+import numpy as np
 
 
 def GetCostOfMove(r, loc1, loc2, dist):
     return 1 + dist
 
+def GetCostOfLookup(item):
+    return max(1, np.random.beta(2, 2))
+
+
+def GetCostOfWrap(m, item):
+    return max(1, np.random.normal(5, .5))
+
+
+def GetCostOfPickup(r, item):
+    return max(1, np.random.normal(4, 1))
+
+
+def GetCostOfPutdown(r, item):
+    return max(1, np.random.normal(4, 1))
+
+
+def GetCostOfLoad(r, m, item):
+    return max(1, np.random.normal(3, .5))
+
+
 
 DURATION.TIME = {
-    'lookupDB': 2,
-    'wrap': 5,
-    'pickup': 4,
-    'putdown': 4,
-    'load': 3,
+    'lookupDB': GetCostOfLookup,
+    'wrap': GetCostOfWrap,
+    'pickup': GetCostOfPickup,
+    'putdown': GetCostOfPutdown,
     'acquireRobot': 1,
     'freeRobot': 1,
-    'loadMachine': 3,
+    'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove
  }
 
 DURATION.COUNTER = {
-    'lookupDB': 2,
-    'wrap': 5,
-    'pickup': 4,
-    'putdown': 4,
-    'load': 3,
+    'lookupDB': GetCostOfLookup,
+    'wrap': GetCostOfWrap,
+    'pickup': GetCostOfPickup,
+    'putdown': GetCostOfPutdown,
     'acquireRobot': 1,
     'freeRobot': 1,
-    'loadMachine': 3,
+    'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove
  }
 

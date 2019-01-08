@@ -245,7 +245,7 @@ def loadMachine(r, m, item):
         while (globalTimer.IsCommandExecutionOver('pickup', start) == False):
             pass
 
-        res = Sense('load')
+        res = Sense('loadMachine')
 
         if res == SUCCESS:
             gui.Simulate("Robot %s loaded machine %s with item %s\n" % (r, m, item))
