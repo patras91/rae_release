@@ -30,13 +30,12 @@ DURATION.COUNTER = {
  }
 
 
-rv.WHEELEDROBOTS = {'w1'}
-rv.LARGEROBOTS = {'r1'}
+rv.WHEELEDROBOTS = {'w1', 'r1'}
 rv.OBSTACLES = {(2.5, 2.5)}
 
 def ResetState():
     state.loc = {'r1': (1,1), 'w1': (1,1)}
-    state.robotType = {'r1': 'large', 'w1': 'wheeled'}
+    state.robotType = {'r1': 'wheeled', 'w1': 'wheeled'}
 
 tasks = {
     1: [['moveTo', 'r1', (5,5)]]

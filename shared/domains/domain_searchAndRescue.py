@@ -21,6 +21,11 @@ import globals
 def fail():
     return FAILURE
 
+def deadEnd(p):
+    state.status[p] = 'dead'
+    state.realStatus[p] = 'dead'
+    return FAILURE
+
 def moveEuclidean(r, l1, l2, dist):
     (x1, y1) = l1
     (x2, y2) = l2
@@ -31,8 +36,11 @@ def moveEuclidean(r, l1, l2, dist):
     for o in rv.OBSTACLES:    
         (ox, oy) = o
         if ox >= xlow and ox <= xhigh and oy >= ylow and oy <= yhigh:
-            if abs((oy - y1)/(ox - x1) - (y2 - y1)/(x2 - x1)) <= 0.0001:
-                gui.Simulate("%s cannot move in euclidean path because of obstacle\n" %r)
+            if ox == x1 or x2 == x1:
+                gui.Simulate("%s cannot move in Euclidean path because of obstacle\n" %r)
+                return FAILURE
+            elif abs((oy - y1)/(ox - x1) - (y2 - y1)/(x2 - x1)) <= 0.0001:
+                gui.Simulate("%s cannot move in Euclidean path because of obstacle\n" %r)
                 return FAILURE
 
     state.loc.AcquireLock(r)
@@ -152,8 +160,15 @@ def inspectPerson(r, p):
     return SUCCESS
 
 def giveSupportToPerson(r, p):
-    gui.Simulate("Robot %s is giving support to person %s \n" %(r, p))
-    return SUCCESS
+    if state.status[p] != 'dead':
+        gui.Simulate("Robot %s has saved person %s \n" %(r, p))
+        state.status[p] = 'OK'
+        state.realStatus[p] = 'OK'
+        res = SUCCESS
+    else:
+        gui.Simulate("Person %s is already dead \n" %(p))
+        res = FAILURE
+    return res
 
 def inspectLocation(r, l):
     gui.Simulate("Robot %s is inspecting location %s \n" %(r, str(l)))
@@ -162,23 +177,30 @@ def inspectLocation(r, l):
 
 def clearLocation(r, l):
     gui.Simulate("Robot %s has cleared location %s \n" %(r, str(l)))
+    state.status[l] = 'clear'
+    state.realStatus[l] = 'clear'
     return SUCCESS
 
 def replenishSupplies(r):
+    state.hasMedicine.AcquireLock(r)
     if state.loc[r] == (1,1):
-        state.hasMedicine[r] = True
+        state.hasMedicine[r] = 5
         gui.Simulate("Robot %s has replenished supplies at the base.\n" %r)
         res = SUCCESS
     else:
         gui.Simulate("Robot %s is not at the base.\n" %r)
         res = FAILURE
 
+    state.hasMedicine.ReleaseLock(r)
     return res
 
 def transfer(r1, r2):
+    state.hasMedicine.AcquireLock(r1)
+    state.hasMedicine.AcquireLock(r2)
     if state.loc[r1] == state.loc[r2]:
-        if state.hasMedicine[r1] == True:
-            state.hasMedicine[r2] = True
+        if state.hasMedicine[r1] > 0:
+            state.hasMedicine[r2] += 1
+            state.hasMedicine[r1] -= 1
             gui.Simulate("Robot %s has transferred medicine to %s.\n" %(r1, r2))
             res = SUCCESS
         else:
@@ -187,7 +209,32 @@ def transfer(r1, r2):
     else:
         gui.Simulate("Robots %s and %s are in different locations.\n" %(r1, r2))
         res = FAILURE
+    state.hasMedicine.ReleaseLock(r2)
+    state.hasMedicine.ReleaseLock(r1)
+    return res
 
+def captureImage(r, camera, l):
+    img = Sense('captureImage', r, camera, l)
+
+    state.currentImage.AcquireLock(r)
+    state.currentImage[r] = img
+    gui.Simulate("UAV %s has captured image in location %s using %s\n" %(r, l, camera))
+    state.currentImage.ReleaseLock(r)
+    return SUCCESS
+
+def changeAltitude(r, newAltitude):
+    state.altitude.AcquireLock(r)
+    if state.altitude[r] != newAltitude:
+        res = Sense('changeAltitude')
+        if res == SUCCESS:
+            state.altitude[r] = newAltitude
+            gui.Simulate("UAV %s has changed altitude to %s\n" %(r, newAltitude))
+        else:
+            gui.Simulate("UAV %s was not able to change altitude to %s\n" %(r, newAltitude))
+    else:
+        res = SUCCESS
+        gui.Simulate("UAV %s is already in %s altitude.\n" %(r, newAltitude))
+    state.altitude.ReleaseLock(r)
     return res
 
 def SR_GETDISTANCE_Euclidean(l0, l1):
@@ -197,7 +244,9 @@ def SR_GETDISTANCE_Euclidean(l0, l1):
 
 def MoveTo_Method1(r, l): # takes the straight path
     x = state.loc[r]
-    if state.robotType[r] == 'wheeled':
+    if x == l:
+        gui.Simulate("Robot %s is already in location %s\n." %(r, l))
+    elif state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Euclidean(x, l)
         gui.Simulate("Euclidean distance = %d " %dist)
         ape.do_command(moveEuclidean, r, x, l, dist)
@@ -211,7 +260,9 @@ def SR_GETDISTANCE_Manhattan(l0, l1):
 
 def MoveTo_Method2(r, l): # takes a Manhattan path
     x = state.loc[r]
-    if state.robotType[r] == 'wheeled':
+    if x == l:
+        gui.Simulate("Robot %s is already in location %s\n." %(r, l))
+    elif state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Manhattan(x, l)
         gui.Simulate("Manhattan distance = %d " %dist)
         ape.do_command(moveManhattan, r, x, l, dist) 
@@ -224,7 +275,9 @@ def SR_GETDISTANCE_Curved(l0, l1):
 
 def MoveTo_Method3(r, l): # takes a curved path
     x = state.loc[r]
-    if state.robotType[r] == 'wheeled':
+    if x == l:
+        gui.Simulate("Robot %s is already in location %s\n." %(r, l))
+    elif state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Curved(x, l)
         gui.Simulate("Curved distance = %d " %dist)
         ape.do_command(moveCurved, r, x, l, dist) 
@@ -233,16 +286,35 @@ def MoveTo_Method3(r, l): # takes a curved path
 
 def MoveTo_Method4(r, l):
     x = state.loc[r]
-    if state.robotType[r] == 'uav':
+    if x == l:
+        gui.Simulate("Robot %s is already in location %s\n." %(r, l))
+    elif state.robotType[r] == 'uav':
         ape.do_command(fly, r, x, l)
     else:
         ape.do_command(fail)
 
 def Rescue_Method1(r, p):
-    ape.do_task('moveTo', r, state.loc[p])
-    ape.do_task('helpPerson', r, p)
+    if state.robotType[r] != 'uav':
+        if state.hasMedicine[r] == 0:
+            ape.do_task('getSupplies', r)
+        ape.do_task('helpPerson', r, p)
+    else:
+        ape.do_command(fail)
+
+def Rescue_Method2(r, p):
+    if state.robotType[r] == 'uav':
+        ape.do_task('getRobot')
+    r2 = state.newRobot[1]
+    if r2 != None:
+        if state.hasMedicine[r2] == 0:
+            ape.do_task('getSupplies', r2)
+        ape.do_task('helpPerson', r2, p)
+    else:
+        gui.Simulate("No robot is free to help person %s\n" %p)
+        ape.do_command(fail)
 
 def HelpPerson_Method1(r, p):
+    ape.do_task('moveTo', r, state.loc[p])
     ape.do_command(inspectPerson, r, p)
     if state.status[p] == 'injured':
         ape.do_command(giveSupportToPerson, r, p)
@@ -250,17 +322,19 @@ def HelpPerson_Method1(r, p):
         ape.do_command(fail)
 
 def HelpPerson_Method2(r, p):
+    ape.do_task('moveTo', r, state.loc[p])
     ape.do_command(inspectLocation, r, state.loc[r])
     if state.status[state.loc[r]] == 'hasDebri':
         ape.do_command(clearLocation, r, state.loc[r]) 
     else:
+        CheckReal(state.loc[p])
         ape.do_command(fail)
-
-def GetSupplies_Method1(r, l):
+        
+def GetSupplies_Method1(r):
     r2 = None
     nearestDist = float("inf")
     for r1 in rv.WHEELEDROBOTS:
-        if state.hasMedicine[r1] == True:
+        if state.hasMedicine[r1] > 0:
             dist = SR_GETDISTANCE_Euclidean(state.loc[r], state.loc[r1])
             if dist < nearestDist:
                 nearestDist = dist
@@ -268,15 +342,80 @@ def GetSupplies_Method1(r, l):
     if r2 != None:
         ape.do_task('moveTo', r, state.loc[r2])
         ape.do_command(transfer, r2, r)
-        ape.do_task('moveTo', r, l)
+
     else:
         ape.do_command(fail)
 
-def GetSupplies_Method2(r, l):
+def GetSupplies_Method2(r):
     ape.do_task('moveTo', r, (1,1))
     ape.do_command(replenishSupplies, r)
-    ape.do_task('moveTo', r, l)
 
+def CheckReal(l):
+    p = state.realPerson[l]
+    if p != None:
+        if state.realStatus[p] == 'injured' or state.realStatus[p] == 'dead' or state.realStatus[l] == 'hasDebri':
+            gui.Simulate("Person in location %s failed to be saved.\n" %str(l))
+            ape.do_command(deadEnd, p)
+            ape.do_command(fail)
+
+def Survey_Method1(r, l):
+    if state.robotType[r] != 'uav':
+        ape.do_command(fail)
+
+    ape.do_task('adjustAltitude', r)
+
+    ape.do_command(captureImage, r, 'frontCamera', l)
+    
+    img = state.currentImage[r]
+    position = img['loc']
+    person = img['person']
+    
+    if person != None:
+        ape.do_task('rescue', r, person)
+
+    CheckReal(l)
+
+def Survey_Method2(r, l):
+    if state.robotType[r] != 'uav':
+        ape.do_command(fail)
+    
+    ape.do_task('adjustAltitude', r)
+
+    ape.do_command(captureImage, r, 'bottomCamera', l)
+    
+    img = state.currentImage[r]
+    position = img['loc']
+    person = img['person']
+    
+    if person != None:
+        ape.do_task('rescue', r, person)
+
+    CheckReal(l)
+
+def GetRobot_Method1():
+    dist = float("inf")
+    robot = None
+    for r in rv.WHEELEDROBOTS:
+        if state.status[r] == 'free':
+            if SR_GETDISTANCE_Euclidean(state.loc[r], (1,1)) < dist:
+                robot = r
+                dist = SR_GETDISTANCE_Euclidean(state.loc[r], (1,1))
+    if robot == None:
+        ape.do_command(fail)
+    else:
+        state.newRobot[1] = robot   # Check if this can cause any regression with assignment statements
+
+def GetRobot_Method2():
+    state.newRobot[1] = rv.WHEELEDROBOTS[0]
+
+def AdjustAltitude_Method1(r):
+    if state.altitude[r] == 'high':
+        ape.do_command(changeAltitude, r, 'low')
+
+def AdjustAltitude_Method2(r):
+    if state.altitude[r] == 'low':
+        ape.do_command(changeAltitude, r, 'high')
+    
 rv = RV()
 ape.declare_commands([
     moveEuclidean,
@@ -289,6 +428,9 @@ ape.declare_commands([
     inspectPerson,
     transfer,
     replenishSupplies,
+    captureImage,
+    changeAltitude,
+    deadEnd,
     fail
     ])
 
@@ -301,16 +443,32 @@ ape.declare_methods('moveTo',
 
 ape.declare_methods('rescue',
     Rescue_Method1,
+    Rescue_Method2,
     )
 
 ape.declare_methods('helpPerson',
+    HelpPerson_Method2,
     HelpPerson_Method1, 
-    HelpPerson_Method2
     )
 
 ape.declare_methods('getSupplies',
+    GetSupplies_Method2,
     GetSupplies_Method1,
-    GetSupplies_Method2
+    )
+
+ape.declare_methods('survey',
+    Survey_Method1,
+    Survey_Method2
+    )
+
+ape.declare_methods('getRobot',
+    GetRobot_Method1,
+    GetRobot_Method2,
+    )
+
+ape.declare_methods('adjustAltitude',
+    AdjustAltitude_Method1,
+    AdjustAltitude_Method2,
     )
 
 from env_searchAndRescue import *

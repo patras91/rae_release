@@ -13,6 +13,7 @@ from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
 from helper_functions import *
+import types
 ############################################################
 
 
@@ -480,7 +481,10 @@ def do_command(cmd, *cmdArgs):
 def GetCost(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")
     cost = DURATION.COUNTER[cmd.__name__]
-    return cost
+    if type(cost) == types.FunctionType:
+        return cost(*cmdArgs)
+    else:
+        return cost
 
 def DoCommandInRealWorld(cmd, cmdArgs):
     global path
@@ -519,7 +523,7 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     retcode = cmdRet['state']
 
     currentNode, child = apeLocals.GetCurrentNodes()
-    child.SetLabelAndType(cmd, 'command')
+    child.SetLabelAndType(cmd, 'command', cmdArgs)
 
     if verbose > 1:
         print_stack_size(apeLocals.GetStackId(), path)

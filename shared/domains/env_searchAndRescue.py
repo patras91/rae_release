@@ -13,9 +13,10 @@ commandProb = {
     'moveManhattan': [0.95, 0.05],
     'fly': [0.9, 0.1],
     'inspectLocation': [0.98, 0.02],
+    'changeAltitude': [0.8, 0.2]
 }
 
-def Sense(cmd):
+def Sense(cmd, *cmdArgs):
     if cmd == 'perceive':
         if globals.GetPlanningMode() == True:
             return SenseObjects()
@@ -25,6 +26,8 @@ def Sense(cmd):
         if globals.GetPlanningMode() == True:
             for r in rv.ROBOTS:
                 state.emergencyHandling[r] = False
+    elif cmd == 'captureImage':
+        return SenseImage(*cmdArgs)
     else:
         p = commandProb[cmd]
         outcome = numpy.random.choice(len(p), 50, p=p)
@@ -51,3 +54,26 @@ def SenseObjects():
             locs = list(prob.keys())
             locIndex = numpy.random.choice(len(p), 50, p=p)
             state.containers[locs[locIndex[0]]].append(o)
+
+def SenseImage(r, camera, l):
+    img = {'loc': None, 'person': None}
+    visibility = False
+    if state.weather[l] == 'rainy':
+        if camera == 'bottomCamera' and state.altitude[r] == 'low':
+            visibility = True
+    elif state.weather[l] == 'foggy':
+        if camera == 'frontCamera' and state.altitude[r] == 'low':
+            visibility = True
+    elif state.weather[l] == 'dustStorm':
+        if state.altitude[r] == 'low':
+            visibility = True
+    elif state.weather[l] == 'clear':
+        visibility = True
+    else:
+        print("Invalid weather conditions. Please check problem file.\n")
+
+    if visibility == True:
+        img['loc'] = l
+        img['person'] = state.realPerson[l]
+
+    return img
