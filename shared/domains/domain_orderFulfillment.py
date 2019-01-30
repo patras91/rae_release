@@ -48,24 +48,34 @@ def OF_GETDISTANCE_GROUND(l0, l1):
     return visitedDistances[l1]
 
 
-def Order_Method1(item, l):
+def Order_Method1(itemClass, l):
     # order from item i of shipping type type, to location l
-    ape.do_task('find', item)
+    ape.do_task('find', itemClass)
+    item = state.var1['temp2']
     ape.do_task('pack', item)
 
 # Refinement methods for find
 
 
-def Find_Method1(item):
+def Find_Method1(itemClass):
     # search an online database
-    loc_item = state.loc[item]
-    if loc_item == UNK:
-        ape.do_command(lookupDB, item)
+    # take the location of the first object of the correct type
+
+    for i in rv.OBJ_CLASS[itemClass]:
+        if state.storedLoc[i] != NIL:
+            item = i
+            break
+
+    ape.do_command(lookupDB, item)
+
+    state.var1.AcquireLock('temp')
+    state.var1['temp2'] = item
+    state.var1.ReleaseLock('temp')
 
 
 def lookupDB(item):
     state.loc.AcquireLock(item)
-    state.NationalDatabase.AcquireLock(item)
+    state.storedLoc.AcquireLock(item)
 
     start = globalTimer.GetTime()
 
@@ -75,11 +85,13 @@ def lookupDB(item):
     res = Sense('lookupDB')
     if res == SUCCESS:
         gui.Simulate("Found item %s from database\n" % item)
-        state.loc[item] = state.NationalDatabase[item]
+        state.loc[item] = state.storedLoc[item]
+        state.storedLoc[item] = NIL
+
     else:
         gui.Simulate("National database is down\n")
 
-    state.NationalDatabase.ReleaseLock(item)
+    state.storedLoc.ReleaseLock(item)
     state.loc.ReleaseLock(item)
 
     return res

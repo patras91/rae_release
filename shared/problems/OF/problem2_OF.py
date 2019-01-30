@@ -69,18 +69,23 @@ rv.REPAIR_BOT = {'fixer1': rv.FACTORY1}
 
 rv.OBJECTS = {'o1'}
 rv.OBJ_WEIGHT = {'o1': 5}
+rv.OBJ_CLASS = {'type1': ['o1']}
+
+
 
 def ResetState():
     state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': UNK, 'fixer1': 1}
+    state.storedLoc = {'o1': 2}
     state.load = {'r1': NIL, 'r2': NIL, 'fixer1': NIL}
     state.busy = {'r1': False, 'r2': False, 'fixer1': False, 'm1': False}
-    state.NationalDatabase = {'o1': 2}
     state.numUses = {'m1': 1}
-    state.var1 = {'temp': 'r1', 'temp1': 'r1'}
+    state.var1 = {'temp': 'r1', 'temp1': 'r1', 'temp2': 1}
+
 
 tasks = {
-    1: [['order', 'o1', 7]],
+    1: [['order', 'type1', 7]],
 }
+
 
 eventsEnv = {
 }
