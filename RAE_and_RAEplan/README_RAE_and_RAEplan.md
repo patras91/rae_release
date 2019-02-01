@@ -19,7 +19,7 @@ python3 testRAEandRAEplan.py [-h] [--v V] [--domain D] [--problem P] [--plan S] 
 optional arguments:
   -h, --help  	show this help message and exit
   --v V      	verbosity of RAE and RAEplan's debugging output (0, 1 or 2)
-  --domain D    domain code of the test domain (STE, CR, SD, EE, SOD, IP or SF) (see below)
+  --domain D    domain code of the test domain (STE, CR, SD, EE, SOD, IP, SF, OF) (see below)
   --problem P   problem id for the problem eg. 'problem1', 'problem2', etc. The problem id should correspond to a
                 problem inside the folder 'problems'.
   --plan pl   	Do you want to use planning or not? ('y' or 'n')
@@ -33,7 +33,8 @@ domain_ste: 'STE',
 domain_chargeableRobot: 'CR',
 domain_springDoor: 'SD',
 domain_exploreEnv: 'EE',
-domain_industrialPlan: 'IP'
+domain_industrialPlan: 'IP',
+domain_orderFulfillment: 'OF'
 
 
 HOW TO ADD NEW PROBLEMS? 

@@ -1,7 +1,7 @@
 __author__ = 'mason'
 
 '''
-Situation: One robot can move the package, one can't
+Situation: Need to repair packaging machine
 '''
 
 from domain_orderFulfillment import *
@@ -67,29 +67,29 @@ rv.GROUND_EDGES = {1: [2], 2: [1, 3], 3: [2, 4], 4: [3, 5], 5: [4, 6], 6: [5, 7]
 rv.GROUND_WEIGHTS = {(1,2): 1, (2,3): 1, (3,4): 5, (4,5): 15, (5,6): 50, (6,7): 10}
 
 rv.ROBOTS = {'r1': rv.FACTORY1, 'r2': rv.FACTORY1}
-rv.ROBOT_CAPACITY = {'r1': 3, 'r2': 10}
+rv.ROBOT_CAPACITY = {'r1': 9, 'r2': 10}
 rv.MACHINES = {'m1': rv.FACTORY1}
 rv.REPAIR_BOT = {'fixer1': rv.FACTORY1}
 
-rv.OBJECTS = {'o1'}
-rv.OBJ_WEIGHT = {'o1': 5}
-rv.OBJ_CLASS = {'type1': ['o1']}
+rv.OBJECTS = {'o1', 'o2'}
+rv.OBJ_WEIGHT = {'o1': 7, 'o2':7}
+rv.OBJ_CLASS = {'type1': ['o1', 'o2']}
 
 
 
 def ResetState():
-    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': UNK, 'fixer1': 1}
-    state.storedLoc = {'o1': 2}
-    state.load = {'r1': NIL, 'r2': NIL, 'fixer1': NIL}
-    state.busy = {'r1': False, 'r2': False, 'fixer1': False, 'm1': False}
-    state.numUses = {'m1': 1}
-    state.var1 = {'temp': 'r1', 'temp1': 'r1', 'temp2': 1}
+    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': UNK, 'o2': UNK, 'fixer1': 1}
+    state.storedLoc = {'o1': 2, 'o2': 1}
+    state.load = {'r1': NIL, 'r2': NIL, 'fixer1': False}
+    state.busy = {'r1': False, 'r2': False, 'm1': False, 'fixer1': False}
+    state.numUses = {'m1': 80}
+    state.var1 = {'temp': 'r1', 'temp1': 'r1'}
 
 
 tasks = {
     1: [['order', 'type1', 7]],
+    2: [['order', 'type1', 7]],
 }
-
 
 eventsEnv = {
 }

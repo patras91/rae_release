@@ -37,7 +37,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",
                            type=int, default=0, required=False)
-    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP, PD, SR)",
+    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP, OF, SR)",
                            type=str, default='CR', required=False)
     argparser.add_argument("--problem", help="identifier for the problem eg. 'problem1', 'problem2', etc",
                            type=str, default="problem11", required=False)
