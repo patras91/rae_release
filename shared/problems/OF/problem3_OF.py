@@ -39,7 +39,8 @@ DURATION.TIME = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'repair': 8
+    'repair': 8,
+    'wait': 1
  }
 
 DURATION.COUNTER = {
@@ -51,7 +52,8 @@ DURATION.COUNTER = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'repair': 8
+    'repair': 8,
+    'wait': 1
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7]

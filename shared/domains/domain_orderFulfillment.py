@@ -48,6 +48,15 @@ def OF_GETDISTANCE_GROUND(l0, l1):
     return visitedDistances[l1]
 
 
+def wait():
+    start = globalTimer.GetTime()
+    while (globalTimer.IsCommandExecutionOver('wait', start) == False):
+        pass
+
+    return SUCCESS
+
+
+
 def Order_Method1(itemClass, l):
     # order from item i of shipping type type, to location l
     ape.do_task('find', itemClass)
@@ -96,6 +105,7 @@ def lookupDB(item):
 
     return res
 
+
 '''
 def Find_Method2(item):
     # search some local warehouse database
@@ -126,6 +136,9 @@ def Pack_Method1(item):
     # TODO do I need to lock this?
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
     ape.do_command(moveRobot, r, state.loc[r], state.loc[m], dist)
+
+    while state.busy[m] != False:
+        ape.do_command(wait)
 
     ape.do_command(loadMachine, r, m, item)
     ape.do_command(wrap, m, item)
@@ -218,6 +231,7 @@ def pickup(r, item):
 
     return res
 
+
 def putdown(r, item):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
@@ -256,9 +270,12 @@ def loadMachine(r, m, item):
     if state.loc[r] != state.loc[m]:
         gui.Simulate("Robot %s isn't at machine %s" % (r, m))
         res = FAILURE
+    elif state.busy[m] != False:
+        gui.Simulate("Machine %s is busy, can't be loaded" % m)
+        res = FAILURE
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('pickup', start) == False):
+        while (globalTimer.IsCommandExecutionOver('loadMachine', start) == False):
             pass
 
         res = Sense('loadMachine')
@@ -278,6 +295,7 @@ def loadMachine(r, m, item):
     state.load.ReleaseLock(r)
 
     return res
+
 
 # Refinement methods for getRobot
 
@@ -307,6 +325,7 @@ def acquireRobot(r):
 
     return res
 
+
 def freeRobot(r):
     state.busy.AcquireLock(r)
     state.load.AcquireLock(r)
@@ -334,6 +353,9 @@ def GetRobot_Method1(l, c):
     # return the robot which is nearest
     r0 = min(list(rv.ROBOTS), key=lambda r: OF_GETDISTANCE_GROUND(state.loc[r], l))
 
+    while state.busy[r0] != False:
+        ape.do_command(wait)
+
     res = ape.do_command(acquireRobot, r0)
 
     state.var1.AcquireLock('temp')
@@ -342,12 +364,14 @@ def GetRobot_Method1(l, c):
 
     return res
 
+
 '''
 def GetRobot_Method2(l):
     # return the one which is already going to l or nearby areas
     gui.Simulate("Method not implemented")
     ape.do_command(fail)
 '''
+
 
 #TODO could have a problem b/c not locking state.busy[r]
 def GetRobot_Method3(l, c):
@@ -362,6 +386,9 @@ def GetRobot_Method3(l, c):
     if r0 == NIL:
         return FAILURE
 
+    while state.busy[r0] != False:
+        ape.do_command(wait)
+
     res = ape.do_command(acquireRobot, r0)
 
     state.var1.AcquireLock('temp')
@@ -369,6 +396,7 @@ def GetRobot_Method3(l, c):
     state.var1.ReleaseLock('temp')
 
     return res
+
 
 def GetRobot_Method4(l, c):
     # return one which has a high enough capacity,
@@ -382,6 +410,9 @@ def GetRobot_Method4(l, c):
 
     if r0 == NIL:
         return FAILURE
+
+    while state.busy[r0] != False:
+        ape.do_command(wait)
 
     res = ape.do_command(acquireRobot, r0)
 
@@ -459,7 +490,6 @@ def GetMachine_Method4(l):
     return SUCCESS
 
 
-
 def wrap(m, item):
     state.loc.AcquireLock(m)
     state.loc.AcquireLock(item)
@@ -494,6 +524,7 @@ def wrap(m, item):
     return res
 
 
+# TODO add another method for this
 def FixMachine_Method1(m):
     # return the one which is free, given it's in the factory
     rf0 = NIL
@@ -552,7 +583,8 @@ def repair(r, m):
 
 rv = RV()
 ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
-                      loadMachine, moveRobot, freeRobot, putdown, repair])
+                      loadMachine, moveRobot, freeRobot, putdown,
+                      repair, wait])
 
 ape.declare_methods('order', Order_Method1)
 ape.declare_methods('find', Find_Method1)
