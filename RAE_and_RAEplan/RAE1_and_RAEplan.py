@@ -13,7 +13,6 @@ Author:
 Sunandita Patra <patras@cs.umd.edu>
 """
 
-# TODO : change some design
 import sys, pprint
 import os
 import globals
