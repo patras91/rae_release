@@ -385,7 +385,6 @@ def RAEplanChoice(task, planArgs):
         PrintState()
 
     while (searchTreeRoot.GetSearchDone() == False):
-        print("Search Tree")
         searchTreeRoot.PrintUsingGraphviz()
         try:
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
@@ -395,7 +394,7 @@ def RAEplanChoice(task, planArgs):
             #else:
             #    plannedTree = rTree.CreateFailureNode()
             searchTreeRoot.UpdateChildPointers()    
-        except Failed_command as e:
+        except Failed_Rollout as e:
             v_failedCommand(e)
             #plannedTree = rTree.CreateFailureNode()
             searchTreeRoot.UpdateChildPointers()
@@ -441,7 +440,6 @@ def FollowSearchTree_task(task, taskArgs, node):
     RestoreState(nextNode.GetPrevState())
     m = nextNode.GetLabel()
     planLocals.SetSearchTreeNode(nextNode)
-    print("method is ", m)
     tree = PlanMethod(m, task, taskArgs)
     return tree
 
@@ -634,7 +632,6 @@ def DoCommandInRealWorld(cmd, cmdArgs):
 
 def FollowSearchTree_command(cmd, cmdArgs, searchNode):
     planLocals.GetSearchTreeRoot().PrintUsingGraphviz()
-    print("Follow command ", cmd, searchNode.GetLabel())
     assert(cmd == searchNode.GetLabel())
     stateNode = searchNode.GetNext()
     RestoreState(stateNode.GetLabel())
@@ -718,7 +715,7 @@ def PlanCommand(cmd, cmdArgs):
         nextState = GetState().copy()
 
         if retcode == 'Failure':
-            newNode = rTree.SearchTreeNode('fail', 'state')
+            newNode = rTree.SearchTreeNode(nextState, 'state')
             newNode.SetEff(0)
             newNode.SetPrevState(prevState)
             newCommandNode.AddChild(newNode)

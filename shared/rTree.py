@@ -550,7 +550,7 @@ class SearchTreeNode():
             elif self.type == 'command':
                 sum = 0
                 for child in self.children:
-                    sum += self.AddEffchild.eff
+                    sum += child.eff
                 self.eff = sum/len(self.children)
             elif self.type == 'state':
                 self.AddEffchild(self.children[0].eff)
@@ -562,14 +562,11 @@ class SearchTreeNode():
                 self.parent.IncrementPointerAndSetEff()
 
     def UpdateChildPointers(self):
-        if self.type == 'task' or self.type == 'command':
-            if self.children == []:
-                # reached the bottom of the tree, start moving up now
-                self.parent.IncrementPointerAndSetEff()
-            elif self.childPtr < len(self.children):
-                self.children[self.childPtr].UpdateChildPointers()
+        if self.children == []:
+            # reached the bottom of the tree, start moving up now
+            self.parent.IncrementPointerAndSetEff()
         else:
-            self.children[0].UpdateChildPointers()
+            self.children[self.childPtr].UpdateChildPointers()
 
     def AddEfficiency(self, e2):
         e1 = self.eff
