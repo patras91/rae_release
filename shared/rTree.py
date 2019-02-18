@@ -493,6 +493,7 @@ class SearchTreeNode():
         self.type = t
         self.children = []
         self.childPtr = 0
+        self.childWeights = []
         self.eff = "UNK"
         self.prevState = None
         self.parent = None
@@ -530,6 +531,7 @@ class SearchTreeNode():
     def AddChild(self, node):
         node.parent = self
         self.children.append(node)
+        self.childWeights.append(1)
 
     def GetNext(self):
         if self.childPtr < len(self.children):
@@ -549,9 +551,11 @@ class SearchTreeNode():
                 self.eff = maxEff
             elif self.type == 'command':
                 sum = 0
-                for child in self.children:
-                    sum += child.eff
-                self.eff = sum/len(self.children)
+                total = 0
+                for child, weight in zip(self.children, self.childWeights):
+                    sum += weight*child.eff
+                    total += weight
+                self.eff = sum/weight
             elif self.type == 'state':
                 self.AddEfficiency(self.children[0].eff)
             else:
@@ -577,6 +581,21 @@ class SearchTreeNode():
         else:
             res = (e1 * e2) / (e1 + e2)
         self.eff = res
+
+    def GetBestMethod(self):
+        bestMethod = 'Failure'
+        bestEff = 0
+        for child in self.children:
+            if child.eff > bestEff:
+                bestEff = child.eff
+                bestMethod = child.GetLabel()
+        return bestMethod
+
+    def IncreaseWeight(self, s):
+        assert(self.type == 'command')
+        for index in range(0, len(self.children)):
+            if self.children[index].GetLabel().EqualTo(s):
+                self.childWeights[index] += 1
 
     def GetPrettyString(self, elem):
         if elem.label == 'task' or elem.label == 'root':

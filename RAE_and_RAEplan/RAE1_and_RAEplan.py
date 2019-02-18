@@ -230,23 +230,23 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     p.start()
     p.join()
 
-    plannedTree, simTime = queue.get()
+    method, simTime = queue.get()
     globalTimer.UpdateSimCounter(simTime)
 
-    retcode = plannedTree.GetRetcode()
+    #retcode = plannedTree.GetRetcode()
 
     if verbose > 0:
         print("Done with simulation. Result = {} \n".format(retcode), colorama.Style.RESET_ALL)
 
-    if retcode == 'Failure':
+    if method == 'Failure':
         #random.shuffle(candidates)
         return (candidates[0], candidates[1:])
     else:
-        plannedTreeFlat = plannedTree.GetPreorderTraversal()
-        indexToLook = actingTree.GetSize() - 2
-        m = plannedTreeFlat[indexToLook]
-        candidates.pop(candidates.index(m))
-        return (m, candidates)
+        #plannedTreeFlat = plannedTree.GetPreorderTraversal()
+        #indexToLook = actingTree.GetSize() - 2
+        #m = plannedTreeFlat[indexToLook]
+        candidates.pop(candidates.index(method))
+        return (method, candidates)
 
 def choose_candidate(candidates, task, taskArgs):
     if globals.GetDoSampling() == False or len(candidates) == 1:
@@ -349,7 +349,7 @@ def InitializePlanningTree():
     root = rTree.PlanningTree('root', 'root', 'root') # initialize the root of the refinement tree being built
     planLocals.SetCurrentNode(root)
     planLocals.SetPlanningTree(root)
-    planLocals.SetBestTree(None)
+    #planLocals.SetBestTree(None)
 
 def RAEplanChoice(task, planArgs):
     """
@@ -403,7 +403,7 @@ def RAEplanChoice(task, planArgs):
             #plannedTree = rTree.CreateFailureNode()
 
         except Search_Done as e:
-            
+            #searchTreeRoot.PrintUsingGraphviz()
             #if planLocals.GetBestTree() != None:
             #    plannedTree = planLocals.GetBestTree().GetChild() # doing GetChild because the root is just a node labelled 'root'
             #else:
@@ -417,8 +417,9 @@ def RAEplanChoice(task, planArgs):
         print('Final state is:')
         PrintState()
 
+    taskToRefine = planLocals.GetTaskToRefine()
 
-    return (rTree.CreateFailureNode(), globalTimer.GetSimulationCounter())
+    return (taskToRefine.GetBestMethod(), globalTimer.GetSimulationCounter())
     
 def GetCandidates(task):
     """ Called from PlanTask """
@@ -427,13 +428,15 @@ def GetCandidates(task):
         candidates = planLocals.GetCandidates()[:]
         planLocals.SetCandidates(None) # resetting planLocals for the rest of the search
         prevState = planLocals.GetState()
+        flag = 1
     else:
         candidates = methods[task][:] # set of applicable methods
         prevState = GetState()
+        flag = 0
         
     b = globals.Getb()
     cand = candidates[0:min(b, len(candidates))]
-    return cand, prevState
+    return cand, prevState, flag
 
 def FollowSearchTree_task(task, taskArgs, node):
     nextNode = node.GetNext()
@@ -481,12 +484,14 @@ def GetBestEff():
 
 def PlanTask(task, taskArgs):
     # Need to look through several candidates for this task
-    cand, state = GetCandidates(task)
+    cand, state, flag = GetCandidates(task)
 
     #guideList = planLocals.GetGuideList()
     searchTreeNode = planLocals.GetSearchTreeNode()
     taskNode = rTree.SearchTreeNode('task', 'task')
     searchTreeNode.AddChild(taskNode)
+    if flag == 1:
+        planLocals.SetTaskToRefine(taskNode)
 
     # Pruning here if efficiency is already lower
     #currEff = guideList.GetEff()
@@ -701,8 +706,7 @@ def PlanCommand(cmd, cmdArgs):
     #effList = []
 
     outcomeStates = []
-    effs = []
-    searchNodes = []
+    #effs = []
 
     searchTreeNode = planLocals.GetSearchTreeNode()
     prevState = GetState().copy()
@@ -719,21 +723,22 @@ def PlanCommand(cmd, cmdArgs):
             newNode.SetEff(0)
             newNode.SetPrevState(prevState)
             newCommandNode.AddChild(newNode)
+            outcomeStates.append(nextState)
             #effList.append(0)
             # No need to plan any further, it will always be 0
         else:
             index = IndexOf(nextState, outcomeStates)
-            if False: #index != -1:
+            if index != -1:
                 # this state has already been planned for, so just use the previous result
                 #effList.append(effs[index])
-                node = searchNodes[index]
-                #node.IncreaseWeight()
+                #childNode = searchNodes[index]
+                newCommandNode.IncreaseWeight(nextState)
             else:
                 #firstTask, firstTaskArgs, pRoot = Reinitialize('command', nextState, newNode, gL, cmd, cmdArgs)
                 newNode = rTree.SearchTreeNode(nextState, 'state')
                 newNode.SetPrevState(prevState)
                 newCommandNode.AddChild(newNode)
-                #newNode.SetWeight(1)
+                outcomeStates.append(nextState)
                 #try:
                 #    do_task(firstTask, *firstTaskArgs)
                 #except Search_Done:

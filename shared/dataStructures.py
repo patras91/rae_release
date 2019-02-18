@@ -97,17 +97,17 @@ class rL_PLAN(rL):
     def GetPlanningTree(self):
         return self.rL.planningTree
 
-    def SetGuideList(self, gl):
-        self.rL.guideList = gl
+    #def SetGuideList(self, gl):
+    #    self.rL.guideList = gl
 
-    def GetGuideList(self):
-        return self.rL.guideList
+    #def GetGuideList(self):
+    #    return self.rL.guideList
 
-    def GetBestTree(self):
-        return self.rL.bestTree 
+    #def GetBestTree(self):
+    #    return self.rL.bestTree 
 
-    def SetBestTree(self, t):
-        self.rL.bestTree = t
+    #def SetBestTree(self, t):
+    #    self.rL.bestTree = t
 
     def SetSearchTreeNode(self, n):
         self.rL.searchTree = n
@@ -120,6 +120,12 @@ class rL_PLAN(rL):
 
     def SetSearchTreeRoot(self, r):
         self.rL.searchTreeRoot = r
+
+    def SetTaskToRefine(self, taskNode):
+        self.rL.taskToRefine = taskNode
+
+    def GetTaskToRefine(self):
+        return self.rL.taskToRefine
 
 class PlanArgs():
     def __init__(self):

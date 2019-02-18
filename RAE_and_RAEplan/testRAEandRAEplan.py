@@ -8,7 +8,6 @@ sys.path.append('../shared/problems/IP')
 sys.path.append('../shared/problems/EE')
 sys.path.append('../shared/problems/OF')
 sys.path.append('../shared/problems/SR')
-sys.setrecursionlimit(6000)
 import argparse
 import gui
 import globals

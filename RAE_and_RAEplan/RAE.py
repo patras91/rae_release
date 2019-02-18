@@ -185,8 +185,8 @@ def raeMult():
     return taskInfo # for unit tests
 
 def CreateNewStackSimulation(pArgs, queue):
-    tree, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
-    queue.put((tree, planningTime))
+    method, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
+    queue.put((method, planningTime))
 
 def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, gL, searchTree):
     # Simulating one stack now
