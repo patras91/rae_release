@@ -17,7 +17,7 @@ class PlanningTree():
         self.eff = float("inf") # efficiency of this node
 
         # only for APEplan 
-        self.state = None # state needs to be restored after planning for sub-tasks
+        self.state = None # state needs to be set after planning for sub-tasks
 
     def GetState(self):
         return self.state
@@ -197,6 +197,9 @@ class ActingNode():
             assert(cmdArgs != None)
             self.cmdArgs = cmdArgs
 
+    def GetType(self):
+        return self.type
+
     def GetLabel(self):
         return self.label
 
@@ -346,6 +349,31 @@ class ActingTree():
         l = GuideList(l2)
         return l
 
+    def GetSearchTree(self):
+        l1 = self.root.GetPreorderTraversal()
+        root = None
+        currNode = None
+        for item in l1:
+            t = item.GetType()
+            if t == "method":
+                node = SearchTreeNode('task', 'task')
+                child = SearchTreeNode(item.GetLabel(), 'method')
+                child.SetPrevState(item.GetPrevState())
+                node.AddChild(child)
+            elif t == "command":
+                node = SearchTreeNode(item.GetLabel(), 'command')
+                child = SearchTreeNode(item.GetNextState(), 'state')
+                child.SetPrevState(item.GetPrevState())
+                node.AddChild(child)
+            else:
+                print("Error: Invalid type.")
+            if root == None:
+                root = node
+            else:
+                currNode.AddChild(node)
+            currNode = child
+        return root
+
     def GetPreOrderTraversal(self):
         return self.root.GetPreorderTraversal()
 
@@ -457,3 +485,129 @@ class GuideList():
             return float("inf")
         else:
             return 1/cost
+
+class SearchTreeNode():
+    def __init__(self, l, t):
+        self.label = l
+        assert(t == "task" or t == "method" or t == "command" or t == "state")
+        self.type = t
+        self.children = []
+        self.childPtr = 0
+        self.eff = "UNK"
+        self.prevState = None
+        self.parent = None
+
+    def GetLabel(self):
+        return self.label
+
+    def GetType(self):
+        return self.type
+
+    def SetEff(self, e):
+        self.eff = e
+
+    def GetEff(self):
+        return self.eff
+
+    def GetSearchDone(self):
+        if self.childPtr == 1:
+            return True
+        else:
+            return False
+
+    def SetParent(self, p):
+        self.parent = p
+
+    def GetParent(self):
+        return self.parent
+
+    def SetPrevState(self, s):
+        self.prevState = s
+
+    def GetPrevState(self):
+        return self.prevState
+
+    def AddChild(self, node):
+        node.parent = self
+        self.children.append(node)
+
+    def GetNext(self):
+        if self.childPtr < len(self.children):
+            return self.children[self.childPtr]
+        else:
+            return None
+
+    def IncrementPointerAndSetEff(self):
+        if self.childPtr < len(self.children) - 1:
+            self.childPtr += 1
+        else:
+            if self.type == 'task':
+                maxEff = 0
+                for child in self.children:
+                    if child.eff > maxEff:
+                        maxEff = child.eff
+                self.eff = maxEff
+            elif self.type == 'command':
+                sum = 0
+                for child in self.children:
+                    sum += self.AddEffchild.eff
+                self.eff = sum/len(self.children)
+            elif self.type == 'state':
+                self.AddEffchild(self.children[0].eff)
+            else:
+                self.eff = self.children[0].eff
+
+            self.childPtr += 1
+            if self.parent != None:
+                self.parent.IncrementPointerAndSetEff()
+
+    def UpdateChildPointers(self):
+        if self.type == 'task' or self.type == 'command':
+            if self.children == []:
+                # reached the bottom of the tree, start moving up now
+                self.parent.IncrementPointerAndSetEff()
+            elif self.childPtr < len(self.children):
+                self.children[self.childPtr].UpdateChildPointers()
+        else:
+            self.children[0].UpdateChildPointers()
+
+    def AddEfficiency(self, e2):
+        e1 = self.eff
+        if e1 == float("inf"):
+            res = e2
+        elif e2 == float("inf"):
+            res = e1
+        else:
+            res = (e1 * e2) / (e1 + e2)
+        self.eff = res
+
+    def GetPrettyString(self, elem):
+        if elem.label == 'task' or elem.label == 'root':
+            return elem.label
+        elif elem.type == 'method' or elem.type == 'command':
+            return elem.label.__name__
+        elif elem.type == 'state':
+            return "state"
+        else:
+            return "NONE"
+
+    def PrintUsingGraphviz(self, name='searchTree'):
+        g = Digraph('G', filename=name, format="png")
+
+        level = {}
+        level[0] = [(self, 0)] # tuple of node and node id
+        level[1] = []
+        curr = 0
+        next = 1
+        newId = 1
+        while(level[curr] != []):
+            for elem, nodeid in level[curr]:
+                elemString = self.GetPrettyString(elem) + "_" + str(nodeid)
+                for child in elem.children:
+                    g.edge(elemString, self.GetPrettyString(child) + "_" + str(newId))
+                    level[next].append((child, newId))
+                    newId += 1
+            curr += 1
+            next += 1
+            level[next] = []
+        g.view()

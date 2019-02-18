@@ -59,6 +59,9 @@ class rL_APE(rL):
         l = self.rL.aT.GetGuideList()
         return l
 
+    def GetSearchTree(self):
+        return self.rL.aT.GetSearchTree()
+
     def SetEfficiency(self, e):
         self.rL.eff = e
 
@@ -106,6 +109,18 @@ class rL_PLAN(rL):
     def SetBestTree(self, t):
         self.rL.bestTree = t
 
+    def SetSearchTreeNode(self, n):
+        self.rL.searchTree = n
+
+    def GetSearchTreeNode(self):
+        return self.rL.searchTree
+
+    def GetSearchTreeRoot(self):
+        return self.rL.searchTreeRoot
+
+    def SetSearchTreeRoot(self, r):
+        self.rL.searchTreeRoot = r
+
 class PlanArgs():
     def __init__(self):
         pass
@@ -145,3 +160,9 @@ class PlanArgs():
 
     def GetState(self):
         return self.state
+
+    def SetSearchTree(self, t):
+        self.searchTree = t
+
+    def GetSearchTree(self):
+        return self.searchTree
