@@ -553,7 +553,7 @@ class SearchTreeNode():
                     sum += child.eff
                 self.eff = sum/len(self.children)
             elif self.type == 'state':
-                self.AddEffchild(self.children[0].eff)
+                self.AddEfficiency(self.children[0].eff)
             else:
                 self.eff = self.children[0].eff
 

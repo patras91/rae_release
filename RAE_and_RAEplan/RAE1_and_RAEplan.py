@@ -385,7 +385,7 @@ def RAEplanChoice(task, planArgs):
         PrintState()
 
     while (searchTreeRoot.GetSearchDone() == False):
-        searchTreeRoot.PrintUsingGraphviz()
+        #searchTreeRoot.PrintUsingGraphviz()
         try:
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
@@ -631,7 +631,7 @@ def DoCommandInRealWorld(cmd, cmdArgs):
         raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))
 
 def FollowSearchTree_command(cmd, cmdArgs, searchNode):
-    planLocals.GetSearchTreeRoot().PrintUsingGraphviz()
+    #planLocals.GetSearchTreeRoot().PrintUsingGraphviz()
     assert(cmd == searchNode.GetLabel())
     stateNode = searchNode.GetNext()
     RestoreState(stateNode.GetLabel())
