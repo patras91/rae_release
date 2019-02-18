@@ -116,7 +116,7 @@ def writeHeader(file):
     file.write("def GetCostOfMove(r, l1, l2, dist):\n") 
     file.write("    return dist\n\n") 
 
-    file.write("DURATION.COUNTER = {\n") 
+    file.write("DURATION.TIME = {\n")
     file.write("    'giveSupportToPerson': 15,\n") 
     file.write("    'clearLocation': 5,\n") 
     file.write("    'inspectPerson': 20,\n") 
