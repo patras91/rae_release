@@ -70,7 +70,7 @@ rv.MACHINES = {'m1': rv.FACTORY1}
 rv.REPAIR_BOT = {'fixer1': rv.FACTORY1}
 
 rv.OBJECTS = {'o1', 'o2'}
-rv.OBJ_WEIGHT = {'o1': 7, 'o2':7}
+rv.OBJ_WEIGHT = {'o1': 7, 'o2': 7}
 rv.OBJ_CLASS = {'type1': ['o1', 'o2']}
 
 
