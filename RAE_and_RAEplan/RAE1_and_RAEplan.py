@@ -385,7 +385,6 @@ def RAEplanChoice(task, planArgs):
         PrintState()
 
     while (searchTreeRoot.GetSearchDone() == False):
-        #searchTreeRoot.PrintUsingGraphviz()
         try:
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
@@ -403,6 +402,7 @@ def RAEplanChoice(task, planArgs):
             #plannedTree = rTree.CreateFailureNode()
 
         except Search_Done as e:
+            #searchTreeRoot.PrintUsingGraphviz()
             #searchTreeRoot.PrintUsingGraphviz()
             #if planLocals.GetBestTree() != None:
             #    plannedTree = planLocals.GetBestTree().GetChild() # doing GetChild because the root is just a node labelled 'root'
