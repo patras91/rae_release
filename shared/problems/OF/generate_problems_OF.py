@@ -94,11 +94,11 @@ def generateProblems():
         stateLoc = {}
 
         for r in robots:
-            stateLoc[r] = np.random.choice(list(factory))
+            stateLoc["'"+r+"'"] = np.random.choice(list(factory))
         for m in machines:
-            stateLoc[m] = np.random.choice(list(factory))
+            stateLoc["'"+m+"'"] = np.random.choice(list(factory))
         for f in repairBots:
-            stateLoc[f] = np.random.choice(list(factory))
+            stateLoc["'"+f+"'"] = np.random.choice(list(factory))
 
         storedLoc = {}
         for o in objects:
@@ -110,7 +110,7 @@ def generateProblems():
 
         numUses = {}
         for m in machines:
-            numUses = max(1, int(np.random.normal(10,3)))
+            numUses[m] = max(1, int(np.random.normal(10,3)))
 
         orderTypes = []
 
@@ -155,40 +155,43 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
 
     file.write("def ResetState():\n")
 
-    stateLocString = "  state.loc = {"
+    stateLocString = "    state.loc = {"
     # state.loc things
 
     for r in stateLoc.keys():
         stateLocString += " " + r + ": " + str(stateLoc[r]) + ","
     for o in objects:
-        stateLocString += " " + o + ": UNK,"
+        stateLocString += " '" + o + "': UNK,"
     stateLocString += "}\n"
 
     file.write(stateLocString)
 
-    file.write("    state.storedLoc" + str(storedLoc) + '\n')
+    file.write("    state.storedLoc = " + str(storedLoc) + '\n')
 
     # state.load things
 
-    stateLoadString = "  state.load = {"
+    stateLoadString = "    state.load = {"
 
-    for o in objects:
-        stateLoadString += " " + o + ": NIL,"
+    for r in robots:
+        stateLoadString += " '" + r + "': NIL,"
     for f in repairBots:
-        stateLoadString += " " + f + ": False,"
+        stateLoadString += " '" + f + "': False,"
 
     stateLoadString += "}\n"
 
     file.write(stateLoadString)
-    file.write("    state.busy" + str(busy) + '\n')
-    file.write("    state.numUses" + str(numUses) + '\n')
+    file.write("    state.busy = " + str(busy) + '\n')
+    file.write("    state.numUses = " + str(numUses) + '\n')
 
     file.write("    state.var1 = {'temp': 'r1', 'temp1': 'r1'}\n\n")
 
     file.write("tasks = {\n")
-    for o in orderTypes:
-        time = random.randint(1, 8)
-        file.write("    " + str(time) + ": [['order', " + str(o) + ", 200]],\n")
+
+    randTimes = random.sample(range(1,2*len(orderTypes)), len(orderTypes))
+
+    for idx, o in enumerate(orderTypes):
+        time = randTimes[idx]
+        file.write("    " + str(time) + ": [['order', '" + str(o) + "', 200]],\n")
     file.write("}\n")
 
     file.write("eventsEnv = {\n")
