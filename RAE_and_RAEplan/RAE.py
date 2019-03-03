@@ -69,28 +69,30 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    retcode, retryCount, eff = RAE1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff)
+    retcode, retryCount, eff, plannerTimeoutCount = RAE1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, plannerTimeoutCount)
 
 def PrintResult(taskInfo):
     for stackid in taskInfo:
-        args, res, retryCount, eff = taskInfo[stackid]
-        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', eff, '\n')
+        args, res, retryCount, eff, plannerTimeoutCount = taskInfo[stackid]
+        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', eff, '\t\t', plannerTimeoutCount, '\n')
 
 def PrintResultSummary(taskInfo):
     succ = 0
     fail = 0
     retries = 0
     effTotal = 0
+    plannerTimeoutTotal = 0
     for stackid in taskInfo:
-        args, res, retryCount, eff = taskInfo[stackid]
+        args, res, retryCount, eff, plannerTimeoutCount = taskInfo[stackid]
         if res == 'Success':
             succ += 1
         else:
             fail += 1
         retries += retryCount
         effTotal += eff
-    print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal)
+        plannerTimeoutTotal += plannerTimeoutCount
+    print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal, plannerTimeoutTotal)
     #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
 def StartEnv():

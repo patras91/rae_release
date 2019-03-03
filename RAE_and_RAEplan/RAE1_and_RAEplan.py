@@ -191,7 +191,10 @@ def RAE1(task, raeArgs):
         raeLocals.SetEfficiency(0)
 
     #raeLocals.GetActingTree().PrintUsingGraphviz()
-    return (retcode, raeLocals.GetRetryCount(), raeLocals.GetEfficiency())
+    return (retcode, 
+        raeLocals.GetRetryCount(), 
+        raeLocals.GetEfficiency(), 
+        raeLocals.GetPlannerTimeoutCount())
 
 def InitializeStackLocals(task, raeArgs):
     """ Initialize the local variables of a stack used during acting """
@@ -206,6 +209,7 @@ def InitializeStackLocals(task, raeArgs):
     aT.SetPrevState(GetState().copy())
     raeLocals.SetActingTree(aT)
     raeLocals.SetEfficiency(float("inf"))
+    raeLocals.SetPlannerTimeoutCount(0)
     
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -228,9 +232,16 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         raeLocals.GetSearchTree()])
 
     p.start()
-    p.join()
+    p.join(180)
+    if p.is_alive() == True:
+        p.terminate()
+        method = 'Failure'
+        globalTimer.UpdateSimCounter(180)
+        raeLocals.IncreasePlannerTimeoutCount()
+    else:
+        method, simTime = queue.get()
+        globalTimer.UpdateSimCounter(simTime)
 
-    method, simTime = queue.get()
     globalTimer.UpdateSimCounter(simTime)
 
     #retcode = plannedTree.GetRetcode()
