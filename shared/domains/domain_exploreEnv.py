@@ -4,9 +4,7 @@ from domain_constants import *
 import importlib
 loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
-    import RAE1_and_RAEplan as ape
-else:
-    import ape1_and_apeplan as ape
+    import RAE1_and_RAEplan as alg
 
 from state import state
 import gui
@@ -472,44 +470,44 @@ def transferData(r1, r2):
     return res
 
 def Explore_Method1(r, activity, l):
-    ape.do_task('getEquipment', r, activity)
-    ape.do_task('moveTo', r, l)
+    alg.do_task('getEquipment', r, activity)
+    alg.do_task('moveTo', r, l)
     if activity == 'survey':
-        ape.do_command(survey, r, l)
+        alg.do_command(survey, r, l)
     elif activity == 'monitor':
-        ape.do_command(monitor, r, l)
+        alg.do_command(monitor, r, l)
     elif activity == 'screen':
-        ape.do_command(screen, r, l)
+        alg.do_command(screen, r, l)
     elif activity == 'sample':
-        ape.do_command(sample, r, l)
+        alg.do_command(sample, r, l)
     elif activity == 'process':
-        ape.do_command(process, r, l)
+        alg.do_command(process, r, l)
 
 def GetEquipment_Method1(r, activity):
     """ When the equipment is at a particular location and r does not carry any load""" 
     e = rv.EQUIPMENT[activity]
     if state.load[r] != e and state.pos[e] in rv.LOCATIONS:
-        ape.do_task('moveTo', r, state.pos[e])
-        ape.do_command(take, r, e)
+        alg.do_task('moveTo', r, state.pos[e])
+        alg.do_command(take, r, e)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def GetEquipment_Method2(r, activity):
     """ When r is already carrying some load and equipment is at a particular location"""
     e = rv.EQUIPMENT[activity]
     if state.load[r] != e and state.pos[e] in rv.LOCATIONS:
-        ape.do_task('moveTo', r, state.pos[e])
+        alg.do_task('moveTo', r, state.pos[e])
         state.load.AcquireLock(r)
         if state.load[r] != NIL:
             o = state.load[r]
             state.load.ReleaseLock(r)
-            ape.do_command(put, r, o)
+            alg.do_command(put, r, o)
         else:
             state.load.ReleaseLock(r)
-            ape.do_command(fail)
-        ape.do_command(take, r, e)
+            alg.do_command(fail)
+        alg.do_command(take, r, e)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def GetEquipment_Method3(r1, activity):
     """  When the equipment is with another robot """
@@ -518,20 +516,20 @@ def GetEquipment_Method3(r1, activity):
         loc = state.pos[e]
         if loc not in rv.LOCATIONS:
             r2 = loc
-            ape.do_task('moveTo', r, state.loc[r2])
+            alg.do_task('moveTo', r, state.loc[r2])
             state.load.AcquireLock(r1)
             if state.load[r1] != NIL:
                 x = state.load[r1]
                 state.load.ReleaseLock(r1)
-                ape.do_command(put, r1, x)
+                alg.do_command(put, r1, x)
             else:
                 state.load.ReleaseLock(r1)
-            ape.do_command(put, r2, e)
-            ape.do_command(take, r1, e)
+            alg.do_command(put, r2, e)
+            alg.do_command(take, r1, e)
         else:
-            ape.do_command(fail)
+            alg.do_command(fail)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def MoveTo_MethodHelper(r, l):
     path = EE_GETPATH(state.loc[r], l)
@@ -541,137 +539,137 @@ def MoveTo_MethodHelper(r, l):
         lTemp = state.loc[r]
         if lTemp not in path:
             gui.Simulate("%s is out of its path to %s\n" %(r, l))
-            ape.do_command(fail)
+            alg.do_command(fail)
         else:
             while(lTemp != l):
                 lNext = path[lTemp]
-                ape.do_command(move, r, lTemp, lNext)
+                alg.do_command(move, r, lTemp, lNext)
                 if lNext != state.loc[r]:
                     gui.Simulate("%s is out of its path to %s\n" %(r, l))
-                    ape.do_command(fail)
+                    alg.do_command(fail)
                 else:
                     lTemp = lNext
 
 def MoveTo_Method1(r, l):
     if l not in rv.LOCATIONS:
         gui.Simulate("%s is trying to go to an invalid location\n" %r)
-        ape.do_command(fail)
+        alg.do_command(fail)
     else:
         MoveTo_MethodHelper(r, l)
 
 #def MoveTo_Method2(r, l):
 #    if l not in rv.LOCATIONS:
 #        gui.Simulate("%s is trying to go to an invalid location\n" %r)
-#        ape.do_command(fail)
+#        alg.do_command(fail)
 #    else:
 #        dist = EE_GETDISTANCE(state.loc[r], l)
 #        if state.charge[r] >= dist:
 #            MoveTo_MethodHelper(r, l)
 #        else:
-#            ape.do_task('recharge', r)
-#            ape.do_task('moveTo', r, l)
+#            alg.do_task('recharge', r)
+#            alg.do_task('moveTo', r, l)
 
 def FlyTo_Method1(r, l):
     if r == 'UAV':
-        ape.do_command(fly, r, state.loc[r], l)
+        alg.do_command(fly, r, state.loc[r], l)
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def FlyTo_Method2(r, l):
     dist = EE_GETDISTANCE(state.loc[r], l)
     if r == 'UAV':
-        ape.do_task('recharge', r)
-        ape.do_command(fly, r, state.loc[r], l)
+        alg.do_task('recharge', r)
+        alg.do_command(fly, r, state.loc[r], l)
     else:
         gui.Simulate("%s is not a UAV. So, it cannot fly\n" %r)
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def DepositData_Method1(r):
     if state.data[r] > 0:
-        ape.do_task('moveTo', r, 'base')
-        ape.do_command(deposit, r)
+        alg.do_task('moveTo', r, 'base')
+        alg.do_command(deposit, r)
     else:
         gui.Simulate("%s has no data to deposit.\n" %r)
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def DepositData_Method2(r):
     if state.data[r] > 0:
         if r != 'UAV':
-            ape.do_task('flyTo', 'UAV', state.loc[r])
-            ape.do_command(transferData, r, 'UAV')
-        ape.do_task('flyTo', 'UAV', 'base')
-        ape.do_command(deposit, 'UAV')
+            alg.do_task('flyTo', 'UAV', state.loc[r])
+            alg.do_command(transferData, r, 'UAV')
+        alg.do_task('flyTo', 'UAV', 'base')
+        alg.do_command(deposit, 'UAV')
     else:
         gui.Simulate("%s has no data to deposit.\n" %r)
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def Recharge_Method1(r):
     c = 'c1'
     if state.pos[c] not in rv.LOCATIONS and state.pos[c] != r:
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
-        ape.do_command(fail)
+        alg.do_command(fail)
     elif state.loc[r] != state.pos[c] and state.pos[c] != r:
         dist = EE_GETDISTANCE(state.loc[r], state.pos[c])
         if state.charge[r] >= dist:
-            ape.do_task('moveTo', r, state.pos[c])
-            ape.do_command(charge, r, c)
+            alg.do_task('moveTo', r, state.pos[c])
+            alg.do_command(charge, r, c)
         else:
             gui.Simulate("%s is stranded without any possibility of charging\n" %r)
-            ape.do_command(fail)
+            alg.do_command(fail)
     else:
-        ape.do_command(charge, r, c)
+        alg.do_command(charge, r, c)
 
 def Recharge_Method2(r):
     c = 'c1'
     if state.pos[c] not in rv.LOCATIONS and state.pos[c] != r:
         gui.Simulate("%s cannot find charger %s\n" %(r, c))
-        ape.do_command(fail)
+        alg.do_command(fail)
     elif state.loc[r] != state.pos[c] and state.pos[c] != r:
         dist = EE_GETDISTANCE(state.loc[r], state.pos[c])
         if state.charge[r] >= dist:
-            ape.do_task('moveTo', r, state.pos[c])
-            ape.do_command(charge, r, c)
-            ape.do_command(take, r, c)
+            alg.do_task('moveTo', r, state.pos[c])
+            alg.do_command(charge, r, c)
+            alg.do_command(take, r, c)
         else:
             gui.Simulate("%s is stranded without any possibility of charging\n" %r)
-            ape.do_command(fail)
+            alg.do_command(fail)
     else:
-        ape.do_command(charge, r, c)
-        ape.do_command(take, r, c)
+        alg.do_command(charge, r, c)
+        alg.do_command(take, r, c)
 
 def DoActivities_Method1(r, actList):
     for act in actList:
-        ape.do_task('explore', r, act[0], act[1])
-    ape.do_task('depositData', r)
+        alg.do_task('explore', r, act[0], act[1])
+    alg.do_task('depositData', r)
 
 def DoActivities_Method3(r, actList):
     for act in actList:
-        ape.do_task('explore', r, act[0], act[1])
-        ape.do_task('depositData', r)
-        ape.do_task('recharge', r)
+        alg.do_task('explore', r, act[0], act[1])
+        alg.do_task('depositData', r)
+        alg.do_task('recharge', r)
 
 def DoActivities_Method2(r, actList):
     for act in actList:
-        ape.do_task('explore', r, act[0], act[1])
-        ape.do_task('recharge', r)
-    ape.do_task('depositData', r)
+        alg.do_task('explore', r, act[0], act[1])
+        alg.do_task('recharge', r)
+    alg.do_task('depositData', r)
 
 def HandleEmergency_Method1(r, l):
-    ape.do_task('recharge', r)
-    ape.do_task('moveTo', r, l)
-    ape.do_command(handleAlien, r, l)
+    alg.do_task('recharge', r)
+    alg.do_task('moveTo', r, l)
+    alg.do_command(handleAlien, r, l)
 
 def HandleEmergency_Method2(r, l):
-    ape.do_task('moveTo', r, l)
-    ape.do_command(handleAlien, r, l)
+    alg.do_task('moveTo', r, l)
+    alg.do_command(handleAlien, r, l)
 
 def HandleEmergency_Method3(r, l):
-    ape.do_task('flyTo', r, l)
-    ape.do_command(handleAlien, r, l)
+    alg.do_task('flyTo', r, l)
+    alg.do_command(handleAlien, r, l)
 
 rv = RV()
-ape.declare_commands([
+alg.declare_commands([
     survey, 
     monitor, 
     screen, 
@@ -687,36 +685,36 @@ ape.declare_commands([
     handleAlien,
     fail])
                       
-ape.declare_methods('explore', 
+alg.declare_methods('explore', 
     Explore_Method1)
 
-ape.declare_methods('getEquipment', 
+alg.declare_methods('getEquipment', 
     GetEquipment_Method1, 
     GetEquipment_Method2, 
     GetEquipment_Method3)
 
-ape.declare_methods('moveTo', 
+alg.declare_methods('moveTo', 
     MoveTo_Method1)
 #    MoveTo_Method2)
 
-ape.declare_methods('flyTo', 
+alg.declare_methods('flyTo', 
     FlyTo_Method1,
     FlyTo_Method2)
 
-ape.declare_methods('recharge', 
+alg.declare_methods('recharge', 
     Recharge_Method1,
     Recharge_Method2)
 
-ape.declare_methods('depositData', 
+alg.declare_methods('depositData', 
     DepositData_Method1,
     DepositData_Method2)
 
-ape.declare_methods('doActivities', 
+alg.declare_methods('doActivities', 
     DoActivities_Method1, 
     DoActivities_Method2, 
     DoActivities_Method3)
 
-ape.declare_methods('handleEmergency', 
+alg.declare_methods('handleEmergency', 
     HandleEmergency_Method2, 
     HandleEmergency_Method1,
     HandleEmergency_Method3)

@@ -1,11 +1,4 @@
 from __future__ import print_function
-import threading
-from state import GetState, PrintState, RestoreState
-import multiprocessing
-import numpy
-import random
-from helper_functions import *
-import types
 
 """
 File RAE1_and_RAEplan.py
@@ -13,6 +6,13 @@ Author:
 Sunandita Patra <patras@cs.umd.edu>
 """
 
+import threading
+from state import GetState, PrintState, RestoreState
+import multiprocessing
+import numpy
+import random
+from helper_functions import *
+import types
 import sys, pprint
 import os
 import globals
@@ -249,7 +249,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         return (method, candidates)
 
 def choose_candidate(candidates, task, taskArgs):
-    if globals.GetDoSampling() == False or len(candidates) == 1:
+    if globals.GetDoPlanning() == False or len(candidates) == 1:
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
     else:

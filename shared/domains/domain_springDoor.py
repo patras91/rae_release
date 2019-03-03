@@ -4,9 +4,7 @@ from domain_constants import *
 import importlib
 loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
-    import RAE1_and_RAEplan as ape
-else:
-    import ape1_and_apeplan as ape
+    import RAE1_and_RAEplan as alg
 
 from state import state
 import gui
@@ -259,56 +257,56 @@ def closeDoors():
 def MoveThroughDoorway_Method3(r, d, l):
     """ For a robot passing a spring door without any load """
     if state.load[r] == NIL and (state.doorType[d] == 'spring' or state.doorType[d] == UNK):
-        ape.do_task('unlatch', r, d)
-        ape.do_command(holdDoor, r, d)
-        ape.do_command(passDoor, r, d, l)
-        ape.do_command(releaseDoor, r, d)
+        alg.do_task('unlatch', r, d)
+        alg.do_command(holdDoor, r, d)
+        alg.do_command(passDoor, r, d, l)
+        alg.do_command(releaseDoor, r, d)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def Restore(r, loc, cargo):
-    ape.do_task('moveTo', r, loc)
+    alg.do_task('moveTo', r, loc)
     if cargo != NIL:
-        ape.do_command(take, r, cargo)
+        alg.do_command(take, r, cargo)
 
 def MoveThroughDoorway_Method2(r, d, l):
     """ For a robot passing a spring door with a load """
     if state.load[r] != NIL and (state.doorType[d] == 'spring' or state.doorType[d] == UNK):
          params = GetHelp_Method1(r)
          if params == FAILURE:
-             ape.do_command(fail)
+             alg.do_command(fail)
          else:
             r2, l2, cargo = params
-            ape.do_task('unlatch', r2, d)
-            ape.do_command(holdDoor, r2, d)
-            ape.do_command(passDoor, r, d, l)
-            ape.do_command(releaseDoor, r2, d)
+            alg.do_task('unlatch', r2, d)
+            alg.do_command(holdDoor, r2, d)
+            alg.do_command(passDoor, r, d, l)
+            alg.do_command(releaseDoor, r2, d)
             Restore(r2, l2, cargo)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def MoveThroughDoorway_Method4(r, d, l):
     """ For a robot passing a normal door with a load """
     if state.load[r] != NIL and (state.doorType[d] == 'ordinary' or state.doorType[d] == UNK):
         obj = state.load[r]
         if obj != 'H':
-            ape.do_command(put, r, obj)
+            alg.do_command(put, r, obj)
         else:
             gui.Simulate("%r is holding another door\n" %r)
-            ape.do_command(fail)
-        ape.do_task('unlatch', r, d)
-        ape.do_command(take, r, obj)
-        ape.do_command(passDoor, r, d, l)
+            alg.do_command(fail)
+        alg.do_task('unlatch', r, d)
+        alg.do_command(take, r, obj)
+        alg.do_command(passDoor, r, d, l)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def MoveThroughDoorway_Method1(r, d, l):
     """ For a robot passing a normal door without a load """
     if state.load[r] == NIL and (state.doorType[d] == 'ordinary' or state.doorType[d] == UNK):
-        ape.do_task('unlatch', r, d)
-        ape.do_command(passDoor, r, d, l)
+        alg.do_task('unlatch', r, d)
+        alg.do_command(passDoor, r, d, l)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def MoveTo_Method1(r, l):
     x = state.loc[r]
@@ -322,11 +320,11 @@ def MoveTo_Method1(r, l):
             lNext = path[lTemp]
             if (lTemp, lNext) in rv.DOORLOCATIONS or (lNext, lTemp) in rv.DOORLOCATIONS:
                 d = SD_GETDOOR(lTemp, lNext)
-                ape.do_task('moveThroughDoorway', r, d, lNext)
+                alg.do_task('moveThroughDoorway', r, d, lNext)
             else:
-                ape.do_command(move, r, lTemp, lNext)
+                alg.do_command(move, r, lTemp, lNext)
             if lNext != state.loc[r]:
-                ape.do_command(fail)
+                alg.do_command(fail)
             else:
                 lTemp = lNext
 
@@ -344,50 +342,50 @@ def GetHelp_Method1(r):
     loc_r2 = state.loc[r2]
     if load_r2 != NIL:
         if load_r2 != 'H':
-            ape.do_command(put, r2, load_r2)
+            alg.do_command(put, r2, load_r2)
         else:
             gui.Simulate("%s is holding another door\n" %r2)
-            ape.do_command(fail)
-    ape.do_task('moveTo', r2, state.loc[r])
+            alg.do_command(fail)
+    alg.do_task('moveTo', r2, state.loc[r])
     return r2, loc_r2, load_r2
 
 def Fetch_Method1(r, o, l):
-    ape.do_task('moveTo', r, state.pos[o])
+    alg.do_task('moveTo', r, state.pos[o])
     load_r = state.load[r]
     if load_r != NIL:
         if load_r != 'H':
-            ape.do_command(put, r, load_r)
+            alg.do_command(put, r, load_r)
         else:
             gui.Simulate("%s is holding another door\n" %r)
-            ape.do_command(fail)
-    ape.do_command(take, r, o)
-    ape.do_task('moveTo', r, l)
+            alg.do_command(fail)
+    alg.do_command(take, r, o)
+    alg.do_task('moveTo', r, l)
 
 def Recover_Method1(r):
     o = state.load[r]
     if o != NIL and state.pos[o] == UNK:
-        ape.do_command(senseLoc, o)
+        alg.do_command(senseLoc, o)
         if state.pos[o] == state.loc[r]:
             state.do_command(take, r, o)
         else:
             state.do_task('moveTo', r, state.pos[o])
             state.do_command(take, r, o)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def Recover_Method2(r):
-    ape.do_command(senseStatus, r)
+    alg.do_command(senseStatus, r)
     if state.robotStatus[r] == 'broken':
         state.do_command(repair, r)
 
 def Unlatch_Method1(r, d):
-    ape.do_command(unlatch1, r, d)
+    alg.do_command(unlatch1, r, d)
 
 def Unlatch_Method2(r, d):
-    ape.do_command(unlatch2, r, d)
+    alg.do_command(unlatch2, r, d)
 
 rv = RV()
-ape.declare_commands([ 
+alg.declare_commands([ 
     holdDoor, 
     passDoor, 
     releaseDoor, 
@@ -398,19 +396,19 @@ ape.declare_commands([
     unlatch2,
     fail],)
 
-ape.declare_methods('fetch', Fetch_Method1)
-ape.declare_methods('getHelp', GetHelp_Method1)
-ape.declare_methods('moveTo', MoveTo_Method1)
-ape.declare_methods('moveThroughDoorway',
+alg.declare_methods('fetch', Fetch_Method1)
+alg.declare_methods('getHelp', GetHelp_Method1)
+alg.declare_methods('moveTo', MoveTo_Method1)
+alg.declare_methods('moveThroughDoorway',
     MoveThroughDoorway_Method1,
     MoveThroughDoorway_Method3,
     MoveThroughDoorway_Method4,
     MoveThroughDoorway_Method2)
-ape.declare_methods('unlatch', Unlatch_Method1, Unlatch_Method2)
+alg.declare_methods('unlatch', Unlatch_Method1, Unlatch_Method2)
 
 #events
-ape.declare_methods('collide', Recover_Method1, Recover_Method2)
+alg.declare_methods('collide', Recover_Method1, Recover_Method2)
 
-#ape.declare_methods('closeDoors', CloseDoors_Method1)
+#alg.declare_methods('closeDoors', CloseDoors_Method1)
 
 from env_springDoor import *
