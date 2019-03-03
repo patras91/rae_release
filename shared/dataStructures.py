@@ -68,15 +68,6 @@ class rL_APE(rL):
     def GetEfficiency(self):
         return self.rL.eff
 
-    def SetPlannerTimeoutCount(self, a):
-        self.rL.plannerTimeoutCount = a
-
-    def GetPlannerTimeoutCount(self):
-        return self.rL.plannerTimeoutCount
-
-    def IncreasePlannerTimeoutCount(self):
-        self.rL.plannerTimeoutCount += 1
-
 class rL_PLAN(rL):
 
     def __init__(self):
