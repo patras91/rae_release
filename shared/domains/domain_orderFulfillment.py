@@ -59,10 +59,9 @@ def wait():
 
 def Order_Method1(itemClass, l):
     # order from item i of shipping type type, to location l
-    print("start of Order_Method1")
     ape.do_task('find', itemClass)
     item = state.var1['temp2']
-    ape.do_task('pack_redoer', item)
+    ape.do_task('pack', item)
 
 # Refinement methods for find
 
@@ -70,13 +69,13 @@ def Order_Method1(itemClass, l):
 def Find_Method1(itemClass):
     # search an online database
     # take the location of the first object of the correct type
-    print("Entered Find")
     for i in rv.OBJ_CLASS[itemClass]:
         if state.storedLoc[i] != NIL:
             item = i
             break
 
-    ape.do_command(lookupDB, item)
+    # ape.do_command(lookupDB, item)
+    ape.do_task('redoer', lookupDB, item)
 
     state.var1.AcquireLock('temp')
     state.var1['temp2'] = item
@@ -123,54 +122,66 @@ def Find_Method3(item):
 
 # Refinement methods for pack
 
-def Pack_Redoer(item):
-    print("start of Pack_Redoer")
-    while True:
-        if ape.do_task('pack', item) == SUCCESS:
+def Redoer(command, *args):
+    i = 0
+    while i < 3:
+        if i > 0:
+            print("Redid "+ command)
+        if ape.do_command(command, *args) == SUCCESS:  # or globals.GetPlanningMode():
             break
+        i += 1
+
+    if i >= 3:
+        return Failure
 
     return SUCCESS
 
 
 def Pack_Method1(item):
-    print('Start of Pack')
     ape.do_task('getRobot', state.loc[item], rv.OBJ_WEIGHT[item])
     r = state.var1['temp']
 
     #TODO do I need to lock this?
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[item])
-    ape.do_command(moveRobot, r, state.loc[r], state.loc[item], dist)
+    # ape.do_command(moveRobot, r, state.loc[r], state.loc[item], dist)
+    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[item], dist)
 
-    ape.do_command(pickup, r, item)
+    # ape.do_command(pickup, r, item)
+    ape.do_task('redoer', pickup, r, item)
 
     ape.do_task('getMachine', state.loc[r])
     m = state.var1['temp1']
 
     # TODO do I need to lock this?
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
-    ape.do_command(moveRobot, r, state.loc[r], state.loc[m], dist)
+    # ape.do_command(moveRobot, r, state.loc[r], state.loc[m], dist)
+    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[m], dist)
 
     while state.busy[m] != False:
         ape.do_command(wait)
 
-    ape.do_command(loadMachine, r, m, item)
-    ape.do_command(wrap, m, item)
+    # ape.do_command(loadMachine, r, m, item)
+    ape.do_task('redoer', loadMachine, r, m, item)
+    # ape.do_command(wrap, m, item)
+    ape.do_task('redoer', wrap, m, item)
 
     # now move item to the shipping doc
-    ape.do_command(pickup, r, item)
+    # ape.do_command(pickup, r, item)
+    ape.do_task('redoer', pickup, r, item)
 
     # TODO do I need to lock this?
     doc = rv.SHIPPING_DOC[rv.ROBOTS[r]]
 
     dist = OF_GETDISTANCE_GROUND(state.loc[r], doc)
-    ape.do_command(moveRobot, r, state.loc[r], doc, dist)
+    # ape.do_command(moveRobot, r, state.loc[r], doc, dist)
+    ape.do_task('redoer', moveRobot, r, state.loc[r], doc, dist)
 
-    ape.do_command(putdown, r, item)
-    ape.do_command(freeRobot, r)
+    # ape.do_command(putdown, r, item)
+    ape.do_task('redoer', putdown, r, item)
+    # ape.do_command(freeRobot, r)
+    ape.do_task('redoer', freeRobot, r)
 
     gui.Simulate("Item %s has been placed in the shipping doc\n" % item)
-
-    print("EXITING PACK_METHOD1")
 
     return SUCCESS
 
@@ -367,14 +378,14 @@ def freeRobot(r):
 
 #TODO could have a problem b/c not locking state.loc[r]
 def GetRobot_Method1(l, c):
-    print("start of GetRobot_Method1")
     # return the robot which is nearest
     r0 = min(list(rv.ROBOTS), key=lambda r: OF_GETDISTANCE_GROUND(state.loc[r], l))
 
     while state.busy[r0] != False:
         ape.do_command(wait)
 
-    res = ape.do_command(acquireRobot, r0)
+    # res = ape.do_command(acquireRobot, r0)
+    res = ape.do_task('redoer', acquireRobot, r0)
 
     state.var1.AcquireLock('temp')
     state.var1['temp'] = r0
@@ -393,7 +404,6 @@ def GetRobot_Method2(l):
 
 #TODO could have a problem b/c not locking state.busy[r]
 def GetRobot_Method3(l, c):
-    print("start of GetRobot_METHOD3")
     # return the one which is free, given it's in the factory
     r0 = NIL
 
@@ -408,7 +418,8 @@ def GetRobot_Method3(l, c):
     while state.busy[r0] != False:
         ape.do_command(wait)
 
-    res = ape.do_command(acquireRobot, r0)
+    # res = ape.do_command(acquireRobot, r0)
+    res = ape.do_task('redoer', acquireRobot, r0)
 
     state.var1.AcquireLock('temp')
     state.var1['temp'] = r0
@@ -418,7 +429,6 @@ def GetRobot_Method3(l, c):
 
 
 def GetRobot_Method4(l, c):
-    print("start of GetRobot_Method4")
     # return one which has a high enough capacity,
     # given it's in the factory
     r0 = NIL
@@ -434,7 +444,8 @@ def GetRobot_Method4(l, c):
     while state.busy[r0] != False:
         ape.do_command(wait)
 
-    res = ape.do_command(acquireRobot, r0)
+    # res = ape.do_command(acquireRobot, r0)
+    res = ape.do_task('redoer', acquireRobot, r0)
 
     state.var1.AcquireLock('temp')
     state.var1['temp'] = r0
@@ -446,7 +457,6 @@ def GetRobot_Method4(l, c):
 # Refinement methods for getMachine
 
 def GetMachine_Method1(l):
-    print("start of GetMachine_1")
     # return the machine closest to the sent location (robot's loc)
     m0 = min(rv.MACHINES, key=lambda m: OF_GETDISTANCE_GROUND(state.loc[m], l))
 
@@ -459,7 +469,6 @@ def GetMachine_Method1(l):
 
 #TODO could have a problem b/c not locking state.busy[r]
 def GetMachine_Method2(l):
-    print("start of GetMachine_2")
     # return a machine that isn't busy and in the factory
     m0 = NIL
 
@@ -479,7 +488,6 @@ def GetMachine_Method2(l):
 
 
 def GetMachine_Method3(l):
-    print("start of GetMachine_3")
     # selection of method1, but also repairs machine
     m0 = min(rv.MACHINES, key=lambda m: OF_GETDISTANCE_GROUND(state.loc[m], l))
 
@@ -493,7 +501,6 @@ def GetMachine_Method3(l):
 
 
 def GetMachine_Method4(l):
-    print("start of GetMachine_4")
     # selection of method2, but also repairs machine
     m0 = NIL
 
@@ -550,7 +557,6 @@ def wrap(m, item):
 
 # TODO add another method for this
 def FixMachine_Method1(m):
-    print("start of FixMachine")
     # return the one which is free, given it's in the factory
     rf0 = NIL
 
@@ -616,7 +622,7 @@ ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
 ape.declare_methods('order', Order_Method1)
 ape.declare_methods('find', Find_Method1)
 ape.declare_methods('pack', Pack_Method1)
-ape.declare_methods('pack_redoer', Pack_Redoer)
+ape.declare_methods('redoer', Redoer)
 ape.declare_methods('getRobot', GetRobot_Method1, GetRobot_Method3, GetRobot_Method4)
 ape.declare_methods('getMachine', GetMachine_Method1, GetMachine_Method2, GetMachine_Method3, GetMachine_Method4)
 
