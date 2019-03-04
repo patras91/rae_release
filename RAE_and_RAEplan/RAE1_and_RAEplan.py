@@ -1,11 +1,4 @@
 from __future__ import print_function
-import threading
-from state import GetState, PrintState, RestoreState
-import multiprocessing
-import numpy
-import random
-from helper_functions import *
-import types
 
 """
 File RAE1_and_RAEplan.py
@@ -13,6 +6,13 @@ Author:
 Sunandita Patra <patras@cs.umd.edu>
 """
 
+import threading
+from state import GetState, PrintState, RestoreState
+import multiprocessing
+import numpy
+import random
+from helper_functions import *
+import types
 import sys, pprint
 import os
 import globals
@@ -249,7 +249,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         return (method, candidates)
 
 def choose_candidate(candidates, task, taskArgs):
-    if globals.GetDoSampling() == False or len(candidates) == 1:
+    if globals.GetDoPlanning() == False or len(candidates) == 1:
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
     else:
@@ -385,7 +385,6 @@ def RAEplanChoice(task, planArgs):
         PrintState()
 
     while (searchTreeRoot.GetSearchDone() == False):
-        #searchTreeRoot.PrintUsingGraphviz()
         try:
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
@@ -403,6 +402,7 @@ def RAEplanChoice(task, planArgs):
             #plannedTree = rTree.CreateFailureNode()
 
         except Search_Done as e:
+            #searchTreeRoot.PrintUsingGraphviz()
             #searchTreeRoot.PrintUsingGraphviz()
             #if planLocals.GetBestTree() != None:
             #    plannedTree = planLocals.GetBestTree().GetChild() # doing GetChild because the root is just a node labelled 'root'

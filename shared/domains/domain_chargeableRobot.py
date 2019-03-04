@@ -1,17 +1,14 @@
 __author__ = 'patras'
 
-'''A robot is searching for an object in the environment consisting of n locations.
+'''A robot is searching for an object in the environment consisting of a few locations.
 It has a battery that needs to be recharged after some moves.
-A move consumes 1/4 of the battery capacity.
-Recharger is only at one location'''
+A move consumes 1/4 of the battery capacity.'''
 
 from domain_constants import *
 import importlib
 loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
-    import RAE1_and_RAEplan as ape
-else:
-    import ape1_and_apeplan as ape
+    import RAE1_and_RAEplan as alg
 import gui
 from state import state
 from timer import globalTimer
@@ -241,38 +238,38 @@ def Recharge_Method3(r, c):
     """ Robot r charges and carries the charger with it """
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
         if state.pos[c] in rv.LOCATIONS:
-            ape.do_task('moveTo', r, state.pos[c])
+            alg.do_task('moveTo', r, state.pos[c])
         else:
             robot = state.pos[c]
-            ape.do_command(put, robot, c)
-            ape.do_task('moveTo', r, state.pos[c])
-    ape.do_command(charge, r, c)
-    ape.do_command(take, r, c)
+            alg.do_command(put, robot, c)
+            alg.do_task('moveTo', r, state.pos[c])
+    alg.do_command(charge, r, c)
+    alg.do_command(take, r, c)
 
 def Recharge_Method2(r, c):
     """ Robot r charges and does not carry the charger with it """
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
         if state.pos[c] in rv.LOCATIONS:
-            ape.do_task('moveTo', r, state.pos[c])
+            alg.do_task('moveTo', r, state.pos[c])
         else:
             robot = state.pos[c]
-            ape.do_command(put, robot, c)
-            ape.do_task('moveTo', r, state.pos[c])
-    ape.do_command(charge, r, c)
+            alg.do_command(put, robot, c)
+            alg.do_task('moveTo', r, state.pos[c])
+    alg.do_command(charge, r, c)
 
 def Recharge_Method1(r, c):
     """ When the charger is with another robot and that robot takes the charger back """ 
     robot = NIL
     if state.loc[r] != state.pos[c] and state.pos[c] != r:
         if state.pos[c] in rv.LOCATIONS:
-            ape.do_task('moveTo', r, state.pos[c])
+            alg.do_task('moveTo', r, state.pos[c])
         else:
             robot = state.pos[c]
-            ape.do_command(put, robot, c)
-            ape.do_task('moveTo', r, state.pos[c])
-    ape.do_command(charge, r, c)
+            alg.do_command(put, robot, c)
+            alg.do_task('moveTo', r, state.pos[c])
+    alg.do_command(charge, r, c)
     if robot != NIL:
-        ape.do_command(take, robot, c)
+        alg.do_command(take, robot, c)
 
 def Search_Method1(r, o):
     if state.pos[o] == UNK:
@@ -283,17 +280,17 @@ def Search_Method1(r, o):
                 break
 
         if toBePerceived != NIL:
-            ape.do_task('moveTo', r, toBePerceived)
-            ape.do_command(perceive, toBePerceived)
+            alg.do_task('moveTo', r, toBePerceived)
+            alg.do_command(perceive, toBePerceived)
             if state.pos[o] == toBePerceived:
                 if state.load[r] != NIL:
-                    ape.do_command(put, r, state.load[r])
-                ape.do_command(take, r, o)
+                    alg.do_command(put, r, state.load[r])
+                alg.do_command(take, r, o)
             else:
-                ape.do_task('search', r, o)
+                alg.do_task('search', r, o)
         else:
             gui.Simulate("Failed to search %s" %o)
-            ape.do_command(fail)
+            alg.do_command(fail)
     else:
         gui.Simulate("Position of %s is already known\n" %o)
 
@@ -306,83 +303,83 @@ def Search_Method2(r, o):
                 break
 
         if toBePerceived != NIL:
-            ape.do_task('recharge', r, 'c1') # is this allowed?
-            ape.do_task('moveTo', r, toBePerceived)
-            ape.do_command(perceive, toBePerceived)
+            alg.do_task('recharge', r, 'c1') # is this allowed?
+            alg.do_task('moveTo', r, toBePerceived)
+            alg.do_command(perceive, toBePerceived)
             if state.pos[o] == toBePerceived:
                 if state.load[r] != NIL:
-                    ape.do_command(put, r, state.load[r])
-                ape.do_command(take, r, o)
+                    alg.do_command(put, r, state.load[r])
+                alg.do_command(take, r, o)
             else:
-                ape.do_task('search', r, o)
+                alg.do_task('search', r, o)
         else:
             gui.Simulate("Failed to search %s" %o)
-            ape.do_command(fail)
+            alg.do_command(fail)
     else:
         gui.Simulate("Position of %s is already known\n" %o)
 
 def Fetch_Method1(r, o):
     pos_o = state.pos[o]
     if pos_o == UNK:
-        ape.do_task('search', r, o)
+        alg.do_task('search', r, o)
     else:
         if state.loc[r] != pos_o:
-            ape.do_task('moveTo', r, pos_o)
+            alg.do_task('moveTo', r, pos_o)
         if state.load[r] != NIL:
-            ape.do_command(put, r, state.load[r])
-        ape.do_command(take, r, o)
+            alg.do_command(put, r, state.load[r])
+        alg.do_command(take, r, o)
 
 def Fetch_Method2(r, o):
     pos_o = state.pos[o]
     if pos_o == UNK:
-        ape.do_task('search', r, o)
+        alg.do_task('search', r, o)
     else:
         if state.loc[r] != pos_o:
-            ape.do_task('recharge', r, 'c1')
-            ape.do_task('moveTo', r, pos_o)
+            alg.do_task('recharge', r, 'c1')
+            alg.do_task('moveTo', r, pos_o)
         if state.load[r] != NIL:
-            ape.do_command(put, r, state.load[r])
-        ape.do_command(take, r, o)
+            alg.do_command(put, r, state.load[r])
+        alg.do_command(take, r, o)
 
 def Emergency_Method1(r, l, i):
     if state.emergencyHandling[r] == False:
         state.emergencyHandling[r] = True
         load_r = state.load[r]
         if load_r != NIL:
-            ape.do_command(put, r, load_r, state.loc[r])
+            alg.do_command(put, r, load_r, state.loc[r])
         l1 = state.loc[r]
         dist = CR_GETDISTANCE(l1, l)
-        ape.do_command(moveToEmergency, r, l1, l, dist)
-        ape.do_command(addressEmergency, r, l, i)
+        alg.do_command(moveToEmergency, r, l1, l, dist)
+        alg.do_command(addressEmergency, r, l, i)
     else:
         gui.Simulate("%r is already busy handling another emergency\n" %r)
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def NonEmergencyMove_Method1(r, l1, l2, dist):
     if state.emergencyHandling[r] == False:
-        ape.do_command(move, r, l1, l2, dist)
+        alg.do_command(move, r, l1, l2, dist)
     else:
-        ape.do_command(wait, r)
-        ape.do_command(move, r, l1, l2, dist)
+        alg.do_command(wait, r)
+        alg.do_command(move, r, l1, l2, dist)
 
 def MoveTo_Method1(r, l):
     x = state.loc[r]
     dist = CR_GETDISTANCE(x, l)
     if state.charge[r] >= dist:
-        ape.do_task('nonEmergencyMove', r, x, l, dist)
+        alg.do_task('nonEmergencyMove', r, x, l, dist)
     else:
         state.charge[r] = 0
         gui.Simulate("Robot %s does not have enough charge to move from %d to %d\n" %(r, x, l))
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 rv = RV()
-ape.declare_commands([put, take, perceive, charge, move, moveToEmergency, addressEmergency, wait, fail])
+alg.declare_commands([put, take, perceive, charge, move, moveToEmergency, addressEmergency, wait, fail])
 
-ape.declare_methods('search', Search_Method1, Search_Method2)
-ape.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
-ape.declare_methods('recharge', Recharge_Method1, Recharge_Method2, Recharge_Method3)
-ape.declare_methods('moveTo', MoveTo_Method1)
-ape.declare_methods('emergency', Emergency_Method1)
-ape.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)
+alg.declare_methods('search', Search_Method1, Search_Method2)
+alg.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
+alg.declare_methods('recharge', Recharge_Method1, Recharge_Method2, Recharge_Method3)
+alg.declare_methods('moveTo', MoveTo_Method1)
+alg.declare_methods('emergency', Emergency_Method1)
+alg.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)
 
 from env_chargeableRobot import *

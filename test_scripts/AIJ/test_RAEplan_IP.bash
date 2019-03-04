@@ -27,7 +27,7 @@ do
             echo $domain $problem $b $k $counter/1
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"
 
-            fname="$domain/rae_plan_b_${b}_k_$k.txt" # You should have a folder called CR in the current folder
+            fname="$domain_v2/rae_plan_b_${b}_k_$k.txt" # You should have a folder called CR in the current folder
 
             echo "Time test of $domain $problem $sampleCount" >> $fname
             python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
