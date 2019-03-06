@@ -8,7 +8,7 @@ def generateProblems():
     while num < 30:
         locations = list(range(max(2, int(np.random.normal(20, 5)))))
         factory = frozenset(locations)
-        shippingDoc = np.random.uniform(0, len(locations) - 1)
+        shippingDoc = int(np.random.uniform(0, len(locations) - 1))
         locations.append(200)
 
         edges = {}
@@ -70,7 +70,7 @@ def generateProblems():
         repairBots = []
         for i in range(max(1, int(np.random.normal(2,1)))):
             f = 'fixer' + str(i)
-            machines.append(f)
+            repairBots.append(f)
 
         # objects
         objects = []
@@ -94,11 +94,11 @@ def generateProblems():
         stateLoc = {}
 
         for r in robots:
-            stateLoc["'"+r+"'"] = np.random.choice(list(factory))
+            stateLoc[r] = np.random.choice(list(factory))
         for m in machines:
-            stateLoc["'"+m+"'"] = np.random.choice(list(factory))
+            stateLoc[m] = np.random.choice(list(factory))
         for f in repairBots:
-            stateLoc["'"+f+"'"] = np.random.choice(list(factory))
+            stateLoc[f] = np.random.choice(list(factory))
 
         storedLoc = {}
         for o in objects:
@@ -144,9 +144,29 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
     file.write("rv.GROUND_EDGES = " + str(edges) + '\n')
     file.write("rv.GROUND_WEIGHTS = " + str(weights) + '\n\n')
 
-    file.write("rv.ROBOTS = " + str(robots) + '\n')
+    # rv.Robots things
+    robotString = "rv.ROBOTS = {"
+    for r in robots:
+        robotString += " '" + r + "': rv.FACTORY1, "
+    robotString += "}\n"
+
+    file.write(robotString)
+
     file.write("rv.ROBOT_CAPACITY = " + str(robotCapacity) + '\n')
-    file.write("rv.MACHINES = " + str(machines) + '\n')
+
+    # rv.MACHINES things
+    machineString = "rv.MACHINES = {"
+    for m in machines:
+        machineString += " '" + m + "': rv.FACTORY1, "
+    machineString += "}\n"
+
+    file.write(machineString)
+
+    # rv.REPAIR_BOT things
+    repairString = "rv.REPAIR_BOT = {"
+    for r in repairBots:
+        repairString += " '" + r + "': rv.FACTORY1, "
+    repairString += "}\n"
     file.write("rv.REPAIR_BOT = " + str(repairBots) + '\n\n')
 
     file.write("rv.OBJECTS = " + str(objects) + '\n')
@@ -159,7 +179,7 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
     # state.loc things
 
     for r in stateLoc.keys():
-        stateLocString += " " + r + ": " + str(stateLoc[r]) + ","
+        stateLocString += " '" + r + "': " + str(stateLoc[r]) + ","
     for o in objects:
         stateLocString += " '" + o + "': UNK,"
     stateLocString += "}\n"
