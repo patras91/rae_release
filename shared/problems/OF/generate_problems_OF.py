@@ -166,8 +166,9 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
     repairString = "rv.REPAIR_BOT = {"
     for r in repairBots:
         repairString += " '" + r + "': rv.FACTORY1, "
-    repairString += "}\n"
-    file.write("rv.REPAIR_BOT = " + str(repairBots) + '\n\n')
+    repairString += "}\n\n"
+
+    file.write(repairString)
 
     file.write("rv.OBJECTS = " + str(objects) + '\n')
     file.write("rv.OBJ_WEIGHT = " + str(obj_weight) + '\n')
@@ -203,7 +204,8 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
     file.write("    state.busy = " + str(busy) + '\n')
     file.write("    state.numUses = " + str(numUses) + '\n')
 
-    file.write("    state.var1 = {'temp': 'r0', 'temp1': 'r0', 'temp2': 1, 'shouldRedo': False}\n\n")
+    file.write("    state.var1 = {'temp': 'r0', 'temp1': 'r0', 'temp2': 1, 'redoId': 0}\n")
+    file.write("    state.shouldRedo = {}\n\n")
 
     file.write("tasks = {\n")
 
@@ -233,22 +235,22 @@ def writeHeader(file):
     file.write("from state import state\n")
     file.write("import numpy as np\n\n")
 
-    file.write("def GetCostOfMove(r, loc1, loc2, dist):\n")
+    file.write("def GetCostOfMove(id, r, loc1, loc2, dist):\n")
     file.write("    return 1 + dist\n\n")
 
-    file.write("def GetCostOfLookup(item):\n")
+    file.write("def GetCostOfLookup(id, item):\n")
     file.write("    return max(1, np.random.beta(2, 2))\n\n")
 
-    file.write("def GetCostOfWrap(m, item):\n")
+    file.write("def GetCostOfWrap(id, m, item):\n")
     file.write("    return max(1, np.random.normal(5, .5))\n\n")
 
-    file.write("def GetCostOfPickup(r, item):\n")
+    file.write("def GetCostOfPickup(id, r, item):\n")
     file.write("    return max(1, np.random.normal(4, 1))\n\n")
 
-    file.write("def GetCostOfPutdown(r, item):\n")
+    file.write("def GetCostOfPutdown(id, r, item):\n")
     file.write("    return max(1, np.random.normal(4, 1))\n\n")
 
-    file.write("def GetCostOfLoad(r, m, item):\n")
+    file.write("def GetCostOfLoad(id, r, m, item):\n")
     file.write("    return max(1, np.random.normal(3, .5))\n\n")
 
 
@@ -261,7 +263,7 @@ def writeHeader(file):
     file.write("    'freeRobot': 1,\n")
     file.write("    'loadMachine': GetCostOfLoad,\n")
     file.write("    'moveRobot': GetCostOfMove,\n")
-    file.write("    'repair': 8,\n")
+    file.write("    'repair': 5,\n")
     file.write("    'wait': 1\n")
     file.write("}\n\n")
 
@@ -274,7 +276,7 @@ def writeHeader(file):
     file.write("    'freeRobot': 1,\n")
     file.write("    'loadMachine': GetCostOfLoad,\n")
     file.write("    'moveRobot': GetCostOfMove,\n")
-    file.write("    'repair': 8,\n")
+    file.write("    'repair': 5,\n")
     file.write("    'wait': 1\n")
     file.write("}\n\n")
 

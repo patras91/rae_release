@@ -10,26 +10,26 @@ from state import state
 import numpy as np
 
 
-def GetCostOfMove(r, loc1, loc2, dist):
+def GetCostOfMove(id, r, loc1, loc2, dist):
     return 1 + dist
 
-def GetCostOfLookup(item):
+def GetCostOfLookup(id, item):
     return max(1, np.random.beta(2, 2))
 
 
-def GetCostOfWrap(m, item):
+def GetCostOfWrap(id, m, item):
     return max(1, np.random.normal(5, .5))
 
 
-def GetCostOfPickup(r, item):
+def GetCostOfPickup(id, r, item):
     return max(1, np.random.normal(4, 1))
 
 
-def GetCostOfPutdown(r, item):
+def GetCostOfPutdown(id, r, item):
     return max(1, np.random.normal(4, 1))
 
 
-def GetCostOfLoad(r, m, item):
+def GetCostOfLoad(id, r, m, item):
     return max(1, np.random.normal(3, .5))
 
 
@@ -43,7 +43,7 @@ DURATION.TIME = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'repair': 8,
+    'repair': 5,
     'wait': 1
  }
 
@@ -56,7 +56,7 @@ DURATION.COUNTER = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'repair': 8,
+    'repair': 5,
     'wait': 1
  }
 
@@ -85,7 +85,8 @@ def ResetState():
     state.load = {'r1': NIL, 'r2': NIL, 'fixer1': False}
     state.busy = {'r1': False, 'r2': True, 'm1': False, 'm2': False, 'fixer1': False}
     state.numUses = {'m1': 1, 'm2': 5}
-    state.var1 = {'temp': 'r1', 'temp1': 'r1', 'shouldRedo': False}
+    state.var1 = {'temp': 'r1', 'temp1': 'r1', 'temp2': 1, 'redoId': 0}
+    state.shouldRedo = {}
 
 
 tasks = {

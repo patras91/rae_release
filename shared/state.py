@@ -79,6 +79,9 @@ class StateDict():
     def __str__(self):
         return self.dict.__str__()
 
+    def pop(self, key):
+        return self.dict.pop(key)
+
     def AcquireLock(self, *key):
         if len(key) == 1:
             self.lock[key[0]].acquire()
