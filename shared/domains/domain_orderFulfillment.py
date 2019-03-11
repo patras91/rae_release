@@ -87,6 +87,7 @@ def Find_Method1(itemClass):
 def lookupDB(item):
     state.loc.AcquireLock(item)
     state.storedLoc.AcquireLock(item)
+    state.var1.AcquireLock('shouldRedo')
 
     start = globalTimer.GetTime()
 
@@ -98,14 +99,19 @@ def lookupDB(item):
         gui.Simulate("Found item %s from database\n" % item)
         state.loc[item] = state.storedLoc[item]
         state.storedLoc[item] = NIL
+        state.var1['shouldRedo'] = False
 
     else:
         gui.Simulate("National database is down\n")
+        # failed so set redo state variable to true
+        state.var1['shouldRedo'] = True
 
+
+    state.var1.ReleaseLock('shouldRedo')
     state.storedLoc.ReleaseLock(item)
     state.loc.ReleaseLock(item)
 
-    return res
+    return SUCCESS
 
 
 '''
@@ -126,9 +132,15 @@ def Redoer(command, *args):
     i = 0
     while i < 3:
         if i > 0:
-            print("Redid "+ command)
-        if ape.do_command(command, *args) == SUCCESS:  # or globals.GetPlanningMode():
+            gui.Simulate("--Redoing command-- %s\n" % command)
+            print("Redoing command "+ str(command))
+        ape.do_command(command, *args)
+        if i > 0:
+            gui.Simulate("--AM I GETTING HERE-- %s\n" % command)
+        state.var1.AcquireLock('shouldRedo')
+        if not state.var1['shouldRedo']:
             break
+        state.var1.ReleaseLock('shouldRedo')
         i += 1
 
     if i >= 3:
@@ -189,18 +201,22 @@ def Pack_Method1(item):
 
 def moveRobot(r, l1, l2, dist):
     state.loc.AcquireLock(r)
+    state.var1.AcquireLock('shouldRedo')
 
     if l1 == l2:
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
+        state.var1['shouldRedo'] = False
 
     elif r in rv.ROBOTS and l2 not in rv.ROBOTS[r]:
         gui.Simulate("Robot %s can't leave the factory\n" % r)
         res = FAILURE
+        state.var1['shouldRedo'] = False
 
     elif r not in rv.ROBOTS and l2 not in rv.REPAIR_BOT[r]:
         gui.Simulate("Robot %s can't leave the factory\n" % r)
         res = FAILURE
+        state.var1['shouldRedo'] = False
 
     elif state.loc[r] == l1:
         res = Sense('moveRobot')
@@ -208,12 +224,17 @@ def moveRobot(r, l1, l2, dist):
         if res == SUCCESS:
             gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
             state.loc[r] = l2
+            state.var1['shouldRedo'] = False
         else:
             gui.Simulate("Robot %s failed to move due to some internal failure\n" %r)
+            state.var1['shouldRedo'] = True
+            res = SUCCESS
     else:
         gui.Simulate("Robot %s is not in location %d\n" %(r, l1))
         res = FAILURE
+        state.var1['shouldRedo'] = False
 
+    state.var1.ReleaseLock('shouldRedo')
     state.loc.ReleaseLock(r)
 
     return res
@@ -223,13 +244,16 @@ def pickup(r, item):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
     state.loc.AcquireLock(item)
+    state.var1.AcquireLock('shouldRedo')
 
     if state.load[r] != NIL:
         gui.Simulate("Robot %s is already carrying an object\n" % r)
         res = FAILURE
+        state.var1['shouldRedo'] = False
     elif state.loc[r] != state.loc[item]:
-        gui.Simulate("Robot %s and item %s are in different locations" % (r, item))
+        gui.Simulate("Robot %s and item %s are in different locations\n" % (r, item))
         res = FAILURE
+        state.var1['shouldRedo'] = False
     elif rv.OBJ_WEIGHT[item] > rv.ROBOT_CAPACITY[r]:
         start = globalTimer.GetTime()
         while (globalTimer.IsCommandExecutionOver('pickup', start) == False):
@@ -237,6 +261,7 @@ def pickup(r, item):
 
         gui.Simulate("Item %s is too heavy for robot %s to pick up\n" % (item, r))
         res = FAILURE
+        state.var1['shouldRedo'] = False
     else:
         start = globalTimer.GetTime()
         while (globalTimer.IsCommandExecutionOver('pickup', start) == False):
@@ -250,9 +275,13 @@ def pickup(r, item):
             # tries to find the item
             state.loc[item] = NIL
             state.load[r] = item
+            state.var1['shouldRedo'] = False
         else:
             gui.Simulate("Robot %s dropped item %s\n" % (r, item))
+            res = SUCCESS
+            state.var1['shouldRedo'] = True
 
+    state.var1.ReleaseLock('shouldRedo')
     state.loc.ReleaseLock(item)
     state.loc.ReleaseLock(r)
     state.load.ReleaseLock(r)
@@ -264,10 +293,12 @@ def putdown(r, item):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
     state.loc.AcquireLock(item)
+    state.var1.AcquireLock('shouldRedo')
 
     if state.load[r] != item:
         gui.Simulate("Robot %s is not carrying the object %s\n" % (r, item))
         res = FAILURE
+        state.var1['shouldRedo'] = False
     else:
         start = globalTimer.GetTime()
         while (globalTimer.IsCommandExecutionOver('putdown', start) == False):
@@ -278,9 +309,13 @@ def putdown(r, item):
             gui.Simulate("Robot %s put down %s at loc %s\n" % (r, item, state.loc[r]))
             state.loc[item] = state.loc[r]
             state.load[r] = NIL
+            state.var1['shouldRedo'] = False
         else:
             gui.Simulate("Robot %s failed to put down %s\n" % (r, item))
+            res = SUCCESS
+            state.var1['shouldRedo'] = True
 
+    state.var1.ReleaseLock('shouldRedo')
     state.loc.ReleaseLock(item)
     state.loc.ReleaseLock(r)
     state.load.ReleaseLock(r)
@@ -294,13 +329,16 @@ def loadMachine(r, m, item):
     state.loc.AcquireLock(m)
     state.loc.AcquireLock(item)
     state.busy.AcquireLock(m)
+    state.var1.AcquireLock('shouldRedo')
 
     if state.loc[r] != state.loc[m]:
         gui.Simulate("Robot %s isn't at machine %s" % (r, m))
         res = FAILURE
+        state.var1['shouldRedo'] = False
     elif state.busy[m] != False:
         gui.Simulate("Machine %s is busy, can't be loaded" % m)
         res = FAILURE
+        state.var1['shouldRedo'] = False
     else:
         start = globalTimer.GetTime()
         while (globalTimer.IsCommandExecutionOver('loadMachine', start) == False):
@@ -313,9 +351,13 @@ def loadMachine(r, m, item):
             state.load[r] = NIL
             state.loc[item] = state.loc[m]
             state.busy[m] = item
+            state.var1['shouldRedo'] = False
         else:
             gui.Simulate("Robot %s failed to load machine %s\n" % (r, m))
+            res = SUCCESS
+            state.var1['shouldRedo'] = True
 
+    state.var1.ReleaseLock('shouldRedo')
     state.busy.ReleaseLock(m)
     state.loc.ReleaseLock(item)
     state.loc.ReleaseLock(m)
@@ -332,6 +374,9 @@ def loadMachine(r, m, item):
 def acquireRobot(r):
     state.busy.AcquireLock(r)
     state.load.AcquireLock(r)
+    state.var1.AcquireLock('shouldRedo')
+
+    state.var1['shouldRedo'] = False
 
     if state.busy[r] == True:
         gui.Simulate("Robot %s is busy\n" % r)
@@ -348,6 +393,7 @@ def acquireRobot(r):
         state.busy[r] = True
         res = SUCCESS
 
+    state.var1.ReleaseLock('shouldRedo')
     state.load.ReleaseLock(r)
     state.busy.ReleaseLock(r)
 
@@ -357,6 +403,9 @@ def acquireRobot(r):
 def freeRobot(r):
     state.busy.AcquireLock(r)
     state.load.AcquireLock(r)
+    state.var1.AcquireLock('shouldRedo')
+
+    state.var1['shouldRedo'] = False
 
     if state.load[r] != NIL:
         gui.Simulate("Robot %s is carrying an object\n" % r)
@@ -370,6 +419,7 @@ def freeRobot(r):
         state.busy[r] = False
         res = SUCCESS
 
+    state.var1.ReleaseLock('shouldRedo')
     state.load.ReleaseLock(r)
     state.busy.ReleaseLock(r)
 
@@ -526,13 +576,16 @@ def wrap(m, item):
     state.loc.AcquireLock(item)
     state.busy.AcquireLock(m)
     state.numUses.AcquireLock(m)
+    state.var1.AcquireLock('shouldRedo')
 
     if state.loc[m] != state.loc[item]:
         gui.Simulate("Machine %s not loaded with item %s\n" % (m,item))
         res = FAILURE
+        state.var1['shouldRedo'] = False
     elif state.busy[m] != item:
         gui.Simulate("Machine %s is busy\n" % m)
         res = FAILURE
+        state.var1['shouldRedo'] = False
     else:
         start = globalTimer.GetTime()
         while (globalTimer.IsCommandExecutionOver('wrap', start) == False):
@@ -544,9 +597,14 @@ def wrap(m, item):
         if res == SUCCESS:
             gui.Simulate("Machine %s wrapped item %s\n" % (m, item))
             state.busy[m] = False
+            state.var1['shouldRedo'] = False
         else:
             gui.Simulate("Machine %s jammed. Failed to wrap %s\n" % (m, item))
+            state.var1['shouldRedo'] = True
+            # set res to success for return
+            res = SUCCESS
 
+    state.var1.ReleaseLock('shouldRedo')
     state.numUses.ReleaseLock(m)
     state.busy.ReleaseLock(m)
     state.loc.ReleaseLock(item)
@@ -585,13 +643,16 @@ def repair(r, m):
     state.loc.AcquireLock(r)
     state.busy.AcquireLock(m)
     state.numUses.AcquireLock(m)
+    state.var1.AcquireLock('shouldRedo')
 
     if state.loc[m] != state.loc[r]:
         gui.Simulate("%s is not in same location as %s\n" % (r,m))
         res = FAILURE
+        state.var1['shouldRedo'] = False
     elif state.busy[m] != False:
         gui.Simulate("Machine %s is busy\n" % m)
         res = FAILURE
+        state.var1['shouldRedo'] = False
     else:
         start = globalTimer.GetTime()
         while (globalTimer.IsCommandExecutionOver('repair', start) == False):
@@ -602,9 +663,13 @@ def repair(r, m):
         if res == SUCCESS:
             gui.Simulate("Robot %s repaired machine %s\n" % (r, m))
             state.numUses[m] /= 2
+            state.var1['shouldRedo'] = False
         else:
             gui.Simulate("Machine %s wasn't repaired\n" % m)
+            state.var1['shouldRedo'] = True
+            res = SUCCESS
 
+    state.var1.ReleaseLock('shouldRedo')
     state.numUses.ReleaseLock(m)
     state.busy.ReleaseLock(m)
     state.loc.ReleaseLock(r)

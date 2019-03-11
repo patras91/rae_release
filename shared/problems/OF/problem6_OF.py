@@ -86,7 +86,7 @@ def ResetState():
     state.load = {'r1': NIL, 'r2': NIL, 'fixer1': False}
     state.busy = {'r1': False, 'r2': False, 'm1': False, 'fixer1': False}
     state.numUses = {'m1': 1}
-    state.var1 = {'temp': 'r1', 'temp1': 'r1'}
+    state.var1 = {'temp': 'r1', 'temp1': 'r1', 'shouldRedo': False}
 
 
 tasks = {

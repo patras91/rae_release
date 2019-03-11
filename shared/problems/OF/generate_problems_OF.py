@@ -203,15 +203,21 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
     file.write("    state.busy = " + str(busy) + '\n')
     file.write("    state.numUses = " + str(numUses) + '\n')
 
-    file.write("    state.var1 = {'temp': 'r1', 'temp1': 'r1'}\n\n")
+    file.write("    state.var1 = {'temp': 'r0', 'temp1': 'r0', 'temp2': 1, 'shouldRedo': False}\n\n")
 
     file.write("tasks = {\n")
 
     randTimes = random.sample(range(1,2*len(orderTypes)), len(orderTypes))
 
+    # how many tasks you want
+    i = 0
+    num_tasks = 2
+
     for idx, o in enumerate(orderTypes):
-        time = randTimes[idx]
-        file.write("    " + str(time) + ": [['order', '" + str(o) + "', 200]],\n")
+        if i < num_tasks:
+            time = randTimes[idx]
+            file.write("    " + str(time) + ": [['order', '" + str(o) + "', 200]],\n")
+            i += 1
     file.write("}\n")
 
     file.write("eventsEnv = {\n")
