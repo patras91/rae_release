@@ -21,6 +21,9 @@ def OF_GETDISTANCE_GROUND(l0, l1):
     visitedDistances = {l0: 0}
     locs = list(rv.LOCATIONS)
 
+    if l0 == UNK or l0 == NIL or l1 == UNK or l1 == NIL:
+        return 10000
+
     while locs:
         min_loc = None
         for loc in locs:
@@ -73,6 +76,36 @@ def Find_Method1(itemClass):
         if state.storedLoc[i] != NIL:
             item = i
             break
+
+    # ape.do_command(lookupDB, item)
+    ape.do_task('redoer', lookupDB, item)
+
+    state.var1.AcquireLock('temp')
+    state.var1['temp2'] = item
+    state.var1.ReleaseLock('temp')
+
+    return SUCCESS
+
+
+def Find_Method2(itemClass):
+    # take the location of the object of the correct type
+    # closest to the shipping doc
+    item = min(list(rv.OBJ_CLASS[itemClass]), key=lambda i: OF_GETDISTANCE_GROUND(state.storedLoc[i], rv.SHIPPING_DOC[list(rv.ROBOTS.values())[0]]))
+
+    # ape.do_command(lookupDB, item)
+    ape.do_task('redoer', lookupDB, item)
+
+    state.var1.AcquireLock('temp')
+    state.var1['temp2'] = item
+    state.var1.ReleaseLock('temp')
+
+    return SUCCESS
+
+
+def Find_Method3(itemClass):
+    # take the location of the object of the correct type
+    # closest to the first machine
+    item = min(list(rv.OBJ_CLASS[itemClass]), key=lambda i: OF_GETDISTANCE_GROUND(state.storedLoc[i], state.loc[list(rv.MACHINES.keys())[0]]))
 
     # ape.do_command(lookupDB, item)
     ape.do_task('redoer', lookupDB, item)
@@ -690,7 +723,7 @@ ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
                       repair, wait])
 
 ape.declare_methods('order', Order_Method1)
-ape.declare_methods('find', Find_Method1)
+ape.declare_methods('find', Find_Method1, Find_Method2, Find_Method3)
 ape.declare_methods('pack', Pack_Method1)
 ape.declare_methods('redoer', Redoer)
 ape.declare_methods('getRobot', GetRobot_Method1, GetRobot_Method3, GetRobot_Method4)

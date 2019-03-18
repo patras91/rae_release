@@ -28,6 +28,9 @@ def generateProblems():
                 else:
                     currEdges.append(0)
 
+            if loc == shippingDoc:
+                currEdges.append(200)
+
             edges[loc] = currEdges
 
         weights = {}
