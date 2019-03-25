@@ -489,7 +489,7 @@ class GuideList():
 class SearchTreeNode():
     def __init__(self, l, t):
         self.label = l
-        assert(t == "task" or t == "method" or t == "command" or t == "state")
+        assert(t == "task" or t == "method" or t == "command" or t == "state" or t == "heuristic")
         self.type = t
         self.children = []
         self.childPtr = 0
@@ -598,7 +598,7 @@ class SearchTreeNode():
                 self.childWeights[index] += 1
 
     def GetPrettyString(self, elem):
-        if elem.label == 'task' or elem.label == 'root':
+        if elem.label == 'task' or elem.label == 'root' or elem.label == 'heuristic':
             return elem.label
         elif elem.type == 'method' or elem.type == 'command':
             return elem.label.__name__

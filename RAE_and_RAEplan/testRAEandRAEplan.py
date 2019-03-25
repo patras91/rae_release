@@ -1,5 +1,6 @@
 import threading
 import sys
+
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
 sys.path.append('../shared/problems/SD')
@@ -8,6 +9,8 @@ sys.path.append('../shared/problems/IP')
 sys.path.append('../shared/problems/EE')
 sys.path.append('../shared/problems/OF')
 sys.path.append('../shared/problems/SR')
+sys.path.append('../shared/problems/SDN')
+
 import argparse
 import gui
 import globals
@@ -36,7 +39,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",
                            type=int, default=0, required=False)
-    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP, OF, SR)",
+    argparser.add_argument("--domain", help="name of the test domain (CR, SD, EE, IP, OF, SR, SDN)",
                            type=str, default='CR', required=False)
     argparser.add_argument("--problem", help="identifier for the problem eg. 'problem1', 'problem2', etc",
                            type=str, default="problem11", required=False)
@@ -69,7 +72,7 @@ if __name__ == "__main__":
     #globals.SetConcurrent('n')
     globals.Setb(args.b)
     globals.Setk(args.k)
-    #globals.SetSearchDepth(args.depth)
+    globals.SetSearchDepth(args.depth)
     verbosity(args.v)
     SetMode(args.clockMode)
     globals.SetShowOutputs(args.showOutputs)
@@ -81,7 +84,7 @@ def testBatch(domain, problem, useRAEplan):
     globals.SetShowOutputs('off')
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
-    p.join(1800)
+    p.join(900)
     if p.is_alive() == True:
         p.terminate()
         print("0 1 0 0 0 0")

@@ -416,6 +416,15 @@ def AdjustAltitude_Method2(r):
     if state.altitude[r] == 'low':
         ape.do_command(changeAltitude, r, 'high')
     
+def GetHeuristicEstimate(args):
+    r = args[0]
+    lfinal = args[1]
+
+    if lfinal == state.loc[r]:
+        return float("inf")
+    else:
+        return 1/SR_GETDISTANCE_Euclidean(state.loc[r], lfinal)
+
 rv = RV()
 ape.declare_commands([
     moveEuclidean,
@@ -471,4 +480,5 @@ ape.declare_methods('adjustAltitude',
     AdjustAltitude_Method2,
     )
 
+ape.declare_heuristic('survey', GetHeuristicEstimate)
 from env_searchAndRescue import *

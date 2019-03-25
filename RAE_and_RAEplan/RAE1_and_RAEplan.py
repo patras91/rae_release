@@ -55,7 +55,7 @@ raeLocals = rL_APE() # APE variables that are local to every stack
 planLocals = rL_PLAN() # APEplan_systematic variables that are local to every call to APEplan_systematic, 
                        # we need this to be thread local because we have multiple stacks in APE as 
                        # multiple threads and each thread call its own APEplan_systematic
-
+heuristic = {}
 ############################################################
 # Functions to tell Rae1 what the commands and methods are
 
@@ -83,6 +83,8 @@ def declare_methods(task_name, *method_list):
     methods.update({task_name:list(method_list)})
     return methods[task_name]
 
+def declare_heuristic(task, name):
+    heuristic[task] = name
 ############################################################
 # The user can use these to see what the commands and methods are.
 
@@ -113,6 +115,9 @@ class Incorrect_return_code(Exception):
     pass
 
 class Search_Done(Exception):
+    pass
+
+class DepthLimitReached(Exception):
     pass
 
 #****************************************************************
@@ -236,7 +241,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     #retcode = plannedTree.GetRetcode()
 
     if verbose > 0:
-        print("Done with simulation. Result = {} \n".format(retcode), colorama.Style.RESET_ALL)
+        print("Done with simulation. Result = {} \n".format(method), colorama.Style.RESET_ALL)
 
     if method == 'Failure':
         #random.shuffle(candidates)
@@ -336,9 +341,10 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
 
 def do_task(task, *taskArgs):
     if globals.GetPlanningMode() == True:
+        planLocals.IncreaseDepthBy1()
         nextNode = planLocals.GetSearchTreeNode().GetNext()
         if nextNode != None:
-            assert(nextNode.GetType() == "task")
+            assert(nextNode.GetType() == "task" or nextNode.GetType() == "heuristic")
             return FollowSearchTree_task(task, taskArgs, nextNode)
         else:
             return PlanTask(task, taskArgs)
@@ -363,7 +369,10 @@ def RAEplanChoice(task, planArgs):
     planLocals.SetState(planArgs.GetState())
 
     taskArgs = planArgs.GetTaskArgs()
-    
+    planLocals.SetHeuristicArgs(taskArgs)
+    planLocals.SetDepth(0)
+    planLocals.SetRefDepth(float("inf"))
+
     globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
     
     #gL = planArgs.GetGuideList()
@@ -401,8 +410,9 @@ def RAEplanChoice(task, planArgs):
             v_failedTask(e)
             #plannedTree = rTree.CreateFailureNode()
 
+        except DepthLimitReached as e:
+            searchTreeRoot.UpdateChildPointers()
         except Search_Done as e:
-            #searchTreeRoot.PrintUsingGraphviz()
             #searchTreeRoot.PrintUsingGraphviz()
             #if planLocals.GetBestTree() != None:
             #    plannedTree = planLocals.GetBestTree().GetChild() # doing GetChild because the root is just a node labelled 'root'
@@ -440,11 +450,14 @@ def GetCandidates(task):
 
 def FollowSearchTree_task(task, taskArgs, node):
     nextNode = node.GetNext()
-    RestoreState(nextNode.GetPrevState())
     m = nextNode.GetLabel()
-    planLocals.SetSearchTreeNode(nextNode)
-    tree = PlanMethod(m, task, taskArgs)
-    return tree
+    if m == 'heuristic':
+        raise DepthLimitReached()
+    else:
+        RestoreState(nextNode.GetPrevState())
+        planLocals.SetSearchTreeNode(nextNode)
+        tree = PlanMethod(m, task, taskArgs)
+        return tree
 
 def Reinitialize(m, s, newNode, guideList, name, args):
     guideList.RemoveAllAfter(newNode)
@@ -492,13 +505,21 @@ def PlanTask(task, taskArgs):
     searchTreeNode.AddChild(taskNode)
     if flag == 1:
         planLocals.SetTaskToRefine(taskNode)
-
+        planLocals.SetRefDepth(planLocals.GetDepth())
     # Pruning here if efficiency is already lower
     #currEff = guideList.GetEff()
     #if currEff <= GetBestEff():
     #    raise Failed_task('{}{}'.format(task, taskArgs))
 
     #newNode = guideList.append()
+
+    if planLocals.GetRefDepth() + globals.GetSearchDepth() <= planLocals.GetDepth():
+        #print("here", planLocals.GetRefDepth() + globals.GetSearchDepth(),planLocals.GetDepth() )
+        newNode = rTree.SearchTreeNode('heuristic', 'heuristic')
+        #newNode.SetEff(heuristic['survey'](planLocals.GetHeuristicArgs()))
+        newNode.SetEff(float("inf"))
+        taskNode.AddChild(newNode)
+        raise Search_Done()
 
     for m in cand:
         newSearchTreeNode = rTree.SearchTreeNode(m, 'method')
@@ -559,6 +580,7 @@ def do_command(cmd, *cmdArgs):
     Perform command cmd(cmdArgs).
     """
     if globals.GetPlanningMode() == True:
+        planLocals.IncreaseDepthBy1()
         nextNode = planLocals.GetSearchTreeNode().GetNext()
         if nextNode == None:
             return PlanCommand(cmd, cmdArgs)
