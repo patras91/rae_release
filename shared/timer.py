@@ -54,6 +54,7 @@ class Timer():
         return self.now
 
     def IsCommandExecutionOver(self, cmd, start):
+        self.IncrementTime()
         return True # To make it run faster
         mode = globals.GetPlanningMode()
         if mode == False:

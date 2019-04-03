@@ -138,7 +138,8 @@ def PopulateHelperDepth(res, domain, f_rae, k, depth):
 
     planTime = 0
     actTime = 0
-    
+    time11 = 0
+
     clock = 0
     nu = 0
     
@@ -165,7 +166,10 @@ def PopulateHelperDepth(res, domain, f_rae, k, depth):
                 t = int(parts2[1])
                 r = int(parts2[2])
                 planTime += int(parts2[3])
-                actTime += int(parts2[4])
+                if s == t:
+                    actTime += int(parts2[4])
+                else:
+                    actTime += int(parts2[4])
                 nu += float(parts2[5])
 
                 succCount += s
@@ -186,7 +190,12 @@ def PopulateHelperDepth(res, domain, f_rae, k, depth):
                     pass
 
             secTimeLine = f_rae.readline()
-
+            parts11 = secTimeLine.split()
+            t11 = float(parts11[5])
+            unit11 = parts11[6]
+            if unit11 == "msec":
+                t11 = t11 / 1000
+            time11 += t11
         line = f_rae.readline()
 
     print(res)
@@ -200,7 +209,9 @@ def PopulateHelperDepth(res, domain, f_rae, k, depth):
         else:
             res['retryRatio'].append(0)
         res['planTime'].append(planTime)
-        res['actTime'].append(actTime)
+        res['actTime'].append(1 * actTime)
+        res['totalTime'].append(1 * planTime + 1 * actTime)
+        #res['totalTime'].append(time11)
         res['nu'].append(nu / totalTasks)
     else:
         res['successRatio'][k_index] += succCount/totalTasks
@@ -209,10 +220,42 @@ def PopulateHelperDepth(res, domain, f_rae, k, depth):
         else:
             res['retryRatio'][k_index] += 0
         res['planTime'][k_index] += planTime
-        res['actTime'][k_index] += actTime
+        res['actTime'][k_index] += 1 * actTime
+        res['totalTime'] += 1 * planTime + 1 * actTime
+        #res['totalTime'] += time11
         res['nu'][k_index] += nu / totalTasks
 
 def PopulateHelper1(domain, f_rae, k):
+
+    line = f_rae.readline()
+    
+    time = 0
+    
+    while(line != ''):
+
+        parts = line.split(' ')
+
+        if parts[0] == 'Time':
+
+            for i in range(0, 1):
+                
+
+                counts = f_rae.readline()
+
+
+            secTimeLine = f_rae.readline()
+            parts = secTimeLine.split()
+            t = float(parts[5])
+            unit = parts[6]
+            if unit == "msec":
+                t = t / 1000
+            time += t
+
+        line = f_rae.readline()
+
+    print("running time = ", time)
+
+def PopulateHelper1Depth(domain, f_rae, k, depth):
 
     line = f_rae.readline()
     
@@ -265,14 +308,14 @@ def PopulateDepth(res, domain):
     for b in B_depth[domain]:
         for depth in Depth[domain]:
             if depth == 0:
-                for v in range(6, 7):
+                for v in range(8, 9):
                     f_rae_name = "{}_v{}/RAE.txt".format(domain, v)
                     f_rae = open(f_rae_name, "r")
                     print(f_rae_name)
                     PopulateHelperDepth(res[b], domain, f_rae, k, depth)
                     f_rae.close()
             else:
-                for v in range(6, 7):
+                for v in range(8, 9):
                     fname = '{}_v{}/rae_plan_b_{}_k_{}_d_{}.txt'.format(domain, v, b, k, depth)
                     fptr = open(fname)
                     print(fname)
@@ -294,6 +337,23 @@ def CalculateRunningTime(domain):
                 fptr = open(fname)
                 #print(fname)
                 PopulateHelper1(domain, open(fname), k)
+                fptr.close()
+
+def CalculateRunningTimeDepth(domain):
+    for b in B[domain]:
+        for depth in Depth[domain]:
+            print("b = ", b, ", depth = ", depth)
+            if k == 0:
+                f_rae_name = "{}_v8/RAE.txt".format(domain)
+                f_rae = open(f_rae_name, "r")
+                #print(f_rae_name)
+                PopulateHelper1Depth(domain, f_rae, k, depth)
+                f_rae.close()
+            else:
+                fname = '{}_v8/plan_b_{}_k_{}_d_{}.txt'.format(domain, b, k, depth)
+                fptr = open(fname)
+                #print(fname)
+                PopulateHelper1Depth(domain, open(fname), k, depth)
                 fptr.close()
 
 def GeneratePlotsForbAndk():
@@ -353,6 +413,7 @@ def GeneratePlotsForDepth():
                 'retryRatio': [],
                 'planTime': [],
                 'actTime': [],
+                'totalTime': [],
                 'nu': []
             }
     #Populate(resDict['CR'], 'CR')
@@ -360,7 +421,7 @@ def GeneratePlotsForDepth():
     #Populate(resDict['IP'], 'IP')
     for d in D:
         PopulateDepth(resDict[d], d)
-        CalculateRunningTime(d)
+        #CalculateRunningTimeDepth(d)
 
     plt.clf()
     font = {
@@ -375,6 +436,8 @@ def GeneratePlotsForDepth():
     PlotRetryRatioDepth(resDict)
 
     PlotSuccessRatioDepth(resDict)
+
+    PlotRunningTimeDepth(resDict)
 
 def PlotNuAAAI(resDict):
     index1 = 'nu'
@@ -551,6 +614,53 @@ def PlotSuccessRatioDepth(resDict):
         plt.xticks(Depth[domain],GetString(Depth[domain]))
         plt.ylabel('Success Ratio')
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
+        plt.savefig(fname, bbox_inches='tight')
+
+def PlotRunningTimeDepth1(resDict):
+    index1 = 'totalTime'
+    width = 0.25
+
+    for domain in D:
+        plt.clf()
+        line1, = plt.plot(Depth[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        
+        if domain == 'SD' or domain == 'SR':
+            line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')        
+        
+        fname = 'RunningTimeDepth_{}.png'.format(domain)
+        plt.xlabel('Depth')
+        plt.xticks(Depth[domain],GetString(Depth[domain]))
+        plt.ylabel('Running Time (in counter ticks)')
+        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
+        plt.savefig(fname, bbox_inches='tight')
+
+def PlotRunningTimeDepth(resDict):
+    index1 = 'planTime'
+    index2 = 'actTime'
+    width = 0.25
+
+    for domain in D:
+        plt.clf()
+        line1, = plt.plot(Depth[domain], resDict[domain][1][index1], 'ro:', label='b=1 Planning', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line11, = plt.plot(Depth[domain], resDict[domain][1][index2], 'ro:', label='b=1 Acting', linewidth=8, MarkerSize=10, markerfacecolor='white')
+        
+        #line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        #line21, = plt.plot(Depth[domain], resDict[domain][2][index2], 'bs--', label='b=2', linewidth=6, MarkerSize=10, markerfacecolor='white')
+        
+        #line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        #line31, = plt.plot(Depth[domain], resDict[domain][3][index2], 'm^-.', label='b=3', linewidth=6, MarkerSize=10, markerfacecolor='white')
+        
+        if domain == 'SD' or domain == 'SR':
+            line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4 Planning', linewidth=4, MarkerSize=10, markerfacecolor='white')        
+            line41, = plt.plot(Depth[domain], resDict[domain][4][index2], 'go--', label='b=4 Acting', linewidth=8, MarkerSize=10, markerfacecolor='white')        
+        
+        fname = 'RunningTimeDepth_{}.png'.format(domain)
+        plt.xlabel('Depth')
+        plt.xticks(Depth[domain],GetString(Depth[domain]))
+        plt.ylabel('Time (in counter ticks)')
+        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
         plt.savefig(fname, bbox_inches='tight')
 
 def GetSum(*l):

@@ -4,12 +4,17 @@ from domain_airsSDN import *
 from timer import DURATION
 from state import state
 
+def GetCostOfRestart(component_id):
+    return state.controllers[component_id].getRestartCostBenefit()['cost']
+
 DURATION.TIME = {
-    'applyRestart': 5
+    'applyRestart': GetCostOfRestart,
+    'applyAlternative': 5,
  }
 
 DURATION.COUNTER = {
-    'applyRestart': 5
+    'applyRestart': GetCostOfRestart,
+    'applyAlternative': 5,
  }
 
 # Define common controller alternatives
