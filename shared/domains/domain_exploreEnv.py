@@ -668,6 +668,15 @@ def HandleEmergency_Method3(r, l):
     alg.do_task('flyTo', r, l)
     alg.do_command(handleAlien, r, l)
 
+alg.declare_task('explore', 'r', 'activity', 'l')
+alg.declare_task('getEquipment', 'r', 'o')
+alg.declare_task('flyTo', 'r', 'l')
+alg.declare_task('moveTo', 'r', 'l')
+alg.declare_task('recharge', 'r')
+alg.declare_task('depositData', 'r')
+alg.declare_task('doActivities', 'r', 'actList')
+alg.declare_task('handleEmergency', 'r', 'l') 
+
 alg.declare_commands([
     survey, 
     monitor, 

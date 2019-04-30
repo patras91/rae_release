@@ -7,7 +7,7 @@ if loader is not None:
 else:
     from ape1_and_apeplan import *
 
-from state import state
+from state import state, rv
 from gui import Simulate
 from domain_constants import *
 from timer import globalTimer
@@ -595,7 +595,16 @@ def MoveTo_Method1(r, l1, l2):
                 else:
                     lTemp = lNext
 
-rv = RV()
+alg.declare_task('paint', '*')
+alg.declare_task('assemble', '*')
+alg.declare_task('pack', 'name', '*')
+alg.declare_task('wrap', 'name', '*')
+alg.declare_task('deliver', 'o', 'l')
+alg.declare_task('order', 'taskArgs')
+alg.declare_task('repair', 'm')
+alg.declare_task('moveTo', 'r', 'l1', 'l2')
+alg.declare_task('getRobot', 'loc')   
+
 declare_commands([
     paint, 
     assemble, 

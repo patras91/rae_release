@@ -395,6 +395,13 @@ alg.declare_commands([
     unlatch2,
     fail],)
 
+alg.declare_task('fetch', 'r', 'o', 'l')
+alg.declare_task('getHelp', 'r')
+alg.declare_task('moveTo', 'r', 'l')
+alg.declare_task('moveThroughDoorway', 'r', 'd', 'l')
+alg.declare_task('unlatch', 'r', 'd')
+alg.declare_task('collide', 'r')
+
 alg.declare_methods('fetch', Fetch_Method1)
 alg.declare_methods('getHelp', GetHelp_Method1)
 alg.declare_methods('moveTo', MoveTo_Method1)
