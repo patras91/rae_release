@@ -1,7 +1,7 @@
 __author__ = 'patras'
 
 from time import time
-import globals
+import GLOBALS
 
 class Duration():
     def __init__(self):
@@ -33,7 +33,7 @@ class Timer():
     def IncrementTime(self):
         if self.mode == 'Counter':
             self.now += 1
-            mode = globals.GetPlanningMode()
+            mode = GLOBALS.GetPlanningMode()
             if mode == False:
                 self.realCount += 1
             else:
@@ -54,8 +54,9 @@ class Timer():
         return self.now
 
     def IsCommandExecutionOver(self, cmd, start):
+        self.IncrementTime()
         return True # To make it run faster
-        mode = globals.GetPlanningMode()
+        mode = GLOBALS.GetPlanningMode()
         if mode == False:
             mult = 1  # This is the approx callibrated value
         else:

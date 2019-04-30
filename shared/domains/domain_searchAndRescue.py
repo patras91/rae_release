@@ -13,7 +13,7 @@ if loader is not None:
 else:
     import ape1_and_apeplan as ape
 import gui
-from state import state
+from state import state, rv
 from timer import globalTimer
 import math
 import globals
@@ -416,7 +416,15 @@ def AdjustAltitude_Method2(r):
     if state.altitude[r] == 'low':
         ape.do_command(changeAltitude, r, 'high')
     
-rv = RV()
+def GetHeuristicEstimate(args):
+    r = args[0]
+    lfinal = args[1]
+
+    if lfinal == state.loc[r]:
+        return float("inf")
+    else:
+        return 1/SR_GETDISTANCE_Euclidean(state.loc[r], lfinal)
+
 ape.declare_commands([
     moveEuclidean,
     moveCurved,
@@ -471,4 +479,5 @@ ape.declare_methods('adjustAltitude',
     AdjustAltitude_Method2,
     )
 
+ape.declare_heuristic('survey', GetHeuristicEstimate)
 from env_searchAndRescue import *

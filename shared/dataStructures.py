@@ -127,6 +127,27 @@ class rL_PLAN(rL):
     def GetTaskToRefine(self):
         return self.rL.taskToRefine
 
+    def SetDepth(self, d):
+        self.rL.depth = d
+
+    def GetDepth(self):
+        return self.rL.depth
+
+    def IncreaseDepthBy1(self):
+        self.rL.depth += 1
+
+    def SetRefDepth(self, d):
+        self.rL.refDepth = d
+
+    def GetRefDepth(self):
+        return self.rL.refDepth
+
+    def SetHeuristicArgs(self, a):
+        self.rL.args = a
+
+    def GetHeuristicArgs(self):
+        return self.rL.args
+
 class PlanArgs():
     def __init__(self):
         pass

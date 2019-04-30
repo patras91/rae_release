@@ -5,7 +5,7 @@ from timer import globalTimer, SetMode
 #from time import time
 from state import ReinitializeState, RemoveLocksFromState
 import threading
-import globals
+import GLOBALS
 
 __author__ = 'patras'
 
@@ -46,7 +46,7 @@ def InitializeDomain(domain, problem):
     :param problem: id of the problem
     :return:none
     '''
-    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'test']:
+    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'SDN', 'test', 'testInstantiation']:
         module = problem + '_' + domain
         global domain_module
         ReinitializeState()    # useful for batch runs to start with the first state
@@ -142,7 +142,7 @@ def raeMult():
 
                     for newTask in taskParams:
                         numstacks = numstacks + 1
-                        raeArgs = globals.RaeArgs()
+                        raeArgs = GLOBALS.RaeArgs()
                         raeArgs.stack = numstacks
                         raeArgs.task = newTask[0]
                         raeArgs.taskArgs = newTask[1:]
@@ -175,7 +175,7 @@ def raeMult():
             else:
                 ipcArgs.sem.release()
 
-    if globals.GetShowOutputs() == 'on':
+    if GLOBALS.GetShowOutputs() == 'on':
         print("----Done with RAE----\n")
         PrintResult(taskInfo)
     else:
@@ -193,7 +193,7 @@ def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, gL, searchTree):
     # TODO: Simulate multiple stacks in future
 
     SetMode('Counter') #Counter mode in simulation
-    globals.SetPlanningMode(True)
+    GLOBALS.SetPlanningMode(True)
     RemoveLocksFromState()
 
     pArgs = PlanArgs()

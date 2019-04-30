@@ -41,3 +41,9 @@ def Getk(): # number of outputs of commands to look at
 
 def Setk(k):
     g.k = k
+
+def SetSearchDepth(d):
+    g.depth = d
+
+def GetSearchDepth():
+    return g.depth

@@ -10,10 +10,8 @@ loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
     import RAE1_and_RAEplan as alg
 import gui
-from state import state
+from state import state, rv
 from timer import globalTimer
-import globals
-
 
 # Using Dijsktra's algorithm
 def CR_GETDISTANCE(l0, l1):
@@ -176,7 +174,7 @@ def move(r, l1, l2, dist):
         if l1 == l2:
             gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
             res = SUCCESS
-        elif state.loc[r] == l1 and state.charge[r] >= dist:
+        elif state.loc[r] == l1 and (state.charge[r] >= dist or state.load[r] == 'c1'):
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('move', start) == False):
                pass
@@ -184,7 +182,8 @@ def move(r, l1, l2, dist):
             if res == SUCCESS:
                 gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
                 state.loc[r] = l2
-                state.charge[r] = state.charge[r] - dist
+                if state.load[r] != 'c1':
+                    state.charge[r] = state.charge[r] - dist
             else:
                 gui.Simulate("Robot %s failed to move due to some internal failure\n" %r)
         elif state.loc[r] != l1 and state.charge[r] >= dist:
@@ -346,7 +345,7 @@ def Emergency_Method1(r, l, i):
         state.emergencyHandling[r] = True
         load_r = state.load[r]
         if load_r != NIL:
-            alg.do_command(put, r, load_r, state.loc[r])
+            alg.do_command(put, r, load_r)
         l1 = state.loc[r]
         dist = CR_GETDISTANCE(l1, l)
         alg.do_command(moveToEmergency, r, l1, l, dist)
@@ -365,15 +364,21 @@ def NonEmergencyMove_Method1(r, l1, l2, dist):
 def MoveTo_Method1(r, l):
     x = state.loc[r]
     dist = CR_GETDISTANCE(x, l)
-    if state.charge[r] >= dist:
+    if state.charge[r] >= dist or state.load[r] == 'c1':
         alg.do_task('nonEmergencyMove', r, x, l, dist)
     else:
         state.charge[r] = 0
         gui.Simulate("Robot %s does not have enough charge to move from %d to %d\n" %(r, x, l))
         alg.do_command(fail)
 
-rv = RV()
 alg.declare_commands([put, take, perceive, charge, move, moveToEmergency, addressEmergency, wait, fail])
+
+alg.declare_task('search', 'r', 'o')
+alg.declare_task('fetch', 'r', 'o')
+alg.declare_task('recharge', 'r', 'c')
+alg.declare_task('moveTo', 'r', 'l')
+alg.declare_task('emergency', 'r', 'l', 'i')
+alg.declare_task('nonEmergencyMove', 'r', 'l1', 'l2', 'dist')
 
 alg.declare_methods('search', Search_Method1, Search_Method2)
 alg.declare_methods('fetch', Fetch_Method1, Fetch_Method2)
