@@ -220,7 +220,6 @@ def Pack_Method1(item):
     # ape.do_command(pickup, r, item)
     ape.do_task('redoer', pickup, r, item)
 
-    # TODO do I need to lock this?
     doc = rv.SHIPPING_DOC[rv.ROBOTS[r]]
 
     dist = OF_GETDISTANCE_GROUND(state.loc[r], doc)
