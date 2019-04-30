@@ -7,7 +7,7 @@ Sunandita Patra <patras@cs.umd.edu>
 """
 
 import threading
-from state import GetState, PrintState, RestoreState
+from state import GetState, PrintState, RestoreState, EvaluateParameters
 import multiprocessing
 import numpy
 import random
@@ -15,7 +15,7 @@ from helper_functions import *
 import types
 import sys, pprint
 import os
-import globals
+import GLOBALS
 import colorama
 import rTree
 from timer import globalTimer, DURATION
@@ -44,6 +44,8 @@ def verbosity(level):
     verbose = level
 
 # Both RAE and RAEplan
+TASKS = {} # dictionary of tasknames and the task parameters
+
 methods = {} # dictionary of the list of methods for every task, initialized once for every run via the domain file
 path = {} # global variable shared by all stacks for debugging
 
@@ -56,6 +58,7 @@ planLocals = rL_PLAN() # APEplan_systematic variables that are local to every ca
                        # we need this to be thread local because we have multiple stacks in APE as 
                        # multiple threads and each thread call its own APEplan_systematic
 heuristic = {}
+
 ############################################################
 # Functions to tell Rae1 what the commands and methods are
 
@@ -74,14 +77,80 @@ def GetCommand(cmd):
     name = cmd.__name__
     return commands[name]
 
+class MethodInstance():
+    def __init__(self, m):
+        self.method = m
+        self.params = None
+
+    def SetParams(self, p):
+        self.params = p
+
+    def Call(self):
+        self.method(*self.params)
+
+    def __repr__(self):
+        return self.method.__name__ + str(self.params) 
+
+    def __eq__(self, other):
+        if other == 'heuristic' or other == 'Failure' or other == None:
+            return False
+        else:
+            return self.method == other.method and self.params == other.params
+
+def declare_task(t, *args):
+    TASKS[t] = args
+
+# declares the refinement methods for a task;
+# ensuring that some constraints are satisfied
 def declare_methods(task_name, *method_list):
+
+    taskArgs = TASKS[task_name]
+    q = len(taskArgs)
+    
+    methods[task_name] = []
+    for m in method_list:
+
+        # ensure that the method has atleast as many parameters as the task
+        assert(m.__code__.co_argcount >= q)
+        
+        # ensure that the variable names of the 
+        # first q parameters of m match with the parameters of task t
+        assert(m.__code__.co_varnames[0:q] == taskArgs)
+
+        methods[task_name].append(m)
+
+#def declare_methods(task_name, *method_list):
     """
     Call this once for each task, to tell Rae1 what the methods are.
     task_name must be a string.
     method_list must be a list of functions, not strings.
     """
-    methods.update({task_name:list(method_list)})
-    return methods[task_name]
+#    methods.update({task_name:list(method_list)})
+#    return methods[task_name]
+
+def GetMethodInstances(methods, tArgs):
+    
+    instanceList = [] # List of all applicable method instances for t
+
+    for m in methods:
+
+        q = m.__code__.co_argcount
+        mArgs = m.__code__.co_varnames
+        
+        if len(tArgs) < q:
+            # some parameters are uninstantiated
+            paramList = EvaluateParameters(m.parameters, mArgs, tArgs)
+            
+            for params in paramList:
+                instance = MethodInstance(m)
+                instance.SetParams(tArgs + params)
+                instanceList.append(instance)
+        else:
+            instance = MethodInstance(m)
+            instance.SetParams(tArgs)
+            instanceList.append(instance)
+
+    return instanceList 
 
 def declare_heuristic(task, name):
     heuristic[task] = name
@@ -235,26 +304,26 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     p.start()
     p.join()
 
-    method, simTime = queue.get()
+    methodInstance, simTime = queue.get()
     globalTimer.UpdateSimCounter(simTime)
 
     #retcode = plannedTree.GetRetcode()
 
     if verbose > 0:
-        print("Done with simulation. Result = {} \n".format(method), colorama.Style.RESET_ALL)
+        print("Done with simulation. Result = {} \n".format(methodInstance), colorama.Style.RESET_ALL)
 
-    if method == 'Failure':
+    if methodInstance == 'Failure':
         #random.shuffle(candidates)
         return (candidates[0], candidates[1:])
     else:
         #plannedTreeFlat = plannedTree.GetPreorderTraversal()
         #indexToLook = actingTree.GetSize() - 2
         #m = plannedTreeFlat[indexToLook]
-        candidates.pop(candidates.index(method))
-        return (method, candidates)
+        candidates.pop(candidates.index(methodInstance))
+        return (methodInstance, candidates)
 
 def choose_candidate(candidates, task, taskArgs):
-    if globals.GetDoPlanning() == False or len(candidates) == 1:
+    if GLOBALS.GetDoPlanning() == False or len(candidates) == 1:
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
     else:
@@ -268,7 +337,8 @@ def DoTaskInRealWorld(task, taskArgs):
     v_begin(task, taskArgs)
 
     retcode = 'Failure'
-    candidates = methods[task][:]
+    candidateMethods = methods[task][:]
+    candidates = GetMethodInstances(candidateMethods, taskArgs)
     assert(candidates != [])
 
     parent, node = raeLocals.GetCurrentNodes()
@@ -308,7 +378,7 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
 
     retcode = 'Failure'
     try:
-        if globals.GetPlanningMode() == False:
+        if GLOBALS.GetPlanningMode() == False:
             EndCriticalRegion()
             BeginCriticalRegion(stackid)
             node = raeLocals.GetCurrentNode()
@@ -322,7 +392,7 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
             print('Current state is:'.format(stackid))
             PrintState()
 
-        m(*taskArgs)  # This is the main job of this function, CallMethod
+        m.Call()  # This is the main job of this function, CallMethod
         retcode = 'Success'
     except Failed_command as e:
         if verbose > 0:
@@ -340,7 +410,7 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
     return retcode
 
 def do_task(task, *taskArgs):
-    if globals.GetPlanningMode() == True:
+    if GLOBALS.GetPlanningMode() == True:
         planLocals.IncreaseDepthBy1()
         nextNode = planLocals.GetSearchTreeNode().GetNext()
         if nextNode != None:
@@ -431,7 +501,7 @@ def RAEplanChoice(task, planArgs):
 
     return (taskToRefine.GetBestMethod(), globalTimer.GetSimulationCounter())
     
-def GetCandidates(task):
+def GetCandidates(task, tArgs):
     """ Called from PlanTask """
     if planLocals.GetCandidates() != None:
         # when candidates is a subset of the applicable methods, it is available from planLocals
@@ -440,11 +510,12 @@ def GetCandidates(task):
         prevState = planLocals.GetState()
         flag = 1
     else:
-        candidates = methods[task][:] # set of applicable methods
+        candidateMethods = methods[task][:] # set of applicable methods
+        candidates = GetMethodInstances(candidateMethods, tArgs)
         prevState = GetState()
         flag = 0
         
-    b = globals.Getb()
+    b = GLOBALS.Getb()
     cand = candidates[0:min(b, len(candidates))]
     return cand, prevState, flag
 
@@ -497,7 +568,7 @@ def GetBestEff():
 
 def PlanTask(task, taskArgs):
     # Need to look through several candidates for this task
-    cand, state, flag = GetCandidates(task)
+    cand, state, flag = GetCandidates(task, taskArgs)
 
     #guideList = planLocals.GetGuideList()
     searchTreeNode = planLocals.GetSearchTreeNode()
@@ -513,7 +584,7 @@ def PlanTask(task, taskArgs):
 
     #newNode = guideList.append()
 
-    if planLocals.GetRefDepth() + globals.GetSearchDepth() <= planLocals.GetDepth():
+    if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
         #print("here", planLocals.GetRefDepth() + globals.GetSearchDepth(),planLocals.GetDepth() )
         newNode = rTree.SearchTreeNode('heuristic', 'heuristic')
         #newNode.SetEff(heuristic['survey'](planLocals.GetHeuristicArgs()))
@@ -579,7 +650,7 @@ def do_command(cmd, *cmdArgs):
     """
     Perform command cmd(cmdArgs).
     """
-    if globals.GetPlanningMode() == True:
+    if GLOBALS.GetPlanningMode() == True:
         planLocals.IncreaseDepthBy1()
         nextNode = planLocals.GetSearchTreeNode().GetNext()
         if nextNode == None:
@@ -683,7 +754,7 @@ def CallCommand_OperationalModel(cmd, cmdArgs):
     cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
     cmdThread.start()
 
-    if globals.GetPlanningMode() == False:
+    if GLOBALS.GetPlanningMode() == False:
         EndCriticalRegion()
         BeginCriticalRegion(planLocals.GetStackId())
 
@@ -691,7 +762,7 @@ def CallCommand_OperationalModel(cmd, cmdArgs):
         if verbose > 0:
             print_stack_size(planLocals.GetStackId(), path)
             print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
-        if globals.GetPlanningMode() == False:
+        if GLOBALS.GetPlanningMode() == False:
             EndCriticalRegion()
             BeginCriticalRegion(planLocals.GetStackId())
 
@@ -735,7 +806,7 @@ def PlanCommand(cmd, cmdArgs):
     newCommandNode = rTree.SearchTreeNode(cmd, 'command')
     searchTreeNode.AddChild(newCommandNode)
 
-    for i in range(0, globals.Getk()):
+    for i in range(0, GLOBALS.Getk()):
         RestoreState(prevState)
         retcode = CallCommand_OperationalModel(cmd, cmdArgs)
         nextState = GetState().copy()
@@ -820,7 +891,7 @@ def PushToPath(task, taskArgs):
 
 def v_path():
     if verbose > 1:
-        if globals.GetPlanningMode() == True:
+        if GLOBALS.GetPlanningMode() == True:
             print_entire_stack(planLocals.GetStackId(), path)
         else:
             print_entire_stack(raeLocals.GetStackId(), path)

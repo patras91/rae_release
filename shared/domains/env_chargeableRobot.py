@@ -1,4 +1,4 @@
-import globals
+import GLOBALS
 import numpy
 from state import state
 from domain_chargeableRobot import rv
@@ -15,12 +15,12 @@ commandProb = {
 
 def Sense(cmd):
     if cmd == 'perceive':
-        if globals.GetPlanningMode() == True:
+        if GLOBALS.GetPlanningMode() == True:
             return SenseObjects()
         else:
             return SUCCESS
     elif cmd == 'wait':
-        if globals.GetPlanningMode() == True:
+        if GLOBALS.GetPlanningMode() == True:
             for r in rv.ROBOTS:
                 state.emergencyHandling[r] = False
     else:

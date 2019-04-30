@@ -290,14 +290,14 @@ def Populate(res, domain):
         for k in K[domain]:
             if k == 0:
                 for v in range(3, 4):
-                    f_rae_name = "{}_v{}/RAE.txt".format(domain, v)
+                    f_rae_name = "{}_v_journal/RAE.txt".format(domain)
                     f_rae = open(f_rae_name, "r")
                     print(f_rae_name)
                     PopulateHelper(res[b], domain, f_rae, k)
                     f_rae.close()
             else:
                 for v in range(3, 4):
-                    fname = '{}_v{}/rae_plan_b_{}_k_{}.txt'.format(domain, v, b, k)
+                    fname = '{}_v_journal/rae_plan_b_{}_k_{}.txt'.format(domain, b, k)
                     fptr = open(fname)
                     print(fname)
                     PopulateHelper(res[b], domain, open(fname), k)

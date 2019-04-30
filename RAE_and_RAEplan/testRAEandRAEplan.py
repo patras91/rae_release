@@ -4,16 +4,18 @@ import sys
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
 sys.path.append('../shared/problems/SD')
-sys.path.append('../shared/problems/CR')
+sys.path.append('../shared/problems/CR/auto')
+sys.path.append('../shared/problems/CR/manual')
 sys.path.append('../shared/problems/IP')
 sys.path.append('../shared/problems/EE')
 sys.path.append('../shared/problems/OF')
 sys.path.append('../shared/problems/SR')
 sys.path.append('../shared/problems/SDN')
+sys.path.append('../shared/problems/unitTests')
 
 import argparse
 import gui
-import globals
+import GLOBALS
 from RAE import raeMult, InitializeDomain
 from RAE1_and_RAEplan import verbosity
 from timer import SetMode
@@ -27,8 +29,8 @@ def testRAEandRAEplan(domain, problem, useRAEplan):
     :return:
     '''
     domain_module = InitializeDomain(domain, problem)
-    globals.SetDoPlanning(useRAEplan)
-    globals.SetPlanningMode(False) # planning mode is required to switch between acting and planning
+    GLOBALS.SetDoPlanning(useRAEplan)
+    GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     rM = threading.Thread(target=raeMult)
     rM.start()
@@ -70,18 +72,18 @@ if __name__ == "__main__":
     #globals.Set(args.K)
     #globals.SetLazy('n')
     #globals.SetConcurrent('n')
-    globals.Setb(args.b)
-    globals.Setk(args.k)
-    globals.SetSearchDepth(args.depth)
+    GLOBALS.Setb(args.b)
+    GLOBALS.Setk(args.k)
+    GLOBALS.SetSearchDepth(args.depth)
     verbosity(args.v)
     SetMode(args.clockMode)
-    globals.SetShowOutputs(args.showOutputs)
+    GLOBALS.SetShowOutputs(args.showOutputs)
     testRAEandRAEplan(args.domain, args.problem, s)
 
 def testBatch(domain, problem, useRAEplan):
     SetMode('Counter')
     verbosity(0)
-    globals.SetShowOutputs('off')
+    GLOBALS.SetShowOutputs('off')
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
     p.join(900)

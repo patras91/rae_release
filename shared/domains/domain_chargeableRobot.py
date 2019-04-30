@@ -12,7 +12,6 @@ if loader is not None:
 import gui
 from state import state
 from timer import globalTimer
-import globals
 
 # Using Dijsktra's algorithm
 def CR_GETDISTANCE(l0, l1):
@@ -374,6 +373,13 @@ def MoveTo_Method1(r, l):
 
 rv = RV()
 alg.declare_commands([put, take, perceive, charge, move, moveToEmergency, addressEmergency, wait, fail])
+
+alg.declare_task('search', 'r', 'o')
+alg.declare_task('fetch', 'r', 'o')
+alg.declare_task('recharge', 'r', 'c')
+alg.declare_task('moveTo', 'r', 'l')
+alg.declare_task('emergency', 'r', 'l', 'i')
+alg.declare_task('nonEmergencyMove', 'r', 'l1', 'l2', 'dist')
 
 alg.declare_methods('search', Search_Method1, Search_Method2)
 alg.declare_methods('fetch', Fetch_Method1, Fetch_Method2)

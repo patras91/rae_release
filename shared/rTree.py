@@ -1,5 +1,5 @@
 __author__ = 'patras'
-import globals
+
 import pipes
 from timer import DURATION
 from graphviz import Digraph

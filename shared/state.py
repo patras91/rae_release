@@ -106,7 +106,7 @@ class StateDict():
     def DeleteLocks(self):
         self.lock = None
 
-state = State()  # the global state of APE, this is shared by all stacks
+state = State()  # the global state of RAE, this is shared by all stacks
 
 def ReinitializeState():   
     """
@@ -130,6 +130,19 @@ def RestoreState(s):
 def GetState():
     return state
 
+#Rigid variables
+class RV():
+    def __init__(self):
+        pass
+
+rv = RV()
+
+def EvaluateParameters(expr, mArgs, tArgs):
+    print(state)
+    for i in range(0, len(tArgs)):
+        globals()[mArgs[i]] = tArgs[i]
+    return eval(expr, globals())
+    
 if __name__=="__main__":
     s = State()
     s.a = {1:3, 2:5}
