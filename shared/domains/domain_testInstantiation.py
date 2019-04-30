@@ -23,6 +23,7 @@ def m1_t(o):
 # r is not a task parameter for t
 # r needs to be instantiated
 def m2_t(o, r):
+    print(rv.ROBOTS)
     gui.Simulate("object is ", o, "\n")
     gui.Simulate("robot is ", r, "\n")
     alg.do_command(fail)

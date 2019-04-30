@@ -13,7 +13,7 @@ if loader is not None:
 else:
     import ape1_and_apeplan as ape
 import gui
-from state import state
+from state import state, rv
 from timer import globalTimer
 import math
 import globals
@@ -425,7 +425,6 @@ def GetHeuristicEstimate(args):
     else:
         return 1/SR_GETDISTANCE_Euclidean(state.loc[r], lfinal)
 
-rv = RV()
 ape.declare_commands([
     moveEuclidean,
     moveCurved,

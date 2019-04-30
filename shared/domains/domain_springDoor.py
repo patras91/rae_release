@@ -6,7 +6,7 @@ loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
     import RAE1_and_RAEplan as alg
 
-from state import state
+from state import state, rv
 import gui
 from timer import globalTimer
 
@@ -384,7 +384,6 @@ def Unlatch_Method1(r, d):
 def Unlatch_Method2(r, d):
     alg.do_command(unlatch2, r, d)
 
-rv = RV()
 alg.declare_commands([ 
     holdDoor, 
     passDoor, 

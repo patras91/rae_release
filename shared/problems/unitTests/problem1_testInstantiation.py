@@ -1,7 +1,7 @@
 __author__ = 'patras'
 from domain_testInstantiation import *
 from timer import DURATION
-from state import state, rv
+from state import state
 
 rv.LOCATIONS = [
  1, 2, 3, 4]

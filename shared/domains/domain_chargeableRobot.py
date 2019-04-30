@@ -10,7 +10,7 @@ loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
     import RAE1_and_RAEplan as alg
 import gui
-from state import state
+from state import state, rv
 from timer import globalTimer
 
 # Using Dijsktra's algorithm
@@ -371,7 +371,6 @@ def MoveTo_Method1(r, l):
         gui.Simulate("Robot %s does not have enough charge to move from %d to %d\n" %(r, x, l))
         alg.do_command(fail)
 
-rv = RV()
 alg.declare_commands([put, take, perceive, charge, move, moveToEmergency, addressEmergency, wait, fail])
 
 alg.declare_task('search', 'r', 'o')

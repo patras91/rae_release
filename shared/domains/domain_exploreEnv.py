@@ -6,7 +6,7 @@ loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
     import RAE1_and_RAEplan as alg
 
-from state import state
+from state import state, rv
 import gui
 from timer import globalTimer
 from env_exploreEnv import *
@@ -668,7 +668,6 @@ def HandleEmergency_Method3(r, l):
     alg.do_task('flyTo', r, l)
     alg.do_command(handleAlien, r, l)
 
-rv = RV()
 alg.declare_commands([
     survey, 
     monitor, 

@@ -8,7 +8,7 @@ if loader is not None:
 else:
     import ape1_and_apeplan as ape
 
-from state import state
+from state import state, rv
 import gui
 from timer import globalTimer, DURATION
 import globals
@@ -717,7 +717,6 @@ def repair(redoId, r, m):
 
 
 
-rv = RV()
 ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
                       loadMachine, moveRobot, freeRobot, putdown,
                       repair, wait])
