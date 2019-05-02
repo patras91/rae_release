@@ -595,15 +595,15 @@ def MoveTo_Method1(r, l1, l2):
                 else:
                     lTemp = lNext
 
-alg.declare_task('paint', '*')
-alg.declare_task('assemble', '*')
-alg.declare_task('pack', 'name', '*')
-alg.declare_task('wrap', 'name', '*')
-alg.declare_task('deliver', 'o', 'l')
-alg.declare_task('order', 'taskArgs')
-alg.declare_task('repair', 'm')
-alg.declare_task('moveTo', 'r', 'l1', 'l2')
-alg.declare_task('getRobot', 'loc')   
+declare_task('paint', '*')
+declare_task('assemble', '*')
+declare_task('pack', '*')
+declare_task('wrap', '*')
+declare_task('deliver', 'o', 'l')
+declare_task('order', 'taskArgs')
+declare_task('repair', 'm')
+declare_task('moveTo', 'r', 'l1', 'l2')
+declare_task('getRobot', 'loc')   
 
 declare_commands([
     paint, 

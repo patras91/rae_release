@@ -4,7 +4,7 @@ __author__ = 'patras'
 from tkinter import *
 from queue import Queue
 import GLOBALS
-import turtle, tdraw
+import turtle
 
 globalQueue = Queue()
 
@@ -13,7 +13,7 @@ class GUI():
         self.domain = domain
         if domain == 'IP_':
             turtle.Screen()
-            tdraw.draw_problem(title="IP_1", rv=rv)
+            #tdraw.draw_problem(title="IP_1", rv=rv)
             while(True):
                 self.simulate()
         else:

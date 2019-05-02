@@ -110,12 +110,17 @@ def declare_methods(task_name, *method_list):
     methods[task_name] = []
     for m in method_list:
 
-        # ensure that the method has atleast as many parameters as the task
-        assert(m.__code__.co_argcount >= q)
-        
-        # ensure that the variable names of the 
-        # first q parameters of m match with the parameters of task t
-        assert(m.__code__.co_varnames[0:q] == taskArgs)
+        variableArgs = False
+        if len(taskArgs) == 1:
+            if taskArgs[0] == "*":
+                variableArgs = True
+        if variableArgs != True:
+            # ensure that the method has atleast as many parameters as the task
+            assert(m.__code__.co_argcount >= q)
+            
+            # ensure that the variable names of the 
+            # first q parameters of m match with the parameters of task t
+            assert(m.__code__.co_varnames[0:q] == taskArgs)
 
         methods[task_name].append(m)
 
