@@ -626,4 +626,10 @@ declare_methods('repair', Repair_Method1)
 declare_methods('moveTo', MoveTo_Method1)
 declare_methods('getRobot', GetRobot_Method1, GetRobot_Method2, GetRobot_Method3)
 
+def Heuristic1(args):
+    return float("inf")
+
+if GLOBALS.GetHeuristicName() == 'h1':
+    declare_heuristic('order', Heuristic1)
+    
 from env_IndustryPlant import *

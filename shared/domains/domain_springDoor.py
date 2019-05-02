@@ -9,6 +9,7 @@ if loader is not None:
 from state import state, rv
 import gui
 from timer import globalTimer
+import GLOBALS
 
 '''A spring door closes automatically when not held. There are two robots
 to carry objects and open doors. Each robot has only one arm with which it can
@@ -416,5 +417,10 @@ alg.declare_methods('unlatch', Unlatch_Method1, Unlatch_Method2)
 alg.declare_methods('collide', Recover_Method1, Recover_Method2)
 
 #alg.declare_methods('closeDoors', CloseDoors_Method1)
+def Heuristic1(args):
+    return float("inf")
 
+if GLOBALS.GetHeuristicName() == 'h1':
+    alg.declare_heuristic('fetch', Heuristic1)
+    
 from env_springDoor import *

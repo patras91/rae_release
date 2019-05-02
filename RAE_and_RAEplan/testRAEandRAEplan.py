@@ -61,6 +61,8 @@ if __name__ == "__main__":
                            type=int, default=1, required=False)
     argparser.add_argument("--depth", help="Search Depth",
                            type=int, default=float("inf"), required=False)
+    argparser.add_argument("--heuristic", help="Name of the heuristic function",
+                           type=str, default='h1', required=False)
 
     args = argparser.parse_args()
 
@@ -69,12 +71,11 @@ if __name__ == "__main__":
     else:
         s = False
 
-    #globals.Set(args.K)
-    #globals.SetLazy('n')
-    #globals.SetConcurrent('n')
     GLOBALS.Setb(args.b)
     GLOBALS.Setk(args.k)
+    assert(args.depth >= 1)
     GLOBALS.SetSearchDepth(args.depth)
+    GLOBALS.SetHeuristicName(args.heuristic)
     verbosity(args.v)
     SetMode(args.clockMode)
     GLOBALS.SetShowOutputs(args.showOutputs)

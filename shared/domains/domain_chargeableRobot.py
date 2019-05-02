@@ -12,6 +12,7 @@ if loader is not None:
 import gui
 from state import state, rv
 from timer import globalTimer
+import GLOBALS
 
 # Using Dijsktra's algorithm
 def CR_GETDISTANCE(l0, l1):
@@ -387,4 +388,11 @@ alg.declare_methods('moveTo', MoveTo_Method1)
 alg.declare_methods('emergency', Emergency_Method1)
 alg.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)
 
+def Heuristic1(args):
+    return float("inf")
+
+if GLOBALS.GetHeuristicName() == 'h1':
+    alg.declare_heuristic('search', Heuristic1)
+    alg.declare_heuristic('fetch', Heuristic1)
+    
 from env_chargeableRobot import *

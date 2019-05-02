@@ -142,11 +142,12 @@ class rL_PLAN(rL):
     def GetRefDepth(self):
         return self.rL.refDepth
 
-    def SetHeuristicArgs(self, a):
-        self.rL.args = a
+    def SetHeuristicArgs(self, t, args):
+        self.rL.heuristicTaskName = t
+        self.rL.heuristicTaskArgs = args
 
     def GetHeuristicArgs(self):
-        return self.rL.args
+        return (self.rL.heuristicTaskName, self.rL.heuristicTaskArgs)
 
 class PlanArgs():
     def __init__(self):

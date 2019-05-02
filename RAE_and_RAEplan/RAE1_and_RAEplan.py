@@ -88,6 +88,9 @@ class MethodInstance():
     def Call(self):
         self.method(*self.params)
 
+    def GetName(self):
+        return self.method.__name__
+
     def __repr__(self):
         return self.method.__name__ + str(self.params) 
 
@@ -379,7 +382,7 @@ def DoTaskInRealWorld(task, taskArgs):
 def CallMethod_OperationalModel(stackid, m, taskArgs):
     if verbose > 0:
         print_stack_size(stackid, path)
-        print('Try method {}{}'.format(m.__name__,taskArgs))
+        print('Try method {}{}'.format(m.GetName(),taskArgs))
 
     retcode = 'Failure'
     try:
@@ -391,7 +394,7 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
 
         if verbose > 0:
             print_stack_size(stackid, path)
-            print("Executing method {}{}".format(m.__name__, taskArgs))
+            print("Executing method {}{}".format(m.GetName(), taskArgs))
         if verbose > 1:
             print_stack_size(stackid, path)
             print('Current state is:'.format(stackid))
@@ -410,7 +413,7 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
 
     if verbose > 1:
         print_stack_size(stackid, path)
-        print('{} for method {}{}'.format(retcode, m.__name__, taskArgs))
+        print('{} for method {}{}'.format(retcode, m.GetName(), taskArgs))
 
     return retcode
 
@@ -444,7 +447,7 @@ def RAEplanChoice(task, planArgs):
     planLocals.SetState(planArgs.GetState())
 
     taskArgs = planArgs.GetTaskArgs()
-    planLocals.SetHeuristicArgs(taskArgs)
+    planLocals.SetHeuristicArgs(task, taskArgs)
     planLocals.SetDepth(0)
     planLocals.SetRefDepth(float("inf"))
 
@@ -571,6 +574,10 @@ def GetBestEff():
         bestEff = 0
     return bestEff
 
+def GetHeuristicEstimate():
+    task, args = planLocals.GetHeuristicArgs()
+    return heuristic[task](args)
+    
 def PlanTask(task, taskArgs):
     # Need to look through several candidates for this task
     cand, state, flag = GetCandidates(task, taskArgs)
@@ -592,8 +599,8 @@ def PlanTask(task, taskArgs):
     if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
         #print("here", planLocals.GetRefDepth() + globals.GetSearchDepth(),planLocals.GetDepth() )
         newNode = rTree.SearchTreeNode('heuristic', 'heuristic')
-        #newNode.SetEff(heuristic['survey'](planLocals.GetHeuristicArgs()))
-        newNode.SetEff(float("inf"))
+
+        newNode.SetEff(GetHeuristicEstimate())
         taskNode.AddChild(newNode)
         raise Search_Done()
 

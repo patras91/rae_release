@@ -47,3 +47,9 @@ def SetSearchDepth(d):
 
 def GetSearchDepth():
     return g.depth
+
+def SetHeuristicName(name):
+    g.heuristic = name
+
+def GetHeuristicName():
+    return g.heuristic
