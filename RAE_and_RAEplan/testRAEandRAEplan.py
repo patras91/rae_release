@@ -87,7 +87,7 @@ def testBatch(domain, problem, useRAEplan):
     GLOBALS.SetShowOutputs('off')
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
-    p.join(900)
+    p.join(600)
     if p.is_alive() == True:
         p.terminate()
         print("0 1 0 0 0 0")

@@ -309,6 +309,7 @@ def Rescue_Method2(r, p):
         if state.hasMedicine[r2] == 0:
             alg.do_task('getSupplies', r2)
         alg.do_task('helpPerson', r2, p)
+        state.status[r2] = 'free'
     else:
         gui.Simulate("No robot is free to help person %s\n" %p)
         alg.do_command(fail)
@@ -403,10 +404,12 @@ def GetRobot_Method1():
     if robot == None:
         alg.do_command(fail)
     else:
+        state.status[robot] = 'busy'
         state.newRobot[1] = robot   # Check if this can cause any regression with assignment statements
 
 def GetRobot_Method2():
     state.newRobot[1] = rv.WHEELEDROBOTS[0]
+    state.status[rv.WHEELEDROBOTS[0]] = 'busy'
 
 def AdjustAltitude_Method1(r):
     if state.altitude[r] == 'high':

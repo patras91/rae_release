@@ -391,8 +391,15 @@ alg.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)
 def Heuristic1(args):
     return float("inf")
 
+def Heuristic2(args):
+    robot = args[0]
+    return 5 - state.charge[robot]
+
 if GLOBALS.GetHeuristicName() == 'h1':
     alg.declare_heuristic('search', Heuristic1)
     alg.declare_heuristic('fetch', Heuristic1)
+elif GLOBALS.GetHeuristicName() == 'h2':
+    alg.declare_heuristic('search', Heuristic2)
+    alg.declare_heuristic('fetch', Heuristic2)
     
 from env_chargeableRobot import *
