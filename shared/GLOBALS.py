@@ -11,7 +11,6 @@ class RaeArgs():
 g = G()
 g.doPlanning = False
 g.planningMode = False
-g.heuristic = None
 
 def SetDoPlanning(s):
 	g.doPlanning = s

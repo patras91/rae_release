@@ -52,10 +52,6 @@ def SD_GETPATH(l0, l1):
     l = l1
     path2 = {}
     while l != l0:
-        if l not in path:
-            return None
-        if path[l] not in path2:
-            return None
         path2[path[l]] = l
         l = path[l]
 
@@ -316,9 +312,6 @@ def MoveThroughDoorway_Method1(r, d, l):
 def MoveTo_Method1(r, l):
     x = state.loc[r]
     path = SD_GETPATH(x, l)
-    if path == None:
-        gui.Simulate("Unsolvable problem. No path exists.\n")
-        alg.do_command(fail)
     if path == {}:
         gui.Simulate("Robot %s is already at location %s \n" %(r, l))
     else:
