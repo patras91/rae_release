@@ -16,12 +16,14 @@ def adjacentCells(cells):
     return adjacentCells - set(cells)
 
 def addEdge(edges, a, b):
-    if a in edges and b not in edges[a]:
-        edges[a].append(b)
+    if a in edges:
+        if b not in edges[a]:
+            edges[a].append(b)
     else:
         edges[a] = [b]
-    if b in edges and a not in edges[b]:
-        edges[b].append(a)
+    if b in edges:
+        if a not in edges[b]:
+            edges[b].append(a)
     else:
         edges[b] = [a]
 
@@ -149,6 +151,13 @@ def writeProblem(num):
     file.write("}\n\n")
 
     file.close() 
+    
+def checkEdges(edges):
+    for c1 in edges:
+        for c2 in edges[c1]:
+            if c1 not in edges[c2]:
+                return False
+    return True
 
 def writeHeader(file):
     file.write("__author__ = 'patras'\n\n")
