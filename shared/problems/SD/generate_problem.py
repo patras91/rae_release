@@ -2,8 +2,8 @@ import random
 import math
 
 def generateProblems():
-    num = 13
-    for i in range(10):
+    num = 1
+    for i in range(50):
         writeProblem(num)
         num += 1
 
@@ -31,7 +31,7 @@ def backTrackEdge(newCell, cells):
     return [cell for cell in adjacentCellsMap[newCell] if cell in cells]
 
 def writeProblem(num):
-    fname = 'problem{}_SD.py'.format(num)
+    fname = 'auto/problem{}_SD.py'.format(num)
     file = open(fname,"w") 
     writeHeader(file)
 
