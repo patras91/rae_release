@@ -1,0 +1,3000 @@
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 305 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 287 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 282 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 292 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 296 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 301 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 275 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 311 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 312 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 305 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 316 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 260 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 281 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 272 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 287 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 290 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 276 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 314 msec per loop
+Time test of SD problem51 
+0 1 0 0 7 0
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 412 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 472 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 361 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 402 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 378 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 426 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 377 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 385 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 382 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 440 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 443 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 417 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 464 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 398 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 426 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 571 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 468 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 408 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 432 msec per loop
+Time test of SD problem52 
+1 2 0 0 7 inf
+1 loop, best of 1: 431 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 299 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 269 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 384 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 341 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 302 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 316 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 320 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 292 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 317 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 317 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 286 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 344 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem53 
+0 1 0 0 5 0
+1 loop, best of 1: 284 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 265 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 297 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 308 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 268 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 280 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 280 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 302 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 287 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 294 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 255 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 283 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 290 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 276 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 299 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 305 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 289 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 296 msec per loop
+Time test of SD problem54 
+0 1 0 0 6 0
+1 loop, best of 1: 283 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 295 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 296 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 310 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 369 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 281 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 290 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 277 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 286 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 318 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 276 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 281 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 287 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 297 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 281 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 303 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 315 msec per loop
+Time test of SD problem55 
+0 1 0 0 6 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 528 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 605 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 537 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 610 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 580 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 632 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 654 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 606 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 555 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 724 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 601 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 652 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 600 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 586 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 593 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 595 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 625 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 629 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 720 msec per loop
+Time test of SD problem56 
+0 2 0 0 11 0
+1 loop, best of 1: 689 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 331 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 316 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 318 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 295 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 260 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 276 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 291 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 284 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 302 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 310 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 299 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 255 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 286 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem57 
+0 1 0 0 5 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 493 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 418 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 406 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 407 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 463 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 459 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 460 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 458 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 368 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 462 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 491 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 434 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 501 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 432 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 438 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 453 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 442 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 431 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 482 msec per loop
+Time test of SD problem58 
+0 2 0 0 6 0
+1 loop, best of 1: 437 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 412 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 517 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 437 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 453 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 478 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 487 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 451 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 441 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 437 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 480 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 434 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 460 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 459 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 365 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 450 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 488 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 445 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 414 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 471 msec per loop
+Time test of SD problem59 
+0 2 0 0 7 0
+1 loop, best of 1: 468 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 391 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 379 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 1.78 sec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 337 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 338 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 384 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 392 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 397 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 349 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 371 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 372 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 389 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 392 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 344 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 357 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 381 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 372 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 386 msec per loop
+Time test of SD problem60 
+0 1 0 0 8 0
+1 loop, best of 1: 416 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 239 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 266 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 248 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 286 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 262 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 272 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 266 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 283 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 238 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 231 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 273 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 251 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 239 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 242 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 267 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 236 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 268 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 262 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 265 msec per loop
+Time test of SD problem61 
+0 1 0 0 4 0
+1 loop, best of 1: 244 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 256 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 251 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 255 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 275 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 274 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 279 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 303 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 283 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 278 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 272 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 270 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 279 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 284 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 267 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 261 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 279 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 251 msec per loop
+Time test of SD problem62 
+0 1 0 0 5 0
+1 loop, best of 1: 303 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 313 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 287 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 298 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 301 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 328 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 312 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 279 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 294 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 303 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 325 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 322 msec per loop
+Time test of SD problem63 
+0 1 0 0 8 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 237 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 237 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 245 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 276 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 251 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 275 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 249 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 301 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 227 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 269 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 258 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 239 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 237 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 244 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 249 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 241 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 286 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 279 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 249 msec per loop
+Time test of SD problem64 
+0 1 0 0 4 0
+1 loop, best of 1: 273 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 235 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 209 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 224 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 202 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 211 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 224 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 211 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 221 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 205 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 214 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 221 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 221 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 227 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 226 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 209 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 215 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 223 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 227 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 201 msec per loop
+Time test of SD problem65 
+1 1 0 0 5 inf
+1 loop, best of 1: 237 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 381 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 338 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 364 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 319 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 341 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 329 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 347 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 331 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 380 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 348 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 339 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 310 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 349 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 348 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 317 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 319 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 318 msec per loop
+Time test of SD problem66 
+0 1 0 0 8 0
+1 loop, best of 1: 313 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 447 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 392 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 538 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 418 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 436 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 478 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 434 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 482 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 438 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 461 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 399 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 442 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 438 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 475 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 464 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 485 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 500 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 398 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 424 msec per loop
+Time test of SD problem67 
+0 2 0 0 6 0
+1 loop, best of 1: 443 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 292 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 318 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 321 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 325 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 286 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 337 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 313 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 333 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 335 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 319 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 293 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 447 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem68 
+0 1 0 0 7 0
+1 loop, best of 1: 301 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 513 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 566 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 533 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 542 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 499 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 476 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 454 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 482 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 547 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 533 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 546 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 521 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 580 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 490 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 470 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 549 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 570 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 610 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 564 msec per loop
+Time test of SD problem69 
+0 2 0 0 7 0
+1 loop, best of 1: 560 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 338 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 351 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 338 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 359 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 360 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 359 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 375 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 391 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 329 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 363 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem70 
+1 1 0 0 8 0.5
+1 loop, best of 1: 335 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 312 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 297 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 294 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 299 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 311 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 280 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 310 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 333 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 308 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 291 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 296 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 289 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem71 
+0 1 0 0 8 0
+1 loop, best of 1: 311 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 262 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 264 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 239 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 263 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 303 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 267 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 254 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 286 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 259 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 246 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 288 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 263 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 252 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 252 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 246 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 246 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 240 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 276 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 280 msec per loop
+Time test of SD problem72 
+0 1 0 0 4 0
+1 loop, best of 1: 251 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 468 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 456 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 484 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 525 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 584 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 465 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 471 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 483 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 493 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 471 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 544 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 489 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 482 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 513 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 412 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 535 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 446 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 447 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 489 msec per loop
+Time test of SD problem73 
+0 2 0 0 7 0
+1 loop, best of 1: 496 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 288 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 266 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 299 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 284 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 278 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 284 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 284 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 274 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 303 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 282 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 280 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 269 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 305 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 312 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 282 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 290 msec per loop
+Time test of SD problem74 
+0 1 0 0 6 0
+1 loop, best of 1: 278 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.08 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.06 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 996 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.01 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 921 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.02 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 976 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.09 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 910 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.07 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 952 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 959 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.13 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 856 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 979 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 957 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 897 msec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.02 sec per loop
+Time test of SD problem75 
+0 3 0 0 10 0
+1 loop, best of 1: 1.02 sec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 320 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 355 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 315 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 358 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 318 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 335 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 364 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 379 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 321 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 322 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 348 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 320 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 346 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 325 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem76 
+0 1 0 0 8 0
+1 loop, best of 1: 333 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 353 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 317 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 292 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 299 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 294 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 350 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 340 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 315 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 341 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 342 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 349 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 312 msec per loop
+Time test of SD problem77 
+0 1 0 0 7 0
+1 loop, best of 1: 347 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 334 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 310 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 353 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 355 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 360 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 358 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 321 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 341 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 335 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 369 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 333 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 325 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 336 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 349 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 343 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 328 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 321 msec per loop
+Time test of SD problem78 
+0 1 0 0 9 0
+1 loop, best of 1: 345 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 308 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 287 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 380 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 319 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 289 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 310 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 312 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 322 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 313 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 331 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 313 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 301 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 353 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 355 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 331 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 328 msec per loop
+Time test of SD problem79 
+0 1 0 0 7 0
+1 loop, best of 1: 317 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 328 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 291 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 313 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 289 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 290 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 325 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 305 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 312 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 318 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 302 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 277 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 317 msec per loop
+Time test of SD problem80 
+0 1 0 0 6 0
+1 loop, best of 1: 298 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 488 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 476 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 461 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 514 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 425 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 476 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 474 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 431 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 481 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 490 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 545 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 458 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 472 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 467 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 441 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 453 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 460 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 469 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 458 msec per loop
+Time test of SD problem81 
+0 2 0 0 7 0
+1 loop, best of 1: 406 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 293 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 339 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 296 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 337 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 351 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 337 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 339 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 320 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 292 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 338 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 333 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 306 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 329 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 320 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 331 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 315 msec per loop
+Time test of SD problem82 
+0 1 0 0 7 0
+1 loop, best of 1: 340 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 391 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 413 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 379 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 369 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 398 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 372 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 389 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 416 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 384 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 384 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 353 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 362 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 361 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 380 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 423 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 340 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 361 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 372 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 373 msec per loop
+Time test of SD problem83 
+0 1 0 0 9 0
+1 loop, best of 1: 379 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 311 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 368 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 371 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 365 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 341 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 373 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 350 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 344 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 371 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 353 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 353 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 365 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 349 msec per loop
+Time test of SD problem84 
+0 1 0 0 8 0
+1 loop, best of 1: 318 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 225 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 224 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 215 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 219 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 226 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 249 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 239 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 230 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 243 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 244 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 252 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 281 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 213 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 235 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 235 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 262 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 231 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 237 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 233 msec per loop
+Time test of SD problem85 
+1 1 0 0 4 inf
+1 loop, best of 1: 223 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 415 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 360 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 408 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 367 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 387 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 344 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 345 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 380 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 364 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 411 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 327 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 384 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 338 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 381 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 362 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 411 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 356 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 361 msec per loop
+Time test of SD problem86 
+0 1 0 0 8 0
+1 loop, best of 1: 355 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 342 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 381 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 334 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 307 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 350 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 357 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 350 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 346 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 349 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 371 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 351 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 395 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 366 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 335 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 286 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 373 msec per loop
+Time test of SD problem87 
+0 1 0 0 7 0
+1 loop, best of 1: 316 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 905 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 899 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 907 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 961 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 875 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 975 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 837 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 880 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 822 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 895 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 817 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 939 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 823 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 896 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 917 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 858 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 900 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 865 msec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 1.01 sec per loop
+Time test of SD problem88 
+1 3 0 0 9 0.5
+1 loop, best of 1: 901 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 339 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 311 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 349 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 345 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 318 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 311 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 333 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 320 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 351 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 322 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 314 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 329 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 344 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 333 msec per loop
+Time test of SD problem89 
+0 1 0 0 8 0
+1 loop, best of 1: 352 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 648 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 580 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 619 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 636 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 612 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 733 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 746 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 605 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 628 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 674 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 654 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 605 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 643 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 605 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 616 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 643 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 616 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 654 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 604 msec per loop
+Time test of SD problem90 
+0 2 0 0 10 0
+1 loop, best of 1: 593 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 479 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 408 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 404 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 435 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 427 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 435 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 440 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 418 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 449 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 416 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 454 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 438 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 412 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 432 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 439 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 431 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 441 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 396 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 405 msec per loop
+Time test of SD problem91 
+0 1 0 0 10 0
+1 loop, best of 1: 426 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 291 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 289 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 268 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 269 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 265 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 290 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 255 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 255 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 269 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 268 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 259 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 288 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 317 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 305 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 266 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 291 msec per loop
+Time test of SD problem92 
+0 1 0 0 6 0
+1 loop, best of 1: 320 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 292 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 324 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 303 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 285 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 297 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 328 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 308 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 298 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 357 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 287 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 311 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 314 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 338 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 328 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 361 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 354 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 344 msec per loop
+Time test of SD problem93 
+0 1 0 0 6 0
+1 loop, best of 1: 366 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 510 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 548 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 562 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 499 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 526 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 592 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 553 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 557 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 570 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 559 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 540 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 571 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 539 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 503 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 532 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 451 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 497 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 516 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 515 msec per loop
+Time test of SD problem94 
+0 2 0 0 7 0
+1 loop, best of 1: 535 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 330 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 333 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 343 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 343 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 316 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 374 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 297 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 326 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 300 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 392 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 325 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 311 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 321 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 336 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 342 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 331 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 348 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 323 msec per loop
+Time test of SD problem95 
+0 1 0 0 7 0
+1 loop, best of 1: 347 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 247 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 278 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 260 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 254 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 264 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 260 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 250 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 263 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 279 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 297 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 314 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 279 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 249 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 276 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 258 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 262 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 288 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 261 msec per loop
+Time test of SD problem96 
+0 1 0 0 4 0
+1 loop, best of 1: 239 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 526 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 489 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 521 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 484 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 509 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 467 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 509 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 496 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 471 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 538 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 468 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 459 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 470 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 503 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 483 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 454 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 502 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 461 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 519 msec per loop
+Time test of SD problem97 
+0 2 0 0 9 0
+1 loop, best of 1: 504 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 676 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 738 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 707 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 738 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 847 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 746 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 639 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 694 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 710 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 739 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 746 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 721 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 735 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 818 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 746 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 664 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 735 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 755 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 721 msec per loop
+Time test of SD problem98 
+0 3 0 0 7 0
+1 loop, best of 1: 704 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 425 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 445 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 454 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 470 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 443 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 460 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 463 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 453 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 431 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 457 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 437 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 448 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 451 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 451 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 459 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 471 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 446 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 431 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 434 msec per loop
+Time test of SD problem99 
+0 2 0 0 8 0
+1 loop, best of 1: 445 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 316 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 328 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 279 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 350 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 304 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 283 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 331 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 283 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 309 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 288 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 302 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 316 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 305 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 257 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 313 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 332 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 343 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 312 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 314 msec per loop
+Time test of SD problem100 
+0 1 0 0 8 0
+1 loop, best of 1: 327 msec per loop

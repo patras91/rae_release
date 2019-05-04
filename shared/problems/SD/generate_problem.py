@@ -2,7 +2,7 @@ import random
 import math
 
 def generateProblems():
-    num = 1
+    num = 51
     for i in range(50):
         writeProblem(num)
         num += 1
