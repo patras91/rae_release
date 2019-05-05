@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import csv
 import argparse
 
+figuresFolder = "figures/"
+resultsFolder = "results/"
+
 B = {
     'SD': [1, 2, 3, 4],
     'EE': [1, 2, 3],
@@ -149,9 +152,7 @@ def PopulateHelper1(domain, f_rae, k):
 
             for i in range(0, 1):
                 
-
                 counts = f_rae.readline()
-
 
             secTimeLine = f_rae.readline()
             parts = secTimeLine.split()
@@ -170,14 +171,14 @@ def Populate(res, domain):
         for k in K[domain]:
             if k == 0:
                 for v in range(3, 4):
-                    f_rae_name = "{}_v_journal/RAE.txt".format(domain)
+                    f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
                     f_rae = open(f_rae_name, "r")
                     print(f_rae_name)
                     PopulateHelper(res[b], domain, f_rae, k)
                     f_rae.close()
             else:
                 for v in range(3, 4):
-                    fname = '{}_v_journal/rae_plan_b_{}_k_{}.txt'.format(domain, b, k)
+                    fname = '{}{}_v_journal/rae_plan_b_{}_k_{}.txt'.format(resultsFolder, domain, b, k)
                     fptr = open(fname)
                     print(fname)
                     PopulateHelper(res[b], domain, open(fname), k)
@@ -247,7 +248,7 @@ def PlotNuAAAI(resDict):
 
     for domain in D:
         plt.clf()
-        fname = 'Nu_{}.png'.format(domain)
+        fname = '{}Nu_{}.png'.format(figuresFolder, domain)
         line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
         line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
         line3, = plt.plot(K[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
@@ -290,8 +291,8 @@ def PlotNuAAAIDepth(resDict):
 
     for domain in D:
         plt.clf()
-        fname = 'figures/AIJ_Nu_Depth_{}.png'.format(domain)
-        line1, = plt.plot(Depth[domain], resDict[domain][B_depth[domain][0]][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        fname = '{}AIJ_Nu_Depth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
+        line1, = plt.plot(Depth[domain], resDict[domain][B_depth[domain][0]][index1], 'ro:', label='b={}'.format(B_depth[domain][0]), linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
@@ -453,13 +454,13 @@ def PopulateDepth(res, domain):
     b = B_depth[domain][0]
     for depth in Depth[domain]:
         if depth == 0:
-            f_rae_name = "results/{}_v_journal/RAE.txt".format(domain)
+            f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
             f_rae = open(f_rae_name, "r")
             print(f_rae_name)
             PopulateHelperDepth(res[b], domain, f_rae, k, depth)
             f_rae.close()
         else:
-            fname = 'results/{}_v_journal/rae_plan_b_{}_k_{}_d_{}.txt'.format(domain, b, k, depth)
+            fname = '{}{}_v_journal/rae_plan_b_{}_k_{}_d_{}_h_{}.txt'.format(resultsFolder, domain, b, k, depth, heuristic)
             fptr = open(fname)
             print(fname)
             PopulateHelperDepth(res[b], domain, open(fname), k, depth)
@@ -552,7 +553,7 @@ def PlotRetryRatio(resDict):
         if domain == 'SD' or domain == 'SR':
             line4, = plt.plot(K[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
         
-        fname = 'RetryRatio_{}.png'.format(domain)
+        fname = '{}RetryRatio_{}.png'.format(figuresFolder, domain)
         plt.xlabel('k')
         plt.xticks([0, 1, 3, 5, 8, 10],
            ['0', '1', '3', '5', '8', '10'])
@@ -566,14 +567,17 @@ def PlotRetryRatioDepth(resDict):
 
     for domain in D:
         plt.clf()
-        line1, = plt.plot(Depth[domain], resDict[domain][B_depth[domain][0]][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(Depth[domain], 
+            resDict[domain][B_depth[domain][0]][index1], 
+            'ro:', label='b={}'.format(B_depth[domain][0]), 
+            linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         #if domain == 'SD' or domain == 'SR':
         #   line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
         
-        fname = 'figures/AIJ_RetryRatioDepth_{}.png'.format(domain)
+        fname = '{}AIJ_RetryRatioDepth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
         plt.xlabel('Depth')
         plt.xticks(Depth[domain],GetString(Depth[domain]))
         plt.ylabel('Retry Ratio')
@@ -593,7 +597,7 @@ def PlotSuccessRatio(resDict):
         if domain == 'SD' or domain == 'SR':
             line4, = plt.plot(K[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
         
-        fname = 'SuccessRatio_{}.png'.format(domain)
+        fname = '{}SuccessRatio_{}.png'.format(figuresFolder, domain)
         plt.xlabel('k')
         plt.xticks([0, 1, 3, 5, 8, 10],
            ['0', '1', '3', '5', '8', '10'])
@@ -607,14 +611,13 @@ def PlotSuccessRatioDepth(resDict):
 
     for domain in D:
         plt.clf()
-        line1, = plt.plot(Depth[domain], resDict[domain][B_depth[domain][0]][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        #line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        #line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(Depth[domain], 
+            resDict[domain][B_depth[domain][0]][index1], 
+            'ro:', label='b={}'.format(B_depth[domain][0]), 
+            linewidth=4, 
+            MarkerSize=10, markerfacecolor='white')
         
-        #if domain == 'SD' or domain == 'SR':
-        #    line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')        
-        
-        fname = 'figures/AIJ_SuccessRatioDepth_{}.png'.format(domain)
+        fname = '{}AIJ_SuccessRatioDepth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
         plt.xlabel('Depth')
         plt.xticks(Depth[domain],GetString(Depth[domain]))
         plt.ylabel('Success Ratio')
@@ -678,6 +681,7 @@ def GetSum(*l):
     return res
 
 D = None
+heuristic = None
 
 if __name__=="__main__":
     argparser = argparse.ArgumentParser()
@@ -685,8 +689,11 @@ if __name__=="__main__":
                            type=str, required=True)
     argparser.add_argument("--depth", help="depth",
                            type=int, required=True)
+    argparser.add_argument("--heuristic", help="Heuristic",
+                           type=str, required=True)
     args = argparser.parse_args()
 
+    heuristic = args.heuristic
     D = [args.domain]
     if args.depth == 0:    
         GeneratePlotsForbAndk()
