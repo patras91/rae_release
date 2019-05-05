@@ -3,7 +3,7 @@ import math
 
 def generateProblems():
     num = 51
-    for i in range(50):
+    for i in range(10):
         writeProblem(num)
         num += 1
 
@@ -29,6 +29,15 @@ def addEdge(edges, a, b):
 
 def backTrackEdge(newCell, cells):
     return [cell for cell in adjacentCellsMap[newCell] if cell in cells]
+
+def uniqueRandomChoices(data, k):
+    ret = []
+    while k > 0 and data:
+        elem = random.choice(data) 
+        data.remove(elem) 
+        ret.append(elem)
+        k -= 1
+    return ret
 
 def writeProblem(num):
     fname = 'auto/problem{}_SD.py'.format(num)
@@ -63,13 +72,13 @@ def writeProblem(num):
     numDoors = random.randint(1, len(uniqueEdges))
     doorLocations = {}
     doors = []
-    randomEdges = random.choices(list(uniqueEdges), k = numDoors)
-    for i in range(len(randomEdges)):
+    uniqueRandomEdges = uniqueRandomChoices(list(uniqueEdges), k = numDoors)
+    for i in range(len(uniqueRandomEdges)):
         doorName = "d" + str(i+1)
         doors.append(doorName)
-        doorLocations[randomEdges[i]] = doorName
+        doorLocations[uniqueRandomEdges[i]] = doorName
 
-    numRobots = random.choice([1,1,1,2,2,3]) if numLocations < 5 else random.choice([1,2,3]) if numLocations < 8 else random.choice([1,2,2,3,3,3])
+    numRobots = random.choice([2,2,3]) if numLocations < 5 else random.choice([2,3])
     robots = ["r" + str(i + 1) for i in range(numRobots)]
     objects = ["o" + str(i + 1) for i in range(numRobots)]
     locations = [i + 1 for i in range(numLocations)]
