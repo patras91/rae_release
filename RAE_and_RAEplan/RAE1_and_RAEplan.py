@@ -347,7 +347,8 @@ def DoTaskInRealWorld(task, taskArgs):
     retcode = 'Failure'
     candidateMethods = methods[task][:]
     candidates = GetMethodInstances(candidateMethods, taskArgs)
-    assert(candidates != [])
+    if candidates == []:
+        raise Failed_task('{}{}'.format(task, taskArgs))
 
     parent, node = raeLocals.GetCurrentNodes()
 
