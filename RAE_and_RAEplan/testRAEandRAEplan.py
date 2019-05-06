@@ -3,7 +3,8 @@ import sys
 
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
-sys.path.append('../shared/problems/SD/auto')
+#sys.path.append('../shared/problems/SD/auto')
+sys.path.append('../shared/problems/SD/manual')
 sys.path.append('../shared/problems/CR/auto')
 sys.path.append('../shared/problems/CR/manual')
 sys.path.append('../shared/problems/IP')

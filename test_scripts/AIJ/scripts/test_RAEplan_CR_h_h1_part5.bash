@@ -26,7 +26,7 @@ P=(
 "problem1099"
 "problem1100"
 )
-B=("3") # Can be 1, 2 or 3
+B=("1" "2") # Can be 1, 2 or 3
 for problem in ${P[@]}
 do
     for b in ${B[@]}

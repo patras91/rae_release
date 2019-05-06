@@ -393,7 +393,7 @@ def Heuristic1(args):
 
 def Heuristic2(args):
     robot = args[0]
-    return 5 - state.charge[robot]
+    return 1 + state.charge[robot]
 
 if GLOBALS.GetHeuristicName() == 'h1':
     alg.declare_heuristic('search', Heuristic1)

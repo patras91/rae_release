@@ -28,23 +28,23 @@ DURATION.COUNTER = {
     'put': 2,
 }
 
-rv.LOCATIONS = [1, 2, 3]
-rv.EDGES = {1: [2], 2: [1, 3], 3: [2]}
-rv.DOORLOCATIONS = {(2, 3): 'd1'}
-rv.ROBOTS = ['r1']
-rv.DOORS = ['d1']
-rv.DOORTYPES = {'d1': 'spring'}
+rv.LOCATIONS = [1, 2, 3, 4]
+rv.EDGES = {1: [2, 3], 2: [1], 3: [1, 4], 4: [3]}
+rv.DOORLOCATIONS = {(1, 2): 'd1', (1, 3): 'd2', (3, 4): 'd3'}
+rv.ROBOTS = ['r1', 'r2']
+rv.DOORS = ['d1', 'd2', 'd3']
+rv.DOORTYPES = {'d1': 'ordinary', 'd2': 'spring', 'd3': 'spring'}
 
 def ResetState():
-    state.load = {'r1': NIL}
-    state.doorStatus = {'d1': 'closed'}
-    state.loc = {'r1': 3}
-    state.pos = {'o1': 1}
+    state.load = {'r1': NIL, 'r2': NIL}
+    state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed'}
+    state.loc = {'r1': 1, 'r2': 4}
+    state.pos = {'o1': 3, 'o2': 4}
     state.done = {0: False}
-    state.doorType = {'d1': UNK}
+    state.doorType = {'d1': UNK, 'd2': UNK, 'd3': UNK}
 
 tasks = {
-    1: [['moveTo', 'r1', 1]]
+    3: [['moveTo', 'r2', 3]]
 }
 
 eventsEnv = {}

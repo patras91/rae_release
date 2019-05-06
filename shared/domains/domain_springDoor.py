@@ -52,10 +52,6 @@ def SD_GETPATH(l0, l1):
     l = l1
     path2 = {}
     while l != l0:
-        if l not in path:
-            return None
-        if path[l] not in path2:
-            return None
         path2[path[l]] = l
         l = path[l]
 
@@ -434,5 +430,7 @@ def Heuristic2(args):
 
 if GLOBALS.GetHeuristicName() == 'h1':
     alg.declare_heuristic('fetch', Heuristic1)
+elif GLOBALS.GetHeuristicName() == 'h2':
+    alg.declare_heuristic('fetch', Heuristic2)
     
 from env_springDoor import *

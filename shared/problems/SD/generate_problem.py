@@ -2,8 +2,8 @@ import random
 import math
 
 def generateProblems():
-    num = 51
-    for i in range(10):
+    num = 1
+    for i in range(100):
         writeProblem(num)
         num += 1
 
