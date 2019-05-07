@@ -64,6 +64,8 @@ if __name__ == "__main__":
                            type=int, default=float("inf"), required=False)
     argparser.add_argument("--heuristic", help="Name of the heuristic function",
                            type=str, default='h1', required=False)
+    argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
+                           type=str, default='no', required=False)
 
     args = argparser.parse_args()
 
@@ -80,6 +82,7 @@ if __name__ == "__main__":
     verbosity(args.v)
     SetMode(args.clockMode)
     GLOBALS.SetShowOutputs(args.showOutputs)
+    GLOBALS.SetSDN(args.SDN)
     testRAEandRAEplan(args.domain, args.problem, s)
 
 def testBatch(domain, problem, useRAEplan):

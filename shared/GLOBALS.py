@@ -55,5 +55,11 @@ def SetHeuristicName(name):
 def GetHeuristicName():
     return g.heuristic
 
-def r():
-    pass
+def GetSDN():
+    return g.sdn
+    
+def SetSDN(sdn):
+    if sdn == 'yes':
+        g.sdn = True
+    else:
+        g.sdn = False
