@@ -902,3 +902,128 @@ Time test of SD problem16
 1 2 9 0 48 0.05000000000000001
 1 loop, best of 1: 2.84 sec per loop
 Time test of SD problem16
+Time test of SD problem1
+0 1 0 0 8 0
+Inside testRAEandRAEplan 8.51171875
+in testBatch 53.96484375
+in testBatch 53.96484375
+1 loops, best of 1: 343 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.66015625
+in testBatch 54.50390625
+in testBatch 54.5078125
+1 loops, best of 1: 593 msec per loop
+Time test of SD problem1
+0 1 0 0 14 0
+Inside testRAEandRAEplan 8.63671875
+in testBatch 54.4140625
+in testBatch 54.4140625
+1 loops, best of 1: 453 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.65625
+in testBatch 54.5234375
+in testBatch 54.5234375
+1 loops, best of 1: 639 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.640625
+in testBatch 54.34375
+in testBatch 54.34375
+1 loops, best of 1: 628 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.61328125
+in testBatch 54.3671875
+in testBatch 54.3671875
+1 loops, best of 1: 626 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.61328125
+in testBatch 54.515625
+in testBatch 54.515625
+1 loops, best of 1: 563 msec per loop
+Time test of SD problem1
+1 1 0 0 19 0.019230769230769232
+Inside testRAEandRAEplan 8.58984375
+in testBatch 54.41796875
+in testBatch 54.421875
+1 loops, best of 1: 609 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.6328125
+in testBatch 54.29296875
+in testBatch 54.29296875
+1 loops, best of 1: 605 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.63671875
+in testBatch 54.3828125
+in testBatch 54.3828125
+1 loops, best of 1: 647 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.61328125
+in testBatch 54.421875
+in testBatch 54.421875
+1 loops, best of 1: 558 msec per loop
+Time test of SD problem1
+0 1 0 0 7 0
+Inside testRAEandRAEplan 8.56640625
+in testBatch 54.3671875
+in testBatch 54.37109375
+1 loops, best of 1: 275 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.65234375
+in testBatch 54.30078125
+in testBatch 54.30078125
+1 loops, best of 1: 606 msec per loop
+Time test of SD problem1
+0 1 0 0 9 0
+Inside testRAEandRAEplan 8.44140625
+in testBatch 54.328125
+in testBatch 54.328125
+1 loops, best of 1: 284 msec per loop
+Time test of SD problem1
+0 1 0 0 18 0
+Inside testRAEandRAEplan 8.6171875
+in testBatch 54.41796875
+in testBatch 54.421875
+1 loops, best of 1: 576 msec per loop
+Time test of SD problem1
+0 1 0 0 15 0
+Inside testRAEandRAEplan 8.58984375
+in testBatch 54.28515625
+in testBatch 54.28515625
+1 loops, best of 1: 510 msec per loop
+Time test of SD problem1
+0 1 0 0 14 0
+Inside testRAEandRAEplan 8.68359375
+in testBatch 54.578125
+in testBatch 54.578125
+1 loops, best of 1: 570 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+Inside testRAEandRAEplan 8.5703125
+in testBatch 54.46484375
+in testBatch 54.46484375
+1 loops, best of 1: 653 msec per loop
+Time test of SD problem1
+0 1 0 0 16 0
+Inside testRAEandRAEplan 8.44921875
+in testBatch 54.421875
+in testBatch 54.421875
+1 loops, best of 1: 557 msec per loop
+Time test of SD problem1
+0 1 0 0 16 0
+Inside testRAEandRAEplan 8.61328125
+in testBatch 54.35546875
+in testBatch 54.359375
+1 loops, best of 1: 514 msec per loop
+Time test of SD problem2
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+1 loops, best of 1: 605 msec per loop
+Time test of SD problem1

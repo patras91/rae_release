@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 import pipes
 from timer import DURATION
-from graphviz import Digraph
+#from graphviz import Digraph
 import types
 
 class PlanningTree():

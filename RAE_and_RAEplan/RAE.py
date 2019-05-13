@@ -6,6 +6,7 @@ from timer import globalTimer, SetMode
 from state import ReinitializeState, RemoveLocksFromState
 import threading
 import GLOBALS
+import os
 
 __author__ = 'patras'
 
