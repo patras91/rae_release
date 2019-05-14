@@ -1027,3 +1027,35 @@ Time test of SD problem1
 1 1 0 0 18 0.019230769230769232
 1 loops, best of 1: 605 msec per loop
 Time test of SD problem1
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+1 loops, best of 1: 576 msec per loop
+Time test of SD problem1
+0 1 0 0 9 0
+1 loops, best of 1: 328 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+1 loops, best of 1: 681 msec per loop
+Time test of SD problem1
+0 1 0 0 18 0
+1 loops, best of 1: 610 msec per loop
+Time test of SD problem1
+1 1 0 0 18 0.019230769230769232
+1 loops, best of 1: 591 msec per loop
+Time test of SD problem1
+Time test of SD problem20
+1 1 0 0 11 0.5
+1 loops, best of 1: 365 msec per loop
+Time test of SD problem20
+1 1 0 0 11 0.5
+1 loops, best of 1: 375 msec per loop
+Time test of SD problem20
+1 1 0 0 11 0.5
+1 loops, best of 1: 340 msec per loop
+Time test of SD problem20
+1 1 0 0 11 0.5
+1 loops, best of 1: 367 msec per loop
+Time test of SD problem20
+1 1 0 0 11 0.5
+1 loops, best of 1: 376 msec per loop
+Time test of SD problem21

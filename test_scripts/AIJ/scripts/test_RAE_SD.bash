@@ -3,7 +3,7 @@
 
 echo "Executing tests for RAE without any planning."
 domain="SD" # SR, EE, CR, IP, SD, OF
-runs=20
+runs=1
 P=(
 "problem1"
 "problem2"
@@ -124,7 +124,7 @@ do
         echo $domain $problem " Run " $counter/$runs
         time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=False)"
 
-        fname="../results/${domain}_v_journal/RAE.txt"
+        fname="../results/${domain}_v_journal/RAE_one.txt"
 
 		echo "Time test of $domain $problem"  >> $fname
         python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname

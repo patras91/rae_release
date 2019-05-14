@@ -28,24 +28,23 @@ DURATION.COUNTER = {
     'put': 2,
 }
 
-rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8]
-rv.EDGES = {1: [2], 2: [1, 3, 8], 3: [2, 4, 5, 6], 4: [3], 5: [3, 7], 6: [3, 8], 7: [5], 8: [6, 2]}
-rv.DOORLOCATIONS = {(5, 7): 'd1'}
+rv.LOCATIONS = [1, 2, 3]
+rv.EDGES = {1: [2], 2: [1, 3], 3: [2]}
+rv.DOORLOCATIONS = {(1, 2): 'd1'}
 rv.ROBOTS = ['r1', 'r2']
 rv.DOORS = ['d1']
-rv.DOORTYPES = {'d1': 'ordinary'}
+rv.DOORTYPES = {'d1': 'spring'}
 
 def ResetState():
     state.load = {'r1': NIL, 'r2': NIL}
     state.doorStatus = {'d1': 'closed'}
-    state.loc = {'r1': 2, 'r2': 7}
-    state.pos = {'o1': 3, 'o2': 5}
+    state.loc = {'r1': 1, 'r2': 3}
+    state.pos = {'o1': 1, 'o2': 2}
     state.done = {0: False}
     state.doorType = {'d1': UNK}
 
 tasks = {
-    1: [['fetch', 'r2', 'o1', 1]],
-    1: [['fetch', 'r1', 'o2', 6]]
+    5: [['fetch', 'r1', 'o1', 1]]
 }
 
 eventsEnv = {}

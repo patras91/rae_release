@@ -29,22 +29,24 @@ DURATION.COUNTER = {
 }
 
 rv.LOCATIONS = [1, 2, 3, 4]
-rv.EDGES = {1: [2, 3], 2: [1, 4], 3: [1], 4: [2]}
-rv.DOORLOCATIONS = {(1, 3): 'd1', (2, 4): 'd2'}
+rv.EDGES = {1: [2], 2: [1, 3, 4], 3: [2], 4: [2]}
+rv.DOORLOCATIONS = {(2, 3): 'd1', (2, 4): 'd2', (1, 2): 'd3'}
 rv.ROBOTS = ['r1', 'r2', 'r3']
-rv.DOORS = ['d1', 'd2']
-rv.DOORTYPES = {'d1': 'spring', 'd2': 'ordinary'}
+rv.DOORS = ['d1', 'd2', 'd3']
+rv.DOORTYPES = {'d1': 'spring', 'd2': 'ordinary', 'd3': 'ordinary'}
 
 def ResetState():
     state.load = {'r1': NIL, 'r2': NIL, 'r3': NIL}
-    state.doorStatus = {'d1': 'closed', 'd2': 'closed'}
-    state.loc = {'r1': 2, 'r2': 3, 'r3': 2}
-    state.pos = {'o1': 4, 'o2': 2, 'o3': 1}
+    state.doorStatus = {'d1': 'closed', 'd2': 'closed', 'd3': 'closed'}
+    state.loc = {'r1': 1, 'r2': 1, 'r3': 3}
+    state.pos = {'o1': 3, 'o2': 1, 'o3': 1}
     state.done = {0: False}
-    state.doorType = {'d1': UNK, 'd2': UNK}
+    state.doorType = {'d1': UNK, 'd2': UNK, 'd3': UNK}
 
 tasks = {
-    3: [['moveTo', 'r3', 3]]
+    2: [['fetch', 'r3', 'o1', 1]],
+    1: [['fetch', 'r2', 'o1', 2]],
+    2: [['fetch', 'r3', 'o3', 1]]
 }
 
 eventsEnv = {}

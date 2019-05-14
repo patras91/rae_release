@@ -311,26 +311,33 @@ def MoveThroughDoorway_Method1(r, d, l):
 
 def MoveTo_Method1(r, l):
     x = state.loc[r]
-    path = SD_GETPATH(x, l)
-    if path == None:
-        gui.Simulate("Unsolvable problem. No path exists.\n")
-        alg.do_command(fail)
-    if path == {}:
-        gui.Simulate("Robot %s is already at location %s \n" %(r, l))
-    else:
-        lTemp = x
-        lNext = path[lTemp]
-        while(lTemp != l):
+    if l in rv.LOCATIONS:
+        path = SD_GETPATH(x, l)
+        if path == None:
+            gui.Simulate("Unsolvable problem. No path exists.\n")
+            alg.do_command(fail)
+        if path == {}:
+            gui.Simulate("Robot %s is already at location %s \n" %(r, l))
+        else:
+            lTemp = x
             lNext = path[lTemp]
-            if (lTemp, lNext) in rv.DOORLOCATIONS or (lNext, lTemp) in rv.DOORLOCATIONS:
-                d = SD_GETDOOR(lTemp, lNext)
-                alg.do_task('moveThroughDoorway', r, d, lNext)
-            else:
-                alg.do_command(move, r, lTemp, lNext)
-            if lNext != state.loc[r]:
-                alg.do_command(fail)
-            else:
-                lTemp = lNext
+            while(lTemp != l):
+                lNext = path[lTemp]
+                if (lTemp, lNext) in rv.DOORLOCATIONS or (lNext, lTemp) in rv.DOORLOCATIONS:
+                    d = SD_GETDOOR(lTemp, lNext)
+                    alg.do_task('moveThroughDoorway', r, d, lNext)
+                else:
+                    alg.do_command(move, r, lTemp, lNext)
+                if lNext != state.loc[r]:
+                    alg.do_command(fail)
+                else:
+                    lTemp = lNext
+    elif l in rv.ROBOTS:
+        loc = state.loc[l]
+        alg.do_task('moveTo', r, loc)
+    else:
+        gui.Simulate("Robot %s going to invalid location.\n" %(r))
+        alg.do_command(fail)
 
 def GetHelp_Method1(r):
     if r == rv.ROBOTS[0]:

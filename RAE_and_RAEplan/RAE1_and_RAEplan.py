@@ -16,8 +16,8 @@ import types
 import sys, pprint
 import os
 import GLOBALS
-#import colorama
 import rTree
+import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
@@ -42,6 +42,8 @@ def verbosity(level):
 
     global verbose
     verbose = level
+    if level > 0:
+        import colorama
 
 # Both RAE and RAEplan
 TASKS = {} # dictionary of tasknames and the task parameters

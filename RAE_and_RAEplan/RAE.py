@@ -159,7 +159,7 @@ def raeMult():
                     pass
                 envArgs.sem.acquire()
 
-                globalTimer.IncrementTime()
+            globalTimer.IncrementTime()
 
             if numstacks > 0:
                 res = GetNextAlive(lastActiveStack, numstacks, ipcArgs.threadList)
