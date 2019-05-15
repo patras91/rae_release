@@ -193,7 +193,7 @@ class Failed_task(Exception):
 class Incorrect_return_code(Exception):
     pass
 
-class Search_Done(Exception):
+class Expanded_Search_Tree_Node(Exception):
     pass
 
 class DepthLimitReached(Exception):
@@ -267,7 +267,7 @@ def RAE1(task, raeArgs):
         PrintState()
 
     if verbose > 0:
-        print("\n---- APE: Done with stack %d\n" %raeLocals.GetStackId())
+        print("\n---- RAE: Done with stack %d\n" %raeLocals.GetStackId())
 
     EndCriticalRegion()
 
@@ -460,49 +460,32 @@ def RAEplanChoice(task, planArgs):
 
     globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
     
-    #gL = planArgs.GetGuideList()
-    #planLocals.SetGuideList(gL) # which is basically the stack in the pseudocode
-    #RestoreState(gL.GetStartState())
-
     searchTreeRoot = planArgs.GetSearchTree()
     planLocals.SetSearchTreeRoot(searchTreeRoot)
-    #planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
 
     global path   # for debugging
     path.update({planLocals.GetStackId(): []})
         
-    InitializePlanningTree()
+    InitializePlanningTree() 
 
     if verbose > 1:
         print_stack_size(planLocals.GetStackId(), path)
         print('Initial state is:')
         PrintState()
 
-    while (searchTreeRoot.GetSearchDone() == False):
+    while (searchTreeRoot.GetSearchDone() == False): # all rollouts not explored
         try:
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
-            #if planLocals.GetBestTree() != None:
-            #    plannedTree = planLocals.GetBestTree().GetChild() # doing GetChild because the root is just a node labelled 'root'
-            #else:
-            #    plannedTree = rTree.CreateFailureNode()
             searchTreeRoot.UpdateChildPointers()    
         except Failed_Rollout as e:
             v_failedCommand(e)
-            #plannedTree = rTree.CreateFailureNode()
+            searchTreeRoot.UpdateChildPointers()
+        except DepthLimitReached as e:
             searchTreeRoot.UpdateChildPointers()
         except Failed_task as e:
             v_failedTask(e)
-            #plannedTree = rTree.CreateFailureNode()
-
-        except DepthLimitReached as e:
-            searchTreeRoot.UpdateChildPointers()
-        except Search_Done as e:
-            #searchTreeRoot.PrintUsingGraphviz()
-            #if planLocals.GetBestTree() != None:
-            #    plannedTree = planLocals.GetBestTree().GetChild() # doing GetChild because the root is just a node labelled 'root'
-            #else:
-            #    plannedTree = rTree.CreateFailureNode()
+        except Expanded_Search_Tree_Node as e:
             pass
         else:
             pass
@@ -609,13 +592,13 @@ def PlanTask(task, taskArgs):
 
         newNode.SetEff(GetHeuristicEstimate())
         taskNode.AddChild(newNode)
-        raise Search_Done()
+        raise Expanded_Search_Tree_Node()
 
     for m in cand:
         newSearchTreeNode = rTree.SearchTreeNode(m, 'method')
         newSearchTreeNode.SetPrevState(state)
         taskNode.AddChild(newSearchTreeNode)
-    raise Search_Done()
+    raise Expanded_Search_Tree_Node()
         #firstTask, firstTaskArgs, pRoot = Reinitialize(m, state, newNode, guideList, task, taskArgs)
         #try:
             #do_task(firstTask, *firstTaskArgs) # to recreate the execution stack
@@ -731,7 +714,7 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     path[raeLocals.GetStackId()].pop()
 
     if cmd.__name__ == "fail":
-        cost = 20
+        cost = 0
     else:
         cost = GetCost(cmd, cmdArgs)
     eff = raeLocals.GetEfficiency()
@@ -880,7 +863,7 @@ def PlanCommand(cmd, cmdArgs):
     #    pRoot = planLocals.GetPlanningTree()
     #    pRoot.SetEff(0)
     #    planLocals.SetCurrentNode(pRoot)
-    raise Search_Done
+    raise Expanded_Search_Tree_Node
 
 def GetCost(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")

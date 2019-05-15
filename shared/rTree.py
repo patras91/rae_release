@@ -320,6 +320,23 @@ class ActingNode():
         else:
             return 0
 
+    def GetMetaData(self):
+        if self.type == 'command':
+            return 1, 0, 1
+        else:
+            h = 1
+            t = 1
+            c = 0
+            h_max = 0
+            for child in self.children:
+                maxHeight, taskCount, commandCount = child.GetMetaData()
+                t += taskCount
+                c += commandCount
+                if maxHeight > h_max:
+                    h_max = maxHeight
+            h += h_max
+            return h, t, c
+
 class ActingTree():
     def __init__(self):
         self.root = ActingNode('root')
@@ -387,6 +404,9 @@ class ActingTree():
 
     def PrintUsingGraphviz(self, name='actingTree'):
         self.root.PrintUsingGraphViz(name)
+
+    def GetMetaData(self):
+        return self.root.GetMetaData()
 
 class GuideNode():
     def __init__(self, m, s1, s2, c):
