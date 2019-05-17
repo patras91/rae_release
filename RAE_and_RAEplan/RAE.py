@@ -70,28 +70,51 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    retcode, retryCount, eff = RAE1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff)
+    retcode, retryCount, eff, height, taskCount, commandCount = RAE1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount)
 
 def PrintResult(taskInfo):
+    print('ID ','\t','Task',
+            '\t\t\t', 'Result',
+            '\t\t\t', 'Retry Count', 
+            '\t\t\t', 'Efficiency', 
+            '\t\t\t', 'h',
+            '\t\t\t', 't',
+            '\t\t\t', 'c',
+            '\n')
     for stackid in taskInfo:
-        args, res, retryCount, eff = taskInfo[stackid]
-        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', eff, '\n')
+        args, res, retryCount, eff, height, taskCount, commandCount = taskInfo[stackid]
+        
+        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),
+            '\t\t\t', res,
+            '\t\t\t', retryCount, 
+            '\t\t\t', eff, 
+            '\t\t\t', height,
+            '\t\t\t', taskCount,
+            '\t\t\t', commandCount,
+            '\n')
 
 def PrintResultSummary(taskInfo):
     succ = 0
     fail = 0
     retries = 0
     effTotal = 0
+    h = 0
+    t = 0
+    c = 0
     for stackid in taskInfo:
-        args, res, retryCount, eff = taskInfo[stackid]
+        args, res, retryCount, eff, height, taskCount, commandCount = taskInfo[stackid]
         if res == 'Success':
             succ += 1
         else:
             fail += 1
         retries += retryCount
         effTotal += eff
-    print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal)
+        c += commandCount
+        t += taskCount
+        if height > h:
+            h = height
+    print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal, h, t, c)
     #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
 def StartEnv():

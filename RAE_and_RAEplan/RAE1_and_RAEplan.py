@@ -97,7 +97,7 @@ class MethodInstance():
         return self.method.__name__ + str(self.params) 
 
     def __eq__(self, other):
-        if other == 'heuristic' or other == 'Failure' or other == None:
+        if other == 'heuristic' or other == 'Failure' or other == None or other == 'root':
             return False
         else:
             return self.method == other.method and self.params == other.params
@@ -274,8 +274,9 @@ def RAE1(task, raeArgs):
     if retcode == 'Failure':
         raeLocals.SetEfficiency(0)
 
-    #raeLocals.GetActingTree().PrintUsingGraphviz()
-    return (retcode, raeLocals.GetRetryCount(), raeLocals.GetEfficiency())
+    raeLocals.GetActingTree().PrintUsingGraphviz()
+    h, t, c = raeLocals.GetActingTree().GetMetaData()
+    return (retcode, raeLocals.GetRetryCount(), raeLocals.GetEfficiency(), h, t, c)
 
 def InitializeStackLocals(task, raeArgs):
     """ Initialize the local variables of a stack used during acting """
@@ -822,7 +823,8 @@ def PlanCommand(cmd, cmdArgs):
             #effList.append(0)
             # No need to plan any further, it will always be 0
         else:
-            index = IndexOf(nextState, outcomeStates)
+            #index = IndexOf(nextState, outcomeStates)
+            index = -1
             if index != -1:
                 # this state has already been planned for, so just use the previous result
                 #effList.append(effs[index])

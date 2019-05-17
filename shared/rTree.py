@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 import pipes
 from timer import DURATION
-#from graphviz import Digraph
+from graphviz import Digraph
 import types
 
 class PlanningTree():
@@ -217,7 +217,10 @@ class ActingNode():
         if elem.label == 'root':
             return 'root'
         if elem.label != None:
-            return elem.label.__name__
+            if elem.type == 'method':
+                return elem.label.GetName()
+            else:
+                return elem.label.__name__
         else:
             return "NONE"
 
@@ -322,7 +325,7 @@ class ActingNode():
 
     def GetMetaData(self):
         if self.type == 'command':
-            return 1, 0, 1
+            return 0, 0, 1
         else:
             h = 1
             t = 1
@@ -406,7 +409,8 @@ class ActingTree():
         self.root.PrintUsingGraphViz(name)
 
     def GetMetaData(self):
-        return self.root.GetMetaData()
+        h, t, c =  self.root.GetMetaData()
+        return h - 1, t - 1, c
 
 class GuideNode():
     def __init__(self, m, s1, s2, c):
