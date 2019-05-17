@@ -14,7 +14,6 @@ DURATION.COUNTER = {}
 class Timer():
     def __init__(self):
         self.mode = 'Counter'
-        self.now = 0 # Only used in counter mode
         self.simCount = 0
         self.realCount = 0
 
@@ -22,7 +21,6 @@ class Timer():
     # Specify whether to use clock or global counter to simulate the running state of commands
         self.mode = m
         if m == 'Counter':
-            self.now = 0
             self.simCount = 0
             self.realCount = 0
         elif self.mode == 'Clock':
@@ -32,47 +30,32 @@ class Timer():
 
     def IncrementTime(self):
         if self.mode == 'Counter':
-            self.now += 1
             mode = GLOBALS.GetPlanningMode()
             if mode == False:
                 self.realCount += 1
             else:
                 self.simCount += 1
 
-    def GetTime(self):
-        if self.mode == 'Counter':
-            return self.now
-        else:
-            return time()
-
-    def Callibrate(self, startTime):
-        if self.mode == 'Counter':
-            secsPerTick = (time() - startTime) / self.now
-            print("Ticks per second is ", 1 / secsPerTick)
-
-    def GetCounterValue(self):
-        return self.now
+    #def Callibrate(self, startTime):
+    #    if self.mode == 'Counter':
+    #        secsPerTick = (time() - startTime) / self.now
+    #        print("Ticks per second is ", 1 / secsPerTick)
 
     def IsCommandExecutionOver(self, cmd, start):
-        self.IncrementTime()
-        return True # To make it run faster
         mode = GLOBALS.GetPlanningMode()
         if mode == False:
-            mult = 1  # This is the approx callibrated value
+            if self.mode == 'Counter':
+                self.realCount += DURATION.COUNTER[cmd]
+                return True
+            elif self.mode == 'Clock':
+                if time() - start < DURATION.TIME[cmd]:
+                    over = False
+                else:
+                    over = True
+            return over
         else:
+            self.simCount += 1
             return True
-        if self.mode == 'Counter':
-            if self.now - start < DURATION.COUNTER[cmd] * mult:
-                over = False
-            else:
-                over = True
-        elif self.mode == 'Clock':
-            if time() - start < DURATION.TIME[cmd]:
-                over = False
-            else:
-                over = True
-
-        return over
 
     def GetSimulationCounter(self):
         return self.simCount
@@ -85,6 +68,13 @@ class Timer():
 
     def ResetSimCounter(self):
         self.simCount = 0
+
+    def GetTime(self):
+        mode = GLOBALS.GetPlanningMode()
+        if mode == False:
+            return self.realCount
+        else:
+            return self.simCount
 
 globalTimer = Timer()
 

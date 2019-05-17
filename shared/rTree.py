@@ -577,7 +577,7 @@ class SearchTreeNode():
                 sum = 0
                 total = 0
                 for child, weight in zip(self.children, self.childWeights):
-                    sum += weight*child.eff
+                    sum += weight * child.eff
                     total += weight
                 self.eff = sum/weight
             elif self.type == 'state':
