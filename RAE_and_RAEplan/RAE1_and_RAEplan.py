@@ -272,6 +272,7 @@ def RAE1(task, raeArgs):
     EndCriticalRegion()
 
     if retcode == 'Failure':
+        raeLocals.SetUtility('Failure')
         raeLocals.SetEfficiency(0)
 
     #raeLocals.GetActingTree().PrintUsingGraphviz()

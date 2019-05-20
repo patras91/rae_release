@@ -63,3 +63,10 @@ def SetSDN(sdn):
         g.sdn = True
     else:
         g.sdn = False
+
+def GetOpt():
+    return g.opt 
+
+def SetOpt(opt):
+    assert(opt == 'min' or opt == 'max')
+    g.opt = opt

@@ -1,6 +1,8 @@
 __author__ = 'patras'
 
 import threading
+import GLOBALS
+from utility import *
 
 class rL():
     def __init__(self):
@@ -62,11 +64,12 @@ class rL_APE(rL):
     def GetSearchTree(self):
         return self.rL.aT.GetSearchTree()
 
-    def SetEfficiency(self, e):
-        self.rL.eff = e
+    def SetUtility(self, e):
+        self.rL.util = Utility(GLOBALS.GetOpt())
+        self.rL.util.SetVal('Failure')
 
-    def GetEfficiency(self):
-        return self.rL.eff
+    def GetUtility(self):
+        return self.rL.util.GetVal()
 
 class rL_PLAN(rL):
 
