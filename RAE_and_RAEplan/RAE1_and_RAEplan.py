@@ -17,7 +17,7 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-import colorama
+#import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
@@ -274,7 +274,7 @@ def RAE1(task, raeArgs):
     if retcode == 'Failure':
         raeLocals.SetEfficiency(0)
 
-    raeLocals.GetActingTree().PrintUsingGraphviz()
+    #raeLocals.GetActingTree().PrintUsingGraphviz()
     h, t, c = raeLocals.GetActingTree().GetMetaData()
     return (retcode, raeLocals.GetRetryCount(), raeLocals.GetEfficiency(), h, t, c)
 
@@ -715,7 +715,7 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     path[raeLocals.GetStackId()].pop()
 
     if cmd.__name__ == "fail":
-        cost = 0
+        cost = 10
     else:
         cost = GetCost(cmd, cmdArgs)
     eff = raeLocals.GetEfficiency()

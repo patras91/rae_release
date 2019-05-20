@@ -125,7 +125,7 @@ GLOBALS.Setb($b)
 GLOBALS.Setk($k)
 GLOBALS.SetSearchDepth(float(\"inf\"))"
 counter=1
-while [ $counter -le 20 ]
+while [ $counter -le 1 ]
 do
             echo $domain $problem "b = " $b ", k = " $k ", Run " $counter/20
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"

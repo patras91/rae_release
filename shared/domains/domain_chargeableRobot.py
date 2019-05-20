@@ -393,7 +393,11 @@ def Heuristic1(args):
 
 def Heuristic2(args):
     robot = args[0]
-    return 1 + state.charge[robot]
+    return 5 - state.charge[robot]
+
+def Heuristic3(args):
+    robot = args[0]
+    return 5 * state.charge[robot]
 
 if GLOBALS.GetHeuristicName() == 'h1':
     alg.declare_heuristic('search', Heuristic1)
@@ -401,5 +405,8 @@ if GLOBALS.GetHeuristicName() == 'h1':
 elif GLOBALS.GetHeuristicName() == 'h2':
     alg.declare_heuristic('search', Heuristic2)
     alg.declare_heuristic('fetch', Heuristic2)
+elif GLOBALS.GetHeuristicName() == 'h3':
+    alg.declare_heuristic('search', Heuristic3)
+    alg.declare_heuristic('fetch', Heuristic3)
     
 from env_chargeableRobot import *
