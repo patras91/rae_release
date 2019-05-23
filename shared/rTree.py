@@ -4,6 +4,7 @@ import pipes
 from timer import DURATION
 #from graphviz import Digraph
 import types
+from utility import Utility
 
 class PlanningTree():
     def __init__(self, n, args, type1):
@@ -14,7 +15,7 @@ class PlanningTree():
         self.children = [] # list of children of this node
 
         # only for RAEplan
-        self.eff = float("inf") # efficiency of this node
+        self.util = Utility('Success') # efficiency of this node
 
         # only for APEplan 
         self.state = None # state needs to be set after planning for sub-tasks
@@ -46,18 +47,11 @@ class PlanningTree():
                 res = res + node.GetPreorderTraversal()
             return res
 
-    def AddEfficiency(self, e2):
-        e1 = self.eff
-        if e1 == float("inf"):
-            res = e2
-        elif e2 == float("inf"):
-            res = e1
-        else:
-            res = (e1 * e2) / (e1 + e2)
-        self.eff = res
+    def AddUtility(self, u2):
+        self.util = self.util + u2
 
-    def GetEff(self):
-        return self.eff
+    def GetUtility(self):
+        return self.util
 
     def GetMethod(self):
         if self.type == 'method':
@@ -70,7 +64,7 @@ class PlanningTree():
     def DeleteAllChildren(self):
         assert(self.label == "root")
         self.children = []
-        self.SetEff(float("inf"))
+        self.SetUtility(Utility('Success'))
 
     def GetChild(self):
         assert(len(self.children) == 1)
