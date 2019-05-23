@@ -73,8 +73,8 @@ class PlanningTree():
     def AddChild(self, node):
         self.children = self.children + [node]
 
-    def SetEff(self, e):
-        self.eff = e
+    def SetUtility(self, u):
+        self.util = u
 
     def GetPrettyString(self):
         if self.label == 'root' or self.label == 'Failure':
@@ -128,7 +128,7 @@ class PlanningTree():
         curr = 0
         next = 1
         print("\n------PLANNING TREE-------")
-        print("EFFICIENCY = ", self.GetEff())
+        print("UTILITY = ", self.GetUtility())
         while(level[curr] != []):
             print(' '.join(elem.GetPrettyString() for elem in level[curr]))
             for elem in level[curr]:
@@ -140,7 +140,7 @@ class PlanningTree():
 
     def copy(self):
         r = PlanningTree(self.label, self.args, self.type)
-        r.SetEff(self.eff)
+        r.SetUtility(self.util)
         if self.children == []:
             return r
         else:
@@ -171,7 +171,7 @@ class PlanningTree():
 
 def CreateFailureNode():
     tnode = PlanningTree('Failure', 'Failure', 'Failure')
-    tnode.SetEff(0)
+    tnode.SetUtility('Failure')
     return tnode
 
 class ActingNode():
@@ -494,15 +494,15 @@ class GuideList():
     def GetStartState(self):
         return self.l[0].GetPrevState()
 
-    def GetEff(self):
-        cost = 0
-        for item in self.l:
-            cost += item.GetCost()
+    #def GetUtility(self):
+    #    cost = 0
+    #    for item in self.l:
+    #        cost += item.GetCost()
 
-        if cost == 0:
-            return float("inf")
-        else:
-            return 1/cost
+    #    if cost == 0:
+    #        return float("inf")
+    #    else:
+    #        return 1/cost
 
 class SearchTreeNode():
     def __init__(self, l, t):
@@ -512,7 +512,7 @@ class SearchTreeNode():
         self.children = []
         self.childPtr = 0
         self.childWeights = []
-        self.eff = "UNK"
+        self.util = "UNK"
         self.prevState = None
         self.parent = None
 
@@ -522,11 +522,11 @@ class SearchTreeNode():
     def GetType(self):
         return self.type
 
-    def SetEff(self, e):
-        self.eff = e
+    def SetUtility(self, u):
+        self.util = u
 
-    def GetEff(self):
-        return self.eff
+    def GetUtility(self):
+        return self.util
 
     def GetSearchDone(self):
         if self.childPtr == 1:
@@ -557,7 +557,7 @@ class SearchTreeNode():
         else:
             return None
 
-    def IncrementPointerAndSetEff(self):
+    def IncrementPointerAndSetUtility(self):
         if self.childPtr < len(self.children) - 1:
             self.childPtr += 1
         else:
@@ -581,7 +581,7 @@ class SearchTreeNode():
 
             self.childPtr += 1
             if self.parent != None:
-                self.parent.IncrementPointerAndSetEff()
+                self.parent.IncrementPointerAndSetUtility()
 
     def UpdateChildPointers(self):
         if self.children == []:

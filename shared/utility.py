@@ -39,6 +39,9 @@ class Utility():
         else:
             return False
 
+    def __str__(self):
+        return str(self.value)
+
     def SetVal(self, val):
         self.value = val
 
