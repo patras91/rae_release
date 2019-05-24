@@ -65,11 +65,10 @@ class rL_APE(rL):
         return self.rL.aT.GetSearchTree()
 
     def SetUtility(self, e):
-        self.rL.util = Utility(GLOBALS.GetOpt())
-        self.rL.util.SetVal('Failure')
+        self.rL.util = e
 
     def GetUtility(self):
-        return self.rL.util.GetVal()
+        return self.rL.util
 
 class rL_PLAN(rL):
 

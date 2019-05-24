@@ -273,7 +273,7 @@ def RAE1(task, raeArgs):
     EndCriticalRegion()
 
     if retcode == 'Failure':
-        raeLocals.SetUtility('Failure')
+        raeLocals.SetUtility(Utility('Failure'))
 
     #raeLocals.GetActingTree().PrintUsingGraphviz()
     h, t, c = raeLocals.GetActingTree().GetMetaData()
@@ -291,7 +291,7 @@ def InitializeStackLocals(task, raeArgs):
     aT = rTree.ActingTree()
     aT.SetPrevState(GetState().copy())
     raeLocals.SetActingTree(aT)
-    raeLocals.SetUtility('Success')
+    raeLocals.SetUtility(Utility('Success'))
     
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -577,7 +577,7 @@ def PlanTask(task, taskArgs):
         #print("here", planLocals.GetRefDepth() + globals.GetSearchDepth(),planLocals.GetDepth() )
         newNode = rTree.SearchTreeNode('heuristic', 'heuristic')
 
-        newNode.SetUtility(GetHeuristicEstimate())
+        newNode.SetUtility(Utility(GetHeuristicEstimate()))
         taskNode.AddChild(newNode)
         raise Expanded_Search_Tree_Node()
 
@@ -687,7 +687,7 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     if cmd.__name__ == "fail":
         util1 = GetFailureUtility(cmd, cmdArgs)
     else:
-        util2 = GetUtility(cmd, cmdArgs)
+        util1 = GetUtility(cmd, cmdArgs)
     util2 = raeLocals.GetUtility()
     raeLocals.SetUtility(util1 + util2)
 
@@ -708,7 +708,7 @@ def FollowSearchTree_command(cmd, cmdArgs, searchNode):
     RestoreState(stateNode.GetLabel())
     planLocals.SetSearchTreeNode(stateNode)
 
-    if stateNode.GetUtility() != 0:
+    if stateNode.GetUtility() != Utility('Failure'):
         util = GetUtility(cmd, cmdArgs)
         stateNode.SetUtility(util)
         newNode = rTree.PlanningTree(cmd, cmdArgs, 'cmd')
@@ -780,7 +780,7 @@ def PlanCommand(cmd, cmdArgs):
 
         if retcode == 'Failure':
             newNode = rTree.SearchTreeNode(nextState, 'state')
-            newNode.SetUtility('Failure')
+            newNode.SetUtility(Utility('Failure'))
             newNode.SetPrevState(prevState)
             newCommandNode.AddChild(newNode)
             outcomeStates.append(nextState)
@@ -808,6 +808,17 @@ def GetCost(cmd, cmdArgs):
         return cost(*cmdArgs)
     else:
         return cost
+
+def GetFailureUtility(cmd, cmdArgs):
+    return Utility(1/20)
+
+def GetUtility(cmd, cmdArgs):
+    assert(cmd.__name__ != "fail")
+    cost = DURATION.COUNTER[cmd.__name__]
+    if type(cost) == types.FunctionType:
+        return Utility(1/cost(*cmdArgs))
+    else:
+        return Utility(1/cost)
 
 ## Verbosity functions 
 

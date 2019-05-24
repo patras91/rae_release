@@ -31,6 +31,7 @@ def testRAEandRAEplan(domain, problem, useRAEplan):
     :return:
     '''
     domain_module = InitializeDomain(domain, problem)
+    GLOBALS.SetOpt('max')
     GLOBALS.SetDoPlanning(useRAEplan)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan

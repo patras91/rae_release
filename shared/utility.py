@@ -1,13 +1,22 @@
 __author__ = 'patras'
+import GLOBALS
 
 class Utility():
-    def __init__(self, opt):
-        assert(opt == 'min' or opt == 'max')
-        self.opt = opt
-        if opt == 'min':
-            self.value = 0
-        elif opt == 'max':
-            self.value = float("inf")
+    def __init__(self, val):
+        if GLOBALS.GetOpt() == 'min':
+            if val == 'Success':
+                self.value = 0
+            elif val == 'Failure':
+                self.value = float("inf")
+            else:
+                self.value = val    
+        else:
+            if val == 'Failure':
+                self.value = 0
+            elif val == 'Success':
+                self.value = float("inf")
+            else:
+                self.value = val
 
     def __gt__(self, other): 
         if self.value > other.value: 
@@ -42,8 +51,14 @@ class Utility():
     def __str__(self):
         return str(self.value)
 
-    def SetVal(self, val):
+    def __add__(self, other):
+        return Utility(self.value + other.value)
+
+    def SetValue(self, val):
         self.value = val
+
+    def GetValue(self):
+        return self.value
 
 if __name__=="__main__":
     a = Utility('min')

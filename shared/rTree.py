@@ -171,7 +171,7 @@ class PlanningTree():
 
 def CreateFailureNode():
     tnode = PlanningTree('Failure', 'Failure', 'Failure')
-    tnode.SetUtility('Failure')
+    tnode.SetUtility(Utility('Failure'))
     return tnode
 
 class ActingNode():
@@ -512,7 +512,7 @@ class SearchTreeNode():
         self.children = []
         self.childPtr = 0
         self.childWeights = []
-        self.util = "UNK"
+        self.util = Utility("UNK")
         self.prevState = None
         self.parent = None
 
@@ -562,22 +562,23 @@ class SearchTreeNode():
             self.childPtr += 1
         else:
             if self.type == 'task':
-                maxEff = 0
+                bestUtil = Utility('Failure')
                 for child in self.children:
-                    if child.eff > maxEff:
-                        maxEff = child.eff
-                self.eff = maxEff
+                    if child.util > bestUtil:
+                        bestUtil = child.util
+                self.util = bestUtil
             elif self.type == 'command':
                 sum = 0
                 total = 0
+                # Take the average of values
                 for child, weight in zip(self.children, self.childWeights):
-                    sum += weight * child.eff
+                    sum += weight * child.util.GetValue()
                     total += weight
-                self.eff = sum/weight
+                self.util = Utility(sum / weight)
             elif self.type == 'state':
-                self.AddEfficiency(self.children[0].eff)
+                self.util = self.util + self.children[0].util
             else:
-                self.eff = self.children[0].eff
+                self.util = self.children[0].util
 
             self.childPtr += 1
             if self.parent != None:
@@ -586,26 +587,16 @@ class SearchTreeNode():
     def UpdateChildPointers(self):
         if self.children == []:
             # reached the bottom of the tree, start moving up now
-            self.parent.IncrementPointerAndSetEff()
+            self.parent.IncrementPointerAndSetUtility()
         else:
             self.children[self.childPtr].UpdateChildPointers()
 
-    def AddEfficiency(self, e2):
-        e1 = self.eff
-        if e1 == float("inf"):
-            res = e2
-        elif e2 == float("inf"):
-            res = e1
-        else:
-            res = (e1 * e2) / (e1 + e2)
-        self.eff = res
-
     def GetBestMethod(self):
         bestMethod = 'Failure'
-        bestEff = 0
+        bestUtil = Utility('Failure')
         for child in self.children:
-            if child.eff > bestEff:
-                bestEff = child.eff
+            if child.util > bestUtil:
+                bestUtil = child.util
                 bestMethod = child.GetLabel()
         return bestMethod
 
