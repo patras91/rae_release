@@ -109,7 +109,7 @@ def PrintResultSummary(taskInfo):
         else:
             fail += 1
         retries += retryCount
-        effTotal += eff
+        effTotal += eff.GetValue()
         c += commandCount
         t += taskCount
         if height > h:
