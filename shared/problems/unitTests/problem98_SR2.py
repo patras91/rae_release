@@ -1,5 +1,5 @@
 __author__ = 'patras'
-from domain_searchAndRescue import *
+from domain_searchAndRescue2 import *
 from timer import DURATION
 from state import state
 
@@ -57,5 +57,6 @@ def ResetState():
 tasks = {
     1: [['survey', 'a1', (13,20)]]
 }
+
 eventsEnv = {
 }

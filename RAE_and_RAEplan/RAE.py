@@ -136,6 +136,13 @@ def StartEnv():
         envArgs.envActive = False
         envArgs.sem.release()
 
+def add_tasks(tasks):
+    current_time = globalTimer.GetTime()
+    if domain_module.tasks[current_time + 1] is not None:
+        domain_module.tasks[current_time + 1] = tasks
+    else:
+        domain_module.tasks[current_time + 1] += tasks
+
 def raeMult():
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
     ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
