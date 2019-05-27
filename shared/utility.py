@@ -52,7 +52,17 @@ class Utility():
         return str(self.value)
 
     def __add__(self, other):
-        return Utility(self.value + other.value)
+        e1 = self.value
+        e2 = other.value
+        if e1 == float("inf"):
+            res = e2
+        elif e2 == float("inf"):
+            res = e1
+        elif e1 == 0 and e2 == 0:
+            res = 0
+        else:
+            res = e1 * e2 / (e1 + e2)
+        return Utility(res)
 
     def SetValue(self, val):
         self.value = val
@@ -61,10 +71,9 @@ class Utility():
         return self.value
 
 if __name__=="__main__":
-    a = Utility('min')
-    b = Utility('min')
-    a.SetVal(1)
-    b.SetVal(5)
+
+    a = Utility(1)
+    b = Utility(5)
 
     print(a>b)
     print(a>=b)
