@@ -49,7 +49,7 @@ def moveEuclidean(r, l1, l2, dist):
         res = SUCCESS
     elif state.loc[r] == l1:
         start = globalTimer.GetTime()
-        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+        while(globalTimer.IsCommandExecutionOver('moveEuclidean', start, r, l1, l2, dist) == False):
            pass
         res = Sense('moveEuclidean')
         if res == SUCCESS:
@@ -82,7 +82,7 @@ def moveCurved(r, l1, l2, dist):
         res = SUCCESS
     elif state.loc[r] == l1:
         start = globalTimer.GetTime()
-        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+        while(globalTimer.IsCommandExecutionOver('moveCurved', start, r, l1, l2, dist) == False):
            pass
         res = Sense('moveCurved')
         if res == SUCCESS:
@@ -119,7 +119,7 @@ def moveManhattan(r, l1, l2, dist):
         res = SUCCESS
     elif state.loc[r] == l1:
         start = globalTimer.GetTime()
-        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+        while(globalTimer.IsCommandExecutionOver('moveManhattan', start, r, l1, l2, dist) == False):
            pass
         res = Sense('moveManhattan')
         if res == SUCCESS:
