@@ -10,7 +10,7 @@ import os
 
 __author__ = 'patras'
 
-domain_module = None
+problem_module = None
 
 def GetNextAlive(lastActiveStack, numstacks, threadList):
     '''
@@ -36,8 +36,8 @@ def GetNewTasks():
     :return: gets the new task that appears in the problem at the current time
     '''
     GetNewTasks.counter += 1
-    if GetNewTasks.counter in domain_module.tasks:
-        return domain_module.tasks[GetNewTasks.counter]
+    if GetNewTasks.counter in problem_module.tasks:
+        return problem_module.tasks[GetNewTasks.counter]
     else:
         return []
 
@@ -49,11 +49,11 @@ def InitializeDomain(domain, problem):
     '''
     if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'SDN', 'test', 'testInstantiation', 'SR2']:
         module = problem + '_' + domain
-        global domain_module
+        global problem_module
         ReinitializeState()    # useful for batch runs to start with the first state
-        domain_module = __import__(module)
-        domain_module.ResetState()
-        return domain_module
+        problem_module = __import__(module)
+        problem_module.ResetState()
+        return problem_module
     else:
         print("Invalid domain\n", domain)
         exit(11)
@@ -126,8 +126,8 @@ def StartEnv():
             return
 
         StartEnv.counter += 1
-        if StartEnv.counter in domain_module.eventsEnv:
-            eventArgs = domain_module.eventsEnv[StartEnv.counter]
+        if StartEnv.counter in problem_module.eventsEnv:
+            eventArgs = problem_module.eventsEnv[StartEnv.counter]
             event = eventArgs[0]
             eventParams = eventArgs[1]
             t = threading.Thread(target=event, args=eventParams)
@@ -138,10 +138,10 @@ def StartEnv():
 
 def add_tasks(tasks):
     current_time = globalTimer.GetTime()
-    if domain_module.tasks[current_time + 1] is not None:
-        domain_module.tasks[current_time + 1] = tasks
+    if problem_module.tasks[current_time + 1] is not None:
+        problem_module.tasks[current_time + 1] = tasks
     else:
-        domain_module.tasks[current_time + 1] += tasks
+        problem_module.tasks[current_time + 1] += tasks
 
 def raeMult():
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master

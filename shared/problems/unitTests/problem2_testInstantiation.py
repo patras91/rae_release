@@ -4,7 +4,8 @@ from timer import DURATION
 from state import state
 
 DURATION.COUNTER = {
-    't1_c1': 2,
+    't1_c1': 5,
+    't1_c2': 2,
 }
 
 rv.LOCATIONS = [
@@ -17,6 +18,6 @@ def ResetState():
     state.loc = {'r1': 1, 'o1': 1}
 
 
-tasks = {1: [['t1']]}
+tasks = {1: [['t2']]}
 
 eventsEnv = {}
