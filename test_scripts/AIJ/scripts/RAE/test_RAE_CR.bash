@@ -134,20 +134,21 @@ for problem in ${P[@]}
 do
     setup="
 import sys
-sys.path.append('../../RAE_and_RAEplan/')
-sys.path.append('../../shared/domains/')
-sys.path.append('../../shared/problems/$domain')
-sys.path.append('../../shared/')
-from testRAEandRAEplan import globals, testBatch
-globals.Setb(1)
-globals.Setk(1)"
+sys.path.append('../../../RAE_and_RAEplan/')
+sys.path.append('../../../shared/domains/')
+sys.path.append('../../../shared/problems/$domain/auto')
+sys.path.append('../../../shared/')
+from testRAEandRAEplan import GLOBALS, testBatch
+GLOBALS.Setb(1)
+GLOBALS.Setk(1)
+GLOBALS.SetOpt('max')"
 counter=1
 while [ $counter -le $runs ]
 do
-        echo $domain $problem $counter/$runs
+        echo $domain $problem " Run " $counter/$runs
         time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=False)"
 
-        fname="${domain}_v_journal/RAE.txt"
+        fname="../../results/${domain}_v_journal/RAE.txt"
 
 		echo "Time test of $domain $problem"  >> $fname
         python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
