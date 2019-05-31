@@ -6,9 +6,9 @@ A move consumes 1/4 of the battery capacity.'''
 
 from domain_constants import *
 import importlib
-loader = importlib.find_loader('RAE1_and_RAEplan')
-if loader is not None:
-    import RAE1_and_RAEplan as alg
+#loader = importlib.find_loader('RAE1_and_RAEplan')
+#if loader is not None:
+import RAE1_and_RAEplan as alg
 import gui
 from state import state, rv
 from timer import globalTimer

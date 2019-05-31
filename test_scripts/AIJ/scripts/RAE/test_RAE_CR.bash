@@ -3,7 +3,7 @@
 
 echo "Executing tests for RAE without any planning."
 domain="CR" # SR, EE, CR, IP, SD, OF
-runs=20
+runs=1
 P=(
 "problem1000"
 "problem1001"
@@ -134,10 +134,10 @@ for problem in ${P[@]}
 do
     setup="
 import sys
-sys.path.append('../../../RAE_and_RAEplan/')
-sys.path.append('../../../shared/domains/')
-sys.path.append('../../../shared/problems/$domain/auto')
-sys.path.append('../../../shared/')
+sys.path.append('../../../../RAE_and_RAEplan/')
+sys.path.append('../../../../shared/domains/')
+sys.path.append('../../../../shared/problems/$domain/auto')
+sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.Setb(1)
 GLOBALS.Setk(1)
