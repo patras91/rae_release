@@ -114,6 +114,38 @@ def Order_Method1(orderList, m, objList):
 Order_Method1.parameters = "[(m, [objList],) for m in rv.MACHINES for objList in state.OBJECTS.keys()]"
 
 
+def Order_Method2(orderList, m, objList, p):
+    # wait if needed
+    if len(orderList) != len(objList):
+        ape.do_command(fail)
+
+    # move items to the pallet
+    for i,objType in enumerate(orderList):
+        # verify correct type
+        if objList[i] not in state.OBJ_CLASS[objType]:
+            ape.do_command(fail)
+
+        # move to object, pick it up, place on pallet
+        ape.do_task('moveToPallet', objList[i], p)
+
+    while state.busy[m] != False:
+        ape.do_command(wait)
+
+    for i,objType in enumerate(orderList):
+        # move to object, pick it up, load in machine
+        ape.do_task('pickupAndLoad', objList[i], m)
+
+    # TODO change name wrap to package
+    ape.do_task('redoer', wrap, m, objList)
+    package = state.var1['temp1']
+
+    ape.do_task('unloadAndDeliver', m, package)
+
+# TODO switch to correct version or write workaround
+#Order_Method1.parameters = "[(m, objList, p) for m in rv.MACHINES for objList in itertools.combinations(state.OBJECTS,keys())]"
+Order_Method2.parameters = "[(m, [objList], p) for m in rv.MACHINES for objList in state.OBJECTS.keys() for p in rv.PALLETS]"
+
+
 # for free r
 def PickupAndLoad_Method1(o, m, r):
     ape.do_task('redoer', acquireRobot, r)
@@ -156,6 +188,24 @@ def UnloadAndDeliver_Method1(m, package, r):
 UnloadAndDeliver_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
 
 
+# for free r
+def MoveToPallet_Method1(o, p, r):
+    ape.do_task('redoer', acquireRobot, r)
+
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[o])
+    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[o], dist)
+
+    ape.do_task('redoer', pickup, r, o)
+
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[p])
+    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[p], dist)
+
+    ape.do_task('redoer', putdown, r, o)
+
+    ape.do_task('redoer', freeRobot, r)
+MoveToPallet_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
+
+
 
 def moveRobot(redoId, r, l1, l2, dist):
     state.loc.AcquireLock(r)
@@ -167,6 +217,9 @@ def moveRobot(redoId, r, l1, l2, dist):
         state.shouldRedo[redoId] = False
 
     elif state.loc[r] == l1:
+        start = globalTimer.GetTime()
+        while (globalTimer.IsCommandExecutionOver('moveRobot', start, redoId, r, l1, l2, dist) == False):
+            pass
         res = Sense('moveRobot')
 
         if res == SUCCESS:
@@ -191,8 +244,6 @@ def moveRobot(redoId, r, l1, l2, dist):
 def pickup(redoId, r, item):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
-    print(state.loc)
-    print(item in state.loc)
     state.loc.AcquireLock(item)
     state.shouldRedo.AcquireLock(redoId)
 
@@ -206,7 +257,7 @@ def pickup(redoId, r, item):
         state.shouldRedo[redoId] = False
     elif state.OBJ_WEIGHT[item] > rv.ROBOT_CAPACITY[r]:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('pickup', start) == False):
+        while (globalTimer.IsCommandExecutionOver('pickup', start, redoId, r, item) == False):
             pass
 
         gui.Simulate("Item %s is too heavy for robot %s to pick up\n" % (item, r))
@@ -214,7 +265,7 @@ def pickup(redoId, r, item):
         state.shouldRedo[redoId] = False
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('pickup', start) == False):
+        while (globalTimer.IsCommandExecutionOver('pickup', start, redoId, r, item) == False):
             pass
         res = Sense('pickup')
 
@@ -251,7 +302,7 @@ def putdown(redoId, r, item):
         state.shouldRedo[redoId] = False
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('putdown', start) == False):
+        while (globalTimer.IsCommandExecutionOver('putdown', start, redoId, r, item) == False):
             pass
         res = Sense('putdown')
 
@@ -287,7 +338,7 @@ def loadMachine(redoId, r, m, item):
         state.shouldRedo[redoId] = False
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('loadMachine', start) == False):
+        while (globalTimer.IsCommandExecutionOver('loadMachine', start, redoId, r, m, item) == False):
             pass
 
         res = Sense('loadMachine')
@@ -335,7 +386,7 @@ def acquireRobot(redoId, r):
         res = FAILURE
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('acquireRobot', start) == False):
+        while (globalTimer.IsCommandExecutionOver('acquireRobot', start, redoId, r) == False):
             pass
 
         gui.Simulate("Robot %s is acquired for a new task\n" % r)
@@ -361,7 +412,7 @@ def freeRobot(redoId, r):
         res = FAILURE
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('freeRobot', start) == False):
+        while (globalTimer.IsCommandExecutionOver('freeRobot', start, redoId, r) == False):
             pass
 
         gui.Simulate("Robot %s is now free\n" % r)
@@ -405,7 +456,7 @@ def wrap(redoId, m, objList):
         state.shouldRedo[redoId] = False
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('wrap', start) == False):
+        while (globalTimer.IsCommandExecutionOver('wrap', start, redoId, m, objList) == False):
             pass
 
         state.numUses[m] += 1
@@ -434,7 +485,7 @@ def wrap(redoId, m, objList):
 
 
         else:
-            gui.Simulate("Machine %s jammed. Failed to wrap %s\n" % (m, item))
+            gui.Simulate("Machine %s jammed. Failed to wrap\n" % m)
             state.shouldRedo[redoId] = True
             # set res to success for return
             res = SUCCESS
@@ -453,11 +504,13 @@ def wrap(redoId, m, objList):
 ape.declare_task('order', 'orderList')
 ape.declare_task('pickupAndLoad', 'o', 'm')
 ape.declare_task('unloadAndDeliver', 'm', 'package')
+ape.declare_task('moveToPallet', 'o', 'p')
 ape.declare_task('redoer', 'command')
 
-ape.declare_methods('order', Order_Method1)
+ape.declare_methods('order', Order_Method1, Order_Method2)
 ape.declare_methods('pickupAndLoad', PickupAndLoad_Method1)
 ape.declare_methods('unloadAndDeliver', UnloadAndDeliver_Method1)
+ape.declare_methods('moveToPallet', MoveToPallet_Method1)
 ape.declare_methods('redoer', Redoer)
 
 ape.declare_commands([fail, wrap, pickup, acquireRobot,

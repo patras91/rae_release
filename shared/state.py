@@ -96,7 +96,6 @@ class StateDict():
         return self.dict.keys()
 
     def AcquireLock(self, *key):
-        print(self)
         if len(key) == 1:
             self.lock[key[0]].acquire()
         else:
@@ -152,7 +151,6 @@ class RV():
 rv = RV()
 
 def EvaluateParameters(expr, mArgs, tArgs):
-    print(state)
     for i in range(0, len(tArgs)):
         globals()[mArgs[i]] = tArgs[i]
     return eval(expr, globals())

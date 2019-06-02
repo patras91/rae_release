@@ -70,6 +70,7 @@ rv.ROBOTS = {'r1': rv.FACTORY1, 'r2': rv.FACTORY1}
 rv.ROBOT_CAPACITY = {'r1': 3, 'r2': 10}
 rv.MACHINES = {'m1': rv.FACTORY1}
 
+rv.PALLETS = {'p1'}
 
 
 
@@ -78,7 +79,7 @@ def ResetState():
     state.OBJ_WEIGHT = {'o1': 5}
     state.OBJ_CLASS = {'type1': ['o1']}
 
-    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': 2}
+    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': 2, 'p1': 4}
     state.load = {'r1': NIL, 'r2': NIL}
     state.busy = {'r1': False, 'r2': False, 'm1': False}
     state.numUses = {'m1': 1}
