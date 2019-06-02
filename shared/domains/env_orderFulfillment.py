@@ -1,4 +1,4 @@
-import globals
+import GLOBALS
 import numpy
 from state import state
 from domain_orderFulfillment import rv

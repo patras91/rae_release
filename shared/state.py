@@ -2,6 +2,10 @@ __author__ = 'patras'
 
 from threading import Lock
 
+# importing itertools to evaluate statements in OF
+# may want to change logic to not require import
+import itertools
+
 class State():
     def __init__(self):
         pass
@@ -82,7 +86,17 @@ class StateDict():
     def pop(self, key):
         return self.dict.pop(key)
 
+    def update(self, other):
+        return self.dict.update(other)
+
+    def remove(self, key):
+        del self.dict[key]
+
+    def keys(self):
+        return self.dict.keys()
+
     def AcquireLock(self, *key):
+        print(self)
         if len(key) == 1:
             self.lock[key[0]].acquire()
         else:

@@ -43,7 +43,6 @@ DURATION.TIME = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'repair': 5,
     'wait': 1
  }
 
@@ -56,7 +55,6 @@ DURATION.COUNTER = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'repair': 5,
     'wait': 1
  }
 
@@ -71,26 +69,25 @@ rv.GROUND_WEIGHTS = {(1,2): 1, (2,3): 1, (3,4): 5, (4,5): 15, (5,6): 50, (6,7): 
 rv.ROBOTS = {'r1': rv.FACTORY1, 'r2': rv.FACTORY1}
 rv.ROBOT_CAPACITY = {'r1': 3, 'r2': 10}
 rv.MACHINES = {'m1': rv.FACTORY1}
-rv.REPAIR_BOT = {'fixer1': rv.FACTORY1}
 
-rv.OBJECTS = {'o1'}
-rv.OBJ_WEIGHT = {'o1': 5}
-rv.OBJ_CLASS = {'type1': ['o1']}
 
 
 
 def ResetState():
-    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': UNK, 'fixer1': 1}
-    state.storedLoc = {'o1': 2}
-    state.load = {'r1': NIL, 'r2': NIL, 'fixer1': NIL}
-    state.busy = {'r1': False, 'r2': False, 'fixer1': False, 'm1': False}
+    state.OBJECTS = {'o1': None}
+    state.OBJ_WEIGHT = {'o1': 5}
+    state.OBJ_CLASS = {'type1': ['o1']}
+
+    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': 2}
+    state.load = {'r1': NIL, 'r2': NIL}
+    state.busy = {'r1': False, 'r2': False, 'm1': False}
     state.numUses = {'m1': 1}
     state.var1 = {'temp': 'r1', 'temp1': 'r1', 'temp2': 1, 'redoId': 0}
     state.shouldRedo = {}
 
 
 tasks = {
-    1: [['order', 'type1', 7]],
+    1: [['order', ['type1']]],
 }
 
 

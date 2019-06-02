@@ -11,7 +11,8 @@ else:
 from state import state, rv
 import gui
 from timer import globalTimer, DURATION
-import globals
+import GLOBALS
+import itertools
 
 def fail():
     return FAILURE
@@ -59,108 +60,6 @@ def wait():
     return SUCCESS
 
 
-
-def Order_Method1(itemClass, l):
-    # order from item i of shipping type type, to location l
-    ape.do_task('find', itemClass)
-    item = state.var1['temp2']
-    ape.do_task('pack', item)
-
-# Refinement methods for find
-
-
-def Find_Method1(itemClass):
-    # search an online database
-    # take the location of the first object of the correct type
-    for i in rv.OBJ_CLASS[itemClass]:
-        if state.storedLoc[i] != NIL:
-            item = i
-            break
-
-    # ape.do_command(lookupDB, item)
-    ape.do_task('redoer', lookupDB, item)
-
-    state.var1.AcquireLock('temp')
-    state.var1['temp2'] = item
-    state.var1.ReleaseLock('temp')
-
-    return SUCCESS
-
-
-def Find_Method2(itemClass):
-    # take the location of the object of the correct type
-    # closest to the shipping doc
-    item = min(list(rv.OBJ_CLASS[itemClass]), key=lambda i: OF_GETDISTANCE_GROUND(state.storedLoc[i], rv.SHIPPING_DOC[list(rv.ROBOTS.values())[0]]))
-
-    # ape.do_command(lookupDB, item)
-    ape.do_task('redoer', lookupDB, item)
-
-    state.var1.AcquireLock('temp')
-    state.var1['temp2'] = item
-    state.var1.ReleaseLock('temp')
-
-    return SUCCESS
-
-
-def Find_Method3(itemClass):
-    # take the location of the object of the correct type
-    # closest to the first machine
-    item = min(list(rv.OBJ_CLASS[itemClass]), key=lambda i: OF_GETDISTANCE_GROUND(state.storedLoc[i], state.loc[list(rv.MACHINES.keys())[0]]))
-
-    # ape.do_command(lookupDB, item)
-    ape.do_task('redoer', lookupDB, item)
-
-    state.var1.AcquireLock('temp')
-    state.var1['temp2'] = item
-    state.var1.ReleaseLock('temp')
-
-    return SUCCESS
-
-
-def lookupDB(redoId, item):
-    state.loc.AcquireLock(item)
-    state.storedLoc.AcquireLock(item)
-    state.shouldRedo.AcquireLock(redoId)
-
-    start = globalTimer.GetTime()
-
-    while(globalTimer.IsCommandExecutionOver('lookupDB', start) == False):
-        pass
-
-    res = Sense('lookupDB')
-    if res == SUCCESS:
-        gui.Simulate("Found item %s from database\n" % item)
-        state.loc[item] = state.storedLoc[item]
-        state.storedLoc[item] = NIL
-        state.shouldRedo[redoId] = False
-
-    else:
-        gui.Simulate("National database is down\n")
-        # failed so set redo state variable to true
-        state.shouldRedo[redoId] = True
-
-
-    state.shouldRedo.ReleaseLock(redoId)
-    state.storedLoc.ReleaseLock(item)
-    state.loc.ReleaseLock(item)
-
-    return SUCCESS
-
-
-'''
-def Find_Method2(item):
-    # search some local warehouse database
-    gui.Simulate("Method not implemented")
-    ape.do_command(fail)
-
-def Find_Method3(item):
-    # query a supplier of that item
-    gui.Simulate("Method not implemented")
-    ape.do_command(fail)
-'''
-
-# Refinement methods for pack
-
 def Redoer(command, *args):
     i = 0
     while i < 3:
@@ -177,7 +76,7 @@ def Redoer(command, *args):
 
         if i > 0:
             gui.Simulate("--Finished redo-- %s\n" % command)
-            
+
         if not state.shouldRedo.pop(localRedoId):
             break
         i += 1
@@ -188,52 +87,73 @@ def Redoer(command, *args):
     return SUCCESS
 
 
-def Pack_Method1(item):
-    ape.do_task('getRobot', state.loc[item], rv.OBJ_WEIGHT[item])
-    r = state.var1['temp']
-
-    #TODO do I need to lock this?
-    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[item])
-    # ape.do_command(moveRobot, r, state.loc[r], state.loc[item], dist)
-    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[item], dist)
-
-    # ape.do_command(pickup, r, item)
-    ape.do_task('redoer', pickup, r, item)
-
-    ape.do_task('getMachine', state.loc[r])
-    m = state.var1['temp1']
-
-    # TODO do I need to lock this?
-    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
-    # ape.do_command(moveRobot, r, state.loc[r], state.loc[m], dist)
-    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[m], dist)
+def Order_Method1(orderList, m, objList):
+    # wait if needed
+    if len(orderList) != len(objList):
+        ape.do_command(fail)
 
     while state.busy[m] != False:
         ape.do_command(wait)
 
-    # ape.do_command(loadMachine, r, m, item)
-    ape.do_task('redoer', loadMachine, r, m, item)
-    # ape.do_command(wrap, m, item)
-    ape.do_task('redoer', wrap, m, item)
+    for i,objType in enumerate(orderList):
+        # verify correct type
+        if objList[i] not in state.OBJ_CLASS[objType]:
+            ape.do_command(fail)
 
-    # now move item to the shipping doc
-    # ape.do_command(pickup, r, item)
-    ape.do_task('redoer', pickup, r, item)
+        # move to object, pick it up, load in machine
+        ape.do_task('pickupAndLoad', objList[i], m)
+
+    # TODO change name wrap to package
+    ape.do_task('redoer', wrap, m, objList)
+    package = state.var1['temp1']
+
+    ape.do_task('unloadAndDeliver', m, package)
+
+# TODO switch to correct version or write workaround
+#Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in itertools.combinations(state.OBJECTS,keys())]"
+Order_Method1.parameters = "[(m, [objList],) for m in rv.MACHINES for objList in state.OBJECTS.keys()]"
+
+
+# for free r
+def PickupAndLoad_Method1(o, m, r):
+    ape.do_task('redoer', acquireRobot, r)
+
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[o])
+    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[o], dist)
+
+    ape.do_task('redoer', pickup, r, o)
+
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
+    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[m], dist)
+
+    ape.do_task('redoer', loadMachine, r, m, o)
+
+    ape.do_task('redoer', freeRobot, r)
+PickupAndLoad_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
+
+
+# unload a package from the machine, move package to shipping doc
+# for free r
+def UnloadAndDeliver_Method1(m, package, r):
+    ape.do_task('redoer', acquireRobot, r)
+
+    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
+    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[m], dist)
+
+    # TODO: may want this to be a different method
+    ape.do_task('redoer', pickup, r, package)
 
     doc = rv.SHIPPING_DOC[rv.ROBOTS[r]]
 
     dist = OF_GETDISTANCE_GROUND(state.loc[r], doc)
-    # ape.do_command(moveRobot, r, state.loc[r], doc, dist)
     ape.do_task('redoer', moveRobot, r, state.loc[r], doc, dist)
 
-    # ape.do_command(putdown, r, item)
-    ape.do_task('redoer', putdown, r, item)
-    # ape.do_command(freeRobot, r)
+    ape.do_task('redoer', putdown, r, package)
+
     ape.do_task('redoer', freeRobot, r)
 
-    gui.Simulate("Item %s has been placed in the shipping doc\n" % item)
-
-    return SUCCESS
+    gui.Simulate("Package %s has been delivered\n" % package)
+UnloadAndDeliver_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
 
 
 
@@ -244,16 +164,6 @@ def moveRobot(redoId, r, l1, l2, dist):
     if l1 == l2:
         gui.Simulate("Robot %s is already at location %s\n" %(r, l2))
         res = SUCCESS
-        state.shouldRedo[redoId] = False
-
-    elif r in rv.ROBOTS and l2 not in rv.ROBOTS[r]:
-        gui.Simulate("Robot %s can't leave the factory\n" % r)
-        res = FAILURE
-        state.shouldRedo[redoId] = False
-
-    elif r not in rv.ROBOTS and l2 not in rv.REPAIR_BOT[r]:
-        gui.Simulate("Robot %s can't leave the factory\n" % r)
-        res = FAILURE
         state.shouldRedo[redoId] = False
 
     elif state.loc[r] == l1:
@@ -281,6 +191,8 @@ def moveRobot(redoId, r, l1, l2, dist):
 def pickup(redoId, r, item):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
+    print(state.loc)
+    print(item in state.loc)
     state.loc.AcquireLock(item)
     state.shouldRedo.AcquireLock(redoId)
 
@@ -292,7 +204,7 @@ def pickup(redoId, r, item):
         gui.Simulate("Robot %s and item %s are in different locations\n" % (r, item))
         res = FAILURE
         state.shouldRedo[redoId] = False
-    elif rv.OBJ_WEIGHT[item] > rv.ROBOT_CAPACITY[r]:
+    elif state.OBJ_WEIGHT[item] > rv.ROBOT_CAPACITY[r]:
         start = globalTimer.GetTime()
         while (globalTimer.IsCommandExecutionOver('pickup', start) == False):
             pass
@@ -373,10 +285,6 @@ def loadMachine(redoId, r, m, item):
         gui.Simulate("Robot %s isn't at machine %s" % (r, m))
         res = FAILURE
         state.shouldRedo[redoId] = False
-    elif state.busy[m] != False:
-        gui.Simulate("Machine %s is busy, can't be loaded" % m)
-        res = FAILURE
-        state.shouldRedo[redoId] = False
     else:
         start = globalTimer.GetTime()
         while (globalTimer.IsCommandExecutionOver('loadMachine', start) == False):
@@ -388,7 +296,12 @@ def loadMachine(redoId, r, m, item):
             gui.Simulate("Robot %s loaded machine %s with item %s\n" % (r, m, item))
             state.load[r] = NIL
             state.loc[item] = state.loc[m]
-            state.busy[m] = item
+
+            # TODO look at this
+            if state.busy[m] in state.OBJECTS:
+                state.busy[m] = state.busy[m].append(item)
+            else:
+                state.busy[m] = [item]
             state.shouldRedo[redoId] = False
         else:
             gui.Simulate("Robot %s failed to load machine %s\n" % (r, m))
@@ -405,9 +318,7 @@ def loadMachine(redoId, r, m, item):
     return res
 
 
-# Refinement methods for getRobot
 
-# TODO Maybe figure out how to wait for the robot
 # to be not busy anymore, or drop object
 def acquireRobot(redoId, r):
     state.busy.AcquireLock(r)
@@ -464,163 +375,31 @@ def freeRobot(redoId, r):
     return res
 
 
-#TODO could have a problem b/c not locking state.loc[r]
-def GetRobot_Method1(l, c):
-    # return the robot which is nearest
-    r0 = min(list(rv.ROBOTS), key=lambda r: OF_GETDISTANCE_GROUND(state.loc[r], l))
-
-    while state.busy[r0] != False:
-        ape.do_command(wait)
-
-    # res = ape.do_command(acquireRobot, r0)
-    res = ape.do_task('redoer', acquireRobot, r0)
-
-    state.var1.AcquireLock('temp')
-    state.var1['temp'] = r0
-    state.var1.ReleaseLock('temp')
-
-    return res
-
-
-'''
-def GetRobot_Method2(l):
-    # return the one which is already going to l or nearby areas
-    gui.Simulate("Method not implemented")
-    ape.do_command(fail)
-'''
-
-
-#TODO could have a problem b/c not locking state.busy[r]
-def GetRobot_Method3(l, c):
-    # return the one which is free, given it's in the factory
-    r0 = NIL
-
-    for r in list(rv.ROBOTS):
-        if state.busy[r] == False and l in rv.ROBOTS[r]:
-            r0 = r
-            break
-
-    if r0 == NIL:
-        return FAILURE
-
-    while state.busy[r0] != False:
-        ape.do_command(wait)
-
-    # res = ape.do_command(acquireRobot, r0)
-    res = ape.do_task('redoer', acquireRobot, r0)
-
-    state.var1.AcquireLock('temp')
-    state.var1['temp'] = r0
-    state.var1.ReleaseLock('temp')
-
-    return res
-
-
-def GetRobot_Method4(l, c):
-    # return one which has a high enough capacity,
-    # given it's in the factory
-    r0 = NIL
-
-    for r in list(rv.ROBOTS):
-        if rv.ROBOT_CAPACITY[r] >= c and l in rv.ROBOTS[r]:
-            r0 = r
-            break
-
-    if r0 == NIL:
-        return FAILURE
-
-    while state.busy[r0] != False:
-        ape.do_command(wait)
-
-    # res = ape.do_command(acquireRobot, r0)
-    res = ape.do_task('redoer', acquireRobot, r0)
-
-    state.var1.AcquireLock('temp')
-    state.var1['temp'] = r0
-    state.var1.ReleaseLock('temp')
-
-    return res
-
-
-# Refinement methods for getMachine
-
-def GetMachine_Method1(l):
-    # return the machine closest to the sent location (robot's loc)
-    m0 = min(rv.MACHINES, key=lambda m: OF_GETDISTANCE_GROUND(state.loc[m], l))
-
-    state.var1.AcquireLock('temp1')
-    state.var1['temp1'] = m0
-    state.var1.ReleaseLock('temp1')
-
-    return SUCCESS
-
-
-#TODO could have a problem b/c not locking state.busy[r]
-def GetMachine_Method2(l):
-    # return a machine that isn't busy and in the factory
-    m0 = NIL
-
-    for m in rv.MACHINES:
-        if state.busy[m] == False and l in rv.MACHINES[m]:
-            m0 = m
-            break
-
-    if m0 == NIL:
-        return FAILURE
-
-    state.var1.AcquireLock('temp1')
-    state.var1['temp1'] = m0
-    state.var1.ReleaseLock('temp1')
-
-    return SUCCESS
-
-
-def GetMachine_Method3(l):
-    # selection of method1, but also repairs machine
-    m0 = min(rv.MACHINES, key=lambda m: OF_GETDISTANCE_GROUND(state.loc[m], l))
-
-    state.var1.AcquireLock('temp1')
-    state.var1['temp1'] = m0
-    state.var1.ReleaseLock('temp1')
-
-    ape.do_task('fixMachine', m0)
-
-    return SUCCESS
-
-
-def GetMachine_Method4(l):
-    # selection of method2, but also repairs machine
-    m0 = NIL
-
-    for m in rv.MACHINES:
-        if state.busy[m] == False and l in rv.MACHINES[m]:
-            m0 = m
-            break
-
-    if m0 == NIL:
-        return FAILURE
-
-    state.var1.AcquireLock('temp1')
-    state.var1['temp1'] = m0
-    state.var1.ReleaseLock('temp1')
-
-    ape.do_task('fixMachine', m0)
-
-    return SUCCESS
-
-
-def wrap(redoId, m, item):
+def wrap(redoId, m, objList):
     state.loc.AcquireLock(m)
-    state.loc.AcquireLock(item)
     state.busy.AcquireLock(m)
     state.numUses.AcquireLock(m)
     state.shouldRedo.AcquireLock(redoId)
 
-    if state.loc[m] != state.loc[item]:
-        gui.Simulate("Machine %s not loaded with item %s\n" % (m,item))
-        res = FAILURE
-        state.shouldRedo[redoId] = False
-    elif state.busy[m] != item:
+    res = SUCCESS
+    weight = 0
+
+    for obj in objList:
+        weight += state.OBJ_WEIGHT[obj]
+        if obj not in state.busy[m]:
+            gui.Simulate("Machine %s not loaded with item %s\n" % (m, obj))
+            res = FAILURE
+            state.shouldRedo[redoId] = False
+
+            state.shouldRedo.ReleaseLock(redoId)
+            state.numUses.ReleaseLock(m)
+            state.busy.ReleaseLock(m)
+            state.loc.ReleaseLock(m)
+
+            return res
+
+
+    if state.busy[m] == False:
         gui.Simulate("Machine %s is busy\n" % m)
         res = FAILURE
         state.shouldRedo[redoId] = False
@@ -633,9 +412,27 @@ def wrap(redoId, m, item):
         res = SenseWrap(state.numUses[m])
 
         if res == SUCCESS:
-            gui.Simulate("Machine %s wrapped item %s\n" % (m, item))
+            # TODO better, unique name
+            packageName = hash(frozenset(objList))
+
+            # TODO race condition?
+            for item in objList:
+                state.OBJECTS.remove(item)
+
+            state.OBJECTS[packageName] = None
+            state.loc[packageName] = state.loc[m]
+            state.OBJ_WEIGHT[packageName] = weight
+
+
+            state.var1.AcquireLock('temp1')
+            state.var1['temp1'] = packageName
+            state.var1.ReleaseLock('temp1')
+
+            gui.Simulate("Machine %s wrapped package %s\n" % (m, packageName))
             state.busy[m] = False
             state.shouldRedo[redoId] = False
+
+
         else:
             gui.Simulate("Machine %s jammed. Failed to wrap %s\n" % (m, item))
             state.shouldRedo[redoId] = True
@@ -645,89 +442,27 @@ def wrap(redoId, m, item):
     state.shouldRedo.ReleaseLock(redoId)
     state.numUses.ReleaseLock(m)
     state.busy.ReleaseLock(m)
-    state.loc.ReleaseLock(item)
-    state.loc.ReleaseLock(m)
-
-    return res
-
-
-# TODO add another method for this
-def FixMachine_Method1(m):
-    # return the one which is free, given it's in the factory
-    rf0 = NIL
-
-    for r in list(rv.REPAIR_BOT):
-        if state.busy[r] == False and state.loc[m] in rv.REPAIR_BOT[r]:
-            rf0 = r
-            break
-
-    if rf0 == NIL:
-        return FAILURE
-
-    ape.do_task('redoer', acquireRobot, rf0)
-
-    # move the robot to the machine
-    dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
-    ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[m], dist)
-
-    # repair thte machine
-    ape.do_task('redoer', repair, r, m)
-
-    return SUCCESS
-
-
-def repair(redoId, r, m):
-    state.loc.AcquireLock(m)
-    state.loc.AcquireLock(r)
-    state.busy.AcquireLock(m)
-    state.numUses.AcquireLock(m)
-    state.shouldRedo.AcquireLock(redoId)
-
-    if state.loc[m] != state.loc[r]:
-        gui.Simulate("%s is not in same location as %s\n" % (r,m))
-        res = FAILURE
-        state.shouldRedo[redoId] = False
-    elif state.busy[m] != False:
-        gui.Simulate("Machine %s is busy\n" % m)
-        res = FAILURE
-        state.shouldRedo[redoId] = False
-    else:
-        start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('repair', start) == False):
-            pass
-
-        res = Sense('repair')
-
-        if res == SUCCESS:
-            gui.Simulate("Robot %s repaired machine %s\n" % (r, m))
-            state.numUses[m] /= 2
-            state.shouldRedo[redoId] = False
-        else:
-            gui.Simulate("Machine %s wasn't repaired\n" % m)
-            state.shouldRedo[redoId] = True
-
-    state.shouldRedo.ReleaseLock(redoId)
-    state.numUses.ReleaseLock(m)
-    state.busy.ReleaseLock(m)
-    state.loc.ReleaseLock(r)
     state.loc.ReleaseLock(m)
 
     return res
 
 
 
-ape.declare_commands([lookupDB, fail, wrap, pickup, acquireRobot,
-                      loadMachine, moveRobot, freeRobot, putdown,
-                      repair, wait])
+
+# TODO get correct params
+ape.declare_task('order', 'orderList')
+ape.declare_task('pickupAndLoad', 'o', 'm')
+ape.declare_task('unloadAndDeliver', 'm', 'package')
+ape.declare_task('redoer', 'command')
 
 ape.declare_methods('order', Order_Method1)
-ape.declare_methods('find', Find_Method1, Find_Method2, Find_Method3)
-ape.declare_methods('pack', Pack_Method1)
+ape.declare_methods('pickupAndLoad', PickupAndLoad_Method1)
+ape.declare_methods('unloadAndDeliver', UnloadAndDeliver_Method1)
 ape.declare_methods('redoer', Redoer)
-ape.declare_methods('getRobot', GetRobot_Method1, GetRobot_Method3, GetRobot_Method4)
-ape.declare_methods('getMachine', GetMachine_Method1, GetMachine_Method2, GetMachine_Method3, GetMachine_Method4)
 
-ape.declare_methods('fixMachine', FixMachine_Method1)
+ape.declare_commands([fail, wrap, pickup, acquireRobot,
+                      loadMachine, moveRobot, freeRobot, putdown,
+                      wait])
 
 
 from env_orderFulfillment import *
