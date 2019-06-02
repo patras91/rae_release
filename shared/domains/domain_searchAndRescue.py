@@ -9,14 +9,14 @@ from domain_constants import *
 import importlib
 loader = importlib.find_loader('RAE1_and_RAEplan')
 if loader is not None:
-    import RAE1_and_RAEplan as ape
+    import RAE1_and_RAEplan as alg
 else:
-    import ape1_and_apeplan as ape
+    import ape1_and_apeplan as alg
 import gui
 from state import state, rv
 from timer import globalTimer
 import math
-import globals
+import GLOBALS
 
 def fail():
     return FAILURE
@@ -49,7 +49,7 @@ def moveEuclidean(r, l1, l2, dist):
         res = SUCCESS
     elif state.loc[r] == l1:
         start = globalTimer.GetTime()
-        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+        while(globalTimer.IsCommandExecutionOver('moveEuclidean', start, r, l1, l2, dist) == False):
            pass
         res = Sense('moveEuclidean')
         if res == SUCCESS:
@@ -82,7 +82,7 @@ def moveCurved(r, l1, l2, dist):
         res = SUCCESS
     elif state.loc[r] == l1:
         start = globalTimer.GetTime()
-        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+        while(globalTimer.IsCommandExecutionOver('moveCurved', start, r, l1, l2, dist) == False):
            pass
         res = Sense('moveCurved')
         if res == SUCCESS:
@@ -119,7 +119,7 @@ def moveManhattan(r, l1, l2, dist):
         res = SUCCESS
     elif state.loc[r] == l1:
         start = globalTimer.GetTime()
-        while(globalTimer.IsCommandExecutionOver('move', start) == False):
+        while(globalTimer.IsCommandExecutionOver('moveManhattan', start, r, l1, l2, dist) == False):
            pass
         res = Sense('moveManhattan')
         if res == SUCCESS:
@@ -249,9 +249,9 @@ def MoveTo_Method1(r, l): # takes the straight path
     elif state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Euclidean(x, l)
         gui.Simulate("Euclidean distance = %d " %dist)
-        ape.do_command(moveEuclidean, r, x, l, dist)
+        alg.do_command(moveEuclidean, r, x, l, dist)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def SR_GETDISTANCE_Manhattan(l0, l1):
     (x1, y1) = l0
@@ -265,9 +265,9 @@ def MoveTo_Method2(r, l): # takes a Manhattan path
     elif state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Manhattan(x, l)
         gui.Simulate("Manhattan distance = %d " %dist)
-        ape.do_command(moveManhattan, r, x, l, dist) 
+        alg.do_command(moveManhattan, r, x, l, dist) 
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def SR_GETDISTANCE_Curved(l0, l1):
     diameter = SR_GETDISTANCE_Euclidean(l0, l1)
@@ -280,55 +280,56 @@ def MoveTo_Method3(r, l): # takes a curved path
     elif state.robotType[r] == 'wheeled':
         dist = SR_GETDISTANCE_Curved(x, l)
         gui.Simulate("Curved distance = %d " %dist)
-        ape.do_command(moveCurved, r, x, l, dist) 
+        alg.do_command(moveCurved, r, x, l, dist) 
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def MoveTo_Method4(r, l):
     x = state.loc[r]
     if x == l:
         gui.Simulate("Robot %s is already in location %s\n." %(r, l))
     elif state.robotType[r] == 'uav':
-        ape.do_command(fly, r, x, l)
+        alg.do_command(fly, r, x, l)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def Rescue_Method1(r, p):
     if state.robotType[r] != 'uav':
         if state.hasMedicine[r] == 0:
-            ape.do_task('getSupplies', r)
-        ape.do_task('helpPerson', r, p)
+            alg.do_task('getSupplies', r)
+        alg.do_task('helpPerson', r, p)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def Rescue_Method2(r, p):
     if state.robotType[r] == 'uav':
-        ape.do_task('getRobot')
+        alg.do_task('getRobot')
     r2 = state.newRobot[1]
     if r2 != None:
         if state.hasMedicine[r2] == 0:
-            ape.do_task('getSupplies', r2)
-        ape.do_task('helpPerson', r2, p)
+            alg.do_task('getSupplies', r2)
+        alg.do_task('helpPerson', r2, p)
+        state.status[r2] = 'free'
     else:
         gui.Simulate("No robot is free to help person %s\n" %p)
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def HelpPerson_Method1(r, p):
-    ape.do_task('moveTo', r, state.loc[p])
-    ape.do_command(inspectPerson, r, p)
+    alg.do_task('moveTo', r, state.loc[p])
+    alg.do_command(inspectPerson, r, p)
     if state.status[p] == 'injured':
-        ape.do_command(giveSupportToPerson, r, p)
+        alg.do_command(giveSupportToPerson, r, p)
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def HelpPerson_Method2(r, p):
-    ape.do_task('moveTo', r, state.loc[p])
-    ape.do_command(inspectLocation, r, state.loc[r])
+    alg.do_task('moveTo', r, state.loc[p])
+    alg.do_command(inspectLocation, r, state.loc[r])
     if state.status[state.loc[r]] == 'hasDebri':
-        ape.do_command(clearLocation, r, state.loc[r]) 
+        alg.do_command(clearLocation, r, state.loc[r]) 
     else:
         CheckReal(state.loc[p])
-        ape.do_command(fail)
+        alg.do_command(fail)
         
 def GetSupplies_Method1(r):
     r2 = None
@@ -340,55 +341,55 @@ def GetSupplies_Method1(r):
                 nearestDist = dist
                 r2 = r1
     if r2 != None:
-        ape.do_task('moveTo', r, state.loc[r2])
-        ape.do_command(transfer, r2, r)
+        alg.do_task('moveTo', r, state.loc[r2])
+        alg.do_command(transfer, r2, r)
 
     else:
-        ape.do_command(fail)
+        alg.do_command(fail)
 
 def GetSupplies_Method2(r):
-    ape.do_task('moveTo', r, (1,1))
-    ape.do_command(replenishSupplies, r)
+    alg.do_task('moveTo', r, (1,1))
+    alg.do_command(replenishSupplies, r)
 
 def CheckReal(l):
     p = state.realPerson[l]
     if p != None:
         if state.realStatus[p] == 'injured' or state.realStatus[p] == 'dead' or state.realStatus[l] == 'hasDebri':
             gui.Simulate("Person in location %s failed to be saved.\n" %str(l))
-            ape.do_command(deadEnd, p)
-            ape.do_command(fail)
+            alg.do_command(deadEnd, p)
+            alg.do_command(fail)
 
 def Survey_Method1(r, l):
     if state.robotType[r] != 'uav':
-        ape.do_command(fail)
+        alg.do_command(fail)
 
-    ape.do_task('adjustAltitude', r)
+    alg.do_task('adjustAltitude', r)
 
-    ape.do_command(captureImage, r, 'frontCamera', l)
+    alg.do_command(captureImage, r, 'frontCamera', l)
     
     img = state.currentImage[r]
     position = img['loc']
     person = img['person']
     
     if person != None:
-        ape.do_task('rescue', r, person)
+        alg.do_task('rescue', r, person)
 
     CheckReal(l)
 
 def Survey_Method2(r, l):
     if state.robotType[r] != 'uav':
-        ape.do_command(fail)
+        alg.do_command(fail)
     
-    ape.do_task('adjustAltitude', r)
+    alg.do_task('adjustAltitude', r)
 
-    ape.do_command(captureImage, r, 'bottomCamera', l)
+    alg.do_command(captureImage, r, 'bottomCamera', l)
     
     img = state.currentImage[r]
     position = img['loc']
     person = img['person']
     
     if person != None:
-        ape.do_task('rescue', r, person)
+        alg.do_task('rescue', r, person)
 
     CheckReal(l)
 
@@ -401,22 +402,24 @@ def GetRobot_Method1():
                 robot = r
                 dist = SR_GETDISTANCE_Euclidean(state.loc[r], (1,1))
     if robot == None:
-        ape.do_command(fail)
+        alg.do_command(fail)
     else:
+        state.status[robot] = 'busy'
         state.newRobot[1] = robot   # Check if this can cause any regression with assignment statements
 
 def GetRobot_Method2():
     state.newRobot[1] = rv.WHEELEDROBOTS[0]
+    state.status[rv.WHEELEDROBOTS[0]] = 'busy'
 
 def AdjustAltitude_Method1(r):
     if state.altitude[r] == 'high':
-        ape.do_command(changeAltitude, r, 'low')
+        alg.do_command(changeAltitude, r, 'low')
 
 def AdjustAltitude_Method2(r):
     if state.altitude[r] == 'low':
-        ape.do_command(changeAltitude, r, 'high')
+        alg.do_command(changeAltitude, r, 'high')
     
-def GetHeuristicEstimate(args):
+def Heuristic2(args):
     r = args[0]
     lfinal = args[1]
 
@@ -425,7 +428,10 @@ def GetHeuristicEstimate(args):
     else:
         return 1/SR_GETDISTANCE_Euclidean(state.loc[r], lfinal)
 
-ape.declare_commands([
+def Heuristic1(args):
+    return float("inf")
+
+alg.declare_commands([
     moveEuclidean,
     moveCurved,
     moveManhattan,
@@ -442,42 +448,54 @@ ape.declare_commands([
     fail
     ])
 
-ape.declare_methods('moveTo', 
+alg.declare_task('moveTo', 'r', 'l')
+alg.declare_task('rescue', 'r', 'p')
+alg.declare_task('helpPerson', 'r', 'p')
+alg.declare_task('getSupplies', 'r')
+alg.declare_task('survey', 'r', 'l')
+alg.declare_task('getRobot')
+alg.declare_task('adjustAltitude', 'r')
+
+alg.declare_methods('moveTo', 
     MoveTo_Method4,
     MoveTo_Method3, 
     MoveTo_Method2, 
     MoveTo_Method1,
     )
 
-ape.declare_methods('rescue',
+alg.declare_methods('rescue',
     Rescue_Method1,
     Rescue_Method2,
     )
 
-ape.declare_methods('helpPerson',
+alg.declare_methods('helpPerson',
     HelpPerson_Method2,
     HelpPerson_Method1, 
     )
 
-ape.declare_methods('getSupplies',
+alg.declare_methods('getSupplies',
     GetSupplies_Method2,
     GetSupplies_Method1,
     )
 
-ape.declare_methods('survey',
+alg.declare_methods('survey',
     Survey_Method1,
     Survey_Method2
     )
 
-ape.declare_methods('getRobot',
+alg.declare_methods('getRobot',
     GetRobot_Method1,
     GetRobot_Method2,
     )
 
-ape.declare_methods('adjustAltitude',
+alg.declare_methods('adjustAltitude',
     AdjustAltitude_Method1,
     AdjustAltitude_Method2,
     )
 
-ape.declare_heuristic('survey', GetHeuristicEstimate)
+if GLOBALS.GetHeuristicName() == 'h1':
+    alg.declare_heuristic('survey', Heuristic1)
+elif GLOBALS.GetHeuristicName() == 'h2':
+    alg.declare_heuristic('survey', Heuristic2)
+
 from env_searchAndRescue import *

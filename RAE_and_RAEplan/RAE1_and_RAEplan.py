@@ -16,11 +16,12 @@ import types
 import sys, pprint
 import os
 import GLOBALS
-import colorama
 import rTree
+#import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
+from utility import Utility
 ############################################################
 
 ### for debugging
@@ -42,6 +43,8 @@ def verbosity(level):
 
     global verbose
     verbose = level
+    if level > 0:
+        import colorama
 
 # Both RAE and RAEplan
 TASKS = {} # dictionary of tasknames and the task parameters
@@ -88,11 +91,14 @@ class MethodInstance():
     def Call(self):
         self.method(*self.params)
 
+    def GetName(self):
+        return self.method.__name__
+
     def __repr__(self):
         return self.method.__name__ + str(self.params) 
 
     def __eq__(self, other):
-        if other == 'heuristic' or other == 'Failure' or other == None:
+        if other == 'heuristic' or other == 'Failure' or other == None or other == 'root':
             return False
         else:
             return self.method == other.method and self.params == other.params
@@ -110,12 +116,17 @@ def declare_methods(task_name, *method_list):
     methods[task_name] = []
     for m in method_list:
 
-        # ensure that the method has atleast as many parameters as the task
-        assert(m.__code__.co_argcount >= q)
-        
-        # ensure that the variable names of the 
-        # first q parameters of m match with the parameters of task t
-        assert(m.__code__.co_varnames[0:q] == taskArgs)
+        variableArgs = False
+        if len(taskArgs) == 1:
+            if taskArgs[0] == "*":
+                variableArgs = True
+        if variableArgs != True:
+            # ensure that the method has atleast as many parameters as the task
+            assert(m.__code__.co_argcount >= q)
+            
+            # ensure that the variable names of the 
+            # first q parameters of m match with the parameters of task t
+            assert(m.__code__.co_varnames[0:q] == taskArgs)
 
         methods[task_name].append(m)
 
@@ -183,7 +194,7 @@ class Failed_task(Exception):
 class Incorrect_return_code(Exception):
     pass
 
-class Search_Done(Exception):
+class Expanded_Search_Tree_Node(Exception):
     pass
 
 class DepthLimitReached(Exception):
@@ -257,15 +268,16 @@ def RAE1(task, raeArgs):
         PrintState()
 
     if verbose > 0:
-        print("\n---- APE: Done with stack %d\n" %raeLocals.GetStackId())
+        print("\n---- RAE: Done with stack %d\n" %raeLocals.GetStackId())
 
     EndCriticalRegion()
 
     if retcode == 'Failure':
-        raeLocals.SetEfficiency(0)
+        raeLocals.SetUtility(Utility('Failure'))
 
     #raeLocals.GetActingTree().PrintUsingGraphviz()
-    return (retcode, raeLocals.GetRetryCount(), raeLocals.GetEfficiency())
+    h, t, c = raeLocals.GetActingTree().GetMetaData()
+    return (retcode, raeLocals.GetRetryCount(), raeLocals.GetUtility(), h, t, c)
 
 def InitializeStackLocals(task, raeArgs):
     """ Initialize the local variables of a stack used during acting """
@@ -279,7 +291,7 @@ def InitializeStackLocals(task, raeArgs):
     aT = rTree.ActingTree()
     aT.SetPrevState(GetState().copy())
     raeLocals.SetActingTree(aT)
-    raeLocals.SetEfficiency(float("inf"))
+    raeLocals.SetUtility(Utility('Success'))
     
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -302,9 +314,13 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         raeLocals.GetSearchTree()])
 
     p.start()
-    p.join()
-
-    methodInstance, simTime = queue.get()
+    p.join(600)
+    if p.is_alive() == True:
+        p.terminate()
+        methodInstance = 'Failure'
+        simTime = 600
+    else:
+        methodInstance, simTime = queue.get()
     globalTimer.UpdateSimCounter(simTime)
 
     #retcode = plannedTree.GetRetcode()
@@ -339,7 +355,8 @@ def DoTaskInRealWorld(task, taskArgs):
     retcode = 'Failure'
     candidateMethods = methods[task][:]
     candidates = GetMethodInstances(candidateMethods, taskArgs)
-    assert(candidates != [])
+    if candidates == []:
+        raise Failed_task('{}{}'.format(task, taskArgs))
 
     parent, node = raeLocals.GetCurrentNodes()
 
@@ -374,7 +391,7 @@ def DoTaskInRealWorld(task, taskArgs):
 def CallMethod_OperationalModel(stackid, m, taskArgs):
     if verbose > 0:
         print_stack_size(stackid, path)
-        print('Try method {}{}'.format(m.__name__,taskArgs))
+        print('Try method {}{}'.format(m.GetName(),taskArgs))
 
     retcode = 'Failure'
     try:
@@ -386,7 +403,7 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
 
         if verbose > 0:
             print_stack_size(stackid, path)
-            print("Executing method {}{}".format(m.__name__, taskArgs))
+            print("Executing method {}{}".format(m.GetName(), taskArgs))
         if verbose > 1:
             print_stack_size(stackid, path)
             print('Current state is:'.format(stackid))
@@ -405,7 +422,7 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
 
     if verbose > 1:
         print_stack_size(stackid, path)
-        print('{} for method {}{}'.format(retcode, m.__name__, taskArgs))
+        print('{} for method {}{}'.format(retcode, m.GetName(), taskArgs))
 
     return retcode
 
@@ -439,55 +456,38 @@ def RAEplanChoice(task, planArgs):
     planLocals.SetState(planArgs.GetState())
 
     taskArgs = planArgs.GetTaskArgs()
-    planLocals.SetHeuristicArgs(taskArgs)
+    planLocals.SetHeuristicArgs(task, taskArgs)
     planLocals.SetDepth(0)
     planLocals.SetRefDepth(float("inf"))
 
     globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
     
-    #gL = planArgs.GetGuideList()
-    #planLocals.SetGuideList(gL) # which is basically the stack in the pseudocode
-    #RestoreState(gL.GetStartState())
-
     searchTreeRoot = planArgs.GetSearchTree()
     planLocals.SetSearchTreeRoot(searchTreeRoot)
-    #planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
 
     global path   # for debugging
     path.update({planLocals.GetStackId(): []})
         
-    InitializePlanningTree()
+    InitializePlanningTree() 
 
     if verbose > 1:
         print_stack_size(planLocals.GetStackId(), path)
         print('Initial state is:')
         PrintState()
 
-    while (searchTreeRoot.GetSearchDone() == False):
+    while (searchTreeRoot.GetSearchDone() == False): # all rollouts not explored
         try:
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
-            #if planLocals.GetBestTree() != None:
-            #    plannedTree = planLocals.GetBestTree().GetChild() # doing GetChild because the root is just a node labelled 'root'
-            #else:
-            #    plannedTree = rTree.CreateFailureNode()
             searchTreeRoot.UpdateChildPointers()    
         except Failed_Rollout as e:
             v_failedCommand(e)
-            #plannedTree = rTree.CreateFailureNode()
+            searchTreeRoot.UpdateChildPointers()
+        except DepthLimitReached as e:
             searchTreeRoot.UpdateChildPointers()
         except Failed_task as e:
             v_failedTask(e)
-            #plannedTree = rTree.CreateFailureNode()
-
-        except DepthLimitReached as e:
-            searchTreeRoot.UpdateChildPointers()
-        except Search_Done as e:
-            #searchTreeRoot.PrintUsingGraphviz()
-            #if planLocals.GetBestTree() != None:
-            #    plannedTree = planLocals.GetBestTree().GetChild() # doing GetChild because the root is just a node labelled 'root'
-            #else:
-            #    plannedTree = rTree.CreateFailureNode()
+        except Expanded_Search_Tree_Node as e:
             pass
         else:
             pass
@@ -557,15 +557,10 @@ def Reinitialize(m, s, newNode, guideList, name, args):
 
     return firstTask, firstTaskArgs, pRoot
 
-def GetBestEff():
-    """ Helper function for PlanTask """
-    bestTree = planLocals.GetBestTree()
-    if bestTree != None:
-        bestEff = bestTree.GetEff()
-    else:
-        bestEff = 0
-    return bestEff
-
+def GetHeuristicEstimate():
+    task, args = planLocals.GetHeuristicArgs()
+    return heuristic[task](args)
+    
 def PlanTask(task, taskArgs):
     # Need to look through several candidates for this task
     cand, state, flag = GetCandidates(task, taskArgs)
@@ -577,42 +572,20 @@ def PlanTask(task, taskArgs):
     if flag == 1:
         planLocals.SetTaskToRefine(taskNode)
         planLocals.SetRefDepth(planLocals.GetDepth())
-    # Pruning here if efficiency is already lower
-    #currEff = guideList.GetEff()
-    #if currEff <= GetBestEff():
-    #    raise Failed_task('{}{}'.format(task, taskArgs))
-
-    #newNode = guideList.append()
 
     if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
         #print("here", planLocals.GetRefDepth() + globals.GetSearchDepth(),planLocals.GetDepth() )
         newNode = rTree.SearchTreeNode('heuristic', 'heuristic')
-        #newNode.SetEff(heuristic['survey'](planLocals.GetHeuristicArgs()))
-        newNode.SetEff(float("inf"))
+
+        newNode.SetUtility(Utility(GetHeuristicEstimate()))
         taskNode.AddChild(newNode)
-        raise Search_Done()
+        raise Expanded_Search_Tree_Node()
 
     for m in cand:
         newSearchTreeNode = rTree.SearchTreeNode(m, 'method')
         newSearchTreeNode.SetPrevState(state)
         taskNode.AddChild(newSearchTreeNode)
-    raise Search_Done()
-        #firstTask, firstTaskArgs, pRoot = Reinitialize(m, state, newNode, guideList, task, taskArgs)
-        #try:
-            #do_task(firstTask, *firstTaskArgs) # to recreate the execution stack
-            #tree = pRoot
-            #assert(planLocals.GetCurrentNode() == pRoot)
-            
-            #bestEff = GetBestEff()
-
-            #if tree.GetEff() > bestEff:
-            #    planLocals.SetBestTree(tree.copy())
-        #except Failed_task:
-        #    planLocals.SetCurrentNode(pRoot)
-        #except Search_Done:
-        #    pass
-
-    #raise Search_Done()
+    raise Expanded_Search_Tree_Node()
 
 def PlanMethod(m, task, taskArgs):
     global path
@@ -632,10 +605,10 @@ def PlanMethod(m, task, taskArgs):
     if retcode == 'Failure':
         raise Failed_task('{}{}'.format(task, taskArgs))
     elif retcode == 'Success':
-        eff = float("inf")
+        util = Utility('Success')
         for child in savedNode.children:
-            eff = addEfficiency(eff, child.GetEff())
-        savedNode.SetEff(eff)
+            util = util + child.GetUtility()
+        savedNode.SetUtility(util)
         planLocals.SetCurrentNode(savedNode)
 
         return planLocals.GetPlanningTree()
@@ -712,11 +685,11 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     path[raeLocals.GetStackId()].pop()
 
     if cmd.__name__ == "fail":
-        cost = 20
+        util1 = GetFailureUtility(cmd, cmdArgs)
     else:
-        cost = GetCost(cmd, cmdArgs)
-    eff = raeLocals.GetEfficiency()
-    raeLocals.SetEfficiency(addEfficiency(eff, 1/cost))
+        util1 = GetUtility(cmd, cmdArgs)
+    util2 = raeLocals.GetUtility()
+    raeLocals.SetUtility(util1 + util2)
 
     if verbose > 1:
         print_entire_stack(raeLocals.GetStackId(), path)
@@ -735,12 +708,12 @@ def FollowSearchTree_command(cmd, cmdArgs, searchNode):
     RestoreState(stateNode.GetLabel())
     planLocals.SetSearchTreeNode(stateNode)
 
-    if stateNode.GetEff() != 0:
-        cost = GetCost(cmd, cmdArgs)
-        stateNode.SetEff(1/cost)
+    if stateNode.GetUtility() != Utility('Failure'):
+        util = GetUtility(cmd, cmdArgs)
+        stateNode.SetUtility(util)
         newNode = rTree.PlanningTree(cmd, cmdArgs, 'cmd')
         planLocals.GetCurrentNode().AddChild(newNode)
-        planLocals.GetCurrentNode().AddEfficiency(1/cost)
+        planLocals.GetCurrentNode().AddUtility(util)
         return 'Success'
     else:
         raise Failed_Rollout('{}{}'.format(cmd.__name__, cmdArgs))
@@ -793,13 +766,7 @@ def IndexOf(s, l):
     return -1
 
 def PlanCommand(cmd, cmdArgs):
-    #savedState = GetState().copy()
-    #gL = planLocals.GetGuideList()
-    #newNode = gL.append()
-    #effList = []
-
     outcomeStates = []
-    #effs = []
 
     searchTreeNode = planLocals.GetSearchTreeNode()
     prevState = GetState().copy()
@@ -813,14 +780,13 @@ def PlanCommand(cmd, cmdArgs):
 
         if retcode == 'Failure':
             newNode = rTree.SearchTreeNode(nextState, 'state')
-            newNode.SetEff(0)
+            newNode.SetUtility(Utility('Failure'))
             newNode.SetPrevState(prevState)
             newCommandNode.AddChild(newNode)
             outcomeStates.append(nextState)
-            #effList.append(0)
-            # No need to plan any further, it will always be 0
         else:
-            index = IndexOf(nextState, outcomeStates)
+            #index = IndexOf(nextState, outcomeStates)
+            index = -1
             if index != -1:
                 # this state has already been planned for, so just use the previous result
                 #effList.append(effs[index])
@@ -832,36 +798,8 @@ def PlanCommand(cmd, cmdArgs):
                 newNode.SetPrevState(prevState)
                 newCommandNode.AddChild(newNode)
                 outcomeStates.append(nextState)
-                #try:
-                #    do_task(firstTask, *firstTaskArgs)
-                #except Search_Done:
-                #    pass
-                #except Failed_task:
-                #    effList.append(0)
-                #    outcomeStates.append(nextState)
-                #    effs.append(0)
-                #    planLocals.SetCurrentNode(pRoot)
-                #    continue
-
-                #tree = pRoot
-                #e = tree.GetEff()
-                #assert(planLocals.GetCurrentNode() == pRoot)
                 
-                #effList.append(e)
-                #outcomeStates.append(nextState)
-                #searchNodes.append(newNode)
-                #effs.append(e)
-    
-    #avgEff = TakeAvg(effList)
-    #bestTree = planLocals.GetBestTree()
-    #if ((bestTree == None or (avgEff > bestTree.GetEff())) and (avgEff > 0)):
-    #    planLocals.SetBestTree(tree.copy())
-
-    #if avgEff == 0:
-    #    pRoot = planLocals.GetPlanningTree()
-    #    pRoot.SetEff(0)
-    #    planLocals.SetCurrentNode(pRoot)
-    raise Search_Done
+    raise Expanded_Search_Tree_Node
 
 def GetCost(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")
@@ -870,6 +808,17 @@ def GetCost(cmd, cmdArgs):
         return cost(*cmdArgs)
     else:
         return cost
+
+def GetFailureUtility(cmd, cmdArgs):
+    return Utility(1/20)
+
+def GetUtility(cmd, cmdArgs):
+    assert(cmd.__name__ != "fail")
+    cost = DURATION.COUNTER[cmd.__name__]
+    if type(cost) == types.FunctionType:
+        return Utility(1/cost(*cmdArgs))
+    else:
+        return Utility(1/cost)
 
 ## Verbosity functions 
 

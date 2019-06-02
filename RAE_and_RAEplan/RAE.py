@@ -6,10 +6,11 @@ from timer import globalTimer, SetMode
 from state import ReinitializeState, RemoveLocksFromState
 import threading
 import GLOBALS
+import os
 
 __author__ = 'patras'
 
-domain_module = None
+problem_module = None
 
 def GetNextAlive(lastActiveStack, numstacks, threadList):
     '''
@@ -35,8 +36,8 @@ def GetNewTasks():
     :return: gets the new task that appears in the problem at the current time
     '''
     GetNewTasks.counter += 1
-    if GetNewTasks.counter in domain_module.tasks:
-        return domain_module.tasks[GetNewTasks.counter]
+    if GetNewTasks.counter in problem_module.tasks:
+        return problem_module.tasks[GetNewTasks.counter]
     else:
         return []
 
@@ -46,13 +47,13 @@ def InitializeDomain(domain, problem):
     :param problem: id of the problem
     :return:none
     '''
-    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'SDN', 'test', 'testInstantiation']:
+    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'SDN', 'test', 'testInstantiation', 'SR2']:
         module = problem + '_' + domain
-        global domain_module
+        global problem_module
         ReinitializeState()    # useful for batch runs to start with the first state
-        domain_module = __import__(module)
-        domain_module.ResetState()
-        return domain_module
+        problem_module = __import__(module)
+        problem_module.ResetState()
+        return problem_module
     else:
         print("Invalid domain\n", domain)
         exit(11)
@@ -69,28 +70,51 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    retcode, retryCount, eff = RAE1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff)
+    retcode, retryCount, eff, height, taskCount, commandCount = RAE1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount)
 
 def PrintResult(taskInfo):
+    print('ID ','\t','Task',
+            '\t\t\t', 'Result',
+            '\t\t\t', 'Retry Count', 
+            '\t\t\t', 'Efficiency', 
+            '\t\t\t', 'h',
+            '\t\t\t', 't',
+            '\t\t\t', 'c',
+            '\n')
     for stackid in taskInfo:
-        args, res, retryCount, eff = taskInfo[stackid]
-        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),'\t\t',res,'\t\t', retryCount, '\t\t', eff, '\n')
+        args, res, retryCount, eff, height, taskCount, commandCount = taskInfo[stackid]
+        
+        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),
+            '\t\t\t', res,
+            '\t\t\t', retryCount, 
+            '\t\t\t', eff, 
+            '\t\t\t', height,
+            '\t\t\t', taskCount,
+            '\t\t\t', commandCount,
+            '\n')
 
 def PrintResultSummary(taskInfo):
     succ = 0
     fail = 0
     retries = 0
     effTotal = 0
+    h = 0
+    t = 0
+    c = 0
     for stackid in taskInfo:
-        args, res, retryCount, eff = taskInfo[stackid]
+        args, res, retryCount, eff, height, taskCount, commandCount = taskInfo[stackid]
         if res == 'Success':
             succ += 1
         else:
             fail += 1
         retries += retryCount
-        effTotal += eff
-    print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal)
+        effTotal += eff.GetValue()
+        c += commandCount
+        t += taskCount
+        if height > h:
+            h = height
+    print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal, h, t, c)
     #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
 def StartEnv():
@@ -102,8 +126,8 @@ def StartEnv():
             return
 
         StartEnv.counter += 1
-        if StartEnv.counter in domain_module.eventsEnv:
-            eventArgs = domain_module.eventsEnv[StartEnv.counter]
+        if StartEnv.counter in problem_module.eventsEnv:
+            eventArgs = problem_module.eventsEnv[StartEnv.counter]
             event = eventArgs[0]
             eventParams = eventArgs[1]
             t = threading.Thread(target=event, args=eventParams)
@@ -111,6 +135,13 @@ def StartEnv():
             t.start()
         envArgs.envActive = False
         envArgs.sem.release()
+
+def add_tasks(tasks):
+    current_time = globalTimer.GetTime()
+    if problem_module.tasks[current_time + 1] is not None:
+        problem_module.tasks[current_time + 1] = tasks
+    else:
+        problem_module.tasks[current_time + 1] += tasks
 
 def raeMult():
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master

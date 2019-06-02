@@ -41,8 +41,31 @@ def m4_t(o, loc):
     alg.do_command(fail)
 m4_t.parameters = "[(loc,) for loc in rv.LOCATIONS if loc == state.loc[o]]"
 
+def t1_c1():
+    return SUCCESS
+
+def t1_c2():
+    return SUCCESS
+
+def m1_t1():
+    gui.Simulate("t1")
+    alg.do_command(t1_c1)
+
+def m2_t1():
+    gui.Simulate("m2_t1")
+    alg.do_command(t1_c2)
+
+def m1_t2():
+    gui.Simulate("t2")
+    alg.do_command(t1_c1)
+    alg.do_task("t1")
+
 alg.declare_task('t', 'o')
+alg.declare_task('t1')
+alg.declare_task('t2')
 
 alg.declare_methods('t', m1_t, m2_t, m3_t, m4_t)
+alg.declare_methods('t1', m1_t1, m2_t1)
+alg.declare_methods('t2', m1_t2)
 
-alg.declare_commands([fail])
+alg.declare_commands([fail, t1_c1, t1_c2])

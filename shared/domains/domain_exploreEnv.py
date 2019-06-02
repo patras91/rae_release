@@ -10,6 +10,7 @@ from state import state, rv
 import gui
 from timer import globalTimer
 from env_exploreEnv import *
+import GLOBALS
 
 '''Several UAVs and UGVs explore environment and collect data.
 UAV can only survey whereas UGVs can survey, monitor, screen, sample and process.
@@ -509,8 +510,9 @@ def GetEquipment_Method2(r, activity):
     else:
         alg.do_command(fail)
 
-def GetEquipment_Method3(r1, activity):
+def GetEquipment_Method3(r, activity):
     """  When the equipment is with another robot """
+    r1 = r
     e = rv.EQUIPMENT[activity]
     if state.load[r1] != e:
         loc = state.pos[e]
@@ -668,6 +670,15 @@ def HandleEmergency_Method3(r, l):
     alg.do_task('flyTo', r, l)
     alg.do_command(handleAlien, r, l)
 
+alg.declare_task('explore', 'r', 'activity', 'l')
+alg.declare_task('getEquipment', 'r', 'activity')
+alg.declare_task('flyTo', 'r', 'l')
+alg.declare_task('moveTo', 'r', 'l')
+alg.declare_task('recharge', 'r')
+alg.declare_task('depositData', 'r')
+alg.declare_task('doActivities', 'r', 'actList')
+alg.declare_task('handleEmergency', 'r', 'l') 
+
 alg.declare_commands([
     survey, 
     monitor, 
@@ -718,4 +729,10 @@ alg.declare_methods('handleEmergency',
     HandleEmergency_Method1,
     HandleEmergency_Method3)
 
+def Heuristic1(args):
+    return float("inf")
+
+if GLOBALS.GetHeuristicName() == 'h1':
+    alg.declare_heuristic('explore', Heuristic1)
+    alg.declare_heuristic('flyTo', Heuristic1)
 

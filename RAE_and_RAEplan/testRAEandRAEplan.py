@@ -3,13 +3,17 @@ import sys
 
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
-sys.path.append('../shared/problems/SD')
+sys.path.append('../shared/problems/SD/auto')
+sys.path.append('../shared/problems/SD/manual')
 sys.path.append('../shared/problems/CR/auto')
 sys.path.append('../shared/problems/CR/manual')
-sys.path.append('../shared/problems/IP')
-sys.path.append('../shared/problems/EE')
+sys.path.append('../shared/problems/IP/auto')
+sys.path.append('../shared/problems/IP/manual')
+sys.path.append('../shared/problems/EE/auto')
+sys.path.append('../shared/problems/EE/manual')
 sys.path.append('../shared/problems/OF')
-sys.path.append('../shared/problems/SR')
+sys.path.append('../shared/problems/SR/auto')
+sys.path.append('../shared/problems/SR/manual')
 sys.path.append('../shared/problems/SDN')
 sys.path.append('../shared/problems/unitTests')
 
@@ -20,6 +24,7 @@ from RAE import raeMult, InitializeDomain
 from RAE1_and_RAEplan import verbosity
 from timer import SetMode
 import multiprocessing
+import os
 
 def testRAEandRAEplan(domain, problem, useRAEplan):
     '''
@@ -29,14 +34,29 @@ def testRAEandRAEplan(domain, problem, useRAEplan):
     :return:
     '''
     domain_module = InitializeDomain(domain, problem)
+    GLOBALS.SetOpt('max')
     GLOBALS.SetDoPlanning(useRAEplan)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
-    rM = threading.Thread(target=raeMult)
-    rM.start()
-    gui.start(domain, domain_module.rv) # graphical user interface to show action executions
-    rM.join()
+    try:
+        rM = threading.Thread(target=raeMult)
+        rM.start()
+        gui.start(domain, domain_module.rv) # graphical user interface to show action executions
+        rM.join()
+    except Exception as e:
+        print('Failed RAE and RAEplan {}'.format(e))
 
+def testBatch(domain, problem, useRAEplan):
+    SetMode('Counter')
+    verbosity(0)
+    GLOBALS.SetShowOutputs('off')
+    p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
+    p.start()
+    p.join(600)
+    if p.is_alive() == True:
+        p.terminate()
+        print("0 1 0 0 0 0")
+    
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",
@@ -61,6 +81,10 @@ if __name__ == "__main__":
                            type=int, default=1, required=False)
     argparser.add_argument("--depth", help="Search Depth",
                            type=int, default=float("inf"), required=False)
+    argparser.add_argument("--heuristic", help="Name of the heuristic function",
+                           type=str, default='h1', required=False)
+    argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
+                           type=str, default='no', required=False)
 
     args = argparser.parse_args()
 
@@ -69,24 +93,14 @@ if __name__ == "__main__":
     else:
         s = False
 
-    #globals.Set(args.K)
-    #globals.SetLazy('n')
-    #globals.SetConcurrent('n')
     GLOBALS.Setb(args.b)
     GLOBALS.Setk(args.k)
+    assert(args.depth >= 1)
     GLOBALS.SetSearchDepth(args.depth)
+    GLOBALS.SetHeuristicName(args.heuristic)
     verbosity(args.v)
     SetMode(args.clockMode)
     GLOBALS.SetShowOutputs(args.showOutputs)
+    GLOBALS.SetSDN(args.SDN)
     testRAEandRAEplan(args.domain, args.problem, s)
-
-def testBatch(domain, problem, useRAEplan):
-    SetMode('Counter')
-    verbosity(0)
-    GLOBALS.SetShowOutputs('off')
-    p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
-    p.start()
-    p.join(900)
-    if p.is_alive() == True:
-        p.terminate()
-        print("0 1 0 0 0 0")
+    

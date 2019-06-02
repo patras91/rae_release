@@ -6,12 +6,13 @@ A move consumes 1/4 of the battery capacity.'''
 
 from domain_constants import *
 import importlib
-loader = importlib.find_loader('RAE1_and_RAEplan')
-if loader is not None:
-    import RAE1_and_RAEplan as alg
+#loader = importlib.find_loader('RAE1_and_RAEplan')
+#if loader is not None:
+import RAE1_and_RAEplan as alg
 import gui
 from state import state, rv
 from timer import globalTimer
+import GLOBALS
 
 # Using Dijsktra's algorithm
 def CR_GETDISTANCE(l0, l1):
@@ -387,4 +388,25 @@ alg.declare_methods('moveTo', MoveTo_Method1)
 alg.declare_methods('emergency', Emergency_Method1)
 alg.declare_methods('nonEmergencyMove', NonEmergencyMove_Method1)
 
+def Heuristic1(args):
+    return float("inf")
+
+def Heuristic2(args):
+    robot = args[0]
+    return 5 - state.charge[robot]
+
+def Heuristic3(args):
+    robot = args[0]
+    return 5 * state.charge[robot]
+
+if GLOBALS.GetHeuristicName() == 'h1':
+    alg.declare_heuristic('search', Heuristic1)
+    alg.declare_heuristic('fetch', Heuristic1)
+elif GLOBALS.GetHeuristicName() == 'h2':
+    alg.declare_heuristic('search', Heuristic2)
+    alg.declare_heuristic('fetch', Heuristic2)
+elif GLOBALS.GetHeuristicName() == 'h3':
+    alg.declare_heuristic('search', Heuristic3)
+    alg.declare_heuristic('fetch', Heuristic3)
+    
 from env_chargeableRobot import *
