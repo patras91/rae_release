@@ -17,7 +17,7 @@ def GetCostOfLookup(id, item):
     return max(1, np.random.beta(2, 2))
 
 
-def GetCostOfWrap(id, m, item):
+def GetCostOfWrap(id, orderName, m, item):
     return max(1, np.random.normal(5, .5))
 
 
@@ -29,7 +29,7 @@ def GetCostOfPutdown(id, r, item):
     return max(1, np.random.normal(4, 1))
 
 
-def GetCostOfLoad(id, r, m, item):
+def GetCostOfLoad(id, orderName, r, m, item):
     return max(1, np.random.normal(3, .5))
 
 
@@ -43,7 +43,7 @@ DURATION.TIME = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'wait': 1
+    'wait': 5
  }
 
 DURATION.COUNTER = {
@@ -55,7 +55,7 @@ DURATION.COUNTER = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'wait': 1
+    'wait': 5
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7]
@@ -80,6 +80,7 @@ def ResetState():
     state.OBJ_CLASS = {'type1': ['o1']}
 
     state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': 2, 'p1': 4}
+    state.storedLoc = {'o1': 2, 'o2': 1}
     state.load = {'r1': NIL, 'r2': NIL}
     state.busy = {'r1': False, 'r2': False, 'm1': False}
     state.numUses = {'m1': 1}

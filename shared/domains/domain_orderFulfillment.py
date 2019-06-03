@@ -88,30 +88,32 @@ def Redoer(command, *args):
 
 
 def Order_Method1(orderList, m, objList):
-    # wait if needed
     if len(orderList) != len(objList):
         ape.do_command(fail)
-
-    while state.busy[m] != False:
-        ape.do_command(wait)
 
     for i,objType in enumerate(orderList):
         # verify correct type
         if objList[i] not in state.OBJ_CLASS[objType]:
             ape.do_command(fail)
 
+        if state.storedLoc[objList[i]] == NIL:
+            ape.do_command(fail)
+
+        state.storedLoc[objList[i]] = NIL
+
+
         # move to object, pick it up, load in machine
-        ape.do_task('pickupAndLoad', objList[i], m)
+        ape.do_task('pickupAndLoad', frozenset(objList), objList[i], m)
 
     # TODO change name wrap to package
-    ape.do_task('redoer', wrap, m, objList)
+    ape.do_task('redoer', wrap, frozenset(objList), m, objList)
     package = state.var1['temp1']
 
     ape.do_task('unloadAndDeliver', m, package)
 
 # TODO switch to correct version or write workaround
-Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in itertools.combinations(state.OBJECTS.keys())]"
-#Order_Method1.parameters = "[(m, [objList],) for m in rv.MACHINES for objList in state.OBJECTS.keys()]"
+#Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in itertools.combinations(state.OBJECTS.keys())]"
+Order_Method1.parameters = "[(m, [objList],) for m in rv.MACHINES for objList in state.OBJECTS.keys()]"
 
 
 def Order_Method2(orderList, m, objList, p):
@@ -125,18 +127,20 @@ def Order_Method2(orderList, m, objList, p):
         if objList[i] not in state.OBJ_CLASS[objType]:
             ape.do_command(fail)
 
+        if state.storedLoc[objList[i]] == NIL:
+            ape.do_command(fail)
+
+        state.storedLoc[objList[i]] = NIL
+
         # move to object, pick it up, place on pallet
         ape.do_task('moveToPallet', objList[i], p)
 
-    while state.busy[m] != False:
-        ape.do_command(wait)
-
     for i,objType in enumerate(orderList):
         # move to object, pick it up, load in machine
-        ape.do_task('pickupAndLoad', objList[i], m)
+        ape.do_task('pickupAndLoad', frozenset(objList), objList[i], m)
 
     # TODO change name wrap to package
-    ape.do_task('redoer', wrap, m, objList)
+    ape.do_task('redoer', wrap, frozenset(objList), m, objList)
     package = state.var1['temp1']
 
     ape.do_task('unloadAndDeliver', m, package)
@@ -147,18 +151,27 @@ Order_Method2.parameters = "[(m, [objList], p) for m in rv.MACHINES for objList 
 
 
 # for free r
-def PickupAndLoad_Method1(o, m, r):
+def PickupAndLoad_Method1(orderName, o, m, r):
+    # acquire robot
     ape.do_task('redoer', acquireRobot, r)
 
+    # move to object
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[o])
     ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[o], dist)
 
+    # pick up object
     ape.do_task('redoer', pickup, r, o)
 
+    # move to machine
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
     ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[m], dist)
 
-    ape.do_task('redoer', loadMachine, r, m, o)
+    # wait if needed
+    while state.busy[m] != False and state.busy[m] != orderName:
+        ape.do_command(wait)
+
+    # load machine
+    ape.do_task('redoer', loadMachine, orderName, r, m, o)
 
     ape.do_task('redoer', freeRobot, r)
 PickupAndLoad_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
@@ -223,7 +236,7 @@ def moveRobot(redoId, r, l1, l2, dist):
         res = Sense('moveRobot')
 
         if res == SUCCESS:
-            gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
+            gui.Simulate("Robot %s has moved from %s to %s\n" %(r, l1, l2))
             state.loc[r] = l2
             state.shouldRedo[redoId] = False
         else:
@@ -324,7 +337,7 @@ def putdown(redoId, r, item):
     return res
 
 
-def loadMachine(redoId, r, m, item):
+def loadMachine(redoId, orderName, r, m, item):
     state.load.AcquireLock(r)
     state.loc.AcquireLock(r)
     state.loc.AcquireLock(m)
@@ -336,9 +349,13 @@ def loadMachine(redoId, r, m, item):
         gui.Simulate("Robot %s isn't at machine %s" % (r, m))
         res = FAILURE
         state.shouldRedo[redoId] = False
+    elif state.busy[m] != orderName and state.busy[m] != False:
+        gui.Simulate("Robot %s can't load machine %s, it is working on a different order\n" %(r, m,))
+        res = FAILURE
+        state.shouldRedo[redoId] = False
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('loadMachine', start, redoId, r, m, item) == False):
+        while (globalTimer.IsCommandExecutionOver('loadMachine', start, redoId, orderName, r, m, item) == False):
             pass
 
         res = Sense('loadMachine')
@@ -346,13 +363,9 @@ def loadMachine(redoId, r, m, item):
         if res == SUCCESS:
             gui.Simulate("Robot %s loaded machine %s with item %s\n" % (r, m, item))
             state.load[r] = NIL
-            state.loc[item] = state.loc[m]
+            state.loc[item] = m
 
-            # TODO look at this
-            if state.busy[m] in state.OBJECTS:
-                state.busy[m] = state.busy[m].append(item)
-            else:
-                state.busy[m] = [item]
+            state.busy[m] = orderName
             state.shouldRedo[redoId] = False
         else:
             gui.Simulate("Robot %s failed to load machine %s\n" % (r, m))
@@ -426,7 +439,7 @@ def freeRobot(redoId, r):
     return res
 
 
-def wrap(redoId, m, objList):
+def wrap(redoId, orderName, m, objList):
     state.loc.AcquireLock(m)
     state.busy.AcquireLock(m)
     state.numUses.AcquireLock(m)
@@ -437,7 +450,7 @@ def wrap(redoId, m, objList):
 
     for obj in objList:
         weight += state.OBJ_WEIGHT[obj]
-        if obj not in state.busy[m]:
+        if state.loc[obj] != m:
             gui.Simulate("Machine %s not loaded with item %s\n" % (m, obj))
             res = FAILURE
             state.shouldRedo[redoId] = False
@@ -450,13 +463,13 @@ def wrap(redoId, m, objList):
             return res
 
 
-    if state.busy[m] == False:
-        gui.Simulate("Machine %s is busy\n" % m)
+    if state.busy[m] != orderName:
+        gui.Simulate("Machine %s is busy with a differnt order\n" % m)
         res = FAILURE
         state.shouldRedo[redoId] = False
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('wrap', start, redoId, m, objList) == False):
+        while (globalTimer.IsCommandExecutionOver('wrap', start, redoId, orderName, m, objList) == False):
             pass
 
         state.numUses[m] += 1
@@ -502,7 +515,7 @@ def wrap(redoId, m, objList):
 
 # TODO get correct params
 ape.declare_task('order', 'orderList')
-ape.declare_task('pickupAndLoad', 'o', 'm')
+ape.declare_task('pickupAndLoad', 'orderName', 'o', 'm')
 ape.declare_task('unloadAndDeliver', 'm', 'package')
 ape.declare_task('moveToPallet', 'o', 'p')
 ape.declare_task('redoer', 'command')
