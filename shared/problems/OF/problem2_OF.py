@@ -75,12 +75,12 @@ rv.PALLETS = {'p1'}
 
 
 def ResetState():
-    state.OBJECTS = {'o1': None}
-    state.OBJ_WEIGHT = {'o1': 5}
-    state.OBJ_CLASS = {'type1': ['o1']}
+    state.OBJECTS = {'o1': None, 'o2': None}
+    state.OBJ_WEIGHT = {'o1': 5, 'o2': 5}
+    state.OBJ_CLASS = {'type1': ['o1'], 'type2': ['o2']}
 
-    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': 2, 'p1': 4}
-    state.storedLoc = {'o1': 2, 'o2': 1}
+    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': 2, 'o2': 7, 'p1': 4}
+    state.storedLoc = {'o1': 2, 'o2': 7}
     state.load = {'r1': NIL, 'r2': NIL}
     state.busy = {'r1': False, 'r2': False, 'm1': False}
     state.numUses = {'m1': 1}
@@ -89,7 +89,7 @@ def ResetState():
 
 
 tasks = {
-    1: [['order', ['type1']]],
+    1: [['orderStart', ['type1', 'type2']]],
 }
 
 

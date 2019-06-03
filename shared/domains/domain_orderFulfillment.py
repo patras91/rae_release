@@ -87,16 +87,26 @@ def Redoer(command, *args):
     return SUCCESS
 
 
+# this is a dummy task so we can set the length
+# of the order
+def OrderStart_Method1(orderList):
+    state.var1['inputLength'] = len(orderList)
+    ape.do_task('order', orderList)
+
+
 def Order_Method1(orderList, m, objList):
     if len(orderList) != len(objList):
+        gui.Simulate("wrong length")
         ape.do_command(fail)
 
     for i,objType in enumerate(orderList):
         # verify correct type
         if objList[i] not in state.OBJ_CLASS[objType]:
+            gui.Simulate("wrong type")
             ape.do_command(fail)
 
         if state.storedLoc[objList[i]] == NIL:
+            gui.Simulate("obj already used")
             ape.do_command(fail)
 
         state.storedLoc[objList[i]] = NIL
@@ -111,23 +121,25 @@ def Order_Method1(orderList, m, objList):
 
     ape.do_task('unloadAndDeliver', m, package)
 
-# TODO switch to correct version or write workaround
-#Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in itertools.combinations(state.OBJECTS.keys())]"
-Order_Method1.parameters = "[(m, [objList],) for m in rv.MACHINES for objList in state.OBJECTS.keys()]"
+Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in " \
+                           "itertools.combinations(state.OBJECTS.keys(), state.var1['inputLength'])]"
 
 
 def Order_Method2(orderList, m, objList, p):
     # wait if needed
     if len(orderList) != len(objList):
+        gui.Simulate("wrong length")
         ape.do_command(fail)
 
     # move items to the pallet
     for i,objType in enumerate(orderList):
         # verify correct type
         if objList[i] not in state.OBJ_CLASS[objType]:
+            gui.Simulate("wrong type")
             ape.do_command(fail)
 
         if state.storedLoc[objList[i]] == NIL:
+            gui.Simulate("obj already used")
             ape.do_command(fail)
 
         state.storedLoc[objList[i]] = NIL
@@ -145,9 +157,9 @@ def Order_Method2(orderList, m, objList, p):
 
     ape.do_task('unloadAndDeliver', m, package)
 
-# TODO switch to correct version or write workaround
-#Order_Method1.parameters = "[(m, objList, p) for m in rv.MACHINES for objList in itertools.combinations(state.OBJECTS,keys())]"
-Order_Method2.parameters = "[(m, [objList], p) for m in rv.MACHINES for objList in state.OBJECTS.keys() for p in rv.PALLETS]"
+Order_Method2.parameters = "[(m, objList, p) for m in rv.MACHINES for objList in " \
+                           "itertools.combinations(state.OBJECTS.keys(), state.var1['inputLength']) " \
+                           "for p in rv.PALLETS]"
 
 
 # for free r
@@ -445,7 +457,6 @@ def wrap(redoId, orderName, m, objList):
     state.numUses.AcquireLock(m)
     state.shouldRedo.AcquireLock(redoId)
 
-    res = SUCCESS
     weight = 0
 
     for obj in objList:
@@ -511,15 +522,15 @@ def wrap(redoId, orderName, m, objList):
     return res
 
 
-
-
-# TODO get correct params
+# Declare tasks
+ape.declare_task('orderStart', 'orderList')
 ape.declare_task('order', 'orderList')
 ape.declare_task('pickupAndLoad', 'orderName', 'o', 'm')
 ape.declare_task('unloadAndDeliver', 'm', 'package')
 ape.declare_task('moveToPallet', 'o', 'p')
 ape.declare_task('redoer', 'command')
 
+ape.declare_methods('orderStart', OrderStart_Method1)
 ape.declare_methods('order', Order_Method1, Order_Method2)
 ape.declare_methods('pickupAndLoad', PickupAndLoad_Method1)
 ape.declare_methods('unloadAndDeliver', UnloadAndDeliver_Method1)

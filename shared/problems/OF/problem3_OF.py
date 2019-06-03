@@ -92,8 +92,8 @@ def ResetState():
 
 
 tasks = {
-    1: [['order', ['type1']]],
-    3: [['order', ['type1']]],
+    1: [['orderStart', ['type1']]],
+    3: [['orderStart', ['type1']]],
 }
 
 eventsEnv = {
