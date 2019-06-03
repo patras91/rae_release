@@ -110,8 +110,8 @@ def Order_Method1(orderList, m, objList):
     ape.do_task('unloadAndDeliver', m, package)
 
 # TODO switch to correct version or write workaround
-#Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in itertools.combinations(state.OBJECTS,keys())]"
-Order_Method1.parameters = "[(m, [objList],) for m in rv.MACHINES for objList in state.OBJECTS.keys()]"
+Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in itertools.combinations(state.OBJECTS.keys())]"
+#Order_Method1.parameters = "[(m, [objList],) for m in rv.MACHINES for objList in state.OBJECTS.keys()]"
 
 
 def Order_Method2(orderList, m, objList, p):
