@@ -7,11 +7,11 @@ __author__ = 'patras'
 
 from domain_constants import *
 import importlib
-loader = importlib.find_loader('RAE1_and_RAEplan')
-if loader is not None:
-    import RAE1_and_RAEplan as alg
-else:
-    import ape1_and_apeplan as alg
+#loader = importlib.find_loader('RAE1_and_RAEplan')
+#if loader is not None:
+import RAE1_and_RAEplan as alg
+#else:
+#    import ape1_and_apeplan as alg
 import gui
 from state import state, rv
 from timer import globalTimer
