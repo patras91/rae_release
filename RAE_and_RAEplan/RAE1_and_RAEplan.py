@@ -477,6 +477,7 @@ def RAEplanChoice(task, planArgs):
 
     while (searchTreeRoot.GetSearchDone() == False): # all rollouts not explored
         try:
+            planLocals.SetDepth(0)
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
             searchTreeRoot.UpdateChildPointers()    
