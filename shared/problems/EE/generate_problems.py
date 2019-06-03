@@ -4,23 +4,108 @@ import math
 class Map():
     def __init__(self, initIndex):
         if initIndex == 1:
-            self.locations = [1, 2, 3, 4, 5, 6, 7, 8]
-            self.edges = {1: [7], 2: [8], 3: [8], 4: [8], 5: [7], 6: [7], 7:[1, 5, 6, 8], 8: [2, 3, 4, 7]}
+            self.locations = ['base', 'z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7']
+            self.edges = {
+                'base': {
+                    'z1': 15,
+                    'z4': 15,
+                    'z5': 35,
+                    'z6': 35,
+                    'z7': 35
+                },
+                'z1': {
+                    'base': 15,
+                    'z2': 30
+                },
+                'z2': {
+                    'z1': 30,
+                    'z3': 30
+                },
+                'z3': {
+                    'z2': 30,
+                    'z4': 30
+                },
+                'z4': {
+                    'z3': 30,
+                    'base': 15
+                },
+                'z5': {
+                    'base': 35
+                },
+                'z6': {
+                    'base': 35
+                },
+                'z7': {
+                    'base': 35
+                }
+            }
         elif initIndex == 2:
-            self.locations = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            self.edges = {1: [7], 2: [8], 3: [8], 4: [8, 9], 5: [7], 6: [7], 7:[1, 5, 6, 8], 8: [2, 3, 4, 7], 9:[4, 10], 10:[9]}
+            self.LOCATIONS = ['base', 'z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7']
+            self.EDGES = {
+                'base': {
+                    'z1': 15,
+                    'z4': 215,
+                    'z5': 35,
+                    'z6': 35,
+                    'z7': 35
+                },
+                'z1': {
+                    'base': 15,
+                    'z2': 90
+                },
+                'z2': {
+                    'z1': 90,
+                    'z3': 30
+                },
+                'z3': {
+                    'z2': 30,
+                    'z4': 90
+                },
+                'z4': {
+                    'z3': 90,
+                    'base': 215
+                },
+                'z5': {
+                    'base': 35
+                },
+                'z6': {
+                    'base': 35
+                },
+                'z7': {
+                    'base': 35
+                }
+            }
+
         elif initIndex == 3:
-            self.locations = [1, 2, 3, 4]
-            self.edges = {1: [3], 2: [3], 3: [1, 2, 4], 4: [3]}
-        elif initIndex == 4:
-            self.locations = [1, 2, 3, 4]
-            self.edges = {1:[2], 2:[1,3], 3: [2,4], 4:[3]}
-        elif initIndex == 5:
-            self.locations = [1, 2, 3, 4]
-            self.edges = {1:[2, 3], 2:[1,4], 3: [1,4], 4:[2,3]}
-        elif initIndex == 6:
-            self.locations = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            self.edges = {1:[2], 2:[1,3], 3: [2,4], 4:[5,3, 6, 7], 5:[4, 9], 6:[4, 10], 7:[4, 8], 8:[7], 9:[5], 10:[6]}
+            self.LOCATIONS = ['base', 'z1', 'z2', 'z3', 'z4']
+            self.EDGES = {
+                'base': {
+                    'z1': 20,
+                    'z2': 10,
+                    'z3': 20,
+                    'z4': 10
+                },
+                'z1': {
+                    'base': 20,
+                    'z2': 30,
+                    'z4': 50
+                },
+                'z2': {
+                    'base': 10,
+                    'z1': 30,
+                    'z3': 30
+                },
+                'z3': {
+                    'base': 20,
+                    'z2': 30,
+                    'z4': 30
+                },
+                'z4': {
+                    'base': 10,
+                    'z3': 30,
+                    'z1': 50
+                }
+            }
 
     def GetLocationsString(self):
         return "rv.LOCATIONS = " + str(self.locations) + "\n"
@@ -28,111 +113,35 @@ class Map():
     def GetEdgesString(self):
         return "rv.EDGES = " + str(self.edges) + "\n"
 
-    def GetContainerString(self, objLoc):
-        containerString = "    state.containers = { "
-        for l in self.locations:
-            if objLoc == l:
-                containerString += str(l) + ":['o1'],"
-            else:
-                containerString += str(l) + ":[],"
-        containerString += "}\n"
-        return containerString
-
 MAPS = [Map(1), Map(2), Map(3)]
 
+ChooseLocation(l):
+    l1 = random.sample(l, 1)
+    l2 = random.sample(l, 2)
+    l3 = random.sample(l, 3)
+
 def generateProblems():
-    num = 100
-    for cost_index in range(1, 3):
-        for map in MAPS:
-            for loc in map.locations[1:3]:
-                for charge in range(2, 4):
-                    for chargerLoc in ['r2', 1]:
-                        for j in range(1, 3):
-                            obj_loc = random.randint(1, len(map.locations))
-                            for pos in [True, False]:
-                                for emergency in [True, False]:
-                                    writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency)
-                                    num += 1
+    num = 1
+    for map in MAPS: # 3 
+        for loc in map.locations[1:3]: # 3
+            for charge in range(60, 81, 20): # 2
+                chargerLoc = ChooseLocation(map.locations) # 1
+                locs = random.randint(1, len(map.locations)) # 3
+                for weather in ['normal', 'stormy']: # 2
+                    writeProblem(num, map, loc, charge, chargerLoc, locs, weather)
+                    num += 1
 
-def generateProblemsSearchWithNotEnoughCharge():
-    num = 1000
-    for cost_index in range(1, 2):
-        for map in [Map(3), Map(4), Map(5)]:
-            for loc in map.locations:
-                charge = 4
-                for chargerLoc in [1]:
-                    for j in range(1, 3):
-                        obj_loc = random.randint(1, len(map.locations))
-                        for pos in [False]:
-                            for emergency in [False]:
-                                writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency)
-                                num += 1
 
-def generateProblemsSearchWithEmergency():
-    num = 1100
-    for cost_index in range(2, 3):
-        for map in [Map(3), Map(4), Map(5)]:
-            for loc in map.locations:
-                charge = 2
-                for chargerLoc in [1]:
-                    for j in range(1, 3):
-                        obj_loc = random.randint(1, len(map.locations))
-                        for pos in [False]:
-                            for emergency in [True]:
-                                writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency)
-                                num += 1
-    print("num = ", num)
-
-def generateProblemsCarryCharger():
-    num = 1025
-    for cost_index in range(1, 4):
-        for map in [Map(6)]:
-            for loc in [1]:
-                for charge in range(1, 4):
-                    for chargerLoc in [1]:
-                        for obj_loc in range(8, 11):
-                            for pos in [True]:
-                                for emergency in [False]:
-                                    writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency)
-                                    num += 1
-
-def generateProblemsChargerWithAnotherRobot():
-    num = 1068
-    for cost_index in range(2, 4):
-        for map in [Map(6)]:
-            for loc in [1,2]:
-                for charge in range(2, 4):
-                    for chargerLoc in ['r2']:
-                        for obj_loc in range(5, 9):
-                            for pos in [True]:
-                                for emergency in [False]:
-                                    writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency)
-                                    num += 1
-    print("num = ", num)
-
-def generateProblemsEmergencyWithoutSearch():
-    num = 1052
-    for cost_index in range(1, 3):
-        for map in [Map(1), Map(2)]:
-            for loc in [1]:
-                for charge in range(2, 4):
-                    for chargerLoc in [1]:
-                        for j in range(0, 2):
-                            obj_loc = random.randint(1, len(map.locations))
-                            for pos in [True]:
-                                for emergency in [True]:
-                                    writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency)
-                                    num += 1
-
-def writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency):
+def writeProblem(num, map, loc, charge, chargerLoc, locs, weather):
     
-    fname = 'problem{}_CR.py'.format(num)
+    fname = 'auto/problem{}_EE.py'.format(num)
     file = open(fname,"w") 
-    writeHeader(file, cost_index)
+    writeHeader(file)
 
+    file.write("rv.TYPE = {'e1': 'survey', 'e2': 'monitor', 'e3': 'screen', 'e4': 'sample', 'e5':'process'}")
+    file.write("rv.EQUIPMENT = {'survey': 'e1', 'monitor': 'e2', 'screen': 'e3', 'sample': 'e4', 'process': 'e5'}")
     file.write(map.GetLocationsString())
     file.write(map.GetEdgesString())
-    file.write("rv.OBJECTS=['o1']\n\n")
 
     if chargerLoc == 'r2':
         file.write("rv.ROBOTS=['r1','r2']\n\n")
@@ -163,14 +172,20 @@ def writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, em
     file.write(map.GetContainerString(obj_loc))
 
     file.write("    state.emergencyHandling = {'r1': False, 'r2': False}\n")
-    file.write("    state.view = {}\n")
-    file.write("    for l in rv.LOCATIONS:\n")
-    file.write("        state.view[l] = False\n\n")
+    
+    file.write("'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base'}\n")
+    if weather == 'normal':
+        file.write("    state.storm = {'active': False}\n")
+    elif weather == 'stormy':
+        file.write("    state.storm = {'active': True}\n")
 
     file.write("tasks = {\n")
+
     time = random.randint(1, 8)
-    taskString = "    {}: [['fetch', 'r1', 'o1']],\n".format(time)
-    file.write(taskString)
+    #taskString = "    {}: [['fetch', 'r1', 'o1']],\n".format(time)
+
+    #file.write(taskString)
+
     if emergency == True:
         emergencyString = "    {}: [['emergency', 'r1', 2, 1]],\n".format(time+2)
         file.write(emergencyString)
@@ -181,88 +196,45 @@ def writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, em
 
     file.close() 
 
-def writeHeader(file, index):
+def writeHeader(file):
     file.write("__author__ = 'patras'\n")
-    file.write("from domain_chargeableRobot import *\n") 
+    file.write("from domain_exploreEnv import *\n") 
     file.write("from timer import DURATION\n") 
     file.write("from state import state\n\n") 
 
-    if index == 1:
-        file.write("DURATION.TIME = {\n")
-        file.write("    'put': 2,\n") 
-        file.write("    'take': 2,\n") 
-        file.write("    'perceive': 3,\n") 
-        file.write("    'charge': 5,\n") 
-        file.write("    'move': 10,\n") 
-        file.write("    'moveToEmergency': 5,\n") 
-        file.write("    'moveCharger': 15,\n") 
-        file.write("    'addressEmergency': 10,\n") 
-        file.write("    'wait': 5,\n") 
-        file.write("}\n\n") 
+    file.write("DURATION.TIME = {\n")
+    file.write("    'survey': 5,\n") 
+    file.write("    'monitor': 5,\n") 
+    file.write("    'screen': 5,\n") 
+    file.write("    'sample': 5,\n") 
+    file.write("    'process': 5,\n") 
+    file.write("    'fly': 3,\n") 
+    file.write("    'deposit': 1,\n") 
+    file.write("    'transferData': 1,\n") 
+    file.write("    'take': 2,\n") 
+    file.write("    'put': 2,\n") 
+    file.write("    'move': 10,\n") 
+    file.write("    'charge': 5,\n") 
+    file.write("    'negotiate': 5,\n") 
+    file.write("    'handleAlien': 5,\n") 
+    file.write("}\n\n") 
 
-        file.write("DURATION.COUNTER = {\n") 
-        file.write("    'put': 2,\n") 
-        file.write("    'take': 2,\n") 
-        file.write("    'perceive': 3,\n") 
-        file.write("    'charge': 5,\n") 
-        file.write("    'move': 10,\n") 
-        file.write("    'moveToEmergency': 5,\n") 
-        file.write("    'moveCharger': 15,\n") 
-        file.write("    'addressEmergency': 10,\n") 
-        file.write("    'wait': 5,\n") 
-        file.write("}\n\n") 
-
-    elif index == 2:
-
-        file.write("DURATION.TIME = {\n")
-        file.write("    'put': 2,\n") 
-        file.write("    'take': 2,\n") 
-        file.write("    'perceive': 2,\n") 
-        file.write("    'charge': 2,\n") 
-        file.write("    'move': 2,\n") 
-        file.write("    'moveToEmergency': 2,\n") 
-        file.write("    'moveCharger': 2,\n") 
-        file.write("    'addressEmergency': 2,\n") 
-        file.write("    'wait': 2,\n") 
-        file.write("}\n\n") 
-
-        file.write("DURATION.COUNTER = {\n") 
-        file.write("    'put': 2,\n") 
-        file.write("    'take': 2,\n") 
-        file.write("    'perceive': 2,\n") 
-        file.write("    'charge': 2,\n") 
-        file.write("    'move': 2,\n") 
-        file.write("    'moveToEmergency': 2,\n") 
-        file.write("    'moveCharger': 2,\n") 
-        file.write("    'addressEmergency': 2,\n") 
-        file.write("    'wait': 2,\n") 
-        file.write("}\n\n") 
-
-    elif index == 3:
-
-        file.write("DURATION.TIME = {\n")
-        file.write("    'put': 5,\n") 
-        file.write("    'take': 5,\n") 
-        file.write("    'perceive': 3,\n") 
-        file.write("    'charge': 10,\n") 
-        file.write("    'move': 10,\n") 
-        file.write("    'moveToEmergency': 20,\n") 
-        file.write("    'moveCharger': 15,\n") 
-        file.write("    'addressEmergency': 20,\n") 
-        file.write("    'wait': 10,\n") 
-        file.write("}\n\n") 
-
-        file.write("DURATION.COUNTER = {\n") 
-        file.write("    'put': 5,\n") 
-        file.write("    'take': 5,\n") 
-        file.write("    'perceive': 3,\n") 
-        file.write("    'charge': 10,\n") 
-        file.write("    'move': 10,\n") 
-        file.write("    'moveToEmergency': 20,\n") 
-        file.write("    'moveCharger': 15,\n") 
-        file.write("    'addressEmergency': 20,\n") 
-        file.write("    'wait': 10,\n")  
-        file.write("}\n\n") 
+    file.write("DURATION.COUNTER = {\n") 
+    file.write("    'survey': 5,\n") 
+    file.write("    'monitor': 5,\n") 
+    file.write("    'screen': 5,\n") 
+    file.write("    'sample': 5,\n") 
+    file.write("    'process': 5,\n") 
+    file.write("    'fly': 3,\n") 
+    file.write("    'deposit': 1,\n") 
+    file.write("    'transferData': 1,\n") 
+    file.write("    'take': 2,\n") 
+    file.write("    'put': 2,\n") 
+    file.write("    'move': 10,\n") 
+    file.write("    'charge': 5,\n") 
+    file.write("    'negotiate': 5,\n") 
+    file.write("    'handleAlien': 5,\n") 
+    file.write("}\n\n") 
 
 if __name__=="__main__":
-    generateProblemsSearchWithEmergency()
+    generateProblems()
