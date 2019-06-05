@@ -5,6 +5,7 @@ from threading import Lock
 # importing itertools to evaluate statements in OF
 # may want to change logic to not require import
 import itertools
+import random
 
 class State():
     def __init__(self):
@@ -94,6 +95,9 @@ class StateDict():
 
     def keys(self):
         return self.dict.keys()
+
+    def items(self):
+        return self.dict.items()
 
     def AcquireLock(self, *key):
         if len(key) == 1:

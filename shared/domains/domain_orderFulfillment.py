@@ -13,6 +13,7 @@ import gui
 from timer import globalTimer, DURATION
 import GLOBALS
 import itertools
+import random
 
 def fail():
     return FAILURE
@@ -86,79 +87,116 @@ def Redoer(command, *args):
 
     return SUCCESS
 
+# this is a function for narrowing down possibilities for obj lists
+# e.g. reduces combos for problem 4 task 1 from 10 to 4
+def MakeFocusedObjList():
+    combos = (itertools.combinations([k for (k,v) in state.OBJECTS.items() if v == True], state.var1['inputLength']))
+    focus = []
+
+    orderList = state.var1['input']
+
+    for objList in combos:
+        works = True
+        for i,objType in enumerate(orderList):
+            # verify correct type
+            if objList[i] not in state.OBJ_CLASS[objType]:
+                works = False
+        if works:
+            focus.append(objList)
+
+    random.shuffle(focus)
+
+    return focus
+
 
 # this is a dummy task so we can set the length
 # of the order
 def OrderStart_Method1(orderList):
     state.var1['inputLength'] = len(orderList)
+    state.var1['input'] = orderList
+    state.var1['focusObjList'] = MakeFocusedObjList
     ape.do_task('order', orderList)
 
 
 def Order_Method1(orderList, m, objList):
     if len(orderList) != len(objList):
-        gui.Simulate("wrong length")
+        gui.Simulate("wrong length objList %s\n" % str(objList))
         ape.do_command(fail)
 
+    # make sure order is of correct type, reserve objects
     for i,objType in enumerate(orderList):
         # verify correct type
         if objList[i] not in state.OBJ_CLASS[objType]:
-            gui.Simulate("wrong type")
+            gui.Simulate("wrong type %s\n" % str(objList))
             ape.do_command(fail)
 
-        if state.storedLoc[objList[i]] == NIL:
-            gui.Simulate("obj already used")
+        if state.OBJECTS[objList[i]] == False:
+            gui.Simulate("obj already used %s\n" % str(objList))
             ape.do_command(fail)
 
-        state.storedLoc[objList[i]] = NIL
+        state.OBJECTS[objList[i]] = False
 
+    # get unique ID for order name
+    state.var1.AcquireLock('redoId')
+    id = state.var1['redoId']
+    state.var1['redoId'] += 1
+    state.var1.ReleaseLock('redoId')
 
+    for i, objType in enumerate(orderList):
         # move to object, pick it up, load in machine
-        ape.do_task('pickupAndLoad', frozenset(objList), objList[i], m)
+        ape.do_task('pickupAndLoad', frozenset([id] + [objList]), objList[i], m)
 
     # TODO change name wrap to package
-    ape.do_task('redoer', wrap, frozenset(objList), m, objList)
+    ape.do_task('redoer', wrap, frozenset([id] + [objList]), m, objList)
     package = state.var1['temp1']
 
     ape.do_task('unloadAndDeliver', m, package)
 
-Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in " \
-                           "itertools.combinations(state.OBJECTS.keys(), state.var1['inputLength'])]"
+Order_Method1.parameters = "[(m, objList,) for m in rv.MACHINES for objList in state.var1['focusObjList']()]"
 
 
 def Order_Method2(orderList, m, objList, p):
     # wait if needed
     if len(orderList) != len(objList):
-        gui.Simulate("wrong length")
+        gui.Simulate("wrong length %s\n" % str(objList))
         ape.do_command(fail)
 
-    # move items to the pallet
+    # make sure order is of correct type, reserve objects
     for i,objType in enumerate(orderList):
         # verify correct type
         if objList[i] not in state.OBJ_CLASS[objType]:
-            gui.Simulate("wrong type")
+            gui.Simulate("wrong type %s\n" % str(objList))
             ape.do_command(fail)
 
-        if state.storedLoc[objList[i]] == NIL:
-            gui.Simulate("obj already used")
+        if state.OBJECTS[objList[i]] == False:
+            gui.Simulate("obj already used %s\n" % str(objList))
             ape.do_command(fail)
 
-        state.storedLoc[objList[i]] = NIL
+        state.OBJECTS[objList[i]] = False
 
+    # move objects to the pallet
+    for i, objType in enumerate(orderList):
         # move to object, pick it up, place on pallet
         ape.do_task('moveToPallet', objList[i], p)
 
+    # get unique ID for order name
+    state.var1.AcquireLock('redoId')
+    id = state.var1['redoId']
+    state.var1['redoId'] += 1
+    state.var1.ReleaseLock('redoId')
+
+    # move objects to machine
     for i,objType in enumerate(orderList):
         # move to object, pick it up, load in machine
-        ape.do_task('pickupAndLoad', frozenset(objList), objList[i], m)
+        ape.do_task('pickupAndLoad', frozenset([id] + [objList]), objList[i], m)
 
     # TODO change name wrap to package
-    ape.do_task('redoer', wrap, frozenset(objList), m, objList)
+    ape.do_task('redoer', wrap, frozenset([id] + [objList]), m, objList)
     package = state.var1['temp1']
 
     ape.do_task('unloadAndDeliver', m, package)
 
-Order_Method2.parameters = "[(m, objList, p) for m in rv.MACHINES for objList in " \
-                           "itertools.combinations(state.OBJECTS.keys(), state.var1['inputLength']) " \
+Order_Method2.parameters = "[(m, objList, p) for m in rv.MACHINES for objList in state.var1['focusObjList']()" \
                            "for p in rv.PALLETS]"
 
 
@@ -226,6 +264,7 @@ def MoveToPallet_Method1(o, p, r):
     ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[p], dist)
 
     ape.do_task('redoer', putdown, r, o)
+    gui.Simulate("Object %s was placed on pallet %s (goes with earlier msg)\n" % (o, p))
 
     ape.do_task('redoer', freeRobot, r)
 MoveToPallet_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
@@ -296,10 +335,7 @@ def pickup(redoId, r, item):
 
         if res == SUCCESS:
             gui.Simulate("Robot %s picked up %s\n" % (r, item))
-            # TODO not sure if I want the location of the item to be nil or r
-            # Not sure what the consequences of them are, awkward if someone else
-            # tries to find the item
-            state.loc[item] = NIL
+            state.loc[item] = r
             state.load[r] = item
             state.shouldRedo[redoId] = False
         else:
@@ -410,10 +446,6 @@ def acquireRobot(redoId, r):
         gui.Simulate("Robot %s is carrying an object\n" % r)
         res = FAILURE
     else:
-        start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('acquireRobot', start, redoId, r) == False):
-            pass
-
         gui.Simulate("Robot %s is acquired for a new task\n" % r)
         state.busy[r] = True
         res = SUCCESS
@@ -436,10 +468,6 @@ def freeRobot(redoId, r):
         gui.Simulate("Robot %s is carrying an object\n" % r)
         res = FAILURE
     else:
-        start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('freeRobot', start, redoId, r) == False):
-            pass
-
         gui.Simulate("Robot %s is now free\n" % r)
         state.busy[r] = False
         res = SUCCESS
@@ -488,13 +516,9 @@ def wrap(redoId, orderName, m, objList):
 
         if res == SUCCESS:
             # TODO better, unique name
-            packageName = hash(frozenset(objList))
+            packageName = "Pack#" + str(orderName)
 
-            # TODO race condition?
-            for item in objList:
-                state.OBJECTS.remove(item)
-
-            state.OBJECTS[packageName] = None
+            state.OBJECTS[packageName] = True
             state.loc[packageName] = state.loc[m]
             state.OBJ_WEIGHT[packageName] = weight
 

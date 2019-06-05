@@ -1,14 +1,15 @@
 __author__ = 'mason'
 
-'''
-Situation: Need to repair packaging machine
-'''
-
 from domain_orderFulfillment import *
 from timer import DURATION
 from state import state
 import numpy as np
 
+'''
+Several objects to choose from, need to consider weights, and a second machine
+
+Same as problem 4 but with an extra machine
+'''
 
 def GetCostOfMove(id, r, loc1, loc2, dist):
     return 1 + dist
@@ -17,7 +18,7 @@ def GetCostOfLookup(id, item):
     return max(1, np.random.beta(2, 2))
 
 
-def GetCostOfWrap(id, m, item):
+def GetCostOfWrap(id, orderName, m, item):
     return max(1, np.random.normal(5, .5))
 
 
@@ -29,7 +30,7 @@ def GetCostOfPutdown(id, r, item):
     return max(1, np.random.normal(4, 1))
 
 
-def GetCostOfLoad(id, r, m, item):
+def GetCostOfLoad(id, orderName, r, m, item):
     return max(1, np.random.normal(3, .5))
 
 
@@ -43,8 +44,7 @@ DURATION.TIME = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'repair': 5,
-    'wait': 1
+    'wait': 5
  }
 
 DURATION.COUNTER = {
@@ -56,8 +56,7 @@ DURATION.COUNTER = {
     'freeRobot': 1,
     'loadMachine': GetCostOfLoad,
     'moveRobot': GetCostOfMove,
-    'repair': 5,
-    'wait': 1
+    'wait': 5
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7]
@@ -66,32 +65,32 @@ rv.FACTORY_UNION = rv.FACTORY1
 rv.SHIPPING_DOC = {rv.FACTORY1: 4}
 
 rv.GROUND_EDGES = {1: [2], 2: [1, 3], 3: [2, 4], 4: [3, 5], 5: [4, 6], 6: [5, 7], 7: [6]}
-rv.GROUND_WEIGHTS = {(1,2): 1, (2,3): 1, (3,4): 5, (4,5): 15, (5,6): 50, (6,7): 10}
+rv.GROUND_WEIGHTS = {(1,2): 1, (2,3): 1, (3,4): 5, (4,5): 8, (5,6): 5, (6,7): 1}
 
 rv.ROBOTS = {'r1': rv.FACTORY1, 'r2': rv.FACTORY1}
-rv.ROBOT_CAPACITY = {'r1': 9, 'r2': 10}
-rv.MACHINES = {'m1': rv.FACTORY1}
-rv.REPAIR_BOT = {'fixer1': rv.FACTORY1}
+rv.ROBOT_CAPACITY = {'r1': 6, 'r2': 10}
+rv.MACHINES = {'m1': rv.FACTORY1, 'm2': rv.FACTORY1}
 
-rv.OBJECTS = {'o1', 'o2'}
-rv.OBJ_WEIGHT = {'o1': 7, 'o2':7}
-rv.OBJ_CLASS = {'type1': ['o1', 'o2']}
+rv.PALLETS = {'p1'}
 
 
 
 def ResetState():
-    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'o1': UNK, 'o2': UNK, 'fixer1': 1}
-    state.storedLoc = {'o1': 2, 'o2': 1}
-    state.load = {'r1': NIL, 'r2': NIL, 'fixer1': False}
-    state.busy = {'r1': False, 'r2': False, 'm1': False, 'fixer1': False}
-    state.numUses = {'m1': 80}
+    state.OBJECTS = {'o1': True, 'o2': True, 'o3': True, 'o4': True, 'o5': True}
+    state.OBJ_WEIGHT = {'o1': 7, 'o2': 3, 'o3': 1, 'o4': 6, 'o5': 3}
+    state.OBJ_CLASS = {'type1': ['o1', 'o4'], 'type2': ['o2', 'o3', 'o5']}
+
+    state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'm2': 6, 'o1': 2, 'o2': 1, 'o3':7, 'o4': 1, 'o5': 6, 'p1': 4}
+    state.load = {'r1': NIL, 'r2': NIL,}
+    state.busy = {'r1': False, 'r2': False, 'm1': False, 'm2': False, 'fixer1': False}
+    state.numUses = {'m1': 1, 'm2': 1}
     state.var1 = {'temp': 'r1', 'temp1': 'r1', 'temp2': 1, 'redoId': 0}
     state.shouldRedo = {}
 
 
 tasks = {
-    1: [['order', 'type1', 7]],
-    2: [['order', 'type1', 7]],
+    1: [['orderStart', ['type1', 'type2']]],
+    2: [['orderStart', ['type2', 'type1']]],
 }
 
 eventsEnv = {
