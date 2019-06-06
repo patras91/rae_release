@@ -609,7 +609,9 @@ class SearchTreeNode():
     def GetPrettyString(self, elem):
         if elem.label == 'task' or elem.label == 'root' or elem.label == 'heuristic':
             return elem.label
-        elif elem.type == 'method' or elem.type == 'command':
+        elif elem.type == 'method':
+            return elem.label.GetName()
+        elif elem.type == 'command':
             return elem.label.__name__
         elif elem.type == 'state':
             return "state"

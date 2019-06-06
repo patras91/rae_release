@@ -98,7 +98,7 @@ class MethodInstance():
         return self.method.__name__ + str(self.params) 
 
     def __eq__(self, other):
-        if other == 'heuristic' or other == 'Failure' or other == None or other == 'root':
+        if other == 'heuristic' or other == 'Failure' or other == None or other == 'root' or other == 'task':
             return False
         else:
             return self.method == other.method and self.params == other.params
