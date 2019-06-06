@@ -31,6 +31,13 @@ def GetNextAlive(lastActiveStack, numstacks, threadList):
 
     return nextAlive
 
+def noNewTasks():
+    print(problem_module.tasks)
+    for c in problem_module.tasks:
+        if c > GetNewTasks.counter:
+            return False
+    return True
+
 def GetNewTasks():
     '''
     :return: gets the new task that appears in the problem at the current time
@@ -137,11 +144,11 @@ def StartEnv():
         envArgs.sem.release()
 
 def add_tasks(tasks):
-    current_time = globalTimer.GetTime()
-    if problem_module.tasks[current_time + 1] is not None:
-        problem_module.tasks[current_time + 1] = tasks
+    current_counter = GetNewTasks.counter
+    if current_counter + 1 not in problem_module.tasks:
+        problem_module.tasks[current_counter + 1] = tasks
     else:
-        problem_module.tasks[current_time + 1] += tasks
+        problem_module.tasks[current_counter + 1] += tasks
 
 def raeMult():
     ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
@@ -199,10 +206,11 @@ def raeMult():
                     lastActiveStack = res
                     ipcArgs.sem.release()
                 else:
-                    envArgs.envActive = True
-                    envArgs.exit = True
-                    envArgs.sem.release()
-                    break
+                    if noNewTasks():
+                        envArgs.envActive = True
+                        envArgs.exit = True
+                        envArgs.sem.release()
+                        break
             else:
                 ipcArgs.sem.release()
 
