@@ -32,7 +32,6 @@ def GetNextAlive(lastActiveStack, numstacks, threadList):
     return nextAlive
 
 def noNewTasks():
-    print(problem_module.tasks)
     for c in problem_module.tasks:
         if c > GetNewTasks.counter:
             return False
