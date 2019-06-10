@@ -574,7 +574,8 @@ def GetCandidates(task, tArgs):
         prevState = GetState()
         flag = 0
         
-    b = max(1, GLOBALS.Getb() - int(planLocals.GetDepth() / 4))
+    # b = max(1, GLOBALS.Getb() - int(planLocals.GetDepth() / 4))
+    b = GLOBALS.Getb()
     cand = candidates[0:min(b, len(candidates))]
     return cand, prevState, flag
 
@@ -805,7 +806,8 @@ def PlanCommand(cmd, cmdArgs):
     newCommandNode = rTree.SearchTreeNode(cmd, 'command')
     searchTreeNode.AddChild(newCommandNode)
 
-    k = max(1, GLOBALS.Getk() - int(planLocals.GetDepth() / 2))
+    #k = max(1, GLOBALS.Getk() - int(planLocals.GetDepth() / 2))
+    k = GLOBALS.Getk()
     for i in range(0, k):
         RestoreState(prevState)
         retcode = CallCommand_OperationalModel(cmd, cmdArgs)
