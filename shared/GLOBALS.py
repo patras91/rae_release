@@ -73,3 +73,9 @@ def SetOpt(opt):
 
 def GetUCTRuns():
     return 100
+
+def GetUCTmode():
+    return False
+
+def GetC():
+    return 1

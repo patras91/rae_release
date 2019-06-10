@@ -5,6 +5,7 @@ from timer import DURATION
 #from graphviz import Digraph
 import types
 from utility import Utility
+import GLOBALS
 
 class PlanningTree():
     def __init__(self, n, args, type1):
@@ -550,6 +551,9 @@ class SearchTreeNode():
         node.parent = self
         self.children.append(node)
         self.childWeights.append(1)
+        if GLOBALS.GetUCTmode() == True and self.type == 'task':
+            self.n.append(0)
+            self.Q.append(0)
 
     def GetNext(self):
         if self.childPtr < len(self.children):
@@ -599,6 +603,9 @@ class SearchTreeNode():
                 bestUtil = child.util
                 bestMethod = child.GetLabel()
         return bestMethod
+
+    def GetBestMethod_UCT(self):
+        return 1
 
     def IncreaseWeight(self, s):
         assert(self.type == 'command')

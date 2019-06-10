@@ -151,6 +151,12 @@ class rL_PLAN(rL):
     def GetHeuristicArgs(self):
         return (self.rL.heuristicTaskName, self.rL.heuristicTaskArgs)
 
+    def SetUtilRollout(self, u):
+        self.rL.util = u
+
+    def GetUtilRollout(self):
+        return self.rL.util
+
 class PlanArgs():
     def __init__(self):
         pass
