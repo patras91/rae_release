@@ -2,7 +2,7 @@
 # This script is to just run RAE without calling any planner.
 
 echo "Executing tests for RAE without any planning."
-domain="OF"
+domain="OF" # SR, EE, CR, IP, SD, OF
 runs=1
 P=(
 "problem2"
