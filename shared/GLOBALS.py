@@ -70,3 +70,6 @@ def GetOpt():
 def SetOpt(opt):
     assert(opt == 'min' or opt == 'max')
     g.opt = opt
+
+def GetUCTRuns():
+    return 100

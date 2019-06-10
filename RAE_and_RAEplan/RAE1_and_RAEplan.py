@@ -98,7 +98,7 @@ class MethodInstance():
         return self.method.__name__ + str(self.params) 
 
     def __eq__(self, other):
-        if other == 'heuristic' or other == 'Failure' or other == None or other == 'root':
+        if other == 'heuristic' or other == 'Failure' or other == None or other == 'root' or other == 'task':
             return False
         else:
             return self.method == other.method and self.params == other.params
@@ -442,7 +442,6 @@ def InitializePlanningTree():
     root = rTree.PlanningTree('root', 'root', 'root') # initialize the root of the refinement tree being built
     planLocals.SetCurrentNode(root)
     planLocals.SetPlanningTree(root)
-    #planLocals.SetBestTree(None)
 
 def RAEplanChoice(task, planArgs):
     """
@@ -502,6 +501,65 @@ def RAEplanChoice(task, planArgs):
 
     return (taskToRefine.GetBestMethod(), globalTimer.GetSimulationCounter())
     
+def RAEplanChoice_UCT(task, planArgs):
+    """
+    RAEplanChoice is the main routine of the planner used by RAE which plans using the available operational models
+    """
+
+    #planLocals is the set of variables local to this call to RAEplanChoice but used throughout
+    planLocals.SetStackId(planArgs.GetStackId()) # Right now, the stack id is always set to 1 and is not important.
+                                                 # This will be useful if we decide to simulate multiple stacks in future.
+    planLocals.SetCandidates(planArgs.GetCandidates())
+    planLocals.SetState(planArgs.GetState())
+
+    taskArgs = planArgs.GetTaskArgs()
+    planLocals.SetHeuristicArgs(task, taskArgs)
+    planLocals.SetDepth(0)
+    planLocals.SetRefDepth(float("inf"))
+
+    globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
+    
+    searchTreeRoot = planArgs.GetSearchTree()
+    planLocals.SetSearchTreeRoot(searchTreeRoot)
+
+    global path   # for debugging
+    path.update({planLocals.GetStackId(): []})
+        
+    InitializePlanningTree() 
+
+    if verbose > 1:
+        print_stack_size(planLocals.GetStackId(), path)
+        print('Initial state is:')
+        PrintState()
+
+    i = 1
+    while (i <= GLOBALS.GetUCTRuns()): # all rollouts not explored
+        try:
+            planLocals.SetDepth(0)
+            planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
+            do_task(task, *taskArgs)    
+        except Failed_Rollout as e:
+            v_failedCommand(e)
+            # how to handle failures # a sequence of failed exceptions?
+        except DepthLimitReached as e:
+            pass
+        except Failed_task as e:
+            v_failedTask(e)
+        except Expanded_Search_Tree_Node as e:
+            pass
+        else:
+            pass
+        i += 1
+
+    if verbose > 1:
+        print_stack_size(planLocals.GetStackId(), path)
+        print('Final state is:')
+        PrintState()
+
+    taskToRefine = planLocals.GetTaskToRefine()
+
+    return (taskToRefine.GetBestMethod(), globalTimer.GetSimulationCounter())
+
 def GetCandidates(task, tArgs):
     """ Called from PlanTask """
     if planLocals.GetCandidates() != None:
@@ -516,7 +574,7 @@ def GetCandidates(task, tArgs):
         prevState = GetState()
         flag = 0
         
-    b = GLOBALS.Getb()
+    b = max(1, GLOBALS.Getb() - int(planLocals.GetDepth() / 4))
     cand = candidates[0:min(b, len(candidates))]
     return cand, prevState, flag
 
@@ -530,33 +588,6 @@ def FollowSearchTree_task(task, taskArgs, node):
         planLocals.SetSearchTreeNode(nextNode)
         tree = PlanMethod(m, task, taskArgs)
         return tree
-
-def Reinitialize(m, s, newNode, guideList, name, args):
-    guideList.RemoveAllAfter(newNode)
-    if m == 'command':
-        newNode.SetLabel(name)
-        newNode.SetCost(GetCost(name, args))
-        newNode.SetNextState(s)
-    else:
-        newNode.SetLabel(m)
-        newNode.SetPrevState(s)
-    
-    pRoot = planLocals.GetPlanningTree()
-    if pRoot.children == []:
-        firstTask = name
-        firstTaskArgs = args
-    else:
-        firstTask = pRoot.GetChild().GetLabel()
-        firstTaskArgs = pRoot.GetChild().GetArgs()
-    
-    pRoot.DeleteAllChildren()
-    planLocals.SetCurrentNode(pRoot)
-    guideList.ResetPtr()
-        
-    startState = guideList.GetStartState()
-    RestoreState(startState)
-
-    return firstTask, firstTaskArgs, pRoot
 
 def GetHeuristicEstimate():
     task, args = planLocals.GetHeuristicArgs()
@@ -774,7 +805,8 @@ def PlanCommand(cmd, cmdArgs):
     newCommandNode = rTree.SearchTreeNode(cmd, 'command')
     searchTreeNode.AddChild(newCommandNode)
 
-    for i in range(0, GLOBALS.Getk()):
+    k = max(1, GLOBALS.Getk() - int(planLocals.GetDepth() / 2))
+    for i in range(0, k):
         RestoreState(prevState)
         retcode = CallCommand_OperationalModel(cmd, cmdArgs)
         nextState = GetState().copy()
@@ -794,7 +826,6 @@ def PlanCommand(cmd, cmdArgs):
                 #childNode = searchNodes[index]
                 newCommandNode.IncreaseWeight(nextState)
             else:
-                #firstTask, firstTaskArgs, pRoot = Reinitialize('command', nextState, newNode, gL, cmd, cmdArgs)
                 newNode = rTree.SearchTreeNode(nextState, 'state')
                 newNode.SetPrevState(prevState)
                 newCommandNode.AddChild(newNode)
