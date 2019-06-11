@@ -636,6 +636,7 @@ def PlanTask_UCT(task, taskArgs):
 
             newNode.SetUtility(Utility(GetHeuristicEstimate()))
             taskNode.AddChild(newNode)
+            # TODO
             newNode.PropagateQvalues()
             raise DepthLimitReached()
 
@@ -656,8 +657,8 @@ def PlanTask_UCT(task, taskArgs):
         mNode = None
         index = None
         for i in range(0, len(taskNode.children)):
-            v = taskNode.Q[i] + 
-            GLOBALS.GetC() * math.sqrt(math.log(taskNode.N)/taskNode.n[i])
+            v = taskNode.Q[i] + \
+                GLOBALS.GetC() * math.sqrt(math.log(taskNode.N)/taskNode.n[i])
             if v > vmax:
                 vmax = v
                 mNode = taskNode.children[i]
@@ -665,15 +666,25 @@ def PlanTask_UCT(task, taskArgs):
 
     m = mNode.GetLabel()
     planLocals.SetSearchTreeNode(mNode)
-    PlanMethod(m, task, taskArgs)
-    
+    failed = False
+    try:
+        PlanMethod(m, task, taskArgs)
+    except Failed_Rollout as e:
+        failed = True
+        pass
+
     utilVal = planLocals.GetUtilRollout().GetValue()
-    taskNode.Q[index] = 
-        ((utilVal + taskNode.n[index] * taskNode.Q[index]) /
-        (1 + taskNode.n[index])) 
+    if taskNode.n[index] > 0:
+        taskNode.Q[index] = \
+            Utility(((utilVal + taskNode.n[index] * taskNode.Q[index].GetValue()) / \
+            (1 + taskNode.n[index])))
+    else:
+        taskNode.Q[index] = Utility(utilVal)
 
     taskNode.n[index] += 1
     taskNode.N += 1
+    if failed:
+        raise Failed_Rollout()
 
 def PlanMethod(m, task, taskArgs):
     global path
@@ -858,7 +869,7 @@ def IndexOf(s, l):
     return -1
 
 def PlanCommand(cmd, cmdArgs):
-    outcomeStates = []
+    #outcomeStates = []
 
     searchTreeNode = planLocals.GetSearchTreeNode()
     prevState = GetState().copy()
@@ -877,7 +888,7 @@ def PlanCommand(cmd, cmdArgs):
             newNode.SetUtility(Utility('Failure'))
             newNode.SetPrevState(prevState)
             newCommandNode.AddChild(newNode)
-            outcomeStates.append(nextState)
+            #outcomeStates.append(nextState)
         else:
             #index = IndexOf(nextState, outcomeStates)
             index = -1
@@ -890,7 +901,7 @@ def PlanCommand(cmd, cmdArgs):
                 newNode = rTree.SearchTreeNode(nextState, 'state')
                 newNode.SetPrevState(prevState)
                 newCommandNode.AddChild(newNode)
-                outcomeStates.append(nextState)
+                #outcomeStates.append(nextState)
                 
     raise Expanded_Search_Tree_Node
 
@@ -908,21 +919,26 @@ def PlanCommand_UCT(cmd, cmdArgs):
         nextStateNode = rTree.SearchTreeNode(nextState, 'state')
         nextStateNode.SetUtility(Utility('Failure'))
         nextStateNode.SetPrevState(prevState)
-        newCommandNode.AddChild(nextStateNode)
-    else:
-        index = IndexOf(nextState, outcomeStates) # index among children
-        if index != -1:
-            # this state has already been planned for, so just use the previous result
-            #effList.append(effs[index])
-            #childNode = searchNodes[index]
-            newCommandNode.IncreaseWeight(nextState)
-        else:
-            newNode = rTree.SearchTreeNode(nextState, 'state')
-            newNode.SetPrevState(prevState)
-            newCommandNode.AddChild(newNode)
-            outcomeStates.append(nextState)
 
-    planLocals.SetSearchTreeNode(nextStateNode)
+        newCommandNode.AddChild(nextStateNode)
+
+        planLocals.SetUtilRollout(Utility('Failure'))
+        raise Failed_Rollout()
+    else:
+        nextStateNode = searchTreeNode.FindAmongChildren(nextState) 
+        if nextStateNode == None:
+            nextStateNode = rTree.SearchTreeNode(nextState, 'state')
+            nextStateNode.SetPrevState(prevState)
+
+            newCommandNode.AddChild(nextStateNode)
+
+        planLocals.SetCurrentNode(nextStateNode)
+        
+        util1 = planLocals.GetUtilRollout()
+        util2 = GetUtility(cmd, cmdArgs)
+        planLocals.SetUtilRollout(util1 + util2)
+
+        planLocals.SetSearchTreeNode(nextStateNode)
 
 def GetCost(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")

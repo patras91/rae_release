@@ -516,6 +516,9 @@ class SearchTreeNode():
         self.util = Utility("UNK")
         self.prevState = None
         self.parent = None
+        if GLOBALS.GetUCTmode() == True and self.type == 'task':
+            self.n = []
+            self.Q = []
 
     def GetLabel(self):
         return self.label
@@ -553,7 +556,14 @@ class SearchTreeNode():
         self.childWeights.append(1)
         if GLOBALS.GetUCTmode() == True and self.type == 'task':
             self.n.append(0)
-            self.Q.append(0)
+            self.Q.append(Utility('Success'))
+
+    def FindAmongChildren(self, s):
+        assert(self.type == 'command')
+        for child in self.children:
+            if child.label.EqualTo(s):
+                return child 
+        return None
 
     def GetNext(self):
         if self.childPtr < len(self.children):
