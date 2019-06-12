@@ -18,7 +18,7 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-#import colorama
+import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
@@ -237,7 +237,7 @@ def RAE1(task, raeArgs):
     path.update({raeLocals.GetStackId(): []})
 
     if verbose > 0:
-        print('\n---- APE: Create stack {}, task {}{}\n'.format(raeLocals.GetStackId(), task, raeArgs.taskArgs))
+        print('\n---- RAE: Create stack {}, task {}{}\n'.format(raeLocals.GetStackId(), task, raeArgs.taskArgs))
 
     BeginCriticalRegion(raeLocals.GetStackId())
 
@@ -460,8 +460,6 @@ def RAEplanChoice(task, planArgs):
 
     taskArgs = planArgs.GetTaskArgs()
     planLocals.SetHeuristicArgs(task, taskArgs)
-    planLocals.SetDepth(0)
-    planLocals.SetRefDepth(float("inf"))
 
     globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
     
@@ -481,6 +479,7 @@ def RAEplanChoice(task, planArgs):
     while (searchTreeRoot.GetSearchDone() == False): # all rollouts not explored
         try:
             planLocals.SetDepth(0)
+            planLocals.SetRefDepth(float("inf"))
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
             searchTreeRoot.UpdateChildPointers()    
@@ -516,8 +515,6 @@ def RAEplanChoice_UCT(task, planArgs):
 
     taskArgs = planArgs.GetTaskArgs()
     planLocals.SetHeuristicArgs(task, taskArgs)
-    planLocals.SetDepth(0)
-    planLocals.SetRefDepth(float("inf"))
 
     globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
     
@@ -537,7 +534,10 @@ def RAEplanChoice_UCT(task, planArgs):
     i = 1
     while (i <= GLOBALS.GetUCTRuns()): # all rollouts not explored
         try:
+            print("Rollout", i)
             planLocals.SetDepth(0)
+            planLocals.SetRefDepth(float("inf"))
+            planLocals.SetUtilRollout(Utility('Success'))
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs)    
         except Failed_Rollout as e:
@@ -644,20 +644,25 @@ def PlanTask_UCT(task, taskArgs):
             newSearchTreeNode = rTree.SearchTreeNode(m, 'method')
             newSearchTreeNode.SetPrevState(state)
             taskNode.AddChild(newSearchTreeNode)
+    else:
+        taskNode = searchTreeNode.children[0]
     
     untried = []
+    taskNode.PrintUsingGraphviz()
     for child in taskNode.children:
         if child.children == []:
             untried.append(child)
 
+    print("U", taskNode.n)
     if untried != []:
-        mNode = random.choice(untried)
+        index = random.choice(range(0, len(untried)))
+        mNode = untried[index]
     else:
         vmax = 0
         mNode = None
         index = None
         for i in range(0, len(taskNode.children)):
-            v = taskNode.Q[i] + \
+            v = taskNode.Q[i].GetValue() + \
                 GLOBALS.GetC() * math.sqrt(math.log(taskNode.N)/taskNode.n[i])
             if v > vmax:
                 vmax = v
@@ -909,8 +914,10 @@ def PlanCommand_UCT(cmd, cmdArgs):
 
     searchTreeNode = planLocals.GetSearchTreeNode()
     if searchTreeNode.children == []:
-        newCommandNode = rTree.SearchTreeNode(cmd, 'command')
-        searchTreeNode.AddChild(newCommandNode)
+        commandNode = rTree.SearchTreeNode(cmd, 'command')
+        searchTreeNode.AddChild(commandNode)
+    else:
+        commandNode = searchTreeNode.children[0]
 
     retcode = CallCommand_OperationalModel(cmd, cmdArgs)
     nextState = GetState().copy()
@@ -918,19 +925,15 @@ def PlanCommand_UCT(cmd, cmdArgs):
     if retcode == 'Failure':
         nextStateNode = rTree.SearchTreeNode(nextState, 'state')
         nextStateNode.SetUtility(Utility('Failure'))
-        nextStateNode.SetPrevState(prevState)
-
-        newCommandNode.AddChild(nextStateNode)
-
+        commandNode.AddChild(nextStateNode)
         planLocals.SetUtilRollout(Utility('Failure'))
         raise Failed_Rollout()
     else:
-        nextStateNode = searchTreeNode.FindAmongChildren(nextState) 
+        nextStateNode = commandNode.FindAmongChildren(nextState) 
         if nextStateNode == None:
             nextStateNode = rTree.SearchTreeNode(nextState, 'state')
-            nextStateNode.SetPrevState(prevState)
 
-            newCommandNode.AddChild(nextStateNode)
+            commandNode.AddChild(nextStateNode)
 
         planLocals.SetCurrentNode(nextStateNode)
         
