@@ -615,7 +615,14 @@ class SearchTreeNode():
         return bestMethod
 
     def GetBestMethod_UCT(self):
-        return 1
+        bestMethod = 'Failure'
+        bestQ = Utility('Failure')
+        for q in self.Q:
+            if q > bestQ:
+                bestQ = q
+                index = 1
+                bestMethod = child.GetLabel()
+        return bestMethod
 
     def IncreaseWeight(self, s):
         assert(self.type == 'command')

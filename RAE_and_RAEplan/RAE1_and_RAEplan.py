@@ -23,6 +23,7 @@ from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
 from utility import Utility
+import time
 ############################################################
 
 ### for debugging
@@ -480,6 +481,7 @@ def RAEplanChoice(task, planArgs):
         try:
             planLocals.SetDepth(0)
             planLocals.SetRefDepth(float("inf"))
+            RestoreState(planArgs.GetState())
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
             searchTreeRoot.UpdateChildPointers()    
@@ -618,7 +620,6 @@ def PlanTask(task, taskArgs):
 
 def PlanTask_UCT(task, taskArgs):
     searchTreeNode = planLocals.GetSearchTreeNode()
-    
     if searchTreeNode.children == []:
         # add new nodes with this task and its applicable method instances
         taskNode = rTree.SearchTreeNode('task', 'task')
@@ -648,15 +649,14 @@ def PlanTask_UCT(task, taskArgs):
         taskNode = searchTreeNode.children[0]
     
     untried = []
-    taskNode.PrintUsingGraphviz()
+
     for child in taskNode.children:
         if child.children == []:
             untried.append(child)
 
-    print("U", taskNode.n)
     if untried != []:
-        index = random.choice(range(0, len(untried)))
-        mNode = untried[index]
+        mNode = random.choice(range(0, len(untried)))
+        index = taskNode.children.index(mNode)
     else:
         vmax = 0
         mNode = None
@@ -688,6 +688,7 @@ def PlanTask_UCT(task, taskArgs):
 
     taskNode.n[index] += 1
     taskNode.N += 1
+    print("Before returning", taskNode.n)
     if failed:
         raise Failed_Rollout()
 
