@@ -48,20 +48,20 @@ def t1_c2():
     return SUCCESS
 
 def m1_t1():
-    gui.Simulate("t1")
+    gui.Simulate("m1_t1\n")
     alg.do_command(t1_c1)
 
 def m2_t1():
-    gui.Simulate("m2_t1")
+    gui.Simulate("m2_t1\n")
     alg.do_command(t1_c2)
 
 def m1_t2():
-    gui.Simulate("t2")
+    gui.Simulate("m1_t2\n")
     alg.do_command(t1_c1)
     alg.do_task("t1")
 
 def m2_t2():
-    gui.Simulate("t2")
+    gui.Simulate("m2_t2\n")
     alg.do_command(t1_c1)
     alg.do_task("t1")
 

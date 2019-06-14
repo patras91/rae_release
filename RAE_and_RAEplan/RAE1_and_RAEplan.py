@@ -655,7 +655,7 @@ def PlanTask_UCT(task, taskArgs):
             untried.append(child)
 
     if untried != []:
-        mNode = random.choice(range(0, len(untried)))
+        mNode = random.choice(untried)
         index = taskNode.children.index(mNode)
     else:
         vmax = 0
