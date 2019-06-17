@@ -481,7 +481,6 @@ def RAEplanChoice(task, planArgs):
         try:
             planLocals.SetDepth(0)
             planLocals.SetRefDepth(float("inf"))
-            RestoreState(planArgs.GetState())
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             do_task(task, *taskArgs) 
             searchTreeRoot.UpdateChildPointers()    
@@ -541,6 +540,7 @@ def RAEplanChoice_UCT(task, planArgs):
             planLocals.SetRefDepth(float("inf"))
             planLocals.SetUtilRollout(Utility('Success'))
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
+            RestoreState(searchTreeRoot.GetPrevState())
             do_task(task, *taskArgs)    
         except Failed_Rollout as e:
             v_failedCommand(e)
@@ -650,9 +650,13 @@ def PlanTask_UCT(task, taskArgs):
     
     untried = []
 
-    for child in taskNode.children:
-        if child.children == []:
-            untried.append(child)
+    #taskNode.PrintUsingGraphviz()
+    if taskNode.N == 0:
+        untried = taskNode.children
+    else:
+        for child in taskNode.children:
+            if child.children == []:
+                untried.append(child)
 
     if untried != []:
         mNode = random.choice(untried)

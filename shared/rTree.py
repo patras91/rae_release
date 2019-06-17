@@ -373,9 +373,7 @@ class ActingTree():
             if t == "method":
                 node = SearchTreeNode('task', 'task')
                 if GLOBALS.GetUCTmode() == True:
-                    node.N = 1
-                    node.n = [1]
-                    node.Q = [Utility('Success')]
+                    node.N = 0
                 child = SearchTreeNode(item.GetLabel(), 'method')
                 child.SetPrevState(item.GetPrevState())
                 node.AddChild(child)
