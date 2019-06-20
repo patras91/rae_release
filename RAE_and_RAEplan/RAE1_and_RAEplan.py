@@ -540,7 +540,7 @@ def RAEplanChoice_UCT(task, planArgs):
             planLocals.SetRefDepth(float("inf"))
             planLocals.SetUtilRollout(Utility('Success'))
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
-            RestoreState(searchTreeRoot.GetPrevState())
+            RestoreState(searchTreeRoot.GetNext().GetPrevState())
             do_task(task, *taskArgs)    
         except Failed_Rollout as e:
             v_failedCommand(e)
@@ -668,7 +668,7 @@ def PlanTask_UCT(task, taskArgs):
         for i in range(0, len(taskNode.children)):
             v = taskNode.Q[i].GetValue() + \
                 GLOBALS.GetC() * math.sqrt(math.log(taskNode.N)/taskNode.n[i])
-            if v > vmax:
+            if v >= vmax:
                 vmax = v
                 mNode = taskNode.children[i]
                 index = i
@@ -924,8 +924,12 @@ def PlanCommand_UCT(cmd, cmdArgs):
     else:
         commandNode = searchTreeNode.children[0]
 
-    retcode = CallCommand_OperationalModel(cmd, cmdArgs)
-    nextState = GetState().copy()
+    if planLocals.GetCandidates() != None:
+        retcode = 'Success'
+        nextState = commandNode.GetNext().GetLabel()
+    else:
+        retcode = CallCommand_OperationalModel(cmd, cmdArgs)
+        nextState = GetState().copy()
 
     if retcode == 'Failure':
         nextStateNode = rTree.SearchTreeNode(nextState, 'state')
