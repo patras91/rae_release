@@ -18,6 +18,6 @@ def ResetState():
     state.loc = {'r1': 1, 'o1': 1}
 
 
-tasks = {1: [['t2']]}
+tasks = {1: [['t3']]}
 
 eventsEnv = {}

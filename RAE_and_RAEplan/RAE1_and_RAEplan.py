@@ -535,7 +535,7 @@ def RAEplanChoice_UCT(task, planArgs):
     i = 1
     while (i <= GLOBALS.GetUCTRuns()): # all rollouts not explored
         try:
-            print("Rollout", i)
+            print("-----------------------Rollout", i)
             planLocals.SetDepth(0)
             planLocals.SetRefDepth(float("inf"))
             planLocals.SetUtilRollout(Utility('Success'))
@@ -621,6 +621,7 @@ def PlanTask(task, taskArgs):
 def PlanTask_UCT(task, taskArgs):
     searchTreeNode = planLocals.GetSearchTreeNode()
     if searchTreeNode.children == []:
+        print("here1")
         # add new nodes with this task and its applicable method instances
         taskNode = rTree.SearchTreeNode('task', 'task')
         taskNode.N = 0
@@ -647,10 +648,10 @@ def PlanTask_UCT(task, taskArgs):
             taskNode.AddChild(newSearchTreeNode)
     else:
         taskNode = searchTreeNode.children[0]
+        print("here2")
     
     untried = []
 
-    #taskNode.PrintUsingGraphviz()
     if taskNode.N == 0:
         untried = taskNode.children
     else:
@@ -692,7 +693,6 @@ def PlanTask_UCT(task, taskArgs):
 
     taskNode.n[index] += 1
     taskNode.N += 1
-    print("Before returning", taskNode.n)
     if failed:
         raise Failed_Rollout()
 
@@ -927,9 +927,11 @@ def PlanCommand_UCT(cmd, cmdArgs):
     if planLocals.GetCandidates() != None:
         retcode = 'Success'
         nextState = commandNode.GetNext().GetLabel()
+        print("following")
     else:
         retcode = CallCommand_OperationalModel(cmd, cmdArgs)
         nextState = GetState().copy()
+        print("simulating")
 
     if retcode == 'Failure':
         nextStateNode = rTree.SearchTreeNode(nextState, 'state')

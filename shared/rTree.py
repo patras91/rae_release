@@ -561,6 +561,7 @@ class SearchTreeNode():
             self.Q.append(Utility('Success'))
 
     def FindAmongChildren(self, s):
+        print("type = ", self.type)
         assert(self.type == 'command')
         for child in self.children:
             if child.label.EqualTo(s):
