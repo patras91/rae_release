@@ -372,8 +372,6 @@ class ActingTree():
             t = item.GetType()
             if t == "method":
                 node = SearchTreeNode('task', 'task')
-                if GLOBALS.GetUCTmode() == True:
-                    node.N = 0
                 child = SearchTreeNode(item.GetLabel(), 'method')
                 child.SetPrevState(item.GetPrevState())
                 node.AddChild(child)
@@ -519,6 +517,7 @@ class SearchTreeNode():
         self.prevState = None
         self.parent = None
         if GLOBALS.GetUCTmode() == True and self.type == 'task':
+            self.N = 0
             self.n = []
             self.Q = []
 
@@ -561,7 +560,6 @@ class SearchTreeNode():
             self.Q.append(Utility('Success'))
 
     def FindAmongChildren(self, s):
-        print("type = ", self.type)
         assert(self.type == 'command')
         for child in self.children:
             if child.label.EqualTo(s):
@@ -622,16 +620,13 @@ class SearchTreeNode():
         bestQ = Utility('Failure')
         
         l = [q.GetValue() for q in self.Q]
-        print(l)
         for i in range(0, len(self.Q)):
             if self.Q[i] > bestQ:
                 bestQ = self.Q[i]
                 index = i
         if index == None:
-            print("returning failure")
             return 'Failure'
         else:
-            print(self.children[index].GetLabel())
             return self.children[index].GetLabel()
         
     def IncreaseWeight(self, s):

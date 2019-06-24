@@ -12,6 +12,7 @@ g = G()
 g.doPlanning = False
 g.planningMode = False
 g.heuristic = None
+g.mode = True
 
 def SetDoPlanning(s):
 	g.doPlanning = s
@@ -71,11 +72,20 @@ def SetOpt(opt):
     assert(opt == 'min' or opt == 'max')
     g.opt = opt
 
+def SetUCTRuns(v):
+    g.runs = v
+
 def GetUCTRuns():
-    return 100
+    return g.runs
+
+def SetUCTmode(val):
+    if val == 'UCT' or val == "uct" or val == "Uct":
+        g.mode = True
+    else:
+        g.mode = False
 
 def GetUCTmode():
-    return False
+    return g.mode
 
 def GetC():
-    return 1
+    return 2

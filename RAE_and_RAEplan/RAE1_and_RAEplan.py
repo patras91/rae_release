@@ -521,7 +521,8 @@ def RAEplanChoice_UCT(task, planArgs):
     
     searchTreeRoot = planArgs.GetSearchTree()
     planLocals.SetSearchTreeRoot(searchTreeRoot)
-
+    planLocals.SetTaskToRefine(-1)
+    
     global path   # for debugging
     path.update({planLocals.GetStackId(): []})
         
@@ -535,11 +536,11 @@ def RAEplanChoice_UCT(task, planArgs):
     i = 1
     while (i <= GLOBALS.GetUCTRuns()): # all rollouts not explored
         try:
-            print("-----------------------Rollout", i)
             planLocals.SetDepth(0)
             planLocals.SetRefDepth(float("inf"))
             planLocals.SetUtilRollout(Utility('Success'))
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
+            planLocals.SetFlip(False)
             RestoreState(searchTreeRoot.GetNext().GetPrevState())
             do_task(task, *taskArgs)    
         except Failed_Rollout as e:
@@ -574,8 +575,11 @@ def GetCandidates(task, tArgs):
         flag = 0
         
     # b = max(1, GLOBALS.Getb() - int(planLocals.GetDepth() / 4))
-    b = GLOBALS.Getb()
-    cand = candidates[0:min(b, len(candidates))]
+    if GLOBALS.GetUCTmode == True:
+        cand = candidates
+    else:
+        b = GLOBALS.Getb()
+        cand = candidates[0:min(b, len(candidates))]
     return cand, prevState, flag
 
 def FollowSearchTree_task(task, taskArgs, node):
@@ -620,11 +624,10 @@ def PlanTask(task, taskArgs):
 
 def PlanTask_UCT(task, taskArgs):
     searchTreeNode = planLocals.GetSearchTreeNode()
+    
     if searchTreeNode.children == []:
-        print("here1")
         # add new nodes with this task and its applicable method instances
         taskNode = rTree.SearchTreeNode('task', 'task')
-        taskNode.N = 0
         searchTreeNode.AddChild(taskNode)
         # Need to look through several candidates for this task
         cand, state, flag = GetCandidates(task, taskArgs)
@@ -632,6 +635,7 @@ def PlanTask_UCT(task, taskArgs):
         if flag == 1:
             planLocals.SetTaskToRefine(taskNode)
             planLocals.SetRefDepth(planLocals.GetDepth())
+            planLocals.SetFlip(True)
 
         if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
             newNode = rTree.SearchTreeNode('heuristic', 'heuristic')
@@ -648,7 +652,9 @@ def PlanTask_UCT(task, taskArgs):
             taskNode.AddChild(newSearchTreeNode)
     else:
         taskNode = searchTreeNode.children[0]
-        print("here2")
+        assert(taskNode.type == 'task')
+        if taskNode == planLocals.GetTaskToRefine():
+            planLocals.SetFlip(True)
     
     untried = []
 
@@ -675,6 +681,7 @@ def PlanTask_UCT(task, taskArgs):
                 index = i
 
     m = mNode.GetLabel()
+    RestoreState(mNode.GetPrevState())
     planLocals.SetSearchTreeNode(mNode)
     failed = False
     try:
@@ -923,15 +930,12 @@ def PlanCommand_UCT(cmd, cmdArgs):
         searchTreeNode.AddChild(commandNode)
     else:
         commandNode = searchTreeNode.children[0]
-
-    if planLocals.GetCandidates() != None:
+    if planLocals.GetFlip() == False:
         retcode = 'Success'
         nextState = commandNode.GetNext().GetLabel()
-        print("following")
     else:
         retcode = CallCommand_OperationalModel(cmd, cmdArgs)
         nextState = GetState().copy()
-        print("simulating")
 
     if retcode == 'Failure':
         nextStateNode = rTree.SearchTreeNode(nextState, 'state')

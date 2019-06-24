@@ -85,7 +85,10 @@ if __name__ == "__main__":
                            type=str, default='h1', required=False)
     argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
                            type=str, default='no', required=False)
-
+    argparser.add_argument("--samplingMode", help="SLATE or UCT?",
+                           type=str, default="UCT", required=False)
+    argparser.add_argument("--uctCount", help="Number of rollouts in UCT?",
+                           type=int, default=100, required=False)
     args = argparser.parse_args()
 
     if args.plan == 'y':
@@ -102,5 +105,7 @@ if __name__ == "__main__":
     SetMode(args.clockMode)
     GLOBALS.SetShowOutputs(args.showOutputs)
     GLOBALS.SetSDN(args.SDN)
+    GLOBALS.SetUCTmode(args.samplingMode)
+    GLOBALS.SetUCTRuns(args.uctCount)
     testRAEandRAEplan(args.domain, args.problem, s)
     

@@ -129,6 +129,12 @@ class rL_PLAN(rL):
     def GetTaskToRefine(self):
         return self.rL.taskToRefine
 
+    def SetFlip(self, v):
+        self.rL.flip = v
+
+    def GetFlip(self):
+        return self.rL.flip
+
     def SetDepth(self, d):
         self.rL.depth = d
 
