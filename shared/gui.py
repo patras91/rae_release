@@ -3,8 +3,8 @@ __author__ = 'patras'
 
 from tkinter import *
 from queue import Queue
-import globals
-import turtle, tdraw
+import GLOBALS
+import turtle
 
 globalQueue = Queue()
 
@@ -13,7 +13,7 @@ class GUI():
         self.domain = domain
         if domain == 'IP_':
             turtle.Screen()
-            tdraw.draw_problem(title="IP_1", rv=rv)
+            #tdraw.draw_problem(title="IP_1", rv=rv)
             while(True):
                 self.simulate()
         else:
@@ -36,11 +36,11 @@ class GUI():
             self.root.after(1, self.simulate)
 
 def Simulate(*t):
-    if (globals.GetPlanningMode() == True or globals.GetShowOutputs() == 'off'):
+    if (GLOBALS.GetPlanningMode() == True or GLOBALS.GetShowOutputs() == 'off'):
         return
     globalQueue.put(t)
 
 def start(domain, rv):
-    if (globals.GetShowOutputs() == 'on'):
+    if (GLOBALS.GetShowOutputs() == 'on'):
         global g
         g = GUI(domain, rv)

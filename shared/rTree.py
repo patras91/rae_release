@@ -1,9 +1,11 @@
 __author__ = 'patras'
-import globals
+
 import pipes
 from timer import DURATION
 from graphviz import Digraph
 import types
+from utility import Utility
+import GLOBALS
 
 class PlanningTree():
     def __init__(self, n, args, type1):
@@ -14,7 +16,7 @@ class PlanningTree():
         self.children = [] # list of children of this node
 
         # only for RAEplan
-        self.eff = float("inf") # efficiency of this node
+        self.util = Utility('Success') # efficiency of this node
 
         # only for APEplan 
         self.state = None # state needs to be set after planning for sub-tasks
@@ -46,18 +48,11 @@ class PlanningTree():
                 res = res + node.GetPreorderTraversal()
             return res
 
-    def AddEfficiency(self, e2):
-        e1 = self.eff
-        if e1 == float("inf"):
-            res = e2
-        elif e2 == float("inf"):
-            res = e1
-        else:
-            res = (e1 * e2) / (e1 + e2)
-        self.eff = res
+    def AddUtility(self, u2):
+        self.util = self.util + u2
 
-    def GetEff(self):
-        return self.eff
+    def GetUtility(self):
+        return self.util
 
     def GetMethod(self):
         if self.type == 'method':
@@ -70,7 +65,7 @@ class PlanningTree():
     def DeleteAllChildren(self):
         assert(self.label == "root")
         self.children = []
-        self.SetEff(float("inf"))
+        self.SetUtility(Utility('Success'))
 
     def GetChild(self):
         assert(len(self.children) == 1)
@@ -79,8 +74,8 @@ class PlanningTree():
     def AddChild(self, node):
         self.children = self.children + [node]
 
-    def SetEff(self, e):
-        self.eff = e
+    def SetUtility(self, u):
+        self.util = u
 
     def GetPrettyString(self):
         if self.label == 'root' or self.label == 'Failure':
@@ -134,7 +129,7 @@ class PlanningTree():
         curr = 0
         next = 1
         print("\n------PLANNING TREE-------")
-        print("EFFICIENCY = ", self.GetEff())
+        print("UTILITY = ", self.GetUtility())
         while(level[curr] != []):
             print(' '.join(elem.GetPrettyString() for elem in level[curr]))
             for elem in level[curr]:
@@ -146,7 +141,7 @@ class PlanningTree():
 
     def copy(self):
         r = PlanningTree(self.label, self.args, self.type)
-        r.SetEff(self.eff)
+        r.SetUtility(self.util)
         if self.children == []:
             return r
         else:
@@ -177,7 +172,7 @@ class PlanningTree():
 
 def CreateFailureNode():
     tnode = PlanningTree('Failure', 'Failure', 'Failure')
-    tnode.SetEff(0)
+    tnode.SetUtility(Utility('Failure'))
     return tnode
 
 class ActingNode():
@@ -217,7 +212,10 @@ class ActingNode():
         if elem.label == 'root':
             return 'root'
         if elem.label != None:
-            return elem.label.__name__
+            if elem.type == 'method':
+                return elem.label.GetName()
+            else:
+                return elem.label.__name__
         else:
             return "NONE"
 
@@ -320,6 +318,23 @@ class ActingNode():
         else:
             return 0
 
+    def GetMetaData(self):
+        if self.type == 'command':
+            return 0, 0, 1
+        else:
+            h = 1
+            t = 1
+            c = 0
+            h_max = 0
+            for child in self.children:
+                maxHeight, taskCount, commandCount = child.GetMetaData()
+                t += taskCount
+                c += commandCount
+                if maxHeight > h_max:
+                    h_max = maxHeight
+            h += h_max
+            return h, t, c
+
 class ActingTree():
     def __init__(self):
         self.root = ActingNode('root')
@@ -387,6 +402,10 @@ class ActingTree():
 
     def PrintUsingGraphviz(self, name='actingTree'):
         self.root.PrintUsingGraphViz(name)
+
+    def GetMetaData(self):
+        h, t, c =  self.root.GetMetaData()
+        return h - 1, t - 1, c
 
 class GuideNode():
     def __init__(self, m, s1, s2, c):
@@ -476,27 +495,31 @@ class GuideList():
     def GetStartState(self):
         return self.l[0].GetPrevState()
 
-    def GetEff(self):
-        cost = 0
-        for item in self.l:
-            cost += item.GetCost()
+    #def GetUtility(self):
+    #    cost = 0
+    #    for item in self.l:
+    #        cost += item.GetCost()
 
-        if cost == 0:
-            return float("inf")
-        else:
-            return 1/cost
+    #    if cost == 0:
+    #        return float("inf")
+    #    else:
+    #        return 1/cost
 
 class SearchTreeNode():
     def __init__(self, l, t):
         self.label = l
-        assert(t == "task" or t == "method" or t == "command" or t == "state")
+        assert(t == "task" or t == "method" or t == "command" or t == "state" or t == "heuristic")
         self.type = t
         self.children = []
         self.childPtr = 0
         self.childWeights = []
-        self.eff = "UNK"
+        self.util = Utility("UNK")
         self.prevState = None
         self.parent = None
+        if GLOBALS.GetUCTmode() == True and self.type == 'task':
+            self.N = 0
+            self.n = []
+            self.Q = []
 
     def GetLabel(self):
         return self.label
@@ -504,11 +527,11 @@ class SearchTreeNode():
     def GetType(self):
         return self.type
 
-    def SetEff(self, e):
-        self.eff = e
+    def SetUtility(self, u):
+        self.util = u
 
-    def GetEff(self):
-        return self.eff
+    def GetUtility(self):
+        return self.util
 
     def GetSearchDone(self):
         if self.childPtr == 1:
@@ -532,6 +555,16 @@ class SearchTreeNode():
         node.parent = self
         self.children.append(node)
         self.childWeights.append(1)
+        if GLOBALS.GetUCTmode() == True and self.type == 'task':
+            self.n.append(0)
+            self.Q.append(Utility('Success'))
+
+    def FindAmongChildren(self, s):
+        assert(self.type == 'command')
+        for child in self.children:
+            if child.label.EqualTo(s):
+                return child 
+        return None
 
     def GetNext(self):
         if self.childPtr < len(self.children):
@@ -539,58 +572,63 @@ class SearchTreeNode():
         else:
             return None
 
-    def IncrementPointerAndSetEff(self):
+    def IncrementPointerAndSetUtility(self):
         if self.childPtr < len(self.children) - 1:
             self.childPtr += 1
         else:
             if self.type == 'task':
-                maxEff = 0
+                bestUtil = Utility('Failure')
                 for child in self.children:
-                    if child.eff > maxEff:
-                        maxEff = child.eff
-                self.eff = maxEff
+                    if child.util > bestUtil:
+                        bestUtil = child.util
+                self.util = bestUtil
             elif self.type == 'command':
                 sum = 0
                 total = 0
+                # Take the average of values
                 for child, weight in zip(self.children, self.childWeights):
-                    sum += weight*child.eff
+                    sum += weight * child.util.GetValue()
                     total += weight
-                self.eff = sum/weight
+                self.util = Utility(sum / weight)
             elif self.type == 'state':
-                self.AddEfficiency(self.children[0].eff)
+                self.util = self.util + self.children[0].util
             else:
-                self.eff = self.children[0].eff
+                self.util = self.children[0].util
 
             self.childPtr += 1
             if self.parent != None:
-                self.parent.IncrementPointerAndSetEff()
+                self.parent.IncrementPointerAndSetUtility()
 
     def UpdateChildPointers(self):
         if self.children == []:
             # reached the bottom of the tree, start moving up now
-            self.parent.IncrementPointerAndSetEff()
+            self.parent.IncrementPointerAndSetUtility()
         else:
             self.children[self.childPtr].UpdateChildPointers()
 
-    def AddEfficiency(self, e2):
-        e1 = self.eff
-        if e1 == float("inf"):
-            res = e2
-        elif e2 == float("inf"):
-            res = e1
-        else:
-            res = (e1 * e2) / (e1 + e2)
-        self.eff = res
-
     def GetBestMethod(self):
         bestMethod = 'Failure'
-        bestEff = 0
+        bestUtil = Utility('Failure')
         for child in self.children:
-            if child.eff > bestEff:
-                bestEff = child.eff
+            if child.util > bestUtil:
+                bestUtil = child.util
                 bestMethod = child.GetLabel()
         return bestMethod
 
+    def GetBestMethod_UCT(self):
+        index = None
+        bestQ = Utility('Failure')
+        
+        l = [q.GetValue() for q in self.Q]
+        for i in range(0, len(self.Q)):
+            if self.Q[i] > bestQ:
+                bestQ = self.Q[i]
+                index = i
+        if index == None:
+            return 'Failure'
+        else:
+            return self.children[index].GetLabel()
+        
     def IncreaseWeight(self, s):
         assert(self.type == 'command')
         for index in range(0, len(self.children)):
@@ -598,9 +636,11 @@ class SearchTreeNode():
                 self.childWeights[index] += 1
 
     def GetPrettyString(self, elem):
-        if elem.label == 'task' or elem.label == 'root':
+        if elem.label == 'task' or elem.label == 'root' or elem.label == 'heuristic':
             return elem.label
-        elif elem.type == 'method' or elem.type == 'command':
+        elif elem.type == 'method':
+            return elem.label.GetName()
+        elif elem.type == 'command':
             return elem.label.__name__
         elif elem.type == 'state':
             return "state"

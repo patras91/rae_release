@@ -2,6 +2,11 @@ __author__ = 'patras'
 
 from threading import Lock
 
+# importing itertools to evaluate statements in OF
+# may want to change logic to not require import
+import itertools
+import random
+
 class State():
     def __init__(self):
         pass
@@ -79,6 +84,21 @@ class StateDict():
     def __str__(self):
         return self.dict.__str__()
 
+    def pop(self, key):
+        return self.dict.pop(key)
+
+    def update(self, other):
+        return self.dict.update(other)
+
+    def remove(self, key):
+        del self.dict[key]
+
+    def keys(self):
+        return self.dict.keys()
+
+    def items(self):
+        return self.dict.items()
+
     def AcquireLock(self, *key):
         if len(key) == 1:
             self.lock[key[0]].acquire()
@@ -103,7 +123,7 @@ class StateDict():
     def DeleteLocks(self):
         self.lock = None
 
-state = State()  # the global state of APE, this is shared by all stacks
+state = State()  # the global state of RAE, this is shared by all stacks
 
 def ReinitializeState():   
     """
@@ -127,6 +147,18 @@ def RestoreState(s):
 def GetState():
     return state
 
+#Rigid variables
+class RV():
+    def __init__(self):
+        pass
+
+rv = RV()
+
+def EvaluateParameters(expr, mArgs, tArgs):
+    for i in range(0, len(tArgs)):
+        globals()[mArgs[i]] = tArgs[i]
+    return eval(expr, globals())
+    
 if __name__=="__main__":
     s = State()
     s.a = {1:3, 2:5}

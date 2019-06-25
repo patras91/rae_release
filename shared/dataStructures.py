@@ -1,6 +1,8 @@
 __author__ = 'patras'
 
 import threading
+import GLOBALS
+from utility import *
 
 class rL():
     def __init__(self):
@@ -62,11 +64,11 @@ class rL_APE(rL):
     def GetSearchTree(self):
         return self.rL.aT.GetSearchTree()
 
-    def SetEfficiency(self, e):
-        self.rL.eff = e
+    def SetUtility(self, e):
+        self.rL.util = e
 
-    def GetEfficiency(self):
-        return self.rL.eff
+    def GetUtility(self):
+        return self.rL.util
 
 class rL_PLAN(rL):
 
@@ -126,6 +128,40 @@ class rL_PLAN(rL):
 
     def GetTaskToRefine(self):
         return self.rL.taskToRefine
+
+    def SetFlip(self, v):
+        self.rL.flip = v
+
+    def GetFlip(self):
+        return self.rL.flip
+
+    def SetDepth(self, d):
+        self.rL.depth = d
+
+    def GetDepth(self):
+        return self.rL.depth
+
+    def IncreaseDepthBy1(self):
+        self.rL.depth += 1
+
+    def SetRefDepth(self, d):
+        self.rL.refDepth = d
+
+    def GetRefDepth(self):
+        return self.rL.refDepth
+
+    def SetHeuristicArgs(self, t, args):
+        self.rL.heuristicTaskName = t
+        self.rL.heuristicTaskArgs = args
+
+    def GetHeuristicArgs(self):
+        return (self.rL.heuristicTaskName, self.rL.heuristicTaskArgs)
+
+    def SetUtilRollout(self, u):
+        self.rL.util = u
+
+    def GetUtilRollout(self):
+        return self.rL.util
 
 class PlanArgs():
     def __init__(self):
