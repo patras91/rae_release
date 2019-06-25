@@ -44,6 +44,10 @@ Depth = {
     #'SR': [0, 5, 10, 15]
 }
 
+UCT = {
+    'CR': [0, 100, 300, 500, 700, 900]
+}
+
 succCases = {
     'SD': [],
     'EE': [],
@@ -138,6 +142,81 @@ def PopulateHelper(res, domain, f_rae, k):
         res['actTime'][k_index] += actTime
         res['nu'][k_index] += nu / totalTasks
 
+def PopulateHelper_UCT(res, domain, f_rae, uct):
+
+    line = f_rae.readline()
+    
+    succCount = 0
+    totalTasks = 0
+    
+    retryCount = 0
+    totalCountForRetries = 0
+
+    planTime = 0
+    actTime = 0
+    
+    clock = 0
+    nu = 0
+    
+    id = 0
+    
+    while(line != ''):
+
+        parts = line.split(' ')
+
+        if parts[0] == 'Time':
+
+            succ = 0
+            total = 0
+
+            for i in range(0, 1):
+                id += 1
+
+                counts = f_rae.readline()
+                if counts == '':
+                    break
+                parts2 = counts.split(' ')
+
+                s = int(parts2[0])
+                t = int(parts2[1])
+                r = int(parts2[2])
+                planTime += int(parts2[3])
+                actTime += int(parts2[4])
+                nu += float(parts2[5])
+
+                succCount += s
+                totalTasks += t
+
+                # for retry ratio
+                if s == t:
+                    if ((id in succCases[domain]) and uct > 0): #or (domain in ['CR', 'EE', 'SD', 'IP']):
+                        retryCount += r
+                        totalCountForRetries += t
+                    elif uct == 0:
+                        succCases[domain].append(id)
+                        retryCount += r
+                        totalCountForRetries += t
+                    else:
+                        pass
+                else:
+                    pass
+
+            secTimeLine = f_rae.readline()
+
+        line = f_rae.readline()
+
+    print(res)
+
+    print(len(res['successRatio']), "uct = ", uct)
+    res['successRatio'].append(succCount/totalTasks)
+    if totalCountForRetries != 0:
+        res['retryRatio'].append(retryCount/totalCountForRetries)
+    else:
+        res['retryRatio'].append(0)
+    res['planTime'].append(planTime)
+    res['actTime'].append(actTime)
+    res['nu'].append(nu / totalTasks)
+
 def PopulateHelper1(domain, f_rae, k):
 
     line = f_rae.readline()
@@ -183,6 +262,21 @@ def Populate(res, domain):
                     print(fname)
                     PopulateHelper(res[b], domain, open(fname), k)
                     fptr.close()
+
+def Populate_UCT(res, domain):
+    for uct in UCT[domain]:
+        if uct == 0:
+            f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+            f_rae = open(f_rae_name, "r")
+            print(f_rae_name)
+            PopulateHelper_UCT(res, domain, f_rae, uct)
+            f_rae.close()
+        else:
+            fname = '{}{}_v_journal/rae_plan_uct_{}.txt'.format(resultsFolder, domain, uct)
+            fptr = open(fname)
+            print(fname)
+            PopulateHelper_UCT(res, domain, open(fname), uct)
+            fptr.close()
 
 def CalculateRunningTime(domain):
     for b in B[domain]:
@@ -241,6 +335,31 @@ def GeneratePlotsForbAndk():
 
     PlotSuccessRatio(resDict)
 
+def GeneratePlotsForUCT():
+    resDict = {}
+    for domain in D:
+        resDict[domain] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'nu': []
+            }
+        Populate_UCT(resDict[domain], domain)
+
+    plt.clf()
+    font = {
+        'family' : 'times',
+        'weight' : 'bold',
+        'size'   : 24}
+    plt.rc('font', **font)
+    
+    PlotNu_UCT(resDict)
+
+    #PlotRetryRatio_UCT(resDict)
+
+    #PlotSuccessRatio_UCT(resDict)
+
 def PlotNuAAAI(resDict):
     index1 = 'nu'
     width = 0.25
@@ -276,6 +395,39 @@ def PlotNuAAAI(resDict):
            ['0', '1', '3', '5', '8', '10'])
         plt.ylabel('Efficiency, $E$') 
         plt.savefig(fname, bbox_inches='tight')
+
+def PlotNu_UCT(resDict):
+    index1 = 'nu'
+    width = 0.25
+    #K = [0, 1, 2, 3, 4, 8, 16]
+
+    for domain in D:
+        plt.clf()
+        fname = '{}Nu_{}_UCT.png'.format(figuresFolder, domain)
+        line1, = plt.plot(UCT[domain], resDict[domain][index1], 'ro:', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        
+        #plt.legend(bbox_to_anchor=(1.05, 0.9), loc=2, borderaxespad=0.)
+                
+        # Create a legend for the first line.
+        #first_legend = plt.legend(handles=[line1], loc=10)
+
+        # Add the legend manually to the current Axes.
+        #ax = plt.gca().add_artist(first_legend)
+
+        # Create another legend for the second line.
+        #leg2 = plt.legend(handles=[line2], loc=9)
+
+        #bx = plt.gca().add_artist(leg2)
+
+        #plt.legend(handles=[line3], loc=8)
+        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
+            
+        plt.xlabel('rollouts')
+        plt.xticks(UCT[domain],
+           [str(item) for item in UCT[domain]])
+        plt.ylabel('Efficiency, $E$') 
+        plt.savefig(fname, bbox_inches='tight')
+
 
 def GetString(depth):
     s = []
@@ -691,12 +843,17 @@ if __name__=="__main__":
                            type=int, required=True)
     argparser.add_argument("--heuristic", help="Heuristic",
                            type=str, required=True)
+    argparser.add_argument("--s", help="SamplingStrategy",
+                           type=str, required=True)
     args = argparser.parse_args()
 
     heuristic = args.heuristic
     D = [args.domain]
-    if args.depth == 0:    
-        GeneratePlotsForbAndk()
+    if args.depth == 0:
+        if args.s != "UCT":
+            GeneratePlotsForbAndk()
+        else:
+            GeneratePlotsForUCT()
     else:
         GeneratePlotsForDepth()
 

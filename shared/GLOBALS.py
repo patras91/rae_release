@@ -79,7 +79,7 @@ def GetUCTRuns():
     return g.runs
 
 def SetUCTmode(val):
-    if val == 'UCT' or val == "uct" or val == "Uct":
+    if val == "UCT" or val == "uct" or val == "Uct":
         g.mode = True
     else:
         g.mode = False

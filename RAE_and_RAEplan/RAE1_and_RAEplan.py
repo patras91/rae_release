@@ -575,7 +575,7 @@ def GetCandidates(task, tArgs):
         flag = 0
         
     # b = max(1, GLOBALS.Getb() - int(planLocals.GetDepth() / 4))
-    if GLOBALS.GetUCTmode == True:
+    if GLOBALS.GetUCTmode() == True:
         cand = candidates
     else:
         b = GLOBALS.Getb()

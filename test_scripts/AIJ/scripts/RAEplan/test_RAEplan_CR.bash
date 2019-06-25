@@ -133,10 +133,11 @@ P=(
 B=("1" "2" "3") # Can be 1, 2 or 3
 for problem in ${P[@]}
 do
-    for b in ${B[@]}
+    for uct in "100" "300" "500" "700" "900"
+    #for b in ${B[@]}
     do 
-        for k in "1" "3" "5" "8" "10" # can be any positive integer
-        do
+    #    for k in "1" "3" "5" "8" "10" # can be any positive integer
+    #    do
             setup="
 import sys
 sys.path.append('../../../../RAE_and_RAEplan/')
@@ -144,23 +145,23 @@ sys.path.append('../../../../shared/domains/')
 sys.path.append('../../../../shared/problems/CR/auto')
 sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
-GLOBALS.Setb($b)
-GLOBALS.Setk($k)
+GLOBALS.SetUCTRuns($uct)
+GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
 GLOBALS.SetSearchDepth(float(\"inf\"))"
 counter=1
 while [ $counter -le $runs ]
 do
-            echo $domain $problem "b = " $b ", k = " $k ", Run " $counter/$runs
+            echo $domain $problem " uct = " $uct ", Run " $counter/$runs
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"
 
-            fname="../../results/${domain}_v_journal/rae_plan_b_${b}_k_${k}.txt" # You should have a folder called CR in the current folder
+            fname="../../results/${domain}_v_journal/rae_plan_uct_${uct}.txt" # You should have a folder called CR in the current folder
 
-            echo "Time test of $domain $problem $sampleCount" >> $fname
+            echo "Time test of $domain $problem" >> $fname
             python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
 ((counter++))
 done
-        done
+        #done
     done
 done
 
