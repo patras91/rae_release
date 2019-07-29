@@ -67,28 +67,36 @@ if __name__ == "__main__":
                            type=str, default="problem11", required=False)
     argparser.add_argument("--plan", help="Do you want to use RAEplan or not? ('y' or 'n')",
                            type=str, default='y', required=False)
+    argparser.add_argument("--samplingMode", help="SLATE or UCT?",
+                           type=str, default="UCT", required=False)
     argparser.add_argument("--clockMode", help="Mode of the clock ('Counter' or 'Clock')",
                            type=str, default='Counter', required=False)
     argparser.add_argument("--showOutputs", help="Whether to display the outputs of commands or not? (set 'on' for more clarity and 'off' for batch runs)",
                            type=str, default='on', required=False)
-    argparser.add_argument("--lazy", help="Whether to do lazy lookahead? ('y' or 'n') (not implemented yet)",
-                           type=str, default='n', required=False)
-    argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n') (not implemented yet)",
-                           type=str, default='n', required=False)
+    
+    # parameters of SLATE
     argparser.add_argument("--b", help="Number of methods RAEplan should look at",
                            type=int, default=2, required=False)
     argparser.add_argument("--k", help="Number of commands samples RAEplan should look at",
                            type=int, default=1, required=False)
+
     argparser.add_argument("--depth", help="Search Depth",
                            type=int, default=float("inf"), required=False)
     argparser.add_argument("--heuristic", help="Name of the heuristic function",
                            type=str, default='h1', required=False)
     argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
                            type=str, default='no', required=False)
-    argparser.add_argument("--samplingMode", help="SLATE or UCT?",
-                           type=str, default="UCT", required=False)
+
+    # parameter for UCT
     argparser.add_argument("--uctCount", help="Number of rollouts in UCT?",
                            type=int, default=100, required=False)
+
+    # these two may be used in future
+    argparser.add_argument("--lazy", help="Whether to do lazy lookahead? ('y' or 'n') (not implemented yet)",
+                           type=str, default='n', required=False)
+    argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n') (not implemented yet)",
+                           type=str, default='n', required=False)
+
     args = argparser.parse_args()
 
     if args.plan == 'y':

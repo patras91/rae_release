@@ -132,15 +132,6 @@ def declare_methods(task_name, *method_list):
 
         methods[task_name].append(m)
 
-#def declare_methods(task_name, *method_list):
-    """
-    Call this once for each task, to tell Rae1 what the methods are.
-    task_name must be a string.
-    method_list must be a list of functions, not strings.
-    """
-#    methods.update({task_name:list(method_list)})
-#    return methods[task_name]
-
 def GetMethodInstances(methods, tArgs):
     
     instanceList = [] # List of all applicable method instances for t
@@ -226,6 +217,7 @@ def EndCriticalRegion():
 ############################################################
 # The actual acting engine    
 
+#SLATE sampling strategy
 def RAE1(task, raeArgs):
     """
     RAE1 is the actor with a single execution stack. The first argument is the name (which
@@ -297,7 +289,7 @@ def InitializeStackLocals(task, raeArgs):
     
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
-    APE calls this functions when it wants suggestions from APE-plan
+    RAE calls this functions when it wants suggestions from RAEplan
     """
     if verbose > 0:
         print(colorama.Fore.RED, "Starting simulation for stack")
@@ -334,9 +326,6 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         #random.shuffle(candidates)
         return (candidates[0], candidates[1:])
     else:
-        #plannedTreeFlat = plannedTree.GetPreorderTraversal()
-        #indexToLook = actingTree.GetSize() - 2
-        #m = plannedTreeFlat[indexToLook]
         candidates.pop(candidates.index(methodInstance))
         return (methodInstance, candidates)
 
@@ -536,6 +525,7 @@ def RAEplanChoice_UCT(task, planArgs):
     i = 1
     while (i <= GLOBALS.GetUCTRuns()): # all rollouts not explored
         try:
+            print("Rollout ", i)
             planLocals.SetDepth(0)
             planLocals.SetRefDepth(float("inf"))
             planLocals.SetUtilRollout(Utility('Success'))
@@ -637,13 +627,15 @@ def PlanTask_UCT(task, taskArgs):
             planLocals.SetRefDepth(planLocals.GetDepth())
             planLocals.SetFlip(True)
 
+        print(" ----------- ref = ", planLocals.GetRefDepth(), " search = ", GLOBALS.GetSearchDepth(), "-- cur = ", planLocals.GetDepth())
         if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
             newNode = rTree.SearchTreeNode('heuristic', 'heuristic')
 
-            newNode.SetUtility(Utility(GetHeuristicEstimate()))
+            util1 = planLocals.GetUtilRollout()
+            util2 = Utility(GetHeuristicEstimate())
+            planLocals.SetUtilRollout(util1 + util2)
+
             taskNode.AddChild(newNode)
-            # TODO
-            newNode.PropagateQvalues()
             raise DepthLimitReached()
 
         for m in cand:
@@ -684,11 +676,14 @@ def PlanTask_UCT(task, taskArgs):
     RestoreState(mNode.GetPrevState())
     planLocals.SetSearchTreeNode(mNode)
     failed = False
+    depthLimReached = False
     try:
         PlanMethod(m, task, taskArgs)
     except Failed_Rollout as e:
         failed = True
         pass
+    except DepthLimitReached as e:
+        depthLimReached = True
 
     utilVal = planLocals.GetUtilRollout().GetValue()
     if taskNode.n[index] > 0:
@@ -702,6 +697,8 @@ def PlanTask_UCT(task, taskArgs):
     taskNode.N += 1
     if failed:
         raise Failed_Rollout()
+    elif depthLimReached:
+        raise DepthLimitReached()
 
 def PlanMethod(m, task, taskArgs):
     global path
@@ -741,7 +738,7 @@ def do_command(cmd, *cmdArgs):
     Perform command cmd(cmdArgs).
     """
     if GLOBALS.GetPlanningMode() == True:
-        planLocals.IncreaseDepthBy1()
+        #planLocals.IncreaseDepthBy1()
         if GLOBALS.GetUCTmode() == True:
             PlanCommand_UCT(cmd, cmdArgs)
         else:
