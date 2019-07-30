@@ -525,7 +525,6 @@ def RAEplanChoice_UCT(task, planArgs):
     i = 1
     while (i <= GLOBALS.GetUCTRuns()): # all rollouts not explored
         try:
-            print("Rollout ", i)
             planLocals.SetDepth(0)
             planLocals.SetRefDepth(float("inf"))
             planLocals.SetUtilRollout(Utility('Success'))

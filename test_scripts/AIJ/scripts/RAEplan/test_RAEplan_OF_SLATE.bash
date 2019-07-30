@@ -4,7 +4,7 @@
 echo "Executing tests for RAE with RAE-plan."
 
 domain="OF"
-runs=1
+runs=5
 P=(
 "problem2"
 "problem3"
@@ -26,12 +26,13 @@ do
 import sys
 sys.path.append('../../../../RAE_and_RAEplan/')
 sys.path.append('../../../../shared/domains/')
-sys.path.append('../../../../shared/problems/CR/auto')
+sys.path.append('../../../../shared/problems/OF')
 sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.Setb($b)
 GLOBALS.Setk($k)
 GLOBALS.SetOpt('max')
+GLOBALS.SetUCTmode('SLATE')
 GLOBALS.SetSearchDepth(float(\"inf\"))"
 counter=1
 while [ $counter -le $runs ]
@@ -41,7 +42,7 @@ do
 
             fname="../../results/${domain}_v_journal/rae_plan_b_${b}_k_${k}.txt" # You should have a folder called CR in the current folder
 
-            echo "Time test of $domain $problem $sampleCount" >> $fname
+            echo "Time test of $domain $problem $k" >> $fname
             python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
 ((counter++))
 done
