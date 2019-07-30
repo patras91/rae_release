@@ -627,7 +627,6 @@ def PlanTask_UCT(task, taskArgs):
             planLocals.SetRefDepth(planLocals.GetDepth())
             planLocals.SetFlip(True)
 
-        print(" ----------- ref = ", planLocals.GetRefDepth(), " search = ", GLOBALS.GetSearchDepth(), "-- cur = ", planLocals.GetDepth())
         if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
             newNode = rTree.SearchTreeNode('heuristic', 'heuristic')
 
@@ -635,6 +634,7 @@ def PlanTask_UCT(task, taskArgs):
             util2 = Utility(GetHeuristicEstimate())
             planLocals.SetUtilRollout(util1 + util2)
 
+            # Is this node needed?
             taskNode.AddChild(newNode)
             raise DepthLimitReached()
 
@@ -647,6 +647,16 @@ def PlanTask_UCT(task, taskArgs):
         assert(taskNode.type == 'task')
         if taskNode == planLocals.GetTaskToRefine():
             planLocals.SetFlip(True)
+            planLocals.SetRefDepth(planLocals.GetDepth())
+
+        if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
+            newNode = taskNode.children[0]
+
+            util1 = planLocals.GetUtilRollout()
+            util2 = Utility(GetHeuristicEstimate())
+            planLocals.SetUtilRollout(util1 + util2)
+
+            raise DepthLimitReached()
     
     untried = []
 
