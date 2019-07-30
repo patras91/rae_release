@@ -18,7 +18,7 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-import colorama
+#import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
@@ -939,6 +939,7 @@ def PlanCommand_UCT(cmd, cmdArgs):
     if planLocals.GetFlip() == False:
         retcode = 'Success'
         nextState = commandNode.GetNext().GetLabel()
+        RestoreState(nextState)
     else:
         retcode = CallCommand_OperationalModel(cmd, cmdArgs)
         nextState = GetState().copy()

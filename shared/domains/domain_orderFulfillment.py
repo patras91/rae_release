@@ -2,11 +2,11 @@ __author__ = 'mason'
 
 from domain_constants import *
 import importlib
-loader = importlib.find_loader('RAE1_and_RAEplan')
-if loader is not None:
-    import RAE1_and_RAEplan as ape
-else:
-    import ape1_and_apeplan as ape
+#loader = importlib.find_loader('RAE1_and_RAEplan')
+#if loader is not None:
+import RAE1_and_RAEplan as ape
+#else:
+#    import ape1_and_apeplan as ape
 
 from state import state, rv
 import gui
