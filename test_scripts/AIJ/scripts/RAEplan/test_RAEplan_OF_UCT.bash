@@ -4,7 +4,7 @@
 echo "Executing tests for RAE with RAE-plan."
 
 domain="OF"
-runs=5
+runs=1
 P=(
 "problem2"
 "problem3"
@@ -15,7 +15,7 @@ P=(
 "problem8"
 "problem9"
 )
-uct=("50" "100" "300" "500" "700") 
+uct=("25" "50" "100") 
 for problem in ${P[@]}
 do
     for uctCount in ${uct[@]}

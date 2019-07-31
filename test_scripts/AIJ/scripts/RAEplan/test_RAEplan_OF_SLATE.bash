@@ -4,7 +4,7 @@
 echo "Executing tests for RAE with RAE-plan."
 
 domain="OF"
-runs=5
+runs=1
 P=(
 "problem2"
 "problem3"
@@ -20,7 +20,7 @@ for problem in ${P[@]}
 do
     for b in ${B[@]}
     do
-        for k in "1" "3" "5" "8" "10" # can be any positive integer
+        for k in "1" "3" "5" # can be any positive integer
         do
             setup="
 import sys

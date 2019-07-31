@@ -6,15 +6,16 @@ import argparse
 figuresFolder = "figures/"
 resultsFolder = "results/"
 
-B = {
+B_max_depth = {
     'SD': [1, 2, 3, 4],
     'EE': [1, 2, 3],
     'IP': [1, 2, 3],
     'CR': [1, 2, 3],
     'SR': [1, 2, 3, 4],
+    'OF': [1, 2]
 }
 
-B_depth = {
+B_lim_depth = {
     'SD': [4],
     'EE': [1, 2, 3],
     'IP': [1, 2, 3],
@@ -22,20 +23,21 @@ B_depth = {
     'SR': [1, 2, 3, 4],
 }
 
-K_depth = {
+K_lim_depth = {
     'SD': 4,
-    'EE': [1, 2, 3],
-    'IP': [1, 2, 3],
+    'EE': 3,
+    'IP': 3,
     'CR': 3,
-    'SR': [1, 2, 3, 4],
+    'SR': 3,
 }
 
-K = {
+K_max_depth = {
     'SD': [0, 1, 3, 5, 8, 10],
     'EE': [0, 1, 3, 5, 8, 10], #, 20, 50, 75, 100],
     'IP': [0, 3, 5, 7, 10],
     'CR': [0, 1, 3, 5, 8, 10], #20, 30, 40, 50, 60, 70, 75, 80, 90, 100],
-    'SR': [0, 1, 3, 5, 8, 10]
+    'SR': [0, 1, 3, 5, 8, 10],
+    'OF': [0, 1, 3, 5]
 }
 
 Depth = {
@@ -44,8 +46,9 @@ Depth = {
     #'SR': [0, 5, 10, 15]
 }
 
-UCT = {
-    'CR': [0, 100, 300, 500, 700, 900]
+UCT_max_depth = {
+    'CR': [0, 100, 300, 500, 700, 900],
+    'OF': [0, 25, 50, 100]
 }
 
 succCases = {
@@ -54,9 +57,10 @@ succCases = {
     'IP': [],
     'CR': [],
     'SR': [],
+    'OF': [],
 }
 
-def PopulateHelper(res, domain, f_rae, k):
+def PopulateHelper_SLATE_max_depth(res, domain, f_rae, k):
 
     line = f_rae.readline()
     
@@ -94,8 +98,8 @@ def PopulateHelper(res, domain, f_rae, k):
                 s = int(parts2[0])
                 t = int(parts2[1])
                 r = int(parts2[2])
-                planTime += int(parts2[3])
-                actTime += int(parts2[4])
+                planTime += float(parts2[3])
+                actTime += float(parts2[4])
                 nu += float(parts2[5])
 
                 succCount += s
@@ -122,8 +126,8 @@ def PopulateHelper(res, domain, f_rae, k):
     print(res)
 
     print(len(res['successRatio']), "k = ", k)
-    k_index = K[domain].index(k)
-    if K[domain].index(k) == len(res['successRatio']):
+    k_index = K_max_depth[domain].index(k)
+    if K_max_depth[domain].index(k) == len(res['successRatio']):
         res['successRatio'].append(succCount/totalTasks)
         if totalCountForRetries != 0:
             res['retryRatio'].append(retryCount/totalCountForRetries)
@@ -142,7 +146,7 @@ def PopulateHelper(res, domain, f_rae, k):
         res['actTime'][k_index] += actTime
         res['nu'][k_index] += nu / totalTasks
 
-def PopulateHelper_UCT(res, domain, f_rae, uct):
+def PopulateHelper_UCT_max_depth(res, domain, f_rae, uct):
 
     line = f_rae.readline()
     
@@ -180,8 +184,8 @@ def PopulateHelper_UCT(res, domain, f_rae, uct):
                 s = int(parts2[0])
                 t = int(parts2[1])
                 r = int(parts2[2])
-                planTime += int(parts2[3])
-                actTime += int(parts2[4])
+                planTime += float(parts2[3])
+                actTime += float(parts2[4])
                 nu += float(parts2[5])
 
                 succCount += s
@@ -217,7 +221,7 @@ def PopulateHelper_UCT(res, domain, f_rae, uct):
     res['actTime'].append(actTime)
     res['nu'].append(nu / totalTasks)
 
-def PopulateHelper1(domain, f_rae, k):
+def PopulateHelper1_SLATE_max_depth(domain, f_rae, k):
 
     line = f_rae.readline()
     
@@ -245,68 +249,69 @@ def PopulateHelper1(domain, f_rae, k):
 
     print("running time = ", time)
 
-def Populate(res, domain):
-    for b in B[domain]:
-        for k in K[domain]:
+def Populate_SLATE_max_depth(res, domain):
+    for b in B_max_depth[domain]:
+        for k in K_max_depth[domain]:
             if k == 0:
                 for v in range(3, 4):
                     f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
                     f_rae = open(f_rae_name, "r")
                     print(f_rae_name)
-                    PopulateHelper(res[b], domain, f_rae, k)
+                    PopulateHelper_SLATE_max_depth(res[b], domain, f_rae, k)
                     f_rae.close()
             else:
                 for v in range(3, 4):
                     fname = '{}{}_v_journal/rae_plan_b_{}_k_{}.txt'.format(resultsFolder, domain, b, k)
                     fptr = open(fname)
                     print(fname)
-                    PopulateHelper(res[b], domain, open(fname), k)
+                    PopulateHelper_SLATE_max_depth(res[b], domain, open(fname), k)
                     fptr.close()
 
-def Populate_UCT(res, domain):
-    for uct in UCT[domain]:
+def Populate_UCT_max_depth(res, domain):
+    for uct in UCT_max_depth[domain]:
         if uct == 0:
             f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
             f_rae = open(f_rae_name, "r")
             print(f_rae_name)
-            PopulateHelper_UCT(res, domain, f_rae, uct)
+            PopulateHelper_UCT_max_depth(res, domain, f_rae, uct)
             f_rae.close()
         else:
             fname = '{}{}_v_journal/rae_plan_uct_{}.txt'.format(resultsFolder, domain, uct)
             fptr = open(fname)
             print(fname)
-            PopulateHelper_UCT(res, domain, open(fname), uct)
+            PopulateHelper_UCT_max_depth(res, domain, open(fname), uct)
             fptr.close()
 
-def CalculateRunningTime(domain):
-    for b in B[domain]:
-        for k in K[domain]:
+def CalculateRunningTime_SLATE_max_depth(domain):
+    for b in B_max_depth[domain]:
+        for k in K_max_depth[domain]:
             print("b = ", b, ", k = ", k)
             if k == 0:
                 f_rae_name = "{}/RAE.txt".format(domain)
                 f_rae = open(f_rae_name, "r")
                 #print(f_rae_name)
-                PopulateHelper1(domain, f_rae, k)
+                PopulateHelper1_SLATE_max_depth(domain, f_rae, k)
                 f_rae.close()
             else:
                 fname = '{}/plan_b_{}_k_{}.txt'.format(domain, b, k)
                 fptr = open(fname)
                 #print(fname)
-                PopulateHelper1(domain, open(fname), k)
+                PopulateHelper1_SLATE_max_depth(domain, open(fname), k)
                 fptr.close()
 
-def GeneratePlotsForbAndk():
+def GeneratePlots_SLATE_max_depth():
     resDict = {
         'SD': {},
         'EE': {},
         'IP': {},
         'CR': {},
         'SR': {},
+        'OF': {},
     }
 
     for domain in resDict:
         resDict[domain] = {}
-        for b in B[domain]:
+        for b in B_max_depth[domain]:
             resDict[domain][b] = {
                 'successRatio': [], 
                 'retryRatio': [],
@@ -318,7 +323,7 @@ def GeneratePlotsForbAndk():
     #Populate(resDict['SD'], 'SD')
     #Populate(resDict['IP'], 'IP')
     for d in D:
-        Populate(resDict[d], d)
+        Populate_SLATE_max_depth(resDict[d], d)
         #CalculateRunningTime(d)
 
     plt.clf()
@@ -329,13 +334,13 @@ def GeneratePlotsForbAndk():
     plt.rc('font', **font)
     #plt.rcParams.update({'font.size': 22})
 
-    PlotNuAAAI(resDict)
+    PlotNu_SLATE_max_depth(resDict)
 
-    PlotRetryRatio(resDict)
+    PlotRetryRatio_SLATE_max_depth(resDict)
 
-    PlotSuccessRatio(resDict)
+    PlotSuccessRatio_SLATE_max_depth(resDict)
 
-def GeneratePlotsForUCT():
+def GeneratePlots_UCT_max_depth():
     resDict = {}
     for domain in D:
         resDict[domain] = {
@@ -345,7 +350,7 @@ def GeneratePlotsForUCT():
             'actTime': [],
             'nu': []
             }
-        Populate_UCT(resDict[domain], domain)
+        Populate_UCT_max_depth(resDict[domain], domain)
 
     plt.clf()
     font = {
@@ -354,26 +359,27 @@ def GeneratePlotsForUCT():
         'size'   : 24}
     plt.rc('font', **font)
     
-    PlotNu_UCT(resDict)
+    PlotNu_UCT_max_depth(resDict)
 
-    #PlotRetryRatio_UCT(resDict)
+    PlotRetryRatio_UCT_max_depth(resDict)
 
-    #PlotSuccessRatio_UCT(resDict)
+    PlotSuccessRatio_UCT_max_depth(resDict)
 
-def PlotNuAAAI(resDict):
+def PlotNu_SLATE_max_depth(resDict):
     index1 = 'nu'
     width = 0.25
     #K = [0, 1, 2, 3, 4, 8, 16]
 
     for domain in D:
         plt.clf()
-        fname = '{}Nu_{}.png'.format(figuresFolder, domain)
-        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line3, = plt.plot(K[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        fname = '{}Nu_SLATE_max_depth_{}.png'.format(figuresFolder, domain)
+        line1, = plt.plot(K_max_depth[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(K_max_depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        if domain != 'OF':
+            line3, = plt.plot(K_max_depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         if domain == 'SD' or domain == 'SR':
-            line4, = plt.plot(K[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')        
+            line4, = plt.plot(K_max_depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')        
         #plt.legend(bbox_to_anchor=(1.05, 0.9), loc=2, borderaxespad=0.)
                 
         # Create a legend for the first line.
@@ -391,20 +397,20 @@ def PlotNuAAAI(resDict):
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
             
         plt.xlabel('k')
-        plt.xticks([0, 1, 3, 5, 8, 10],
-           ['0', '1', '3', '5', '8', '10'])
+        plt.xticks(K_max_depth[domain],
+           GetString(K_max_depth[domain]))
         plt.ylabel('Efficiency, $E$') 
         plt.savefig(fname, bbox_inches='tight')
 
-def PlotNu_UCT(resDict):
+def PlotNu_UCT_max_depth(resDict):
     index1 = 'nu'
     width = 0.25
     #K = [0, 1, 2, 3, 4, 8, 16]
 
     for domain in D:
         plt.clf()
-        fname = '{}Nu_{}_UCT.png'.format(figuresFolder, domain)
-        line1, = plt.plot(UCT[domain], resDict[domain][index1], 'ro:', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        fname = '{}Nu_UCT_max_depth_{}.png'.format(figuresFolder, domain)
+        line1, = plt.plot(UCT_max_depth[domain], resDict[domain][index1], 'ro:', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         #plt.legend(bbox_to_anchor=(1.05, 0.9), loc=2, borderaxespad=0.)
                 
@@ -422,12 +428,11 @@ def PlotNu_UCT(resDict):
         #plt.legend(handles=[line3], loc=8)
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
             
-        plt.xlabel('rollouts')
-        plt.xticks(UCT[domain],
-           [str(item) for item in UCT[domain]])
+        plt.xlabel('Number of rollouts')
+        plt.xticks(UCT_max_depth[domain],
+           [str(item) for item in UCT_max_depth[domain]])
         plt.ylabel('Efficiency, $E$') 
         plt.savefig(fname, bbox_inches='tight')
-
 
 def GetString(depth):
     s = []
@@ -436,15 +441,15 @@ def GetString(depth):
 
     return s
 
-def PlotNuAAAIDepth(resDict):
+def PlotNu_SLATE_lim_depth(resDict):
     index1 = 'nu'
     width = 0.25
     #K = [0, 1, 2, 3, 4, 8, 16]
 
     for domain in D:
         plt.clf()
-        fname = '{}AIJ_Nu_Depth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
-        line1, = plt.plot(Depth[domain], resDict[domain][B_depth[domain][0]][index1], 'ro:', label='b={}'.format(B_depth[domain][0]), linewidth=4, MarkerSize=10, markerfacecolor='white')
+        fname = '{}Nu_SLATE_lim_depth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
+        line1, = plt.plot(Depth[domain], resDict[domain][B_lim_depth[domain][0]][index1], 'ro:', label='b={}'.format(B_lim_depth[domain][0]), linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
@@ -472,7 +477,7 @@ def PlotNuAAAIDepth(resDict):
         plt.ylabel('Efficiency, $E$') 
         plt.savefig(fname, bbox_inches='tight')
 
-def PopulateHelperDepth(res, domain, f_rae, k, depth):
+def PopulateHelper_SLATE_lim_depth(res, domain, f_rae, k, depth):
 
     line = f_rae.readline()
     
@@ -511,11 +516,11 @@ def PopulateHelperDepth(res, domain, f_rae, k, depth):
                 s = int(parts2[0])
                 t = int(parts2[1])
                 r = int(parts2[2])
-                planTime += int(parts2[3])
+                planTime += float(parts2[3])
                 if s == t:
-                    actTime += int(parts2[4])
+                    actTime += float(parts2[4])
                 else:
-                    actTime += int(parts2[4])
+                    actTime += float(parts2[4])
                 nu += float(parts2[5])
 
                 succCount += s
@@ -571,7 +576,7 @@ def PopulateHelperDepth(res, domain, f_rae, k, depth):
         #res['totalTime'] += time11
         res['nu'][k_index] += nu / totalTasks
 
-def PopulateHelper1Depth(domain, f_rae, k, depth):
+def PopulateHelper1_SLATE_lim_depth(domain, f_rae, k, depth):
 
     line = f_rae.readline()
     
@@ -601,41 +606,41 @@ def PopulateHelper1Depth(domain, f_rae, k, depth):
 
     print("running time = ", time)
 
-def PopulateDepth(res, domain):  
-    k = K_depth[domain]
-    b = B_depth[domain][0]
+def Populate_SLATE_lim_depth(res, domain):  
+    k = K_lim_depth[domain]
+    b = B_lim_depth[domain][0]
     for depth in Depth[domain]:
         if depth == 0:
             f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
             f_rae = open(f_rae_name, "r")
             print(f_rae_name)
-            PopulateHelperDepth(res[b], domain, f_rae, k, depth)
+            PopulateHelper_SLATE_lim_depth(res[b], domain, f_rae, k, depth)
             f_rae.close()
         else:
             fname = '{}{}_v_journal/rae_plan_b_{}_k_{}_d_{}_h_{}.txt'.format(resultsFolder, domain, b, k, depth, heuristic)
             fptr = open(fname)
             print(fname)
-            PopulateHelperDepth(res[b], domain, open(fname), k, depth)
+            PopulateHelper_SLATE_lim_depth(res[b], domain, open(fname), k, depth)
             fptr.close()
 
-def CalculateRunningTimeDepth(domain):
-    for b in B[domain]:
+def CalculateRunningTime_SLATE_lim_depth(domain):
+    for b in B_lim_depth[domain]:
         for depth in Depth[domain]:
             print("b = ", b, ", depth = ", depth)
             if k == 0:
                 f_rae_name = "{}_v8/RAE.txt".format(domain)
                 f_rae = open(f_rae_name, "r")
                 #print(f_rae_name)
-                PopulateHelper1Depth(domain, f_rae, k, depth)
+                PopulateHelper1_SLATE_lim_depth(domain, f_rae, k, depth)
                 f_rae.close()
             else:
                 fname = '{}_v8/plan_b_{}_k_{}_d_{}.txt'.format(domain, b, k, depth)
                 fptr = open(fname)
                 #print(fname)
-                PopulateHelper1Depth(domain, open(fname), k, depth)
+                PopulateHelper1_SLATE_lim_depth(domain, open(fname), k, depth)
                 fptr.close()
 
-def GeneratePlotsForDepth():
+def GeneratePlots_SLATE_lim_depth():
     resDict = {
         'SD': {},
         'EE': {},
@@ -646,7 +651,7 @@ def GeneratePlotsForDepth():
 
     for domain in resDict:
         resDict[domain] = {}
-        for b in B_depth[domain]:
+        for b in B_lim_depth[domain]:
             resDict[domain][b] = {
                 'successRatio': [], 
                 'retryRatio': [],
@@ -657,7 +662,7 @@ def GeneratePlotsForDepth():
             }
 
     for d in D:
-        PopulateDepth(resDict[d], d)
+        PopulateDepth_SLATE_lim_depth(resDict[d], d)
         #CalculateRunningTimeDepth(d)
 
     plt.clf()
@@ -668,11 +673,11 @@ def GeneratePlotsForDepth():
     plt.rc('font', **font)
     #plt.rcParams.update({'font.size': 22})
 
-    PlotNuAAAIDepth(resDict)
+    PlotNu_SLATE_lim_depth(resDict)
 
-    PlotRetryRatioDepth(resDict)
+    PlotRetryRatio_SLATE_lim_depth(resDict)
 
-    PlotSuccessRatioDepth(resDict)
+    PlotSuccessRatio_SLATE_lim_depth(resDict)
 
     #PlotRunningTimeDepth(resDict)
 
@@ -692,36 +697,38 @@ def normalize(l):
             lret.append(0)
     return lret
 
-def PlotRetryRatio(resDict):
+def PlotRetryRatio_SLATE_max_depth(resDict):
     index1 = 'retryRatio'
     width = 0.25
 
     for domain in D:
         plt.clf()
-        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line3, = plt.plot(K[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(K_max_depth[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(K_max_depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        
+        if domain != 'OF':
+            line3, = plt.plot(K_max_depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         if domain == 'SD' or domain == 'SR':
-            line4, = plt.plot(K[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
+            line4, = plt.plot(K_max_depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
         
-        fname = '{}RetryRatio_{}.png'.format(figuresFolder, domain)
+        fname = '{}RetryRatio_SLATE_max_depth_{}.png'.format(figuresFolder, domain)
         plt.xlabel('k')
-        plt.xticks([0, 1, 3, 5, 8, 10],
-           ['0', '1', '3', '5', '8', '10'])
+        plt.xticks(K_max_depth[domain],
+           GetString(K_max_depth[domain]))
         plt.ylabel('Retry Ratio')
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
         plt.savefig(fname, bbox_inches='tight')
 
-def PlotRetryRatioDepth(resDict):
+def PlotRetryRatio_SLATE_lim_depth(resDict):
     index1 = 'retryRatio'
     width = 0.25
 
     for domain in D:
         plt.clf()
         line1, = plt.plot(Depth[domain], 
-            resDict[domain][B_depth[domain][0]][index1], 
-            'ro:', label='b={}'.format(B_depth[domain][0]), 
+            resDict[domain][B_lim_depth[domain][0]][index1], 
+            'ro:', label='b={}'.format(B_lim_depth[domain][0]), 
             linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
@@ -729,54 +736,55 @@ def PlotRetryRatioDepth(resDict):
         #if domain == 'SD' or domain == 'SR':
         #   line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
         
-        fname = '{}AIJ_RetryRatioDepth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
+        fname = '{}RetryRatio_SLATE_lim_depth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
         plt.xlabel('Depth')
         plt.xticks(Depth[domain],GetString(Depth[domain]))
         plt.ylabel('Retry Ratio')
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
         plt.savefig(fname, bbox_inches='tight')
 
-def PlotSuccessRatio(resDict):
+def PlotSuccessRatio_SLATE_max_depth(resDict):
     index1 = 'successRatio'
     width = 0.25
 
     for domain in D:
         plt.clf()
-        line1, = plt.plot(K[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(K[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line3, = plt.plot(K[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(K_max_depth[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(K_max_depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        if domain != 'OF':
+            line3, = plt.plot(K_max_depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         if domain == 'SD' or domain == 'SR':
-            line4, = plt.plot(K[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
+            line4, = plt.plot(K_max_depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
         
-        fname = '{}SuccessRatio_{}.png'.format(figuresFolder, domain)
+        fname = '{}SuccessRatio_SLATE_max_depth_{}.png'.format(figuresFolder, domain)
         plt.xlabel('k')
-        plt.xticks([0, 1, 3, 5, 8, 10],
-           ['0', '1', '3', '5', '8', '10'])
+        plt.xticks(K_max_depth[domain],
+           GetString(K_max_depth[domain]))
         plt.ylabel('Success Ratio')
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
         plt.savefig(fname, bbox_inches='tight')
 
-def PlotSuccessRatioDepth(resDict):
+def PlotSuccessRatio_SLATE_lim_depth(resDict):
     index1 = 'successRatio'
     width = 0.25
 
     for domain in D:
         plt.clf()
         line1, = plt.plot(Depth[domain], 
-            resDict[domain][B_depth[domain][0]][index1], 
+            resDict[domain][B_lim_depth[domain][0]][index1], 
             'ro:', label='b={}'.format(B_depth[domain][0]), 
             linewidth=4, 
             MarkerSize=10, markerfacecolor='white')
         
-        fname = '{}AIJ_SuccessRatioDepth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
+        fname = '{}AIJ_SuccessRatio_SLATE_lim_depth_{}_h_{}.png'.format(figuresFolder, domain, heuristic)
         plt.xlabel('Depth')
         plt.xticks(Depth[domain],GetString(Depth[domain]))
         plt.ylabel('Success Ratio')
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
         plt.savefig(fname, bbox_inches='tight')
 
-def PlotRunningTimeDepth1(resDict):
+def PlotRunningTime_SLATE_lim_depth1(resDict):
     index1 = 'totalTime'
     width = 0.25
 
@@ -789,14 +797,14 @@ def PlotRunningTimeDepth1(resDict):
         if domain == 'SD' or domain == 'SR':
             line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')        
         
-        fname = 'RunningTimeDepth_{}.png'.format(domain)
+        fname = 'RunningTime_SLATE_lim_depth_{}.png'.format(domain)
         plt.xlabel('Depth')
         plt.xticks(Depth[domain],GetString(Depth[domain]))
         plt.ylabel('Running Time (in counter ticks)')
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
         plt.savefig(fname, bbox_inches='tight')
 
-def PlotRunningTimeDepth(resDict):
+def PlotRunningTime_SLATE_lim_depth(resDict):
     index1 = 'planTime'
     index2 = 'actTime'
     width = 0.25
@@ -816,7 +824,7 @@ def PlotRunningTimeDepth(resDict):
             line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4 Planning', linewidth=4, MarkerSize=10, markerfacecolor='white')        
             line41, = plt.plot(Depth[domain], resDict[domain][4][index2], 'go--', label='b=4 Acting', linewidth=8, MarkerSize=10, markerfacecolor='white')        
         
-        fname = 'RunningTimeDepth_{}.png'.format(domain)
+        fname = 'RunningTime_SLATE_lim_depth_{}.png'.format(domain)
         plt.xlabel('Depth')
         plt.xticks(Depth[domain],GetString(Depth[domain]))
         plt.ylabel('Time (in counter ticks)')
@@ -837,25 +845,30 @@ heuristic = None
 
 if __name__=="__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--domain", help="domain",
+    argparser.add_argument("--domain", help="domain in ['CR', 'SD', 'IP', 'SR', 'OF', 'EE']",
                            type=str, required=True)
-    argparser.add_argument("--depth", help="depth",
-                           type=int, required=True)
-    argparser.add_argument("--heuristic", help="Heuristic",
+    argparser.add_argument("--depth", help="depth = 'max' or 'lim'",
                            type=str, required=True)
-    argparser.add_argument("--s", help="SamplingStrategy",
+    argparser.add_argument("--heuristic", help="Heuristic function name",
+                           type=str, required=False, default='h1')
+    argparser.add_argument("--s", help="SamplingStrategy ",
                            type=str, required=True)
     args = argparser.parse_args()
 
     heuristic = args.heuristic
     D = [args.domain]
-    if args.depth == 0:
-        if args.s != "UCT":
-            GeneratePlotsForbAndk()
+    if args.depth == "max":
+        if args.s == "SLATE":
+            GeneratePlots_SLATE_max_depth()
         else:
-            GeneratePlotsForUCT()
+            GeneratePlots_UCT_max_depth()
+    elif args.depth == "lim":
+        if args.s == "SLATE":
+            GeneratePlots_SLATE_lim_depth()
+        else:
+            GeneratePlots_UCT_lim_depth()
     else:
-        GeneratePlotsForDepth()
+        print("Incorrect value depth: should be 'max' or 'lim'.")
 
 def Plot(val, res, domain, plotMode, ii):
     plt.subplot(1, 4, ii)
