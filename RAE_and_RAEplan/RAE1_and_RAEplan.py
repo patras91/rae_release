@@ -154,6 +154,8 @@ def GetMethodInstances(methods, tArgs):
             instance.SetParams(tArgs)
             instanceList.append(instance)
 
+    random.seed(100)
+    random.shuffle(instanceList)
     return instanceList 
 
 def declare_heuristic(task, name):
