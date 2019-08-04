@@ -52,10 +52,10 @@ def testBatch(domain, problem, useRAEplan):
     GLOBALS.SetShowOutputs('off')
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
-    p.join(600)
+    p.join(300)
     if p.is_alive() == True:
         p.terminate()
-        print("0 1 0 0 0 0")
+        print("0 1 0 0 0 0 0 0 0")
     
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()

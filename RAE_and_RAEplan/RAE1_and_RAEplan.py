@@ -310,11 +310,11 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         raeLocals.GetSearchTree()])
 
     p.start()
-    p.join(600)
+    p.join(300)
     if p.is_alive() == True:
         p.terminate()
         methodInstance = 'Failure'
-        simTime = 600
+        simTime = 300
     else:
         methodInstance, simTime = queue.get()
     globalTimer.UpdateSimCounter(simTime)
