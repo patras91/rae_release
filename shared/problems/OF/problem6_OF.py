@@ -60,7 +60,7 @@ DURATION.COUNTER = {
 
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-rv.FACTORY1 = frozenset({1, 2, 3, 4})
+rv.FACTORY1 = frozenset({1, 2, 3, 4, 5, 6, 7, 8, 9})
 rv.FACTORY_UNION = rv.FACTORY1
 rv.SHIPPING_DOC = {rv.FACTORY1: 4}
 

@@ -63,7 +63,7 @@ DURATION.COUNTER = {
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7]
-rv.FACTORY1 = frozenset({1, 2, 3, 4})
+rv.FACTORY1 = frozenset({1, 2, 3, 4, 5, 6, 7})
 rv.FACTORY_UNION = rv.FACTORY1
 rv.SHIPPING_DOC = {rv.FACTORY1: 7}
 
@@ -72,7 +72,7 @@ rv.GROUND_WEIGHTS = {(1,2): 1, (2,3): 1, (3,4): 5, (4,5): 8, (5,6): 5, (6,7): 1}
 
 rv.ROBOTS = {'r1': rv.FACTORY1, 'r2': rv.FACTORY1}
 rv.ROBOT_CAPACITY = {'r1': 10000, 'r2': 10000}
-rv.MACHINES = {'m1': rv.FACTORY1}
+rv.MACHINES = {'m1': rv.FACTORY1, 'm2': rv.FACTORY1}
 
 rv.PALLETS = {'p1'}
 
@@ -86,7 +86,7 @@ def ResetState():
     state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'm2': 6, 'o1': 2, 'o2': 1, 'o3':7, 'o4': 1, 'o5': 6, 'p1': 4, 'o6': 4, 'o7': 6, 'o8': 1}
     state.load = {'r1': NIL, 'r2': NIL,}
     state.busy = {'r1': False, 'r2': False, 'm1': False, 'm2': False, 'fixer1': False}
-    state.numUses = {'m1': 1, 'm2': 1}
+    state.numUses = {'m1': 1, 'm2': 15}
     state.var1 = {'temp': 'r1', 'temp1': 'r1', 'temp2': 1, 'redoId': 0}
     state.shouldRedo = {}
 

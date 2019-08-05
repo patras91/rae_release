@@ -106,6 +106,8 @@ def MakeFocusedObjList():
 
     random.shuffle(focus)
 
+    print(focus)
+
     return focus
 
 
@@ -131,9 +133,10 @@ def Order_Method1(orderList, m, objList):
             ape.do_command(fail)
 
         if state.OBJECTS[objList[i]] == False:
-            gui.Simulate("obj already used %s\n" % str(objList))
+            gui.Simulate("obj already used %s\n" % str(objList[i]))
             ape.do_command(fail)
 
+        gui.Simulate("Reserving obj %s\n" % str(objList[i]))
         state.OBJECTS[objList[i]] = False
 
     # get unique ID for order name
@@ -141,6 +144,8 @@ def Order_Method1(orderList, m, objList):
     id = state.var1['redoId']
     state.var1['redoId'] += 1
     state.var1.ReleaseLock('redoId')
+
+    gui.Simulate("This is order ID: " + str(id) + "\n")
 
     for i, objType in enumerate(orderList):
         # move to object, pick it up, load in machine
@@ -202,6 +207,10 @@ Order_Method2.parameters = "[(m, objList, p) for m in rv.MACHINES for objList in
 
 # for free r
 def PickupAndLoad_Method1(orderName, o, m, r):
+    # wait for robot if needed
+    while state.busy[r] == True:
+        ape.do_command(wait)
+
     # acquire robot
     ape.do_task('redoer', acquireRobot, r)
 
@@ -230,6 +239,10 @@ PickupAndLoad_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
 # unload a package from the machine, move package to shipping doc
 # for free r
 def UnloadAndDeliver_Method1(m, package, r):
+    # wait for robot if needed
+    while state.busy[r] == True:
+        ape.do_command(wait)
+
     ape.do_task('redoer', acquireRobot, r)
 
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[m])
@@ -253,6 +266,10 @@ UnloadAndDeliver_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
 
 # for free r
 def MoveToPallet_Method1(o, p, r):
+    # wait for robot if needed
+    while state.busy[r] == True:
+        ape.do_command(wait)
+
     ape.do_task('redoer', acquireRobot, r)
 
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[o])

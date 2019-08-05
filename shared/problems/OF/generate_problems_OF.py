@@ -5,11 +5,11 @@ import numpy as np
 
 def generateProblems():
     num = 11
-    while num < 30:
-        locations = list(range(max(2, int(np.random.normal(20, 5)))))
-        factory = frozenset(locations)
-        shippingDoc = int(np.random.uniform(0, len(locations) - 1))
+    while num < 112:
+        locations = list(range(max(3, int(np.random.normal(6, 2)))))
         locations.append(200)
+        factory = frozenset(locations)
+        shippingDoc = int(np.random.uniform(0, len(locations) - 2))
 
         edges = {}
 
@@ -36,7 +36,7 @@ def generateProblems():
         weights = {}
 
 
-        # make the edges undirected
+        # make the edges undirected (makes graph strongly connected)
         for loc in edges.keys():
             for dest in edges[loc]:
                 if loc not in edges[dest]:
@@ -55,7 +55,7 @@ def generateProblems():
 
         maxCapacity = 0
 
-        for i in range(max(1, int(np.random.normal(10, 5)))):
+        for i in range(max(1, int(np.random.normal(2, 2)))):
             r = 'r' + str(i)
             robots.append(r)
             robotCapacity[r] = np.random.normal(8,2)
@@ -65,26 +65,27 @@ def generateProblems():
 
         # machines
         machines = []
-        for i in range(min(len(locations) - 1, max(int(np.random.normal(5,5)), 1))):
+        for i in range(min(len(locations) - 1, max(int(np.random.normal(2,2)), 1))):
             m = 'm' + str(i)
             machines.append(m)
 
-        # fixer robot
-        repairBots = []
-        for i in range(max(1, int(np.random.normal(2,1)))):
-            f = 'fixer' + str(i)
-            repairBots.append(f)
+        # pallets
+        pallets = []
+        for i in range(min(len(locations) - 1, max(int(np.random.normal(2,1)), 1))):
+            p = 'p' + str(i)
+            pallets.append(p)
+
 
         # objects
         objects = []
         obj_weight = {}
         obj_class = {}
 
-        for typeNum in range(max(1, int(np.random.normal(5,1)))):
+        for typeNum in range(max(1, int(np.random.normal(2,1)))):
             type = 'type' + str(typeNum)
             tempType = []
 
-            for i in range(max(1, int(np.random.normal(5,2)))):
+            for i in range(max(1, int(np.random.normal(2,2)))):
                 obj = 'o' + str(len(objects))
                 objects.append(obj)
                 obj_weight[obj] = min(maxCapacity, np.random.normal(7,2))
@@ -93,19 +94,12 @@ def generateProblems():
 
             obj_class[type] = tempType
 
-        # note: need to list that the objs are UNK when printing
         stateLoc = {}
 
         for r in robots:
             stateLoc[r] = np.random.choice(list(factory))
         for m in machines:
             stateLoc[m] = np.random.choice(list(factory))
-        for f in repairBots:
-            stateLoc[f] = np.random.choice(list(factory))
-
-        storedLoc = {}
-        for o in objects:
-            storedLoc[o] = np.random.choice(list(factory))
 
         busy = {}
         for a in stateLoc.keys():
@@ -118,22 +112,27 @@ def generateProblems():
         orderTypes = []
 
         for oc in obj_class.keys():
-            for i in range(max(0, min(len(obj_class[oc]), int(np.random.uniform(0,10))))):
+            for i in range(max(0, min(len(obj_class[oc]), int(np.random.uniform(0,5))))):
                 orderTypes.append(oc)
 
         if orderTypes == []:
             orderTypes.append('type0')
 
+        for p in pallets:
+            stateLoc[p] = np.random.choice(list(factory))
+        for o in objects:
+            stateLoc[o] = np.random.choice(list(factory))
+
         writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
-                     robotCapacity, machines, repairBots, objects, obj_weight,
-                     obj_class, stateLoc, storedLoc, busy, numUses, orderTypes)
+                     robotCapacity, machines, objects, obj_weight,
+                     obj_class, stateLoc, pallets, busy, numUses, orderTypes)
 
         num += 1
 
 
 def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
-                 robotCapacity, machines, repairBots, objects, obj_weight,
-                 obj_class, stateLoc, storedLoc, busy, numUses, orderTypes):
+                 robotCapacity, machines, objects, obj_weight,
+                 obj_class, stateLoc, pallets, busy, numUses, orderTypes):
     fname = 'problem{}_OF.py'.format(num)
     file = open(fname, "w")
     writeHeader(file)
@@ -165,32 +164,39 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
 
     file.write(machineString)
 
-    # rv.REPAIR_BOT things
-    repairString = "rv.REPAIR_BOT = {"
-    for r in repairBots:
-        repairString += " '" + r + "': rv.FACTORY1, "
-    repairString += "}\n\n"
+    # rv.PALLETS things
+    palletString = "rv.PALLETS = {"
+    for p in pallets:
+        palletString += " '" + p + "', "
+    palletString += "}\n"
 
-    file.write(repairString)
+    file.write(palletString)
 
-    file.write("rv.OBJECTS = " + str(objects) + '\n')
-    file.write("rv.OBJ_WEIGHT = " + str(obj_weight) + '\n')
-    file.write("rv.OBJ_CLASS = " + str(obj_class) + '\n\n')
+    file.write("\n\n")
+
 
     file.write("def ResetState():\n")
+
+
+    # state.OBJECTS things
+    objString = "    state.OBJECTS = {"
+    for o in objects:
+        objString += " '" + o + "': True, "
+    objString += "}\n"
+
+    file.write(objString)
+    file.write("    state.OBJ_WEIGHT = " + str(obj_weight) + '\n')
+    file.write("    state.OBJ_CLASS = " + str(obj_class) + '\n\n')
 
     stateLocString = "    state.loc = {"
     # state.loc things
 
     for r in stateLoc.keys():
         stateLocString += " '" + r + "': " + str(stateLoc[r]) + ","
-    for o in objects:
-        stateLocString += " '" + o + "': UNK,"
+
     stateLocString += "}\n"
 
     file.write(stateLocString)
-
-    file.write("    state.storedLoc = " + str(storedLoc) + '\n')
 
     # state.load things
 
@@ -198,8 +204,6 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
 
     for r in robots:
         stateLoadString += " '" + r + "': NIL,"
-    for f in repairBots:
-        stateLoadString += " '" + f + "': False,"
 
     stateLoadString += "}\n"
 
@@ -221,7 +225,7 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
     for idx, o in enumerate(orderTypes):
         if i < num_tasks:
             time = randTimes[idx]
-            file.write("    " + str(time) + ": [['order', '" + str(o) + "', 200]],\n")
+            file.write("    " + str(time) + ": [['orderStart', ['" + str(o) + "']]],\n")
             i += 1
     file.write("}\n")
 
@@ -232,11 +236,15 @@ def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
 
 
 def writeHeader(file):
-    file.write("__author__ = 'mason'\n")
+    file.write("__author__ = 'mason'\n\n")
     file.write("from domain_orderFulfillment import *\n")
     file.write("from timer import DURATION\n")
     file.write("from state import state\n")
     file.write("import numpy as np\n\n")
+
+    file.write("\'\'\'\n")
+    file.write("This is a randomly generated problem\n")
+    file.write("\'\'\'\n\n")
 
     file.write("def GetCostOfMove(id, r, loc1, loc2, dist):\n")
     file.write("    return 1 + dist\n\n")
@@ -244,7 +252,7 @@ def writeHeader(file):
     file.write("def GetCostOfLookup(id, item):\n")
     file.write("    return max(1, np.random.beta(2, 2))\n\n")
 
-    file.write("def GetCostOfWrap(id, m, item):\n")
+    file.write("def GetCostOfWrap(id, orderName, m, item):\n")
     file.write("    return max(1, np.random.normal(5, .5))\n\n")
 
     file.write("def GetCostOfPickup(id, r, item):\n")
@@ -253,7 +261,7 @@ def writeHeader(file):
     file.write("def GetCostOfPutdown(id, r, item):\n")
     file.write("    return max(1, np.random.normal(4, 1))\n\n")
 
-    file.write("def GetCostOfLoad(id, r, m, item):\n")
+    file.write("def GetCostOfLoad(id, orderName, r, m, item):\n")
     file.write("    return max(1, np.random.normal(3, .5))\n\n")
 
 
@@ -262,12 +270,11 @@ def writeHeader(file):
     file.write("    'wrap': GetCostOfWrap,\n")
     file.write("    'pickup': GetCostOfPickup,\n")
     file.write("    'putdown': GetCostOfPutdown,\n")
-    file.write("    'acquireRobot': 1,\n")
-    file.write("    'freeRobot': 1,\n")
     file.write("    'loadMachine': GetCostOfLoad,\n")
     file.write("    'moveRobot': GetCostOfMove,\n")
-    file.write("    'repair': 5,\n")
-    file.write("    'wait': 1\n")
+    file.write("    'acquireRobot': 1,\n")
+    file.write("    'freeRobot': 1,\n")
+    file.write("    'wait': 5\n")
     file.write("}\n\n")
 
     file.write("DURATION.COUNTER = {\n")
@@ -275,12 +282,11 @@ def writeHeader(file):
     file.write("    'wrap': GetCostOfWrap,\n")
     file.write("    'pickup': GetCostOfPickup,\n")
     file.write("    'putdown': GetCostOfPutdown,\n")
-    file.write("    'acquireRobot': 1,\n")
-    file.write("    'freeRobot': 1,\n")
     file.write("    'loadMachine': GetCostOfLoad,\n")
     file.write("    'moveRobot': GetCostOfMove,\n")
-    file.write("    'repair': 5,\n")
-    file.write("    'wait': 1\n")
+    file.write("    'acquireRobot': 1,\n")
+    file.write("    'freeRobot': 1,\n")
+    file.write("    'wait': 5\n")
     file.write("}\n\n")
 
 

@@ -60,7 +60,7 @@ DURATION.COUNTER = {
  }
 
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6, 7]
-rv.FACTORY1 = frozenset({1, 2, 3, 4})
+rv.FACTORY1 = frozenset({1, 2, 3, 4, 5, 6, 7})
 rv.FACTORY_UNION = rv.FACTORY1
 rv.SHIPPING_DOC = {rv.FACTORY1: 4}
 
@@ -83,7 +83,7 @@ def ResetState():
     state.loc = {'r1': 2, 'r2': 1, 'm1': 3, 'm2': 6, 'o1': 2, 'o2': 1, 'o3':7, 'o4': 1, 'o5': 6, 'p1': 4}
     state.load = {'r1': NIL, 'r2': NIL,}
     state.busy = {'r1': False, 'r2': False, 'm1': False, 'm2': False, 'fixer1': False}
-    state.numUses = {'m1': 1, 'm2': 1}
+    state.numUses = {'m1': 1, 'm2': 15}
     state.var1 = {'temp': 'r1', 'temp1': 'r1', 'temp2': 1, 'redoId': 0}
     state.shouldRedo = {}
 
