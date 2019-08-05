@@ -9,6 +9,14 @@ def GetProblemsCR():
     names = ["problem{}".format(item) for item in p1]
     return names
 
+def GetProblemsSR():
+    l = list(range(20, 115))
+    random.seed(500)
+    random.shuffle(l)
+    p1 = l[0:50]
+    names = ["problem{}".format(item) for item in p1]
+    return names
+
 #problems = {
 #    "CR": GetProblemsCR(),
 #    "SD": [],
@@ -81,7 +89,7 @@ DEPTH = {
     "OF": [5, 10, 15],
 }
 
-runs=8
+runs=2
 
 def writeList(name, l, file):
     file.write("{}=(\n".format(name))
@@ -92,6 +100,9 @@ def writeList(name, l, file):
 def writeProblems(name, file, domain):
     if domain == "CR":
         l = GetProblemsCR()
+        writeList(name, l, file)
+    elif domain == "SR":
+        l = GetProblemsSR()
         writeList(name, l, file)
 
 def GenerateTestScriptRAE(domain):
@@ -137,5 +148,5 @@ def GenerateTestScriptRAE(domain):
 
 
 if __name__=="__main__":
-    for domain in ["CR"]: #, "EE", "IP", "SD", "OF", "SR"]:
+    for domain in ["SR"]: #, "EE", "IP", "SD", "OF", "SR"]:
         GenerateTestScriptRAE(domain)

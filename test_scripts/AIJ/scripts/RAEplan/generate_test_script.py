@@ -11,6 +11,16 @@ def GetProblemsCR(part):
     names = ["problem{}".format(item) for item in p2]
     return names
 
+def GetProblemsSR(part):
+    l = list(range(20, 115))
+    random.seed(500)
+    random.shuffle(l)
+    p1 = l[0:50]
+    begin = (part - 1)*5
+    p2 = p1[begin: begin + 5]
+    names = ["problem{}".format(item) for item in p2]
+    return names
+
 #problems = {
 #    "CR": GetProblemsCR(),
 #    "SD": [],
@@ -32,7 +42,7 @@ b_max_depth = {
 k_max_depth = {
     "CR": [1,3,5],
     "SD": [],
-    "SR": [],
+    "SR": [1,3,5],
     "EE": [],
     "IP": [],
     "OF": [],
@@ -41,7 +51,7 @@ k_max_depth = {
 UCT_max_depth = {
     "CR": [5, 25, 50, 75],
     "SD": [],
-    "SR": [],
+    "SR": [5, 25, 50, 75],
     "EE": [],
     "IP": [],
     "OF": [],
@@ -59,7 +69,7 @@ b_lim_depth = {
 k_lim_depth = {
     "CR": [3],
     "SD": [],
-    "SR": [],
+    "SR": [3],
     "EE": [],
     "IP": [],
     "OF": [],
@@ -68,7 +78,7 @@ k_lim_depth = {
 UCT_lim_depth = {
     "CR": [5, 25, 50],
     "SD": [],
-    "SR": [],
+    "SR": [5, 25, 50],
     "EE": [],
     "IP": [],
     "OF": [],
@@ -83,7 +93,7 @@ DEPTH = {
     "OF": [5, 10, 15],
 }
 
-runs=8
+runs=2
 
 def writeList(name, l, file):
     file.write("{}=(\n".format(name))
@@ -94,6 +104,9 @@ def writeList(name, l, file):
 def writeProblems(name, file, part, domain):
     if domain == "CR":
         l = GetProblemsCR(part)
+        writeList(name, l, file)
+    elif domain == "SR":
+        l = GetProblemsSR(part)
         writeList(name, l, file)
 
 def GenerateTestScriptRAEplan(mode, domain, depth, part):
@@ -211,6 +224,6 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part):
 if __name__=="__main__":
     for mode in ["UCT", "SLATE"]:
         for depth in ["max", "lim"]:
-            for domain in ["CR"]: #, "EE", "IP", "SD", "OF", "SR"]:
+            for domain in ["SR"]: #, "EE", "IP", "SD", "OF", "SR"]:
                 for part in range(1, 11):
                     GenerateTestScriptRAEplan(mode, domain, depth, part)
