@@ -409,9 +409,12 @@ def PlotHelper_UCT_max(resDict, util):
     for domain in D:
         plt.clf()
         fname = '{}{}_{}_UCT_max_depth.png'.format(figuresFolder, domain, util)
-        line1, = plt.plot(UCT_max_depth[domain], resDict[domain][index1], 'ro:', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        PlotViaMatlab(UCT_max_depth[domain], 
+            resDict[domain][index1],
+            COLORS[0],
+            GetYlabel(util))
         
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
             
         plt.xlabel('Number of rollouts')
         plt.xticks(UCT_max_depth[domain],
@@ -427,15 +430,16 @@ def PlotHelper_UCT_lim(resDict, util):
     for domain in D:
         plt.clf()
         fname = '{}{}_{}_UCT_lim_depth.png'.format(figuresFolder, domain, util)
-        line1, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][0]][index1], 'ro:', label='rollouts={}'.format(UCT_lim_depth[domain][0]), linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][1]][index1], 'bs--', label='rollouts={}'.format(UCT_lim_depth[domain][1]), linewidth=4, MarkerSize=10, markerfacecolor='white')
-        if domain != 'OF':
-            line3, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][2]][index1], 'm^-.', label='rollouts={}'.format(UCT_lim_depth[domain][2]), linewidth=4, MarkerSize=10, markerfacecolor='white')
         
-        #if domain == 'SD' or domain == 'SR':
-        #    line4, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][3]][index1], 'go--', label='rollouts={}'.format(UCT_lim_depth[domain][3]), linewidth=4, MarkerSize=10, markerfacecolor='white')        
+        i = 0
+        for uct in UCT_lim_depth[domain]:
+            PlotViaMatlab(Depth[domain],
+                resDict[domain][uct][index1],
+                COLORS[i],
+                'rollouts={}'.format(uct))
+            i += 1
         
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
             
         plt.xlabel('Depth')
         plt.xticks(Depth[domain],

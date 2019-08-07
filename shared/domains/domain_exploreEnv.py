@@ -2,9 +2,7 @@ __author__ = 'patras'
 
 from domain_constants import *
 import importlib
-loader = importlib.find_loader('RAE1_and_RAEplan')
-if loader is not None:
-    import RAE1_and_RAEplan as alg
+import RAE1_and_RAEplan as alg
 
 from state import state, rv
 import gui
@@ -732,7 +730,7 @@ alg.declare_methods('handleEmergency',
 def Heuristic1(args):
     return float("inf")
 
-if GLOBALS.GetHeuristicName() == 'h1':
+if GLOBALS.GetHeuristicName() == 'h2':
     alg.declare_heuristic('explore', Heuristic1)
     alg.declare_heuristic('flyTo', Heuristic1)
 
