@@ -1,5 +1,7 @@
+__author__ = 'patras'
 import random
 import os
+import argparse
 
 def GetProblemsCR():
     l = list(range(1000, 1124))
@@ -89,8 +91,6 @@ DEPTH = {
     "OF": [5, 10, 15],
 }
 
-runs=5
-
 def writeList(name, l, file):
     file.write("{}=(\n".format(name))
     for item in l:
@@ -148,5 +148,14 @@ def GenerateTestScriptRAE(domain):
 
 
 if __name__=="__main__":
-    for domain in ["SR"]: #, "EE", "IP", "SD", "OF", "SR"]:
-        GenerateTestScriptRAE(domain)
+    
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--domain", help="domain in ['CR', 'SR']",
+                           type=str, required=True)
+    argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
+                           type=int, required=True)
+    args = argparser.parse_args()
+
+    global runs
+    runs = args.count
+    GenerateTestScriptRAE(args.domain)

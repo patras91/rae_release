@@ -1,5 +1,7 @@
+__author__ = 'patras'
 import random
 import os
+import argparse
 
 def GetProblemsCR(part):
     l = list(range(1000, 1124))
@@ -92,8 +94,6 @@ DEPTH = {
     "IP": [5, 10, 15],
     "OF": [5, 10, 15],
 }
-
-runs=5
 
 def writeList(name, l, file):
     file.write("{}=(\n".format(name))
@@ -222,8 +222,16 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part):
 
 
 if __name__=="__main__":
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--domain", help="domain in ['CR', 'SR']",
+                           type=str, required=True)
+    argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
+                           type=int, required=True)
+    args = argparser.parse_args()
+
+    global runs
+    runs = args.count
     for mode in ["UCT", "SLATE"]:
         for depth in ["max", "lim"]:
-            for domain in ["SR"]: #, "EE", "IP", "SD", "OF", "SR"]:
-                for part in range(1, 11):
-                    GenerateTestScriptRAEplan(mode, domain, depth, part)
+            for part in range(1, 11):
+                GenerateTestScriptRAEplan(mode, args.domain, depth, part)
