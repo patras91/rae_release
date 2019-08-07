@@ -10,7 +10,7 @@ b_max_depth = {
 k_max_depth = {
     "CR": [1,3,5],
     "SD": [],
-    "SR": [],
+    "SR": [1,3,5],
     "EE": [],
     "IP": [],
     "OF": [],
@@ -19,7 +19,7 @@ k_max_depth = {
 UCT_max_depth = {
     "CR": [5, 25, 50, 75],
     "SD": [],
-    "SR": [],
+    "SR": [5, 25, 50, 75],
     "EE": [],
     "IP": [],
     "OF": [],
@@ -37,7 +37,7 @@ b_lim_depth = {
 k_lim_depth = {
     "CR": [3],
     "SD": [],
-    "SR": [],
+    "SR": [3],
     "EE": [],
     "IP": [],
     "OF": [],
@@ -46,7 +46,7 @@ k_lim_depth = {
 UCT_lim_depth = {
     "CR": [5, 25, 50],
     "SD": [],
-    "SR": [],
+    "SR": [5, 25, 50],
     "EE": [],
     "IP": [],
     "OF": [],
@@ -74,9 +74,9 @@ def Merge(domain, mode, depth):
             for k in k_max_depth[domain]:
                 fList = []
                 for parts in range(1, 11):
-                    name = "rae_plan_b_{}_k_{}_part_{}.txt".format(b,k,parts)
+                    name = "{}_v_journal/rae_plan_b_{}_k_{}_part_{}.txt".format(domain, b,k,parts)
                     fList.append(name)
-                fName = "rae_plan_b_{}_k_{}.txt".format(b,k)
+                fName = "{}_v_journal/rae_plan_b_{}_k_{}.txt".format(domain, b,k)
                 MergeHelper(fList, fName)
 
     elif mode == "SLATE" and depth == "lim":
@@ -85,18 +85,18 @@ def Merge(domain, mode, depth):
                 for d in DEPTH[domain]:
                     fList = []
                     for parts in range(1, 11):
-                        name = "rae_plan_b_{}_k_{}_d_{}_part_{}.txt".format(b,k,d,parts)
+                        name = "{}_v_journal/rae_plan_b_{}_k_{}_d_{}_part_{}.txt".format(domain, b,k,d,parts)
                         fList.append(name)
-                    fName = "rae_plan_b_{}_k_{}_d_{}.txt".format(b,k,d)
+                    fName = "{}_v_journal/rae_plan_b_{}_k_{}_d_{}.txt".format(domain, b,k,d)
                     MergeHelper(fList, fName)
 
     elif mode == "UCT" and depth == "max":
         for uct in UCT_max_depth[domain]:
             fList = []
             for parts in range(1, 11):
-                name = "rae_plan_uct_{}_part_{}.txt".format(uct,parts)
+                name = "{}_v_journal/rae_plan_uct_{}_part_{}.txt".format(domain, uct,parts)
                 fList.append(name)
-            fName = "rae_plan_uct_{}.txt".format(uct)
+            fName = "{}_v_journal/rae_plan_uct_{}.txt".format(domain, uct)
             MergeHelper(fList, fName)
 
     else:
@@ -104,9 +104,9 @@ def Merge(domain, mode, depth):
             for d in DEPTH[domain]:
                 fList = []
                 for parts in range(1, 11):
-                    name = "rae_plan_uct_{}_d_{}_part_{}.txt".format(uct,d,parts)
+                    name = "{}_v_journal/rae_plan_uct_{}_d_{}_part_{}.txt".format(domain, uct,d,parts)
                     fList.append(name)
-                fName = "rae_plan_uct_{}_d_{}.txt".format(uct,d)
+                fName = "{}_v_journal/rae_plan_uct_{}_d_{}.txt".format(domain, uct,d)
                 MergeHelper(fList, fName)
 
 if __name__ == "__main__":

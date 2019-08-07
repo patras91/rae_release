@@ -11,7 +11,7 @@ B_max_depth = {
     'EE': [1, 2, 3],
     'IP': [1, 2, 3],
     'CR': [1, 2, 3],
-    'SR': [1, 2, 3, 4],
+    'SR': [2, 3, 4],
     'OF': [1, 2]
 }
 
@@ -20,7 +20,7 @@ B_lim_depth = {
     'EE': [1, 2, 3],
     'IP': [1, 2, 3],
     'CR': [1,2],
-    'SR': [1, 2, 3, 4],
+    'SR': [2, 3, 4],
 }
 
 K_lim_depth = {
@@ -36,23 +36,25 @@ K_max_depth = {
     'EE': [0, 1, 3, 5, 8, 10], #, 20, 50, 75, 100],
     'IP': [0, 3, 5, 7, 10],
     'CR': [0,1,3,5], #20, 30, 40, 50, 60, 70, 75, 80, 90, 100],
-    'SR': [0, 1, 3, 5, 8, 10],
+    'SR': [0, 1, 3, 5],
     'OF': [0, 1, 3, 5]
 }
 
 Depth = {
-    'SR': [0, 3, 6, 9, 12, 15],
+    'SR': [0, 5, 10, 15],
     'CR': [0, 5, 10, 15],
     #'SR': [0, 5, 10, 15]
 }
 
 UCT_max_depth = {
     'CR': [0,5, 25, 50, 75],
+    'SR': [0,5,25,50,75],
     'OF': [0, 25, 50, 100]
 }
 
 UCT_lim_depth = {
     'CR': [5, 25, 50],
+    'SR': [5, 25, 50],
 }
 
 succCases = {
@@ -82,7 +84,7 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
     nu = 0
     
     id = 0
-
+    lineNumber = 0
     while(line != ''):
 
         parts = line.split(' ')
@@ -96,6 +98,8 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
                 id += 1
 
                 counts = f_rae.readline()
+                lineNumber += 1
+                print("line = ", lineNumber)
                 if counts == '':
                     break
                 parts2 = counts.split(' ')
@@ -125,6 +129,7 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
                     pass
 
             secTimeLine = f_rae.readline()
+            lineNumber += 1
             parts11 = secTimeLine.split()
             t11 = float(parts11[5])
             unit11 = parts11[6]
@@ -132,6 +137,7 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
                 t11 = t11 / 1000
             time11 += t11
         line = f_rae.readline()
+        lineNumber += 1
 
     print(res)
 
@@ -411,7 +417,7 @@ def PlotNu_SLATE_max_depth(resDict):
         if domain != 'OF':
             line3, = plt.plot(K_max_depth[domain], resDict[domain][B_max_depth[domain][2]][index1], 'm^-.', label='b={}'.format(B_max_depth[domain][2]), linewidth=4, MarkerSize=10, markerfacecolor='white')
         
-        if domain == 'SD' or domain == 'SR':
+        if domain == 'SD':
             line4, = plt.plot(K_max_depth[domain], resDict[domain][B_max_depth[domain][3]][index1], 'go--', label='b={}'.format(B_max_depth[domain][3]), linewidth=4, MarkerSize=10, markerfacecolor='white')        
         
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
@@ -423,22 +429,7 @@ def PlotNu_SLATE_max_depth(resDict):
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotNu_UCT_max_depth(resDict):
-    index1 = 'nu'
-    width = 0.25
-    #K = [0, 1, 2, 3, 4, 8, 16]
-
-    for domain in D:
-        plt.clf()
-        fname = '{}Nu_UCT_max_depth_{}.png'.format(figuresFolder, domain)
-        line1, = plt.plot(UCT_max_depth[domain], resDict[domain][index1], 'ro:', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
-            
-        plt.xlabel('Number of rollouts')
-        plt.xticks(UCT_max_depth[domain],
-           [str(item) for item in UCT_max_depth[domain]])
-        plt.ylabel('Efficiency, $E$') 
-        plt.savefig(fname, bbox_inches='tight')
+    PlotHelper_UCT_max(resDict, 'nu')
 
 def PlotNu_SLATE_lim_depth(resDict):
     index1 = 'nu'
@@ -452,8 +443,8 @@ def PlotNu_SLATE_lim_depth(resDict):
         line2, = plt.plot(Depth[domain], resDict[domain][B_lim_depth[domain][1]][index1], 'bs--', label='b={}'.format(B_lim_depth[domain][1]), linewidth=4, MarkerSize=10, markerfacecolor='white')
         #line3, = plt.plot(Depth[domain], resDict[domain][B_lim_depth[domain][2]][index1], 'm^-.', label='b={}'.format(B_lim_depth[domain][2]), linewidth=4, MarkerSize=10, markerfacecolor='white')
         
-        #if domain == 'SD' or domain == 'SR':
-        #    line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')        
+        if domain == 'SR':
+            line3, = plt.plot(Depth[domain], resDict[domain][B_lim_depth[domain][2]][index1], 'go--', label='b={}'.format(B_lim_depth[domain][2]), linewidth=4, MarkerSize=10, markerfacecolor='white')        
         
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
             
@@ -463,27 +454,7 @@ def PlotNu_SLATE_lim_depth(resDict):
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotNu_UCT_lim_depth(resDict):
-    index1 = 'nu'
-    width = 0.25
-
-    for domain in D:
-        plt.clf()
-        fname = '{}Nu_UCT_lim_depth_{}.png'.format(figuresFolder, domain)
-        line1, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][0]][index1], 'ro:', label='rollouts={}'.format(UCT_lim_depth[domain][0]), linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][1]][index1], 'bs--', label='rollouts={}'.format(UCT_lim_depth[domain][1]), linewidth=4, MarkerSize=10, markerfacecolor='white')
-        if domain != 'OF':
-            line3, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][2]][index1], 'm^-.', label='rollouts={}'.format(UCT_lim_depth[domain][2]), linewidth=4, MarkerSize=10, markerfacecolor='white')
-        
-        if domain == 'SD' or domain == 'SR':
-            line4, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][3]][index1], 'go--', label='rollouts={}'.format(UCT_lim_depth[domain][3]), linewidth=4, MarkerSize=10, markerfacecolor='white')        
-        
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
-            
-        plt.xlabel('Depth')
-        plt.xticks(Depth[domain],
-           GetString(Depth[domain]))
-        plt.ylabel('Efficiency, $E$') 
-        plt.savefig(fname, bbox_inches='tight')
+    PlotHelper_UCT_lim(resDict, 'nu')
 
 def PlotRetryRatio_SLATE_max_depth(resDict):
     index1 = 'retryRatio'
@@ -491,13 +462,13 @@ def PlotRetryRatio_SLATE_max_depth(resDict):
 
     for domain in D:
         plt.clf()
-        line1, = plt.plot(K_max_depth[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(K_max_depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(K_max_depth[domain], resDict[domain][2][index1], 'ro:', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(K_max_depth[domain], resDict[domain][3][index1], 'bs--', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
         if domain != 'OF':
-            line3, = plt.plot(K_max_depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
+            line3, = plt.plot(K_max_depth[domain], resDict[domain][4][index1], 'm^-.', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
-        if domain == 'SD' or domain == 'SR':
+        if domain == 'SD':
             line4, = plt.plot(K_max_depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
         
         fname = '{}RetryRatio_SLATE_max_depth_{}.png'.format(figuresFolder, domain)
@@ -532,10 +503,10 @@ def PlotRetryRatio_SLATE_lim_depth(resDict):
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotRetryRatio_UCT_lim_depth(resDict):
-    pass
+    PlotHelper_UCT_lim(resDict, 'retryRatio')
 
 def PlotRetryRatio_UCT_max_depth(resdict):
-    pass
+    PlotHelper_UCT_max(resdict, 'retryRatio')
 
 def PlotSuccessRatio_SLATE_max_depth(resDict):
     index1 = 'successRatio'
@@ -543,13 +514,13 @@ def PlotSuccessRatio_SLATE_max_depth(resDict):
 
     for domain in D:
         plt.clf()
-        line1, = plt.plot(K_max_depth[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(K_max_depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line1, = plt.plot(K_max_depth[domain], resDict[domain][2][index1], 'ro:', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(K_max_depth[domain], resDict[domain][3][index1], 'bs--', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
         if domain != 'OF':
-            line3, = plt.plot(K_max_depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
+            line3, = plt.plot(K_max_depth[domain], resDict[domain][4][index1], 'm^-.', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')
         
-        if domain == 'SD' or domain == 'SR':
-            line4, = plt.plot(K_max_depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
+        #if domain == 'SD' or domain == 'SR':
+        #    line4, = plt.plot(K_max_depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=3, MarkerSize=10, markerfacecolor='white')        
         
         fname = '{}SuccessRatio_SLATE_max_depth_{}.png'.format(figuresFolder, domain)
         plt.xlabel('k')
@@ -579,10 +550,60 @@ def PlotSuccessRatio_SLATE_lim_depth(resDict):
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotSuccessRatio_UCT_max_depth(resDict):
-    pass
+    PlotHelper_UCT_max(resDict, 'successRatio')
 
 def PlotSuccessRatio_UCT_lim_depth(resDict):
-    pass
+    PlotHelper_UCT_lim(resDict, 'successRatio')
+
+def GetYlabel(util):
+    if util == 'nu':
+        return 'Efficiency, $E$'
+    elif util == 'successRatio':
+        return 'Success Ratio'
+    else:
+        return 'Retry Ratio'
+
+def PlotHelper_UCT_max(resDict, util):
+    index1 = util
+    width = 0.25
+    #K = [0, 1, 2, 3, 4, 8, 16]
+
+    for domain in D:
+        plt.clf()
+        fname = '{}{}_UCT_max_depth_{}.png'.format(figuresFolder, util, domain)
+        line1, = plt.plot(UCT_max_depth[domain], resDict[domain][index1], 'ro:', linewidth=4, MarkerSize=10, markerfacecolor='white')
+        
+        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
+            
+        plt.xlabel('Number of rollouts')
+        plt.xticks(UCT_max_depth[domain],
+           [str(item) for item in UCT_max_depth[domain]])
+        plt.ylabel(GetYlabel(util))
+
+        plt.savefig(fname, bbox_inches='tight')
+
+def PlotHelper_UCT_lim(resDict, util):
+    index1 = util
+    width = 0.25
+
+    for domain in D:
+        plt.clf()
+        fname = '{}{}_UCT_lim_depth_{}.png'.format(figuresFolder, util, domain)
+        line1, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][0]][index1], 'ro:', label='rollouts={}'.format(UCT_lim_depth[domain][0]), linewidth=4, MarkerSize=10, markerfacecolor='white')
+        line2, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][1]][index1], 'bs--', label='rollouts={}'.format(UCT_lim_depth[domain][1]), linewidth=4, MarkerSize=10, markerfacecolor='white')
+        if domain != 'OF':
+            line3, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][2]][index1], 'm^-.', label='rollouts={}'.format(UCT_lim_depth[domain][2]), linewidth=4, MarkerSize=10, markerfacecolor='white')
+        
+        #if domain == 'SD' or domain == 'SR':
+        #    line4, = plt.plot(Depth[domain], resDict[domain][UCT_lim_depth[domain][3]][index1], 'go--', label='rollouts={}'.format(UCT_lim_depth[domain][3]), linewidth=4, MarkerSize=10, markerfacecolor='white')        
+        
+        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
+            
+        plt.xlabel('Depth')
+        plt.xticks(Depth[domain],
+           GetString(Depth[domain]))
+        plt.ylabel(GetYlabel(util)) 
+        plt.savefig(fname, bbox_inches='tight')
 
 D = None
 heuristic = None

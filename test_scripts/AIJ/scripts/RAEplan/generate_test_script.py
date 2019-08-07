@@ -93,7 +93,7 @@ DEPTH = {
     "OF": [5, 10, 15],
 }
 
-runs=2
+runs=5
 
 def writeList(name, l, file):
     file.write("{}=(\n".format(name))
