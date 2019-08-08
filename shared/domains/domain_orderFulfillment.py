@@ -14,6 +14,7 @@ from timer import globalTimer, DURATION
 import GLOBALS
 import itertools
 import random
+import numpy as np
 
 def fail():
     return FAILURE
@@ -561,6 +562,25 @@ def wrap(redoId, orderName, m, objList):
     state.loc.ReleaseLock(m)
 
     return res
+
+# Define heuristics (returns expected efficiency for external tasks)
+def Heuristic1(args):
+    return float("inf")
+
+def Heuristic2(args):
+    order = args[0]
+    totalDist = 0
+    for itemClass in order:
+        item = min(list(rv.OBJ_CLASS[itemClass]),
+               key=lambda i: OF_GETDISTANCE_GROUND(state.loc[i], rv.SHIPPING_DOC[list(rv.ROBOTS.values())[0]]))
+        totalDist += OF_GETDISTANCE_GROUND(item, rv.SHIPPING_DOC[list(rv.ROBOTS.values())[0]])
+
+    return 100/totalDist
+
+if GLOBALS.GetHeuristicName() == 'h1':
+    ape.declare_heuristic('orderStart', Heuristic1)
+elif GLOBALS.GetHeuristicName() == 'h2':
+    ape.declare_heuristic('orderStart', Heuristic2)
 
 
 # Declare tasks

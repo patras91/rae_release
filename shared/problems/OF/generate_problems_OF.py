@@ -133,7 +133,7 @@ def generateProblems():
 def writeProblem(num, locations, factory, shippingDoc, edges, weights, robots,
                  robotCapacity, machines, objects, obj_weight,
                  obj_class, stateLoc, pallets, busy, numUses, orderTypes):
-    fname = 'problem{}_OF.py'.format(num)
+    fname = 'auto/problem{}_OF.py'.format(num)
     file = open(fname, "w")
     writeHeader(file)
 
