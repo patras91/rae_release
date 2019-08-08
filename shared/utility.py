@@ -21,7 +21,7 @@ class Utility():
     def __gt__(self, other): 
         if self.value == 'UNK':
             return False
-        if int(self.value) > other.value: 
+        if self.value > other.value: 
             return True
         else: 
             return False

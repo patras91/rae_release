@@ -5,6 +5,7 @@ from timer import DURATION
 #from graphviz import Digraph
 import types
 from utility import Utility
+import GLOBALS
 
 class PlanningTree():
     def __init__(self, n, args, type1):
@@ -515,6 +516,10 @@ class SearchTreeNode():
         self.util = Utility("UNK")
         self.prevState = None
         self.parent = None
+        if GLOBALS.GetUCTmode() == True and self.type == 'task':
+            self.N = 0
+            self.n = []
+            self.Q = []
 
     def GetLabel(self):
         return self.label
@@ -550,6 +555,16 @@ class SearchTreeNode():
         node.parent = self
         self.children.append(node)
         self.childWeights.append(1)
+        if GLOBALS.GetUCTmode() == True and self.type == 'task':
+            self.n.append(0)
+            self.Q.append(Utility('Success'))
+
+    def FindAmongChildren(self, s):
+        assert(self.type == 'command')
+        for child in self.children:
+            if child.label.EqualTo(s):
+                return child 
+        return None
 
     def GetNext(self):
         if self.childPtr < len(self.children):
@@ -600,6 +615,20 @@ class SearchTreeNode():
                 bestMethod = child.GetLabel()
         return bestMethod
 
+    def GetBestMethod_UCT(self):
+        index = None
+        bestQ = Utility('Failure')
+        
+        l = [q.GetValue() for q in self.Q]
+        for i in range(0, len(self.Q)):
+            if self.Q[i] > bestQ:
+                bestQ = self.Q[i]
+                index = i
+        if index == None:
+            return 'Failure'
+        else:
+            return self.children[index].GetLabel()
+        
     def IncreaseWeight(self, s):
         assert(self.type == 'command')
         for index in range(0, len(self.children)):

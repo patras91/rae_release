@@ -1,0 +1,48 @@
+#!/bin/sh
+# This script is to run RAE by calling RAE-plan
+
+echo "Executing tests for RAE with RAE-plan."
+
+domain="OF"
+runs=1
+P=(
+"problem2"
+"problem3"
+"problem4"
+"problem5"
+"problem6"
+"problem7"
+"problem8"
+"problem9"
+)
+uct=("25" "50" "100") 
+for problem in ${P[@]}
+do
+    for uctCount in ${uct[@]}
+    do
+            setup="
+import sys
+sys.path.append('../../../../RAE_and_RAEplan/')
+sys.path.append('../../../../shared/domains/')
+sys.path.append('../../../../shared/problems/OF')
+sys.path.append('../../../../shared/')
+from testRAEandRAEplan import GLOBALS, testBatch
+GLOBALS.SetUCTRuns($uctCount)
+GLOBALS.SetOpt('max')
+GLOBALS.SetUCTmode('UCT')
+GLOBALS.SetSearchDepth(float(\"inf\"))"
+counter=1
+while [ $counter -le $runs ]
+do
+            echo $domain $problem "uct = " $uctCount ", Run " $counter/$runs
+            time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"
+
+            fname="../../results/${domain}_v_journal/rae_plan_uct_${uctCount}.txt" # You should have a folder called OF in the current folder
+
+            echo "Time test of $domain $problem $uctCount" >> $fname
+            python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
+((counter++))
+done
+    done
+done
+

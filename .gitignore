@@ -1,7 +1,6 @@
 *.xlsx
 *.pyc
 misc.xml
-*.png
 *.xml
 *.
 *.
@@ -38,3 +37,5 @@ test_scripts/AIJ/results/SR_v8/
 test_scripts/AIJ/analyze.py
 test_scripts/AIJ/analyze_repeat.py
 test_scripts/AIJ/compare_APEplan_RAEplan.py
+test_scripts/AIJ/results/CR_v_journal_3/
+test_scripts/AIJ/results/SR_v_journal_1/

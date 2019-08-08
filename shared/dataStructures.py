@@ -129,6 +129,12 @@ class rL_PLAN(rL):
     def GetTaskToRefine(self):
         return self.rL.taskToRefine
 
+    def SetFlip(self, v):
+        self.rL.flip = v
+
+    def GetFlip(self):
+        return self.rL.flip
+
     def SetDepth(self, d):
         self.rL.depth = d
 
@@ -150,6 +156,12 @@ class rL_PLAN(rL):
 
     def GetHeuristicArgs(self):
         return (self.rL.heuristicTaskName, self.rL.heuristicTaskArgs)
+
+    def SetUtilRollout(self, u):
+        self.rL.util = u
+
+    def GetUtilRollout(self):
+        return self.rL.util
 
 class PlanArgs():
     def __init__(self):

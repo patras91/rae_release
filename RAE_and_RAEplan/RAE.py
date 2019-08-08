@@ -1,5 +1,5 @@
 from __future__ import print_function
-from RAE1_and_RAEplan import ipcArgs, envArgs, RAE1, RAEplanChoice
+from RAE1_and_RAEplan import ipcArgs, envArgs, RAE1, RAEplanChoice, RAEplanChoice_UCT
 from dataStructures import PlanArgs
 from timer import globalTimer, SetMode
 #from time import time
@@ -223,7 +223,10 @@ def raeMult():
     return taskInfo # for unit tests
 
 def CreateNewStackSimulation(pArgs, queue):
-    method, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
+    if GLOBALS.GetUCTmode() == True:
+        method, planningTime = RAEplanChoice_UCT(pArgs.GetTask(), pArgs)
+    else:
+        method, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
     queue.put((method, planningTime))
 
 def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, gL, searchTree):

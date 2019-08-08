@@ -21,7 +21,7 @@ do
 import sys
 sys.path.append('../../../../RAE_and_RAEplan/')
 sys.path.append('../../../../shared/domains/')
-sys.path.append('../../../../shared/problems/$domain/auto')
+sys.path.append('../../../../shared/problems/$domain/')
 sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.Setb(1)

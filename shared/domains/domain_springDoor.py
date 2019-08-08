@@ -1,9 +1,6 @@
 __author__ = 'patras'
 
 from domain_constants import *
-#import importlib
-#loader = importlib.find_loader('RAE1_and_RAEplan')
-#if loader is not None:
 import RAE1_and_RAEplan as alg
 
 from state import state, rv
