@@ -19,6 +19,14 @@ def GetProblemsSR():
     names = ["problem{}".format(item) for item in p1]
     return names
 
+def GetProblemsOF():
+    l = list(range(11, 111))
+    random.seed(250)
+    random.shuffle(l)
+    p1 = l[0:50]
+    names = ["problem{}".format(item) for item in p1]
+    return names
+
 #problems = {
 #    "CR": GetProblemsCR(),
 #    "SD": [],
@@ -40,10 +48,10 @@ b_max_depth = {
 k_max_depth = {
     "CR": [1,3,5],
     "SD": [],
-    "SR": [],
+    "SR": [1,3,5],
     "EE": [],
     "IP": [],
-    "OF": [],
+    "OF": [1,3,5],
 }
 
 UCT_max_depth = {
@@ -53,6 +61,15 @@ UCT_max_depth = {
     "EE": [],
     "IP": [],
     "OF": [],
+}
+
+UCT_max_depth = {
+    "CR": [5, 25, 50, 75],
+    "SD": [],
+    "SR": [5, 25, 50, 75],
+    "EE": [],
+    "IP": [],
+    "OF": [5, 25, 50, 75],
 }
 
 b_lim_depth = {
@@ -67,19 +84,19 @@ b_lim_depth = {
 k_lim_depth = {
     "CR": [3],
     "SD": [],
-    "SR": [],
+    "SR": [3],
     "EE": [],
     "IP": [],
-    "OF": [],
+    "OF": [3],
 }
 
 UCT_lim_depth = {
     "CR": [5, 25, 50],
     "SD": [],
-    "SR": [],
+    "SR": [5, 25, 50],
     "EE": [],
     "IP": [],
-    "OF": [],
+    "OF": [5, 25, 50],
 }
 
 DEPTH = {
@@ -103,6 +120,9 @@ def writeProblems(name, file, domain):
         writeList(name, l, file)
     elif domain == "SR":
         l = GetProblemsSR()
+        writeList(name, l, file)
+    elif domain == "OF":
+        l = GetProblemsOF()
         writeList(name, l, file)
 
 def GenerateTestScriptRAE(domain):

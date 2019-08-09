@@ -2248,3 +2248,753 @@ Time test of CR problem1066
 Time test of CR problem1066
 2 2 0 0 21 0.6666666666666666 1 2 4
 1 loops, best of 1: 1.22 sec per loop
+Time test of CR problem1106
+1 2 7 0 38 0.25 3 4 3
+1 loops, best of 1: 3.69 sec per loop
+Time test of CR problem1106
+1 2 7 0 38 0.25 3 4 3
+1 loops, best of 1: 3.63 sec per loop
+Time test of CR problem1106
+1 2 7 0 38 0.25 3 4 3
+1 loops, best of 1: 3.54 sec per loop
+Time test of CR problem1106
+1 2 7 0 38 0.25 3 4 3
+1 loops, best of 1: 3.53 sec per loop
+Time test of CR problem1106
+1 2 7 0 38 0.25 3 4 3
+1 loops, best of 1: 3.64 sec per loop
+Time test of CR problem1004
+1 1 1 0 75 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.84 sec per loop
+Time test of CR problem1004
+1 1 1 0 75 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.88 sec per loop
+Time test of CR problem1004
+1 1 2 0 91 0.014492753623188408 5 8 7
+1 loops, best of 1: 3.19 sec per loop
+Time test of CR problem1004
+1 1 1 0 75 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.83 sec per loop
+Time test of CR problem1004
+1 1 1 0 75 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.79 sec per loop
+Time test of CR problem1002
+1 1 2 0 113 0.01149425287356322 6 15 13
+1 loops, best of 1: 3.89 sec per loop
+Time test of CR problem1002
+1 1 2 0 107 0.011904761904761906 6 15 13
+1 loops, best of 1: 3.79 sec per loop
+Time test of CR problem1002
+1 1 2 0 107 0.011904761904761906 6 15 13
+1 loops, best of 1: 3.79 sec per loop
+Time test of CR problem1002
+1 1 2 0 107 0.011904761904761906 6 15 13
+1 loops, best of 1: 3.79 sec per loop
+Time test of CR problem1002
+1 1 2 0 107 0.011904761904761906 6 15 13
+1 loops, best of 1: 3.68 sec per loop
+Time test of CR problem1096
+1 1 0 0 66 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.68 sec per loop
+Time test of CR problem1096
+1 1 0 0 66 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.67 sec per loop
+Time test of CR problem1096
+1 1 1 0 73 0.018181818181818184 1 1 1
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1096
+1 1 1 0 80 0.01666666666666667 3 3 3
+1 loops, best of 1: 1.97 sec per loop
+Time test of CR problem1096
+1 1 1 0 72 0.018181818181818184 3 4 3
+1 loops, best of 1: 1.68 sec per loop
+Time test of CR problem1073
+1 1 0 0 29 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.63 sec per loop
+Time test of CR problem1073
+1 1 0 0 29 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.68 sec per loop
+Time test of CR problem1073
+1 1 0 0 29 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.67 sec per loop
+Time test of CR problem1073
+1 1 0 0 29 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.67 sec per loop
+Time test of CR problem1073
+1 1 1 0 35 0.06250000000000001 3 3 3
+1 loops, best of 1: 2.03 sec per loop
+Time test of CR problem1012
+1 1 1 0 78 0.01754385964912281 5 11 10
+1 loops, best of 1: 2.93 sec per loop
+Time test of CR problem1012
+1 1 1 0 79 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.98 sec per loop
+Time test of CR problem1012
+1 1 1 0 79 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.94 sec per loop
+Time test of CR problem1012
+1 1 2 0 86 0.015625 5 11 10
+1 loops, best of 1: 3.24 sec per loop
+Time test of CR problem1012
+1 1 2 0 76 0.018181818181818184 4 6 3
+1 loops, best of 1: 2.88 sec per loop
+Time test of CR problem1005
+1 1 1 0 78 0.01694915254237288 5 11 10
+1 loops, best of 1: 3.03 sec per loop
+Time test of CR problem1005
+1 1 1 0 78 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.98 sec per loop
+Time test of CR problem1005
+1 1 1 0 78 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.95 sec per loop
+Time test of CR problem1005
+1 1 1 0 78 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.93 sec per loop
+Time test of CR problem1005
+1 1 1 0 78 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.98 sec per loop
+Time test of CR problem1114
+1 2 7 0 35 0.25 3 4 3
+1 loops, best of 1: 3.44 sec per loop
+Time test of CR problem1114
+0 2 7 0 33 0 3 4 2
+1 loops, best of 1: 3.24 sec per loop
+Time test of CR problem1114
+0 2 7 0 35 0 3 4 3
+1 loops, best of 1: 3.43 sec per loop
+Time test of CR problem1114
+1 2 7 0 35 0.25 3 4 3
+1 loops, best of 1: 3.43 sec per loop
+Time test of CR problem1114
+1 2 7 0 35 0.25 3 4 3
+1 loops, best of 1: 3.44 sec per loop
+Time test of CR problem1087
+1 1 1 0 69 0.018181818181818184 1 1 1
+1 loops, best of 1: 2.14 sec per loop
+Time test of CR problem1087
+1 1 1 0 69 0.018181818181818184 1 1 1
+1 loops, best of 1: 2.07 sec per loop
+Time test of CR problem1087
+1 1 0 0 62 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1087
+0 1 2 0 54 0 2 2 1
+1 loops, best of 1: 2.08 sec per loop
+Time test of CR problem1087
+1 1 0 0 62 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.87 sec per loop
+Time test of CR problem1069
+1 1 0 0 33 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1069
+1 1 1 0 39 0.06250000000000001 3 3 3
+1 loops, best of 1: 2.27 sec per loop
+Time test of CR problem1069
+1 1 0 0 33 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1069
+1 1 1 0 34 0.07142857142857144 3 4 3
+1 loops, best of 1: 1.93 sec per loop
+Time test of CR problem1069
+1 1 0 0 33 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1089
+1 1 1 0 69 0.018181818181818184 1 1 1
+1 loops, best of 1: 2.08 sec per loop
+Time test of CR problem1089
+1 1 1 0 68 0.018181818181818184 3 4 3
+1 loops, best of 1: 1.98 sec per loop
+Time test of CR problem1089
+1 1 1 0 68 0.018181818181818184 3 4 3
+1 loops, best of 1: 1.97 sec per loop
+Time test of CR problem1089
+0 1 1 0 76 0 3 3 3
+1 loops, best of 1: 2.33 sec per loop
+Time test of CR problem1089
+1 1 1 0 62 0.019999999999999997 3 4 3
+1 loops, best of 1: 1.78 sec per loop
+Time test of CR problem1001
+1 1 2 0 98 0.013888888888888895 6 13 12
+1 loops, best of 1: 3.6 sec per loop
+Time test of CR problem1001
+1 1 2 0 97 0.013513513513513518 6 13 12
+1 loops, best of 1: 3.59 sec per loop
+Time test of CR problem1001
+1 1 2 0 97 0.013513513513513518 6 13 12
+1 loops, best of 1: 3.68 sec per loop
+Time test of CR problem1001
+1 1 3 0 111 0.011904761904761906 6 12 11
+1 loops, best of 1: 4.09 sec per loop
+Time test of CR problem1001
+1 1 5 0 139 0.009615384615384618 5 7 6
+1 loops, best of 1: 4.89 sec per loop
+Time test of CR problem1008
+1 1 4 0 139 0.009615384615384618 7 17 15
+1 loops, best of 1: 5.15 sec per loop
+Time test of CR problem1008
+1 1 4 0 145 0.009345794392523364 7 16 14
+1 loops, best of 1: 5.09 sec per loop
+Time test of CR problem1008
+1 1 3 0 132 0.010101010101010104 7 17 15
+1 loops, best of 1: 4.79 sec per loop
+Time test of CR problem1008
+1 1 7 0 147 0.009345794392523367 6 13 9
+1 loops, best of 1: 5.24 sec per loop
+Time test of CR problem1008
+1 1 4 0 135 0.010101010101010104 6 14 10
+1 loops, best of 1: 4.81 sec per loop
+Time test of CR problem1013
+1 1 3 0 144 0.009345794392523364 7 19 16
+1 loops, best of 1: 4.94 sec per loop
+Time test of CR problem1013
+1 1 3 0 145 0.009174311926605507 7 19 16
+1 loops, best of 1: 5.1 sec per loop
+Time test of CR problem1013
+1 1 4 0 157 0.008695652173913045 7 16 14
+1 loops, best of 1: 5.15 sec per loop
+Time test of CR problem1013
+1 1 3 0 145 0.009174311926605507 7 19 16
+1 loops, best of 1: 5.1 sec per loop
+Time test of CR problem1013
+1 1 3 0 145 0.009174311926605507 7 19 16
+1 loops, best of 1: 5.09 sec per loop
+Time test of CR problem1053
+1 2 1 0 43 0.05882352941176471 2 3 4
+1 loops, best of 1: 3.44 sec per loop
+Time test of CR problem1053
+1 2 1 0 43 0.05882352941176471 2 3 4
+1 loops, best of 1: 1.78 sec per loop
+Time test of CR problem1053
+1 2 3 0 45 0.06666666666666667 2 3 3
+1 loops, best of 1: 2.14 sec per loop
+Time test of CR problem1053
+1 2 1 0 43 0.05882352941176471 2 3 4
+1 loops, best of 1: 1.94 sec per loop
+Time test of CR problem1053
+1 2 1 0 43 0.05882352941176471 2 3 4
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1062
+1 2 3 0 30 0.25 2 3 3
+1 loops, best of 1: 2.34 sec per loop
+Time test of CR problem1062
+1 2 1 0 28 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.98 sec per loop
+Time test of CR problem1062
+1 2 1 0 28 0.16666666666666666 2 3 4
+1 loops, best of 1: 2.08 sec per loop
+Time test of CR problem1062
+1 2 1 0 28 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.93 sec per loop
+Time test of CR problem1062
+1 2 3 0 30 0.25 2 3 3
+1 loops, best of 1: 2.23 sec per loop
+Time test of CR problem1092
+1 1 0 0 67 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.63 sec per loop
+Time test of CR problem1092
+1 1 0 0 67 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.72 sec per loop
+Time test of CR problem1092
+1 1 2 0 74 0.018181818181818177 1 1 1
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1092
+0 1 1 0 74 0 1 1 1
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1092
+1 1 0 0 67 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.68 sec per loop
+Time test of CR problem1079
+1 1 0 0 36 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.93 sec per loop
+Time test of CR problem1079
+1 1 0 0 36 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.87 sec per loop
+Time test of CR problem1079
+1 1 0 0 36 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.87 sec per loop
+Time test of CR problem1079
+1 1 0 0 36 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1079
+1 1 0 0 36 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1111
+2 2 3 0 91 0.27272727272727276 7 20 18
+1 loops, best of 1: 5.54 sec per loop
+Time test of CR problem1111
+2 2 3 0 96 0.27380952380952384 7 22 19
+1 loops, best of 1: 5.94 sec per loop
+Time test of CR problem1111
+2 2 5 0 98 0.2717391304347826 7 20 18
+1 loops, best of 1: 5.89 sec per loop
+Time test of CR problem1111
+2 2 5 0 101 0.27083333333333337 7 19 18
+1 loops, best of 1: 6.11 sec per loop
+Time test of CR problem1111
+2 2 3 0 91 0.27272727272727276 7 20 18
+1 loops, best of 1: 5.59 sec per loop
+Time test of CR problem1085
+1 1 0 0 62 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1085
+1 1 0 0 62 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1085
+1 1 0 0 62 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1085
+1 1 1 0 76 0.01666666666666667 3 3 3
+1 loops, best of 1: 2.23 sec per loop
+Time test of CR problem1085
+1 1 1 0 68 0.018181818181818184 3 4 3
+1 loops, best of 1: 1.93 sec per loop
+Time test of CR problem1011
+1 1 2 0 110 0.011904761904761906 6 15 13
+1 loops, best of 1: 3.93 sec per loop
+Time test of CR problem1011
+1 1 3 0 124 0.010638297872340427 6 14 12
+1 loops, best of 1: 4.3 sec per loop
+Time test of CR problem1011
+1 1 3 0 124 0.010638297872340427 6 14 12
+1 loops, best of 1: 4.34 sec per loop
+Time test of CR problem1011
+1 1 2 0 110 0.012195121951219516 6 15 13
+1 loops, best of 1: 3.85 sec per loop
+Time test of CR problem1011
+1 1 4 0 124 0.010869565217391306 6 14 12
+1 loops, best of 1: 4.24 sec per loop
+Time test of CR problem1076
+1 1 0 0 34 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.87 sec per loop
+Time test of CR problem1076
+1 1 0 0 34 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.73 sec per loop
+Time test of CR problem1076
+1 1 0 0 34 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.78 sec per loop
+Time test of CR problem1076
+1 1 1 0 38 0.06250000000000001 1 1 1
+1 loops, best of 1: 2.02 sec per loop
+Time test of CR problem1076
+1 1 2 0 38 0.07142857142857144 3 4 3
+1 loops, best of 1: 2.17 sec per loop
+Time test of CR problem1036
+1 1 0 0 28 0.1 3 4 5
+1 loops, best of 1: 1.42 sec per loop
+Time test of CR problem1036
+0 1 2 0 23 0 2 2 1
+1 loops, best of 1: 1.57 sec per loop
+Time test of CR problem1036
+1 1 0 0 28 0.1 3 4 5
+1 loops, best of 1: 1.47 sec per loop
+Time test of CR problem1036
+1 1 0 0 28 0.1 3 4 5
+1 loops, best of 1: 1.42 sec per loop
+Time test of CR problem1036
+1 1 0 0 28 0.1 3 4 5
+1 loops, best of 1: 1.47 sec per loop
+Time test of CR problem1110
+2 2 0 0 37 0.32142857142857145 5 8 9
+1 loops, best of 1: 2.43 sec per loop
+Time test of CR problem1110
+2 2 0 0 37 0.32142857142857145 5 8 9
+1 loops, best of 1: 2.48 sec per loop
+Time test of CR problem1110
+2 2 0 0 37 0.32142857142857145 5 8 9
+1 loops, best of 1: 2.53 sec per loop
+Time test of CR problem1110
+2 2 2 0 43 0.3055555555555556 4 6 6
+1 loops, best of 1: 2.78 sec per loop
+Time test of CR problem1110
+2 2 0 0 37 0.32142857142857145 5 8 9
+1 loops, best of 1: 2.28 sec per loop
+Time test of CR problem1099
+0 1 3 0 69 0 2 2 1
+1 loops, best of 1: 2.18 sec per loop
+Time test of CR problem1099
+1 1 0 0 69 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.73 sec per loop
+Time test of CR problem1099
+1 1 0 0 69 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.78 sec per loop
+Time test of CR problem1099
+1 1 0 0 69 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.73 sec per loop
+Time test of CR problem1099
+1 1 0 0 69 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.78 sec per loop
+Time test of CR problem1120
+1 2 7 0 40 0.25 3 4 3
+1 loops, best of 1: 3.64 sec per loop
+Time test of CR problem1120
+1 2 7 0 41 0.25 3 4 3
+1 loops, best of 1: 3.74 sec per loop
+Time test of CR problem1120
+1 2 7 0 40 0.25 3 4 3
+1 loops, best of 1: 3.59 sec per loop
+Time test of CR problem1120
+1 2 7 0 40 0.25 3 4 3
+1 loops, best of 1: 3.65 sec per loop
+Time test of CR problem1120
+1 2 7 0 40 0.25 3 4 3
+1 loops, best of 1: 3.59 sec per loop
+Time test of CR problem1038
+1 1 0 0 23 0.1 3 4 5
+1 loops, best of 1: 1.28 sec per loop
+Time test of CR problem1038
+0 1 2 0 18 0 2 2 1
+1 loops, best of 1: 1.32 sec per loop
+Time test of CR problem1038
+1 1 0 0 23 0.1 3 4 5
+1 loops, best of 1: 1.27 sec per loop
+Time test of CR problem1038
+1 1 0 0 23 0.1 3 4 5
+1 loops, best of 1: 1.28 sec per loop
+Time test of CR problem1038
+1 1 0 0 23 0.1 3 4 5
+1 loops, best of 1: 1.27 sec per loop
+Time test of CR problem1100
+2 2 4 0 96 0.2717391304347826 7 18 17
+1 loops, best of 1: 5.75 sec per loop
+Time test of CR problem1100
+2 2 3 0 92 0.27272727272727276 7 20 18
+1 loops, best of 1: 5.51 sec per loop
+Time test of CR problem1100
+2 2 3 0 92 0.27272727272727276 7 20 18
+1 loops, best of 1: 5.51 sec per loop
+Time test of CR problem1100
+2 2 5 0 109 0.2717391304347826 7 19 15
+1 loops, best of 1: 6.51 sec per loop
+Time test of CR problem1100
+1 2 7 0 41 0.25 3 4 3
+1 loops, best of 1: 3.45 sec per loop
+Time test of CR problem1028
+1 1 0 0 35 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.33 sec per loop
+Time test of CR problem1028
+0 1 2 0 28 0 2 2 1
+1 loops, best of 1: 1.47 sec per loop
+Time test of CR problem1028
+0 1 1 0 36 0 1 1 1
+1 loops, best of 1: 1.38 sec per loop
+Time test of CR problem1028
+1 1 1 0 49 0.03225806451612903 3 3 3
+1 loops, best of 1: 1.63 sec per loop
+Time test of CR problem1028
+1 1 0 0 35 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.32 sec per loop
+Time test of CR problem1088
+1 1 0 0 60 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.77 sec per loop
+Time test of CR problem1088
+1 1 0 0 60 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1088
+1 1 0 0 60 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.82 sec per loop
+Time test of CR problem1088
+1 1 0 0 60 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.72 sec per loop
+Time test of CR problem1088
+1 1 0 0 60 0.020000000000000004 4 6 7
+1 loops, best of 1: 1.72 sec per loop
+Time test of CR problem1118
+2 2 4 0 92 0.2717391304347826 7 20 18
+1 loops, best of 1: 5.7 sec per loop
+Time test of CR problem1118
+2 2 4 0 89 0.27272727272727276 6 17 13
+1 loops, best of 1: 5.6 sec per loop
+Time test of CR problem1118
+2 2 3 0 88 0.27272727272727276 7 20 18
+1 loops, best of 1: 5.39 sec per loop
+Time test of CR problem1118
+2 2 5 0 92 0.27272727272727276 7 19 17
+1 loops, best of 1: 5.5 sec per loop
+Time test of CR problem1118
+2 2 4 0 92 0.2717391304347826 7 20 18
+1 loops, best of 1: 5.65 sec per loop
+Time test of CR problem1056
+2 2 1 0 50 0.10644257703081234 1 2 4
+1 loops, best of 1: 2.13 sec per loop
+Time test of CR problem1056
+1 2 3 0 48 0.06666666666666667 1 2 3
+1 loops, best of 1: 2.28 sec per loop
+Time test of CR problem1056
+1 2 1 0 38 0.04545454545454546 3 5 4
+1 loops, best of 1: 1.67 sec per loop
+Time test of CR problem1056
+2 2 0 0 46 0.11145510835913314 3 5 7
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1056
+2 2 0 0 46 0.11145510835913314 3 5 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1007
+1 1 1 0 75 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.88 sec per loop
+Time test of CR problem1007
+1 1 1 0 75 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.83 sec per loop
+Time test of CR problem1007
+1 1 3 0 83 0.015625 5 8 5
+1 loops, best of 1: 3.13 sec per loop
+Time test of CR problem1007
+1 1 1 0 75 0.01694915254237288 5 11 10
+1 loops, best of 1: 2.83 sec per loop
+Time test of CR problem1007
+1 1 1 0 77 0.01694915254237288 5 9 9
+1 loops, best of 1: 2.68 sec per loop
+Time test of CR problem1017
+1 1 1 0 64 0.020408163265306124 5 9 9
+1 loops, best of 1: 2.58 sec per loop
+Time test of CR problem1017
+1 1 1 0 64 0.020408163265306124 5 9 9
+1 loops, best of 1: 2.58 sec per loop
+Time test of CR problem1017
+1 1 1 0 64 0.020408163265306124 5 9 9
+1 loops, best of 1: 2.58 sec per loop
+Time test of CR problem1017
+1 1 2 0 71 0.01851851851851852 5 9 9
+1 loops, best of 1: 2.88 sec per loop
+Time test of CR problem1017
+1 1 1 0 64 0.020408163265306124 5 9 9
+1 loops, best of 1: 2.58 sec per loop
+Time test of CR problem1040
+1 1 0 0 27 0.1 3 4 5
+1 loops, best of 1: 1.48 sec per loop
+Time test of CR problem1040
+1 1 0 0 27 0.1 3 4 5
+1 loops, best of 1: 1.47 sec per loop
+Time test of CR problem1040
+1 1 1 0 31 0.08333333333333334 1 1 1
+1 loops, best of 1: 1.57 sec per loop
+Time test of CR problem1040
+1 1 1 0 33 0.08333333333333334 3 3 3
+1 loops, best of 1: 1.77 sec per loop
+Time test of CR problem1040
+1 1 0 0 27 0.1 3 4 5
+1 loops, best of 1: 1.42 sec per loop
+Time test of CR problem1108
+2 2 1 0 56 0.2916666666666667 5 12 12
+1 loops, best of 1: 3.43 sec per loop
+Time test of CR problem1108
+2 2 1 0 56 0.2916666666666667 5 12 12
+1 loops, best of 1: 3.4 sec per loop
+Time test of CR problem1108
+2 2 2 0 60 0.2884615384615385 5 10 11
+1 loops, best of 1: 3.58 sec per loop
+Time test of CR problem1108
+2 2 2 0 53 0.3 5 9 6
+1 loops, best of 1: 3.29 sec per loop
+Time test of CR problem1108
+2 2 1 0 56 0.2916666666666667 5 12 12
+1 loops, best of 1: 3.49 sec per loop
+Time test of CR problem1074
+1 1 2 0 36 0.07142857142857144 3 4 3
+1 loops, best of 1: 2.12 sec per loop
+Time test of CR problem1074
+1 1 0 0 34 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1074
+1 1 1 0 32 0.08333333333333334 3 4 3
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1074
+1 1 0 0 34 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1074
+1 1 1 0 32 0.08333333333333334 3 4 3
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1078
+1 1 0 0 35 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.78 sec per loop
+Time test of CR problem1078
+1 1 0 0 35 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1078
+1 1 2 0 37 0.07142857142857144 3 4 3
+1 loops, best of 1: 1.98 sec per loop
+Time test of CR problem1078
+1 1 0 0 35 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1078
+1 1 0 0 35 0.07142857142857144 4 6 7
+1 loops, best of 1: 1.82 sec per loop
+Time test of CR problem1009
+1 1 4 0 134 0.009615384615384616 7 17 15
+1 loops, best of 1: 4.74 sec per loop
+Time test of CR problem1009
+1 1 5 0 142 0.009174311926605507 6 13 9
+1 loops, best of 1: 5.04 sec per loop
+Time test of CR problem1009
+1 1 4 0 136 0.009615384615384618 7 17 15
+1 loops, best of 1: 4.79 sec per loop
+Time test of CR problem1009
+1 1 3 0 126 0.010309278350515462 7 17 15
+1 loops, best of 1: 4.48 sec per loop
+Time test of CR problem1009
+1 1 3 0 127 0.010101010101010104 7 17 15
+1 loops, best of 1: 4.54 sec per loop
+Time test of CR problem1045
+0 1 2 0 43 0 2 2 1
+1 loops, best of 1: 1.62 sec per loop
+Time test of CR problem1045
+1 1 0 0 51 0.028571428571428574 3 4 5
+1 loops, best of 1: 1.38 sec per loop
+Time test of CR problem1045
+1 1 0 0 51 0.028571428571428574 3 4 5
+1 loops, best of 1: 1.42 sec per loop
+Time test of CR problem1045
+1 1 0 0 51 0.028571428571428574 3 4 5
+1 loops, best of 1: 1.37 sec per loop
+Time test of CR problem1045
+1 1 0 0 51 0.028571428571428574 3 4 5
+1 loops, best of 1: 1.37 sec per loop
+Time test of CR problem1061
+1 2 3 0 24 0.25 2 3 3
+1 loops, best of 1: 1.98 sec per loop
+Time test of CR problem1061
+1 2 1 0 22 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.68 sec per loop
+Time test of CR problem1061
+1 2 1 0 22 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.68 sec per loop
+Time test of CR problem1061
+1 2 1 0 22 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1061
+1 2 1 0 22 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.87 sec per loop
+Time test of CR problem1065
+1 2 1 0 22 0.125 3 5 4
+1 loops, best of 1: 1.63 sec per loop
+Time test of CR problem1065
+1 2 1 0 24 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.84 sec per loop
+Time test of CR problem1065
+1 2 3 0 26 0.25 2 3 3
+1 loops, best of 1: 2.09 sec per loop
+Time test of CR problem1065
+1 2 1 0 24 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.99 sec per loop
+Time test of CR problem1065
+1 2 1 0 24 0.16666666666666666 2 3 4
+1 loops, best of 1: 1.89 sec per loop
+Time test of CR problem1032
+1 1 0 0 36 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.37 sec per loop
+Time test of CR problem1032
+1 1 0 0 36 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.37 sec per loop
+Time test of CR problem1032
+1 1 0 0 36 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.32 sec per loop
+Time test of CR problem1032
+1 1 0 0 36 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.37 sec per loop
+Time test of CR problem1032
+1 1 0 0 36 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.33 sec per loop
+Time test of CR problem1046
+1 1 0 0 48 0.028571428571428574 3 4 5
+1 loops, best of 1: 1.23 sec per loop
+Time test of CR problem1046
+1 1 1 0 62 0.022222222222222223 3 3 3
+1 loops, best of 1: 1.63 sec per loop
+Time test of CR problem1046
+1 1 0 0 48 0.028571428571428574 3 4 5
+1 loops, best of 1: 1.27 sec per loop
+Time test of CR problem1046
+0 1 2 0 40 0 2 2 1
+1 loops, best of 1: 1.48 sec per loop
+Time test of CR problem1046
+1 1 0 0 48 0.028571428571428574 3 4 5
+1 loops, best of 1: 1.27 sec per loop
+Time test of CR problem1112
+2 2 4 0 86 0.27380952380952384 6 17 13
+1 loops, best of 1: 5.4 sec per loop
+Time test of CR problem1112
+2 2 4 0 92 0.2717391304347826 7 20 18
+1 loops, best of 1: 5.46 sec per loop
+Time test of CR problem1112
+2 2 3 0 88 0.27272727272727276 7 20 18
+1 loops, best of 1: 5.41 sec per loop
+Time test of CR problem1112
+2 2 3 0 87 0.27380952380952384 7 18 17
+1 loops, best of 1: 5.29 sec per loop
+Time test of CR problem1112
+2 2 4 0 92 0.2717391304347826 7 20 18
+1 loops, best of 1: 5.6 sec per loop
+Time test of CR problem1067
+2 2 0 0 26 0.29166666666666663 3 5 7
+1 loops, best of 1: 1.83 sec per loop
+Time test of CR problem1067
+2 2 0 0 26 0.29166666666666663 3 5 7
+1 loops, best of 1: 1.82 sec per loop
+Time test of CR problem1067
+2 2 0 0 26 0.29166666666666663 3 5 7
+1 loops, best of 1: 1.78 sec per loop
+Time test of CR problem1067
+2 2 3 0 25 0.2727272727272727 1 2 3
+1 loops, best of 1: 1.88 sec per loop
+Time test of CR problem1067
+2 2 0 0 26 0.29166666666666663 3 5 7
+1 loops, best of 1: 1.79 sec per loop
+Time test of CR problem1027
+1 1 0 0 35 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.27 sec per loop
+Time test of CR problem1027
+1 1 0 0 35 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.32 sec per loop
+Time test of CR problem1027
+1 1 0 0 35 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.27 sec per loop
+Time test of CR problem1027
+1 1 0 0 35 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.27 sec per loop
+Time test of CR problem1027
+1 1 0 0 35 0.047619047619047616 3 4 5
+1 loops, best of 1: 1.32 sec per loop
+Time test of CR problem1041
+1 1 0 0 23 0.1 3 4 5
+1 loops, best of 1: 1.32 sec per loop
+Time test of CR problem1041
+1 1 0 0 23 0.1 3 4 5
+1 loops, best of 1: 1.23 sec per loop
+Time test of CR problem1041
+1 1 0 0 23 0.1 3 4 5
+1 loops, best of 1: 1.27 sec per loop
+Time test of CR problem1041
+0 1 2 0 21 0 2 2 1
+1 loops, best of 1: 1.43 sec per loop
+Time test of CR problem1041
+1 1 1 0 27 0.08333333333333334 1 1 1
+1 loops, best of 1: 1.58 sec per loop
+Time test of CR problem1019
+1 1 3 0 139 0.009174311926605507 7 19 16
+1 loops, best of 1: 4.79 sec per loop
+Time test of CR problem1019
+1 1 3 0 139 0.009174311926605507 7 19 16
+1 loops, best of 1: 4.79 sec per loop
+Time test of CR problem1019
+1 1 3 0 153 0.008547008547008546 7 19 16
+1 loops, best of 1: 4.99 sec per loop
+Time test of CR problem1019
+1 1 4 0 146 0.008771929824561406 7 19 16
+1 loops, best of 1: 5.14 sec per loop
+Time test of CR problem1019
+1 1 3 0 139 0.009174311926605507 7 19 16
+1 loops, best of 1: 4.9 sec per loop
+Time test of CR problem1066
+2 2 0 0 21 0.6666666666666666 1 2 4
+1 loops, best of 1: 1.17 sec per loop
+Time test of CR problem1066
+2 2 0 0 21 0.6666666666666666 1 2 4
+1 loops, best of 1: 1.17 sec per loop
+Time test of CR problem1066
+2 2 0 0 21 0.6666666666666666 1 2 4
+1 loops, best of 1: 1.13 sec per loop
+Time test of CR problem1066
+2 2 0 0 21 0.6666666666666666 1 2 4
+1 loops, best of 1: 1.22 sec per loop
+Time test of CR problem1066
+2 2 0 0 21 0.6666666666666666 1 2 4
+1 loops, best of 1: 1.22 sec per loop

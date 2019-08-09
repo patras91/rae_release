@@ -107,7 +107,7 @@ def MakeFocusedObjList():
 
     random.shuffle(focus)
 
-    print(focus)
+    #print(focus)
 
     return focus
 
@@ -571,7 +571,7 @@ def Heuristic2(args):
     order = args[0]
     totalDist = 0
     for itemClass in order:
-        item = min(list(rv.OBJ_CLASS[itemClass]),
+        item = min(list(state.OBJ_CLASS[itemClass]),
                key=lambda i: OF_GETDISTANCE_GROUND(state.loc[i], rv.SHIPPING_DOC[list(rv.ROBOTS.values())[0]]))
         totalDist += OF_GETDISTANCE_GROUND(item, rv.SHIPPING_DOC[list(rv.ROBOTS.values())[0]])
 
