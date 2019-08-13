@@ -233,25 +233,6 @@ def take(r, o):
     state.loc.ReleaseLock(r)
     return res
 
-def closeDoors():
-    while(state.done[0] == False):
-        start = globalTimer.GetTime()
-        while(globalTimer.IsCommandExecutionOver('closeDoors', start) == False):
-            pass
-
-        for d in rv.DOORS:
-            state.doorStatus.AcquireLock(d)
-            if state.doorStatus[d] == 'opened':
-                state.doorStatus[d] = 'closing'
-                gui.Simulate("Door %s is closing\n" %d)
-            elif state.doorStatus[d] == 'closing' or state.doorStatus[d] == 'closed':
-                state.doorStatus[d] = 'closed'
-                gui.Simulate("Door %s is closed\n" %d)
-            elif state.doorStatus[d] == 'held':
-                gui.Simulate("Door %s is %s, so it cannot be closed\n" %(d, state.doorStatus[d]))
-            state.doorStatus.ReleaseLock(d)
-    return SUCCESS
-
 def MoveThroughDoorway_Method3(r, d, l):
     """ For a robot passing a spring door without any load """
     if state.load[r] == NIL and (state.doorType[d] == 'spring' or state.doorType[d] == UNK):
@@ -422,8 +403,6 @@ alg.declare_methods('unlatch', Unlatch_Method1, Unlatch_Method2)
 
 #events
 alg.declare_methods('collide', Recover_Method1, Recover_Method2)
-
-#alg.declare_methods('closeDoors', CloseDoors_Method1)
 
 def Heuristic1(args):
     return float("inf")

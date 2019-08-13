@@ -111,6 +111,6 @@ def Merge(domain, mode, depth):
 
 if __name__ == "__main__":
     for domain in ["CR"]:
-        for mode in ["SLATE", "UCT"]:
+        for mode in ["UCT"]:
             for depth in ["max", "lim"]:
                 Merge(domain, mode, depth)
