@@ -21,6 +21,7 @@ def fail():
 
 # Using Dijsktra's algorithm for ground distance
 def OF_GETDISTANCE_GROUND(l0, l1):
+    print("Loc1: "+ str(l0) + " loc2: " + str(l1) + "\n")
     visitedDistances = {l0: 0}
     locs = list(rv.LOCATIONS)
 
@@ -570,11 +571,20 @@ def Heuristic1(args):
 def Heuristic2(args):
     order = args[0]
     totalDist = 0
+    print(order)
     for itemClass in order:
-        item = min(list(rv.OBJ_CLASS[itemClass]),
-               key=lambda i: OF_GETDISTANCE_GROUND(state.loc[i], rv.SHIPPING_DOC[list(rv.ROBOTS.values())[0]]))
-        totalDist += OF_GETDISTANCE_GROUND(item, rv.SHIPPING_DOC[list(rv.ROBOTS.values())[0]])
+        print(itemClass)
+        print(state.OBJ_CLASS[itemClass])
+        minDist = float("inf")
+        for item in state.OBJ_CLASS[itemClass]:
+            loc = state.loc[item]
+            if loc not in rv.LOCATIONS:
+                loc = state.loc[loc]
+            temp = OF_GETDISTANCE_GROUND(loc, rv.SHIPPING_DOC[rv.FACTORY1])
+            if temp < minDist:
+                minDist = temp
 
+        totalDist += minDist
     return 100/totalDist
 
 if GLOBALS.GetHeuristicName() == 'h1':
