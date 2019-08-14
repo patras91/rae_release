@@ -1,3 +1,5 @@
+__author__ = 'patras'
+
 import threading
 import sys
 
@@ -58,6 +60,30 @@ def testBatch(domain, problem, useRAEplan):
         p.terminate()
         print("0 1 0 0 0 0 0 0 0")
     
+def InitializeSecurityDomain(v)
+    GLOBALS.SetSearchDepth(float("inf"))
+    verbosity(v)
+    SetMode('Counter')
+    GLOBALS.SetShowOutputs('off')
+    GLOBALS.SetUCTmode('UCT')
+    GLOBALS.SetUCTRuns(50)
+    '''
+    :param domain: the code of the domain
+    :param problem: the problem id
+    '''
+    domain_module = InitializeDomain('SDN', problem)
+    GLOBALS.SetOpt('max')
+    GLOBALS.SetDoPlanning(True)
+    GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
+                                   # because some code is shared by both RAE and RAEplan
+    try:
+        rM = threading.Thread(target=raeMult)
+        rM.start()
+        rM.join()
+    except Exception as e:
+        print('Failed to tart RAE and RAEplan {}'.format(e))
+    return taskQueue, commandStatusQueue 
+
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",

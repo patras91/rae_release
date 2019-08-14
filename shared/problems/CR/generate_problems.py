@@ -3,7 +3,7 @@ import math
 
 #v4 1000 to 1023 search with charging  33 % fail with RAE and 67 % succeed (8 problems)
 #v5 1025 to 1051 robot needs to carry charger
-#v6 1052 to 2067 Emergency
+#v6 1052 to 1067 Emergency
 #v7 1068 to 1099 when charger is with another robot
 #v8 1100 to 1123 search with emergency
 

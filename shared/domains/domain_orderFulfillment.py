@@ -21,7 +21,6 @@ def fail():
 
 # Using Dijsktra's algorithm for ground distance
 def OF_GETDISTANCE_GROUND(l0, l1):
-    print("Loc1: "+ str(l0) + " loc2: " + str(l1) + "\n")
     visitedDistances = {l0: 0}
     locs = list(rv.LOCATIONS)
 
@@ -108,7 +107,7 @@ def MakeFocusedObjList():
 
     random.shuffle(focus)
 
-    print(focus)
+    #print(focus)
 
     return focus
 
@@ -573,8 +572,6 @@ def Heuristic2(args):
     totalDist = 0
     print(order)
     for itemClass in order:
-        print(itemClass)
-        print(state.OBJ_CLASS[itemClass])
         minDist = float("inf")
         for item in state.OBJ_CLASS[itemClass]:
             loc = state.loc[item]

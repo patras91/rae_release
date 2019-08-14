@@ -1,6 +1,13 @@
 #!/bin/sh
 domain="OF"
-runs=5
+runs=1
+P=(
+"problem55" 
+"problem109" 
+"problem72" 
+"problem12" 
+"problem25" 
+)
 UCT=(
 "5" 
 "25" 

@@ -136,8 +136,6 @@ def writeProblem(num):
     file.write("    state.pos = ")
     file.write(str(statePos))
     file.write("\n")
-    # state.done = {0: False}
-    file.write("    state.done = {0: False}\n")
     # state.doorType = {'d1': UNK, 'd2': UNK, 'd3': UNK }
     file.write("    state.doorType = {" + ', '.join(['\'{}\': UNK'.format(door) for door in doors]))
     file.write("}\n\n")

@@ -118,6 +118,9 @@ def writeProblems(name, file, part, domain):
     elif domain == "SR":
         l = GetProblemsSR(part)
         writeList(name, l, file)
+    elif domain == "OF":
+        l = GetProblemsOF(part)
+        writeList(name, l, file)
 
 def GenerateTestScriptRAEplan(mode, domain, depth, part):
     fname = 'test_RAEplan_{}_{}_{}_part_{}.bash'.format(domain, mode, depth, part)
@@ -241,7 +244,7 @@ if __name__=="__main__":
 
     global runs
     runs = args.count
-    for mode in ["UCT", "SLATE"]:
+    for mode in ["SLATE", "UCT"]:
         for depth in ["max", "lim"]:
             for part in range(1, 11):
                 GenerateTestScriptRAEplan(mode, args.domain, depth, part)
