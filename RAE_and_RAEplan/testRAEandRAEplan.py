@@ -60,7 +60,7 @@ def testBatch(domain, problem, useRAEplan):
         p.terminate()
         print("0 1 0 0 0 0 0 0 0")
     
-def InitializeSecurityDomain(v)
+def InitializeSecurityDomain(v):
     GLOBALS.SetSearchDepth(float("inf"))
     verbosity(v)
     SetMode('Counter')

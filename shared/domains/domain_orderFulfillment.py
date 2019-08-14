@@ -107,8 +107,6 @@ def MakeFocusedObjList():
 
     random.shuffle(focus)
 
-    #print(focus)
-
     return focus
 
 
@@ -569,8 +567,7 @@ def Heuristic1(args):
 
 def Heuristic2(args):
     order = args[0]
-    totalDist = 0
-    print(order)
+    totalDist = 1
     for itemClass in order:
         minDist = float("inf")
         for item in state.OBJ_CLASS[itemClass]:
