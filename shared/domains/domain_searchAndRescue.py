@@ -315,6 +315,7 @@ def Rescue_Method2(r, p):
         alg.do_command(fail)
 
 def HelpPerson_Method1(r, p):
+    # help an injured person
     alg.do_task('moveTo', r, state.loc[p])
     alg.do_command(inspectPerson, r, p)
     if state.status[p] == 'injured':
@@ -323,6 +324,7 @@ def HelpPerson_Method1(r, p):
         alg.do_command(fail)
 
 def HelpPerson_Method2(r, p):
+    # help a person trapped inside some debri but not injured
     alg.do_task('moveTo', r, state.loc[p])
     alg.do_command(inspectLocation, r, state.loc[r])
     if state.status[state.loc[r]] == 'hasDebri':
@@ -332,6 +334,7 @@ def HelpPerson_Method2(r, p):
         alg.do_command(fail)
         
 def GetSupplies_Method1(r):
+    # get supplies from nearby robots
     r2 = None
     nearestDist = float("inf")
     for r1 in rv.WHEELEDROBOTS:
@@ -348,6 +351,7 @@ def GetSupplies_Method1(r):
         alg.do_command(fail)
 
 def GetSupplies_Method2(r):
+    # get supplies from the base
     alg.do_task('moveTo', r, (1,1))
     alg.do_command(replenishSupplies, r)
 
