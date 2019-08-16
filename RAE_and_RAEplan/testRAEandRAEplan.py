@@ -28,6 +28,7 @@ from RAE1_and_RAEplan import verbosity
 from timer import SetMode
 import multiprocessing
 import os
+from sharedData import *
 
 def testRAEandRAEplan(domain, problem, useRAEplan):
     '''
@@ -60,6 +61,7 @@ def testBatch(domain, problem, useRAEplan):
         p.terminate()
         print("0 1 0 0 0 0 0 0 0")
     
+# Specifically set parameters for the SDN domain
 def InitializeSecurityDomain(v):
     GLOBALS.SetSearchDepth(float("inf"))
     verbosity(v)
@@ -71,18 +73,17 @@ def InitializeSecurityDomain(v):
     :param domain: the code of the domain
     :param problem: the problem id
     '''
-    domain_module = InitializeDomain('SDN', problem)
-    GLOBALS.SetOpt('max')
+    InitializeDomain('SDN', None) # no concept of problem in SDN
+    GLOBALS.SetOpt('max') # maximizing the efficiency to start with
     GLOBALS.SetDoPlanning(True)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
         rM = threading.Thread(target=raeMult)
         rM.start()
-        rM.join()
     except Exception as e:
         print('Failed to tart RAE and RAEplan {}'.format(e))
-    return taskQueue, commandStatusQueue 
+    return taskQueue, cmdExecQueue, cmdStatusQueue 
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()

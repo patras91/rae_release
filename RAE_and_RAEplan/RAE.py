@@ -7,6 +7,7 @@ from state import ReinitializeState, RemoveLocksFromState
 import threading
 import GLOBALS
 import os
+from sharedData import *
 
 __author__ = 'patras'
 
@@ -53,13 +54,16 @@ def InitializeDomain(domain, problem):
     :param problem: id of the problem
     :return:none
     '''
-    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'SDN', 'test', 'testInstantiation', 'SR2']:
+    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'test', 'testInstantiation', 'SR2']:
         module = problem + '_' + domain
         global problem_module
         ReinitializeState()    # useful for batch runs to start with the first state
         problem_module = __import__(module)
         problem_module.ResetState()
         return problem_module
+    elif domain == 'SDN':
+        __import__('domain_airsSDN')
+        
     else:
         print("Invalid domain\n", domain)
         exit(11)
