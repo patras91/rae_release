@@ -54,6 +54,7 @@ def testBatch(domain, problem, useRAEplan):
     SetMode('Counter')
     verbosity(0)
     GLOBALS.SetShowOutputs('off')
+    GLOBALS.SetDomain(domain)
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
     p.join(300)
@@ -68,12 +69,13 @@ def InitializeSecurityDomain(v):
     SetMode('Counter')
     GLOBALS.SetShowOutputs('off')
     GLOBALS.SetUCTmode('UCT')
-    GLOBALS.SetUCTRuns(50)
+    GLOBALS.SetUCTRuns(50) # to decide later accordingly
     '''
     :param domain: the code of the domain
     :param problem: the problem id
     '''
     InitializeDomain('SDN', None) # no concept of problem in SDN
+    GLOBALS.SetDomain('SDN')
     GLOBALS.SetOpt('max') # maximizing the efficiency to start with
     GLOBALS.SetDoPlanning(True)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
@@ -143,5 +145,6 @@ if __name__ == "__main__":
     GLOBALS.SetSDN(args.SDN)
     GLOBALS.SetUCTmode(args.samplingMode)
     GLOBALS.SetUCTRuns(args.uctCount)
+    GLOBALS.SetDomain(args.domain)
     testRAEandRAEplan(args.domain, args.problem, s)
     

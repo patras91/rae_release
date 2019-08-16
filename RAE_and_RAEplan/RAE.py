@@ -43,10 +43,16 @@ def GetNewTasks():
     :return: gets the new task that appears in the problem at the current time
     '''
     GetNewTasks.counter += 1
-    if GetNewTasks.counter in problem_module.tasks:
-        return problem_module.tasks[GetNewTasks.counter]
+    if GLOBALS.GetDomain() != 'SDN':
+        if GetNewTasks.counter in problem_module.tasks:
+            return problem_module.tasks[GetNewTasks.counter]
+        else:
+            return []
     else:
-        return []
+        tasks = []
+        while(taskQueue.empty() == False):
+            tasks.append(taskQueue.get())
+        return tasks
 
 def InitializeDomain(domain, problem):
     '''
@@ -63,7 +69,6 @@ def InitializeDomain(domain, problem):
         return problem_module
     elif domain == 'SDN':
         __import__('domain_airsSDN')
-        
     else:
         print("Invalid domain\n", domain)
         exit(11)

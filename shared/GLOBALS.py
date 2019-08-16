@@ -89,3 +89,9 @@ def GetUCTmode():
 
 def GetC():
     return 2
+
+def SetDomain(dom):
+    g.domain = dom
+
+def GetDomain():
+    return g.domain
