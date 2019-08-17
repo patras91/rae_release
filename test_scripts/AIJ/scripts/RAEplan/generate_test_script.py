@@ -244,7 +244,7 @@ if __name__=="__main__":
 
     global runs
     runs = args.count
-    for mode in ["SLATE", "UCT"]:
+    for mode in ["UCT"]:
         for depth in ["max", "lim"]:
             for part in range(1, 11):
                 GenerateTestScriptRAEplan(mode, args.domain, depth, part)
