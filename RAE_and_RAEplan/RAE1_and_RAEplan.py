@@ -18,7 +18,7 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-import colorama
+#import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
@@ -310,11 +310,11 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         raeLocals.GetSearchTree()])
 
     p.start()
-    p.join(300)
+    p.join(GLOBALS.GetTimeLimit())
     if p.is_alive() == True:
         p.terminate()
         methodInstance = 'Failure'
-        simTime = 300
+        simTime = GLOBALS.GetTimeLimit()
     else:
         methodInstance, simTime = queue.get()
     globalTimer.UpdateSimCounter(simTime)

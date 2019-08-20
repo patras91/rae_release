@@ -95,3 +95,9 @@ def SetDomain(dom):
 
 def GetDomain():
     return g.domain
+
+def SetTimeLimit(t):
+    g.timeLimit = t
+
+def GetTimeLimit():
+    return g.timeLimit

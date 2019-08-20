@@ -87,6 +87,8 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
 
     clock = 0
     nu = 0
+
+    timeOutCount = 0
     
     id = 0
     lineNumber = 0
@@ -107,6 +109,8 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
                 print("line = ", lineNumber)
                 if counts == '':
                     break
+                if counts == "0 1 0 0 0 0 0 0 0\n":
+                    timeOutCount += 1
                 parts2 = counts.split(' ')
 
                 s = int(parts2[0])
@@ -144,8 +148,6 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
         line = f_rae.readline()
         lineNumber += 1
 
-    print(res)
-
     res['successRatio'].append(succCount/totalTasks)
     if totalCountForRetries != 0:
         res['retryRatio'].append(retryCount/totalCountForRetries)
@@ -155,6 +157,7 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
     res['actTime'].append(actTime)
     res['totalTime'].append(1 * planTime + 1 * actTime)
     res['nu'].append(nu / totalTasks)
+    res['timeOut'].append(timeOutCount)
 
 
 def PopulateHelper_SLATE_max_depth(res, domain, f_rae, k):
@@ -252,7 +255,8 @@ def GeneratePlots_SLATE_max_depth():
                 'planTime': [],
                 'actTime': [],
                 'totalTime': [],
-                'nu': []
+                'nu': [],
+                'timeOut': [],
             }
     for d in D:
         Populate_SLATE_max_depth(resDict[d], d)
@@ -266,6 +270,7 @@ def GeneratePlots_SLATE_max_depth():
     plt.rc('font', **font)
     #plt.rcParams.update({'font.size': 22})
 
+    print(resDict)
     for util in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_SLATE_max(resDict, util)
 
@@ -278,7 +283,8 @@ def GeneratePlots_UCT_max_depth():
             'planTime': [],
             'actTime': [],
             'totalTime': [],
-            'nu': []
+            'nu': [],
+            'timeOut': [],
             }
         Populate_UCT_max_depth(resDict[domain], domain)
 
@@ -289,6 +295,8 @@ def GeneratePlots_UCT_max_depth():
         'size'   : 24}
     plt.rc('font', **font)
     
+
+    print(resDict)
     for util in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_UCT_max(resDict, util)
 
@@ -310,7 +318,8 @@ def GeneratePlots_SLATE_lim_depth():
                 'planTime': [],
                 'actTime': [],
                 'totalTime': [],
-                'nu': []
+                'nu': [],
+                'timeOut': [],
             }
 
     for d in D:
@@ -325,6 +334,8 @@ def GeneratePlots_SLATE_lim_depth():
     plt.rc('font', **font)
     #plt.rcParams.update({'font.size': 22})
 
+
+    print(resDict)
     for util in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_SLATE_lim(resDict, util)
 
@@ -347,7 +358,8 @@ def GeneratePlots_UCT_lim_depth():
                 'planTime': [],
                 'actTime': [],
                 'totalTime': [],
-                'nu': []
+                'nu': [],
+                'timeOut': [],
             }
     for d in D:
         Populate_UCT_lim_depth(resDict[d], d)
@@ -361,6 +373,7 @@ def GeneratePlots_UCT_lim_depth():
     plt.rc('font', **font)
     #plt.rcParams.update({'font.size': 22})
 
+    print(resDict)
     for util in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_UCT_lim(resDict, util)
 

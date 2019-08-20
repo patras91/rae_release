@@ -108,6 +108,15 @@ DEPTH = {
     "OF": [5, 10, 15],
 }
 
+timeLimit = {
+    "OF": 450,
+    "CR": 300,
+    "SR": 300,
+    "EE": 300,
+    "IP": 300,
+    "SD": 300,
+}
+
 def writeList(name, l, file):
     file.write("{}=(\n".format(name))
     for item in l:
@@ -116,14 +125,18 @@ def writeList(name, l, file):
 
 def writeProblems(name, file, domain):
     if domain == "CR":
-        l = GetProblemsCR()
-        writeList(name, l, file)
+        l = GetProblemsCR()       
     elif domain == "SR":
         l = GetProblemsSR()
-        writeList(name, l, file)
     elif domain == "OF":
         l = GetProblemsOF()
-        writeList(name, l, file)
+    elif domain == "SD":
+        l = GetProblemsSD()
+    elif domain == "IP":
+        l = GetProblemsIP()
+    elif domain == "EE":
+        l = GetProblemsEE()
+    writeList(name, l, file)
 
 def GenerateTestScriptRAE(domain):
     fname = 'test_RAE_{}.bash'.format(domain)
@@ -145,7 +158,8 @@ def GenerateTestScriptRAE(domain):
     file.write("sys.path.append(\'../../../../shared/problems/{}/auto\')\n".format(domain))
     file.write("sys.path.append(\'../../../../shared/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
-    file.write("GLOBALS.SetOpt('max')\"\n")
+    file.write("GLOBALS.SetOpt('max')\n")
+    file.write("GLOBALS.SetTimeLimit({})\"\n".format(timeLimit[domain]))
 
     file.write("counter=1\n")
     file.write("while [ $counter -le $runs ]\n")
@@ -170,7 +184,7 @@ def GenerateTestScriptRAE(domain):
 if __name__=="__main__":
     
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--domain", help="domain in ['CR', 'SR']",
+    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF']",
                            type=str, required=True)
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)

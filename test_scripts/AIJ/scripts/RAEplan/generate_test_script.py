@@ -105,6 +105,15 @@ DEPTH = {
     "OF": [5, 10, 15],
 }
 
+timeLimit = {
+    "OF": 450,
+    "CR": 300,
+    "SR": 300,
+    "EE": 300,
+    "IP": 300,
+    "SD": 300,
+}
+
 def writeList(name, l, file):
     file.write("{}=(\n".format(name))
     for item in l:
@@ -114,13 +123,17 @@ def writeList(name, l, file):
 def writeProblems(name, file, part, domain):
     if domain == "CR":
         l = GetProblemsCR(part)
-        writeList(name, l, file)
     elif domain == "SR":
         l = GetProblemsSR(part)
-        writeList(name, l, file)
     elif domain == "OF":
         l = GetProblemsOF(part)
-        writeList(name, l, file)
+    elif domain == "SD":
+        l = GetProblemsSD(part)
+    elif domain == "IP":
+        l = GetProblemsIP(part)
+    elif domain == "EE":
+        l = GetProblemsEE(part)
+    writeList(name, l, file)
 
 def GenerateTestScriptRAEplan(mode, domain, depth, part):
     fname = 'test_RAEplan_{}_{}_{}_part_{}.bash'.format(domain, mode, depth, part)
@@ -170,6 +183,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part):
     file.write("sys.path.append(\'../../../../shared/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
     file.write("GLOBALS.SetOpt('max')\n")
+    file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
 
     if mode == "SLATE":
         file.write("GLOBALS.Setb($b)\n")

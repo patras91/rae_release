@@ -57,7 +57,7 @@ def testBatch(domain, problem, useRAEplan):
     GLOBALS.SetDomain(domain)
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
-    p.join(300)
+    p.join(GLOBALS.GetTimeLimit())
     if p.is_alive() == True:
         p.terminate()
         print("0 1 0 0 0 0 0 0 0")
@@ -70,6 +70,7 @@ def InitializeSecurityDomain(v, state):
     GLOBALS.SetShowOutputs('off')
     GLOBALS.SetUCTmode('UCT')
     GLOBALS.SetUCTRuns(50) # to decide later accordingly
+    GLOBALS.SetTimeLimit(300)
     '''
     :param domain: the code of the domain
     :param problem: the problem id
@@ -117,6 +118,8 @@ if __name__ == "__main__":
     argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
                            type=str, default='no', required=False)
 
+    argparser.add_argument("--timeLim", help="What is the time limit? ",
+                           type=int, default=300, required=False)
     # parameter for UCT
     argparser.add_argument("--uctCount", help="Number of rollouts in UCT?",
                            type=int, default=100, required=False)
@@ -146,5 +149,6 @@ if __name__ == "__main__":
     GLOBALS.SetUCTmode(args.samplingMode)
     GLOBALS.SetUCTRuns(args.uctCount)
     GLOBALS.SetDomain(args.domain)
+    GLOBALS.SetTimeLimit(args.timeLim)
     testRAEandRAEplan(args.domain, args.problem, s)
     
