@@ -5,7 +5,7 @@ It has a battery that needs to be recharged after some moves.
 A move consumes 1/4 of the battery capacity.'''
 
 from domain_constants import *
-import importlib
+#import importlib
 #loader = importlib.find_loader('RAE1_and_RAEplan')
 #if loader is not None:
 import RAE1_and_RAEplan as alg

@@ -3,7 +3,7 @@ from RAE1_and_RAEplan import ipcArgs, envArgs, RAE1, RAEplanChoice, RAEplanChoic
 from dataStructures import PlanArgs
 from timer import globalTimer, SetMode
 #from time import time
-from state import ReinitializeState, RemoveLocksFromState
+from state import ReinitializeState, RemoveLocksFromState, RestoreState, PrintState
 import threading
 import GLOBALS
 import os
@@ -33,6 +33,8 @@ def GetNextAlive(lastActiveStack, numstacks, threadList):
     return nextAlive
 
 def noNewTasks():
+    if GLOBALS.GetDomain() == 'SDN':
+        return False
     for c in problem_module.tasks:
         if c > GetNewTasks.counter:
             return False
@@ -54,7 +56,7 @@ def GetNewTasks():
             tasks.append(taskQueue.get())
         return tasks
 
-def InitializeDomain(domain, problem):
+def InitializeDomain(domain, problem, startState=None):
     '''
     :param domain: code of the domain which you are running
     :param problem: id of the problem
@@ -63,12 +65,12 @@ def InitializeDomain(domain, problem):
     if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'test', 'testInstantiation', 'SR2']:
         module = problem + '_' + domain
         global problem_module
-        ReinitializeState()    # useful for batch runs to start with the first state
+        ReinitializeState()    # useful for batch runs to start with the starting state
         problem_module = __import__(module)
         problem_module.ResetState()
         return problem_module
     elif domain == 'SDN':
-        __import__('domain_airsSDN')
+        RestoreState(startState)
     else:
         print("Invalid domain\n", domain)
         exit(11)
@@ -141,13 +143,14 @@ def StartEnv():
             return
 
         StartEnv.counter += 1
-        if StartEnv.counter in problem_module.eventsEnv:
-            eventArgs = problem_module.eventsEnv[StartEnv.counter]
-            event = eventArgs[0]
-            eventParams = eventArgs[1]
-            t = threading.Thread(target=event, args=eventParams)
-            t.setDaemon(True)  # Setting the environment thread to daemon because we don't want the environment running once the tasks are done
-            t.start()
+        if GLOBALS.GetDomain() != "SDN":
+            if StartEnv.counter in problem_module.eventsEnv:
+                eventArgs = problem_module.eventsEnv[StartEnv.counter]
+                event = eventArgs[0]
+                eventParams = eventArgs[1]
+                t = threading.Thread(target=event, args=eventParams)
+                t.setDaemon(True)  # Setting the environment thread to daemon because we don't want the environment running once the tasks are done
+                t.start()
         envArgs.envActive = False
         envArgs.sem.release()
 

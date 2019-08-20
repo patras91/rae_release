@@ -63,7 +63,7 @@ def testBatch(domain, problem, useRAEplan):
         print("0 1 0 0 0 0 0 0 0")
     
 # Specifically set parameters for the SDN domain
-def InitializeSecurityDomain(v):
+def InitializeSecurityDomain(v, state):
     GLOBALS.SetSearchDepth(float("inf"))
     verbosity(v)
     SetMode('Counter')
@@ -74,10 +74,10 @@ def InitializeSecurityDomain(v):
     :param domain: the code of the domain
     :param problem: the problem id
     '''
-    InitializeDomain('SDN', None) # no concept of problem in SDN
+    InitializeDomain('SDN', None, state) # no concept of problem in SDN
     GLOBALS.SetDomain('SDN')
     GLOBALS.SetOpt('max') # maximizing the efficiency to start with
-    GLOBALS.SetDoPlanning(True)
+    GLOBALS.SetDoPlanning(False)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:

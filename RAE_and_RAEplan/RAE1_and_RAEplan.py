@@ -18,7 +18,7 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-#import colorama
+import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
