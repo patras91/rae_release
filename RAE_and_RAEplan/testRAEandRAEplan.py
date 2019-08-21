@@ -78,7 +78,7 @@ def InitializeSecurityDomain(v, state):
     InitializeDomain('SDN', None, state) # no concept of problem in SDN
     GLOBALS.SetDomain('SDN')
     GLOBALS.SetOpt('max') # maximizing the efficiency to start with
-    GLOBALS.SetDoPlanning(False)
+    GLOBALS.SetDoPlanning(True)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
