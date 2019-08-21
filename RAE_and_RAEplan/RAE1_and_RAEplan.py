@@ -18,12 +18,13 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-#import colorama
+import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
 from utility import Utility
 import time
+from sharedData import *
 ############################################################
 
 ### for debugging
@@ -762,6 +763,11 @@ def do_command(cmd, *cmdArgs):
     else:
         return DoCommandInRealWorld(cmd, cmdArgs)
 
+def GetNewId():
+    GetNewId.num += 1
+    return GetNewId.num
+GetNewId.num = 0
+
 def DoCommandInRealWorld(cmd, cmdArgs):
     global path
     path[raeLocals.GetStackId()].append([cmd, cmdArgs])
@@ -774,8 +780,14 @@ def DoCommandInRealWorld(cmd, cmdArgs):
         print('Begin command {}{}'.format(cmd.__name__, cmdArgs))
 
     cmdRet = {'state':'running'}
-    cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
-    cmdThread.start()
+
+    domain = GLOBALS.GetDomain()
+    if domain != 'SDN':
+        cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
+        cmdThread.start()
+    else:
+        cmdExecQueue.put([GetNewId(), cmd, cmdArgs])
+
     if cmd.__name__ in raeLocals.GetCommandCount():
         raeLocals.GetCommandCount()[cmd.__name__] += 1
     else:
@@ -784,23 +796,33 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     EndCriticalRegion()
     BeginCriticalRegion(raeLocals.GetStackId())
 
-    while (cmdRet['state'] == 'running'):
-        if verbose > 0:
-            print_stack_size(raeLocals.GetStackId(), path)
-            print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
+    if domain != 'SDN':
+        while (cmdRet['state'] == 'running'):
+            if verbose > 0:
+                print_stack_size(raeLocals.GetStackId(), path)
+                print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
 
-        EndCriticalRegion()
-        BeginCriticalRegion(raeLocals.GetStackId())
+            EndCriticalRegion()
+            BeginCriticalRegion(raeLocals.GetStackId())
+    else:
+        while(cmdStatusQueue.empty() == True):
+            EndCriticalRegion()
+            BeginCriticalRegion(raeLocals.GetStackId())
 
     if verbose > 0:
         print_stack_size(raeLocals.GetStackId(), path)
         print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
 
-    retcode = cmdRet['state']
+    if domain != 'SDN':
+        retcode = cmdRet['state']
+    else:
+        [id, retcode, nextState] = cmdStatusQueue.get()
+        RestoreState(nextState)
 
     par, cmdNode = raeLocals.GetCurrentNodes()
 
     cmdNode.SetLabelAndType(cmd, 'command', cmdArgs)
+
     cmdNode.SetNextState(GetState().copy())
 
     if verbose > 1:
