@@ -45,6 +45,7 @@ c2 = Controller('c2', 'Debian', 'Java', 'OpenDaylight', 'Oxygen-SR3',
                                   {'instance': c_alt3}])
 
 def ExecuteCmds(cmdExecQ, cmdStatusQ):
+	print("SECURITY MANAGER: In execute commands")
 	while(True):
 		if cmdExecQ.empty() == False:
 			[id, cmd, args] = cmdExecQ.get()
@@ -57,7 +58,8 @@ def ExecuteCmds(cmdExecQ, cmdStatusQ):
 			time.sleep(5)
 			t.start()
 			t.join(5)
-			cmdStatusQ.put([id, 'Success', state])
+			print("SECURITY MANAGER: Done executing ", cmd.__name__)
+			cmdStatusQ.put([id, 'Success', state.copy()])
 
 if __name__ == "__main__":
 	
