@@ -1,6 +1,6 @@
 #!/bin/sh
 domain="OF"
-runs=1
+runs=3
 P=(
 "problem91" 
 "problem28" 
@@ -26,7 +26,7 @@ sys.path.append('../../../../shared/problems/OF/auto')
 sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetOpt('max')
-GLOBALS.SetTimeLimit(450)
+GLOBALS.SetTimeLimit(600)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetSearchDepth(float(\"inf\"))"

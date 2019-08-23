@@ -1,7 +1,8 @@
 import numpy
 from domain_constants import *
-from domain_springDoor import rv
-from state import state
+from domain_springDoor import *
+from state import state, rv
+import random
 
 commandProb = {
     'unlatch1': [0.8, 0.2],
@@ -13,16 +14,34 @@ commandProb = {
 
 def Sense(cmd, d=None):
     if cmd == 'passDoor':
-        if rv.DOORTYPES[d] == 'spring':
-            if state.doorStatus[d] == 'held':
-                return SUCCESS
+        if GLOBALS.GetPlanningMode() == False:
+            if rv.DOORTYPES[d] == 'spring':
+                if state.doorStatus[d] == 'held':
+                    return SUCCESS
+                else:
+                    return FAILURE
             else:
-                return FAILURE
+                if state.doorStatus[d] == 'opened':
+                    return SUCCESS
+                else:
+                    return FAILURE
         else:
-            if state.doorStatus[d] == 'opened':
-                return SUCCESS
+            if state.doorType[d] == UNK:
+                if state.doorStatus[d] == 'held':
+                    return SUCCESS
+                else:
+                    return random.choice([SUCCESS, FAILURE])
+            elif state.doorType[d] == 'spring':
+                if state.doorStatus[d] == 'held':
+                    return SUCCESS
+                else:
+                    return FAILURE
             else:
-                return FAILURE
+                if state.doorStatus[d] == 'opened':
+                    return SUCCESS
+                else:
+                    return FAILURE
+
     p = commandProb[cmd]
     outcome = numpy.random.choice(len(p), 50, p=p)
     res = outcome[0]

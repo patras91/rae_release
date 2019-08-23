@@ -1,6 +1,6 @@
 #!/bin/sh
 domain="OF"
-runs=1
+runs=3
 P=(
 "problem55" 
 "problem109" 
@@ -63,7 +63,7 @@ sys.path.append('../../../../shared/problems/OF/auto')
 sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetOpt('max')
-GLOBALS.SetTimeLimit(450)"
+GLOBALS.SetTimeLimit(600)"
 counter=1
 while [ $counter -le $runs ]
 do

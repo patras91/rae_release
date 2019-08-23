@@ -61,10 +61,10 @@ def fail():
 def unlatch1(r, d):
     state.load.AcquireLock(r)
     state.doorStatus.AcquireLock(d)
-    if state.doorStatus[d] == 'opened':
+    if state.doorStatus[d] != 'closed':
         gui.Simulate("Door %s is already open\n" %d)
         res = SUCCESS
-    elif state.load[r] == NIL and (state.doorStatus[d] == 'closed' or state.doorStatus[d] == 'closing'):
+    elif state.load[r] == NIL:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('unlatch1', start) == False):
 	        pass
@@ -75,7 +75,7 @@ def unlatch1(r, d):
         else:
             gui.Simulate("Unlatching has failed due to an internal error\n")
     else:
-        gui.Simulate("Robot %s is not free to open door %s or the door is not closed\n" %(r, d))
+        gui.Simulate("Robot %s is not free to open door %s\n" %(r, d))
         res = FAILURE
     state.load.ReleaseLock(r)
     state.doorStatus.ReleaseLock(d)
@@ -84,10 +84,10 @@ def unlatch1(r, d):
 def unlatch2(r, d):
     state.load.AcquireLock(r)
     state.doorStatus.AcquireLock(d)
-    if state.doorStatus[d] == 'opened':
+    if state.doorStatus[d] != 'closed': # status can be closed, opened or held
         gui.Simulate("Door %s is already open\n" %d)
         res = SUCCESS
-    elif state.load[r] == NIL and (state.doorStatus[d] == 'closed' or state.doorStatus[d] == 'closing'):
+    elif state.load[r] == NIL:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('unlatch2', start) == False):
             pass
@@ -98,7 +98,7 @@ def unlatch2(r, d):
         else:
             gui.Simulate("Unlatching has failed due to an internal error\n")
     else:
-        gui.Simulate("Robot %s is not free to open door %s or the door is not closed\n" %(r, d))
+        gui.Simulate("Robot %s is not free to open door %s\n" %(r, d))
         res = FAILURE
     state.load.ReleaseLock(r)
     state.doorStatus.ReleaseLock(d)
@@ -125,10 +125,11 @@ def passDoor(r, d, l):
     state.doorStatus.ReleaseLock(d)
     return res
 
+# should always be followed by releaseDoor
 def holdDoor(r, d):
     state.doorStatus.AcquireLock(d)
     state.load.AcquireLock(r)
-    if (state.doorStatus[d] == 'opened' or state.doorStatus[d] == 'closing' or state.doorStatus[d] == 'held') and state.load[r] == NIL:
+    if state.doorStatus[d] != 'closed' and state.load[r] == NIL:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('holdDoor', start) == False):
 	        pass
@@ -147,7 +148,9 @@ def holdDoor(r, d):
     return res
 
 def releaseDoor(r, d):
-    if state.doorStatus[d] == 'held' and state.load[r] == 'H':
+    if state.doorStatus[d] != 'held':
+        return SUCCESS
+    elif state.doorStatus[d] == 'held' and state.load[r] == 'H':
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('releaseDoor', start) == False):
 	        pass
@@ -165,7 +168,7 @@ def move(r, l1, l2):
         res = SUCCESS
     elif state.loc[r] == l1:
         if (l1, l2) in rv.DOORLOCATIONS or (l2, l1) in rv.DOORLOCATIONS:
-            gui.Simulate("Robot %s cannot move. There is a spring door between %s and %s \n" %(r, l1, l2))
+            gui.Simulate("Robot %s cannot move. There is a door between %s and %s \n" %(r, l1, l2))
             res = FAILURE
         else:
             start = globalTimer.GetTime()
@@ -243,26 +246,33 @@ def MoveThroughDoorway_Method3(r, d, l):
     else:
         alg.do_command(fail)
 
-def Restore(r, loc, cargo):
-    alg.do_task('moveTo', r, loc)
-    if cargo != NIL:
-        alg.do_command(take, r, cargo)
+#def Restore(r, loc, cargo):
+#    alg.do_task('moveTo', r, loc)
+#    if cargo != NIL:
+#        alg.do_command(take, r, cargo)
 
-def MoveThroughDoorway_Method2(r, d, l):
+def MoveThroughDoorway_Method2(r, d, l, r2):
     """ For a robot passing a spring door with a load """
     if state.load[r] != NIL and (state.doorType[d] == 'spring' or state.doorType[d] == UNK):
-         params = GetHelp_Method1(r)
-         if params == FAILURE:
-             alg.do_command(fail)
-         else:
-            r2, l2, cargo = params
-            alg.do_task('unlatch', r2, d)
-            alg.do_command(holdDoor, r2, d)
-            alg.do_command(passDoor, r, d, l)
-            alg.do_command(releaseDoor, r2, d)
-            Restore(r2, l2, cargo)
+        state.freeRobots.AcquireLock()
+        if state.freeRobots != {}:
+            state.freeRobots.remove(r2)
+            state.freeRobots.ReleaseLock()
+        else:
+            state.freeRobots.ReleaseLock()
+            alg.do_command(fail)
+    
+        if state.load[r2] != NIL:
+            alg.do_command(put, r2, state.load[r2])
+        alg.do_task('moveTo', r2, state.loc[r1])
+        alg.do_task('unlatch', r2, d)
+        alg.do_command(holdDoor, r2, d)
+        alg.do_command(passDoor, r, d, l)
+        alg.do_command(releaseDoor, r2, d)
+        state.freeRobots.add(r2)
     else:
         alg.do_command(fail)
+MoveThroughDoorway_Method2.parameters = "[(r2,) for r2 in state.freeRobots if r2 != r1]"
 
 def MoveThroughDoorway_Method4(r, d, l):
     """ For a robot passing a normal door with a load """
@@ -310,62 +320,61 @@ def MoveTo_Method1(r, l):
                     alg.do_command(fail)
                 else:
                     lTemp = lNext
-    elif l in rv.ROBOTS:
+    elif l in rv.ROBOTS: # maybe not used?
         loc = state.loc[l]
         alg.do_task('moveTo', r, loc)
     else:
         gui.Simulate("Robot %s going to invalid location.\n" %(r))
         alg.do_command(fail)
 
-def GetHelp_Method1(r):
-    if r == rv.ROBOTS[0]:
-        r2 = rv.ROBOTS[1]
-    else:
-        r2 = rv.ROBOTS[0]
+# def GetHelp_Method1(r1, r2):
+#     #TODO: rewrite
+#     if r == rv.ROBOTS[0]:
+#         r2 = rv.ROBOTS[1]
+#     else:
+#         r2 = rv.ROBOTS[0]
 
-    for robo in rv.ROBOTS:
-        if state.load[robo] == NIL and robo != r:
-            r2 = robo
+#     for robo in rv.ROBOTS:
+#         if state.load[robo] == NIL and robo != r:
+#             r2 = robo
 
-    load_r2 = state.load[r2]
-    loc_r2 = state.loc[r2]
-    if load_r2 != NIL:
-        if load_r2 != 'H':
-            alg.do_command(put, r2, load_r2)
-        else:
-            gui.Simulate("%s is holding another door\n" %r2)
-            alg.do_command(fail)
-    alg.do_task('moveTo', r2, state.loc[r])
-    return r2, loc_r2, load_r2
+#     load_r2 = state.load[r2]
+#     loc_r2 = state.loc[r2]
+#     if load_r2 != NIL:
+#         if load_r2 != 'H':
+#             alg.do_command(put, r2, load_r2)
+#         else:
+#             gui.Simulate("%s is holding another door\n" %r2)
+#             alg.do_command(fail)
+#     alg.do_task('moveTo', r2, state.loc[r])
+#     return r2, loc_r2, load_r2
 
 def Fetch_Method1(r, o, l):
-    alg.do_task('moveTo', r, state.pos[o])
-    load_r = state.load[r]
-    if load_r != NIL:
-        if load_r != 'H':
-            alg.do_command(put, r, load_r)
-        else:
-            gui.Simulate("%s is holding another door\n" %r)
-            alg.do_command(fail)
-    alg.do_command(take, r, o)
-    alg.do_task('moveTo', r, l)
-
-def Recover_Method1(r):
-    o = state.load[r]
-    if o != NIL and state.pos[o] == UNK:
-        alg.do_command(senseLoc, o)
-        if state.pos[o] == state.loc[r]:
-            state.do_command(take, r, o)
-        else:
-            state.do_task('moveTo', r, state.pos[o])
-            state.do_command(take, r, o)
+    state.freeRobots.AcquireLock()
+    if r in state.freeRobots:
+        state.freeRobots.remove(r)
+        state.freeRobots.ReleaseLock()
     else:
+        state.freeRobots.ReleaseLock()
         alg.do_command(fail)
 
-def Recover_Method2(r):
-    alg.do_command(senseStatus, r)
-    if state.robotStatus[r] == 'broken':
-        state.do_command(repair, r)
+    alg.do_task('moveTo', r, state.pos[o])
+    alg.do_command(take, r, o)
+    alg.do_task('moveTo', r, l)
+    state.freeRobots.add(r)
+       
+def Recover_Method1(r, r2):
+    state.freeRobots.AcquireLock()
+    if state.freeRobots == {}:
+        state.freeRobots.ReleaseLock()
+        alg.do_command(fail)
+    else:
+        state.freeRobots.remove(r2)
+        state.freeRobots.ReleaseLock()
+        alg.do_task('moveTo', r2, state.loc[r])
+        state.freeRobots.add(r2)
+        gui.Simulate("Robot %s is helping %s to recover from collision", %(r2, r))
+Recover_Method1.parameters = "[(r2,) for r2 in state.freeRobots if r2 != r]"
 
 def Unlatch_Method1(r, d):
     alg.do_command(unlatch1, r, d)
@@ -385,31 +394,32 @@ alg.declare_commands([
     fail],)
 
 alg.declare_task('fetch', 'r', 'o', 'l')
-alg.declare_task('getHelp', 'r')
 alg.declare_task('moveTo', 'r', 'l')
 alg.declare_task('moveThroughDoorway', 'r', 'd', 'l')
 alg.declare_task('unlatch', 'r', 'd')
-alg.declare_task('collide', 'r')
+alg.declare_task('collision', 'r')
 
 alg.declare_methods('fetch', Fetch_Method1)
-alg.declare_methods('getHelp', GetHelp_Method1)
 alg.declare_methods('moveTo', MoveTo_Method1)
 alg.declare_methods('moveThroughDoorway',
     MoveThroughDoorway_Method1,
     MoveThroughDoorway_Method3,
     MoveThroughDoorway_Method4,
-    MoveThroughDoorway_Method2)
+    MoveThroughDoorway_Method2) # has multiple method instances
 alg.declare_methods('unlatch', Unlatch_Method1, Unlatch_Method2)
 
 #events
-alg.declare_methods('collide', Recover_Method1, Recover_Method2)
+alg.declare_methods('collide', Recover_Method1) # has multiple instances
 
 def Heuristic1(args):
     return float("inf")
 
 def Heuristic2(args):
-    # distance
-    pass
+    r = args[0]
+    l1 = state.loc[r]
+    l2 = args[1]
+    dist = len(SD_GETPATH(l1, l2))
+    return 1/dist
 
 if GLOBALS.GetHeuristicName() == 'h1':
     alg.declare_heuristic('fetch', Heuristic1)
