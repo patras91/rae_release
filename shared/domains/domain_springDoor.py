@@ -58,6 +58,13 @@ def SD_GETPATH(l0, l1):
 def fail():
     return FAILURE
 
+def helpRobot(r1, r2):
+    if state.loc[r1] == state.loc[r2]:
+        gui.Simulate("%s is helping %s \n" %(r1, r2))
+        return SUCCESS
+    else:
+        return FAILURE
+
 def unlatch1(r, d):
     state.load.AcquireLock(r)
     state.doorStatus.AcquireLock(d)
@@ -363,7 +370,7 @@ def Fetch_Method1(r, o, l):
     alg.do_task('moveTo', r, l)
     state.status[r] = 'free'
        
-def Recover_Method1(r, r2):
+def Recover_Method1(r, r2): # multiple instances
     state.status.AcquireLock(r2)
 
     if state.status[r2] == 'busy':
@@ -373,6 +380,7 @@ def Recover_Method1(r, r2):
         state.status[r2] = 'busy'
         state.status.ReleaseLock(r2)
         alg.do_task('moveTo', r2, state.loc[r])
+        alg.do_command(helpRobot, r2, r)
         state.status[r2] = 'free'
         gui.Simulate("Robot %s is helping %s to recover from collision\n" %(r2, r))
 Recover_Method1.parameters = "[(r2,) for r2 in rv.ROBOTS if r2 != r and state.status[r2] == 'free']"
@@ -392,6 +400,7 @@ alg.declare_commands([
     take,
     unlatch1,
     unlatch2,
+    helpRobot,
     fail],)
 
 alg.declare_task('fetch', 'r', 'o', 'l')
@@ -422,9 +431,18 @@ def Heuristic2(args):
     dist = len(SD_GETPATH(l1, l2))
     return 1/dist
 
+def collision_Heuristic2(args):
+    freeRobots = [r for r in rv.ROBOTS if state.status[r] == 'free']
+    if freeRobots == []:
+        return 0.001
+    else:
+        return 1
+
 if GLOBALS.GetHeuristicName() == 'h1':
     alg.declare_heuristic('fetch', Heuristic1)
+    alg.declare_heuristic('collision', Heuristic1)
 elif GLOBALS.GetHeuristicName() == 'h2':
     alg.declare_heuristic('fetch', Heuristic2)
-    
+    alg.declare_heuristic('collision', collision_Heuristic2)
+
 from env_springDoor import *

@@ -992,7 +992,10 @@ def PlanCommand_UCT(cmd, cmdArgs):
 
 def GetCost(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")
-    cost = DURATION.COUNTER[cmd.__name__]
+    if GLOBALS.GetDomain() == "SD" and cmd.__name__ == "helpRobot":
+        cost = 7
+    else:
+        cost = DURATION.COUNTER[cmd.__name__]
     if type(cost) == types.FunctionType:
         return cost(*cmdArgs)
     else:
@@ -1003,7 +1006,10 @@ def GetFailureUtility(cmd, cmdArgs):
 
 def GetUtility(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")
-    cost = DURATION.COUNTER[cmd.__name__]
+    if GLOBALS.GetDomain() == "SD" and cmd.__name__ == "helpRobot":
+        cost = 7
+    else:
+        cost = DURATION.COUNTER[cmd.__name__]
     if type(cost) == types.FunctionType:
         return Utility(1/cost(*cmdArgs))
     else:

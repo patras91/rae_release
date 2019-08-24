@@ -7,7 +7,7 @@ figuresFolder = "figures/"
 resultsFolder = "results/"
 
 B_max_depth = {
-    'SD': [1, 2, 3, 4],
+    "SD": [2,5,8],
     'EE': [1, 2, 3],
     'IP': [1, 2, 3],
     'CR': [1, 2, 3],
@@ -16,7 +16,7 @@ B_max_depth = {
 }
 
 B_lim_depth = {
-    'SD': [4],
+    'SD': [2,5,8],
     'EE': [1, 2, 3],
     'IP': [1, 2, 3],
     'CR': [1,2],
@@ -25,7 +25,7 @@ B_lim_depth = {
 }
 
 K_lim_depth = {
-    'SD': 4,
+    'SD': 3,
     'EE': 3,
     'IP': 3,
     'CR': 3,
@@ -33,7 +33,7 @@ K_lim_depth = {
 }
 
 K_max_depth = {
-    'SD': [0, 1, 3, 5, 8, 10],
+    "SD": [0, 1,3,5],
     'EE': [0, 1, 3, 5, 8, 10], #, 20, 50, 75, 100],
     'IP': [0, 3, 5, 7, 10],
     'CR': [0,1,3,5], #20, 30, 40, 50, 60, 70, 75, 80, 90, 100],
@@ -45,19 +45,21 @@ Depth = {
     'SR': [0, 5, 10, 15],
     'CR': [0, 5, 10, 15],
     'OF': [0, 5, 10, 15],
-    #'SR': [0, 5, 10, 15]
+    'SD': [0, 5, 10, 15]
 }
 
 UCT_max_depth = {
     'CR': [0,5, 25, 50, 75],
     'SR': [0,5,25,50,75],
-    'OF': [0, 5, 25, 50, 75]
+    'OF': [0, 5, 25, 50, 75],
+    'SD': [0, 5, 25, 50, 75],
 }
 
 UCT_lim_depth = {
     'CR': [5, 25, 50],
     'SR': [5, 25, 50],
-    'OF': [5, 25, 50]
+    'OF': [5, 25, 50],
+    'SD': [5, 25, 50],
 }
 
 succCases = {
@@ -118,8 +120,11 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
                 r = int(parts2[2])
                 planTime += float(parts2[3])
                 actTime += float(parts2[4])
-                nu += float(parts2[5])
-
+                taskEff = float(parts2[5])
+                if taskEff == float("inf"):
+                    print("Infinite efficiency! Normalizing.\n")
+                    taskEff = 1/10
+                nu += taskEff
                 succCount += s
                 totalTasks += t
 
