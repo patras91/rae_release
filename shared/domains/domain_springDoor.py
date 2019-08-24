@@ -254,25 +254,25 @@ def MoveThroughDoorway_Method3(r, d, l):
 def MoveThroughDoorway_Method2(r, d, l, r2):
     """ For a robot passing a spring door with a load """
     if state.load[r] != NIL and (state.doorType[d] == 'spring' or state.doorType[d] == UNK):
-        state.freeRobots.AcquireLock()
-        if state.freeRobots != {}:
-            state.freeRobots.remove(r2)
-            state.freeRobots.ReleaseLock()
+        state.status.AcquireLock(r2)
+        if state.status[r2] == 'free':
+            state.status[r2] = 'busy'
+            state.status.ReleaseLock(r2)
         else:
-            state.freeRobots.ReleaseLock()
+            state.status.ReleaseLock(r2)
             alg.do_command(fail)
     
         if state.load[r2] != NIL:
             alg.do_command(put, r2, state.load[r2])
-        alg.do_task('moveTo', r2, state.loc[r1])
+        alg.do_task('moveTo', r2, state.loc[r])
         alg.do_task('unlatch', r2, d)
         alg.do_command(holdDoor, r2, d)
         alg.do_command(passDoor, r, d, l)
         alg.do_command(releaseDoor, r2, d)
-        state.freeRobots.add(r2)
+        state.status[r2] = 'free'
     else:
         alg.do_command(fail)
-MoveThroughDoorway_Method2.parameters = "[(r2,) for r2 in state.freeRobots if r2 != r1]"
+MoveThroughDoorway_Method2.parameters = "[(r2,) for r2 in rv.ROBOTS if r2 != r and state.status[r2] == 'free']"
 
 def MoveThroughDoorway_Method4(r, d, l):
     """ For a robot passing a normal door with a load """
@@ -350,31 +350,32 @@ def MoveTo_Method1(r, l):
 #     return r2, loc_r2, load_r2
 
 def Fetch_Method1(r, o, l):
-    state.freeRobots.AcquireLock()
-    if r in state.freeRobots:
-        state.freeRobots.remove(r)
-        state.freeRobots.ReleaseLock()
+    state.status.AcquireLock(r)
+    if state.status[r] == 'free':
+        state.status[r] = 'busy'
+        state.status.ReleaseLock(r)
     else:
-        state.freeRobots.ReleaseLock()
+        state.status.ReleaseLock(r)
         alg.do_command(fail)
 
     alg.do_task('moveTo', r, state.pos[o])
     alg.do_command(take, r, o)
     alg.do_task('moveTo', r, l)
-    state.freeRobots.add(r)
+    state.status[r] = 'free'
        
 def Recover_Method1(r, r2):
-    state.freeRobots.AcquireLock()
-    if state.freeRobots == {}:
-        state.freeRobots.ReleaseLock()
+    state.status.AcquireLock(r2)
+
+    if state.status[r2] == 'busy':
+        state.status.ReleaseLock(r2)
         alg.do_command(fail)
     else:
-        state.freeRobots.remove(r2)
-        state.freeRobots.ReleaseLock()
+        state.status[r2] = 'busy'
+        state.status.ReleaseLock(r2)
         alg.do_task('moveTo', r2, state.loc[r])
-        state.freeRobots.add(r2)
-        gui.Simulate("Robot %s is helping %s to recover from collision", %(r2, r))
-Recover_Method1.parameters = "[(r2,) for r2 in state.freeRobots if r2 != r]"
+        state.status[r2] = 'free'
+        gui.Simulate("Robot %s is helping %s to recover from collision\n" %(r2, r))
+Recover_Method1.parameters = "[(r2,) for r2 in rv.ROBOTS if r2 != r and state.status[r2] == 'free']"
 
 def Unlatch_Method1(r, d):
     alg.do_command(unlatch1, r, d)
@@ -409,7 +410,7 @@ alg.declare_methods('moveThroughDoorway',
 alg.declare_methods('unlatch', Unlatch_Method1, Unlatch_Method2)
 
 #events
-alg.declare_methods('collide', Recover_Method1) # has multiple instances
+alg.declare_methods('collision', Recover_Method1) # has multiple instances
 
 def Heuristic1(args):
     return float("inf")

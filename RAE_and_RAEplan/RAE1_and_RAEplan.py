@@ -18,7 +18,7 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-#import colorama
+import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
@@ -960,6 +960,7 @@ def PlanCommand_UCT(cmd, cmdArgs):
         searchTreeNode.AddChild(commandNode)
     else:
         commandNode = searchTreeNode.children[0]
+        assert(commandNode.GetType() == 'command')
     if planLocals.GetFlip() == False:
         retcode = 'Success'
         nextState = commandNode.GetNext().GetLabel()
