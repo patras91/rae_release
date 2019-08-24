@@ -21,7 +21,7 @@ def Sense(cmd, d=None):
                 else:
                     return FAILURE
             else:
-                if state.doorStatus[d] == 'opened':
+                if state.doorStatus[d] != 'closed':
                     return SUCCESS
                 else:
                     return FAILURE
@@ -29,6 +29,8 @@ def Sense(cmd, d=None):
             if state.doorType[d] == UNK:
                 if state.doorStatus[d] == 'held':
                     return SUCCESS
+                elif state.doorStatus[d] == 'closed':
+                    return FAILURE
                 else:
                     return random.choice([SUCCESS, FAILURE])
             elif state.doorType[d] == 'spring':
@@ -37,7 +39,7 @@ def Sense(cmd, d=None):
                 else:
                     return FAILURE
             else:
-                if state.doorStatus[d] == 'opened':
+                if state.doorStatus[d] != 'closed':
                     return SUCCESS
                 else:
                     return FAILURE

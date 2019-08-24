@@ -42,6 +42,7 @@ def ResetState():
     state.pos = {'o1': 1, 'o2': 2}
     state.done = {0: False}
     state.doorType = {'d1': UNK}
+    state.status = {'r1': 'free', 'r2': 'free'}
 
 tasks = {
     5: [['fetch', 'r1', 'o1', 1]]

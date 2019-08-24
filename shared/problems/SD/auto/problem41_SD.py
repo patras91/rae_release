@@ -31,7 +31,7 @@ DURATION.COUNTER = {
 rv.LOCATIONS = [1, 2, 3, 4, 5, 6]
 rv.EDGES = {1: [2, 3], 2: [1, 6], 3: [1, 4], 4: [3, 5], 5: [4], 6: [2]}
 rv.DOORLOCATIONS = {(2, 6): 'd1', (4, 5): 'd2'}
-rv.ROBOTS = ['r3', 'r2']
+rv.ROBOTS = ['r3', 'r2', 'r1']
 rv.DOORS = ['d1', 'd2']
 rv.DOORTYPES = {'d1': 'spring', 'd2': 'spring'}
 
@@ -44,7 +44,7 @@ def ResetState():
     state.status = {'r1': 'free', 'r2': 'free', 'r3': 'free'}
 tasks = {
     2: [['fetch', 'r3', 'o1', 5]],
-    4: [['fetch', 'r2', 'o3', 4]]
+    #4: [['fetch', 'r2', 'o3', 4]]
 }
 
 eventsEnv = {}

@@ -27,6 +27,14 @@ def GetProblemsOF():
     names = ["problem{}".format(item) for item in p1]
     return names
 
+def GetProblemsSD():
+    l = list(range(1000, 1128))
+    random.seed(300)
+    random.shuffle(l)
+    p1 = l[0:50]
+    names = ["problem{}".format(item) for item in p1]
+    return names
+
 #problems = {
 #    "CR": GetProblemsCR(),
 #    "SD": [],
@@ -38,7 +46,7 @@ def GetProblemsOF():
 
 b_max_depth = {
     "CR": [1,2,3],
-    "SD": [2,3,4],
+    "SD": [2,5,8],
     "SR": [2,3,4],
     "EE": [1,2,3],
     "IP": [1,2,3],
@@ -47,7 +55,7 @@ b_max_depth = {
 
 k_max_depth = {
     "CR": [1,3,5],
-    "SD": [],
+    "SD": [1,3,5],
     "SR": [1,3,5],
     "EE": [],
     "IP": [],
@@ -56,16 +64,7 @@ k_max_depth = {
 
 UCT_max_depth = {
     "CR": [5, 25, 50, 75],
-    "SD": [],
-    "SR": [],
-    "EE": [],
-    "IP": [],
-    "OF": [],
-}
-
-UCT_max_depth = {
-    "CR": [5, 25, 50, 75],
-    "SD": [],
+    "SD": [5, 25, 50, 75],
     "SR": [5, 25, 50, 75],
     "EE": [],
     "IP": [],
@@ -74,7 +73,7 @@ UCT_max_depth = {
 
 b_lim_depth = {
     "CR": [1,2],
-    "SD": [2,3,4],
+    "SD": [2,5,8],
     "SR": [2,3,4],
     "EE": [1,2,3],
     "IP": [1,2,3],
@@ -83,7 +82,7 @@ b_lim_depth = {
 
 k_lim_depth = {
     "CR": [3],
-    "SD": [],
+    "SD": [3],
     "SR": [3],
     "EE": [],
     "IP": [],
@@ -92,7 +91,7 @@ k_lim_depth = {
 
 UCT_lim_depth = {
     "CR": [5, 25, 50],
-    "SD": [],
+    "SD": [5, 25, 50],
     "SR": [5, 25, 50],
     "EE": [],
     "IP": [],
@@ -184,7 +183,7 @@ def GenerateTestScriptRAE(domain):
 if __name__=="__main__":
     
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF']",
+    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF', 'SD']",
                            type=str, required=True)
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)
