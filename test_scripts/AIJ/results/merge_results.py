@@ -109,7 +109,7 @@ def Merge(domain, mode, depth):
                 MergeHelper(fList, fName)
 
 if __name__ == "__main__":
-    for domain in ["OF"]:
+    for domain in ["SD"]:
         for mode in ["UCT"]:
             for depth in ["max", "lim"]:
                 Merge(domain, mode, depth)

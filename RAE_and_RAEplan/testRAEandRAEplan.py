@@ -114,7 +114,7 @@ if __name__ == "__main__":
     argparser.add_argument("--depth", help="Search Depth",
                            type=int, default=float("inf"), required=False)
     argparser.add_argument("--heuristic", help="Name of the heuristic function",
-                           type=str, default='h1', required=False)
+                           type=str, default='h2', required=False)
     argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
                            type=str, default='no', required=False)
 

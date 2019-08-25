@@ -427,7 +427,7 @@ def Heuristic1(args):
 def Heuristic2(args):
     r = args[0]
     l1 = state.loc[r]
-    l2 = args[1]
+    l2 = args[2]
     dist = len(SD_GETPATH(l1, l2))
     return 1/dist
 
