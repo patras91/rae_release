@@ -134,7 +134,7 @@ class Map():
         return res
 
 def generateProblems():
-    num = 1000
+    num = 2000
     for map in [Map(1), Map(2), Map(3), Map(4)]:
         for path in map.paths:
             objLocs = map.SelectObjLocs(path)

@@ -115,7 +115,7 @@ class Map():
 
 MAPS = [Map(1), Map(2), Map(3)]
 
-ChooseLocation(l):
+def ChooseLocation(l):
     l1 = random.sample(l, 1)
     l2 = random.sample(l, 2)
     l3 = random.sample(l, 3)
@@ -130,7 +130,6 @@ def generateProblems():
                 for weather in ['normal', 'stormy']: # 2
                     writeProblem(num, map, loc, charge, chargerLoc, locs, weather)
                     num += 1
-
 
 def writeProblem(num, map, loc, charge, chargerLoc, locs, weather):
     
@@ -200,7 +199,7 @@ def writeHeader(file):
     file.write("__author__ = 'patras'\n")
     file.write("from domain_exploreEnv import *\n") 
     file.write("from timer import DURATION\n") 
-    file.write("from state import state\n\n") 
+    file.write("from state import state, rv\n\n") 
 
     file.write("DURATION.TIME = {\n")
     file.write("    'survey': 5,\n") 

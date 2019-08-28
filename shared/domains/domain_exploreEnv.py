@@ -85,10 +85,10 @@ def survey(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'survey' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'survey' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('survey', start) == False):
             pass
@@ -101,7 +101,7 @@ def survey(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'survey':
+    elif rv.EQUIPMENTTYPE[e] != 'survey':
         gui.Simulate("%s is not the right equipment for survey\n" %e)
         res = FAILURE
     elif state.data[r] == 4:
@@ -117,10 +117,10 @@ def monitor(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'monitor' and r != 'UAV' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'monitor' and r != 'UAV' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('monitor', start) == False):
             pass
@@ -133,7 +133,7 @@ def monitor(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'monitor':
+    elif rv.EQUIPMENTTYPE[e] != 'monitor':
         gui.Simulate("%s is not the right equipment for monitor\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -152,10 +152,10 @@ def screen(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'screen' and r != 'UAV' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'screen' and r != 'UAV' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('screen', start) == False):
             pass
@@ -168,7 +168,7 @@ def screen(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'screen':
+    elif rv.EQUIPMENTTYPE[e] != 'screen':
         gui.Simulate("%s is not the right equipment for screening\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -187,10 +187,10 @@ def sample(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'sample' and r != 'UAV' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'sample' and r != 'UAV' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('sample', start) == False):
             pass
@@ -203,7 +203,7 @@ def sample(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'sample':
+    elif rv.EQUIPMENTTYPE[e] != 'sample':
         gui.Simulate("%s is not the right equipment for sampling\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -222,10 +222,10 @@ def process(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'process' and r != 'UAV' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'process' and r != 'UAV' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('process', start) == False):
             pass
@@ -238,7 +238,7 @@ def process(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'process':
+    elif rv.EQUIPMENTTYPE[e] != 'process':
         gui.Simulate("%s is not the right equipment for process\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -730,7 +730,16 @@ alg.declare_methods('handleEmergency',
 def Heuristic1(args):
     return float("inf")
 
-if GLOBALS.GetHeuristicName() == 'h2':
-    alg.declare_heuristic('explore', Heuristic1)
-    alg.declare_heuristic('flyTo', Heuristic1)
+def Heuristic2(args):
+    r = args[0]
+    l1 = state.loc[r]
+    actList = args[1]
+    dist = 0
+    for act in actList:
+        l2 = act[1]
+        dist += EE_GETDISTANCE(l1, l2)
+    return 1/dist
 
+
+if GLOBALS.GetHeuristicName() == 'h2':
+    alg.declare_heuristic('doActivities', Heuristic2)

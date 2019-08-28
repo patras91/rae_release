@@ -48,7 +48,7 @@ DURATION.COUNTER = {
 #
 #
 #
-rv.TYPE = {'e1': 'survey', 'e2': 'monitor', 'e3': 'screen', 'e4': 'sample', 'e5':'process'}
+rv.EQUIPMENTTYPE = {'e1': 'survey', 'e2': 'monitor', 'e3': 'screen', 'e4': 'sample', 'e5':'process'}
 rv.EQUIPMENT = {'survey': 'e1', 'monitor': 'e2', 'screen': 'e3', 'sample': 'e4', 'process': 'e5'}
 rv.LOCATIONS = ['base', 'z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7']
 rv.EDGES = {
@@ -92,9 +92,9 @@ def ResetState():
     state.data = {'r1': 0, 'UAV': 0}
     state.load = {'r1': NIL, 'UAV': NIL}
     state.pos = {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base'}
-
+    state.storm = {'active': False}
 tasks =  {
-    1: ['doActivities', 'UAV', [['survey', 'z1']]],
+    1: [['doActivities', 'UAV', [['survey', 'z1']]]],
     #3: ['explore', 'r1', 'process', 'z5'],
     #5: ['handleEmergency', 'r1', 'z2']
 }
