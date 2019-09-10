@@ -606,16 +606,16 @@ class SearchTreeNode():
         else:
             self.children[self.childPtr].UpdateChildPointers()
 
-    def GetBestMethod(self):
+    def GetBestMethodAndUtility(self):
         bestMethod = 'Failure'
         bestUtil = Utility('Failure')
         for child in self.children:
             if child.util > bestUtil:
                 bestUtil = child.util
                 bestMethod = child.GetLabel()
-        return bestMethod
+        return (bestMethod, bestUtil)
 
-    def GetBestMethod_UCT(self):
+    def GetBestMethodAndUtility_UCT(self):
         index = None
         bestQ = Utility('Failure')
         
@@ -625,9 +625,9 @@ class SearchTreeNode():
                 bestQ = self.Q[i]
                 index = i
         if index == None:
-            return 'Failure'
+            return ('Failure', bestQ)
         else:
-            return self.children[index].GetLabel()
+            return (self.children[index].GetLabel(), bestQ)
         
     def IncreaseWeight(self, s):
         assert(self.type == 'command')

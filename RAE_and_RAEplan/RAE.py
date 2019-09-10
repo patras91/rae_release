@@ -87,8 +87,8 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    retcode, retryCount, eff, height, taskCount, commandCount = RAE1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount)
+    retcode, retryCount, eff, height, taskCount, commandCount, utilitiesList = RAE1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilitiesList)
 
 def PrintResult(taskInfo):
     print('ID ','\t','Task',
@@ -100,7 +100,7 @@ def PrintResult(taskInfo):
             '\t\t\t', 'c',
             '\n')
     for stackid in taskInfo:
-        args, res, retryCount, eff, height, taskCount, commandCount = taskInfo[stackid]
+        args, res, retryCount, eff, height, taskCount, commandCount, utilitiesList = taskInfo[stackid]
         
         print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),
             '\t\t\t', res,
@@ -110,8 +110,17 @@ def PrintResult(taskInfo):
             '\t\t\t', taskCount,
             '\t\t\t', commandCount,
             '\n')
+        print(stackid, '\t', 'Task {}{}'.format(args[0], args[1:]),
+            '\t')
 
-def PrintResultSummary(taskInfo):
+        utilString = ""
+        for u in utilitiesList:
+            utilString += str(u)  
+            utilString += ","
+
+        print(utilString)
+
+def PrintResultSummaryVersion1(taskInfo):
     succ = 0
     fail = 0
     retries = 0
@@ -133,6 +142,27 @@ def PrintResultSummary(taskInfo):
             h = height
     print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal, h, t, c)
     #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
+
+def PrintResultSummaryVersion2(taskInfo):
+    for stackid in taskInfo:
+        args, res, retryCount, eff, height, taskCount, commandCount, utilitiesList = taskInfo[stackid]
+        if res == 'Success':
+            succ = 1
+            fail = 0
+        else:
+            succ = 0
+            fail = 1
+        print(succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), 
+            globalTimer.GetRealCommandExecutionCounter(), eff, height, taskCount, commandCount)
+        utilString = ""
+        for u in utilitiesList:
+            utilString += str(u)  
+            utilString += " "
+
+        print(utilString)
+
+        #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
+
 
 def StartEnv():
     while(True):
@@ -229,17 +259,19 @@ def raeMult():
         print("----Done with RAE----\n")
         PrintResult(taskInfo)
     else:
-        PrintResultSummary(taskInfo)
+        PrintResultSummaryVersion2(taskInfo)
         #globalTimer.Callibrate(startTime)
 
     return taskInfo # for unit tests
 
 def CreateNewStackSimulation(pArgs, queue):
     if GLOBALS.GetUCTmode() == True:
-        method, planningTime = RAEplanChoice_UCT(pArgs.GetTask(), pArgs)
+        methodUtil, planningTime = RAEplanChoice_UCT(pArgs.GetTask(), pArgs)
+        method, util = methodUtil
     else:
-        method, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
-    queue.put((method, planningTime))
+        methodUtil, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
+        method, util = methodUtil
+    queue.put((method, util, planningTime))
 
 def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, gL, searchTree):
     # Simulating one stack now

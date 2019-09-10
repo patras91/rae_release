@@ -18,7 +18,7 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-#import colorama
+import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
@@ -274,7 +274,11 @@ def RAE1(task, raeArgs):
 
     #raeLocals.GetActingTree().PrintUsingGraphviz()
     h, t, c = raeLocals.GetActingTree().GetMetaData()
-    return (retcode, raeLocals.GetRetryCount(), raeLocals.GetUtility(), h, t, c)
+    return (retcode, 
+        raeLocals.GetRetryCount(), 
+        raeLocals.GetUtility(), 
+        h, t, c, 
+        raeLocals.GetPlanningUtilitiesList())
 
 def InitializeStackLocals(task, raeArgs):
     """ Initialize the local variables of a stack used during acting """
@@ -317,7 +321,11 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         methodInstance = 'Failure'
         simTime = GLOBALS.GetTimeLimit()
     else:
-        methodInstance, simTime = queue.get()
+        methodInstance, expUtil, simTime = queue.get()
+        curUtil = raeLocals.GetUtility()
+        raeLocals.AddToPlanningUtilityList(curUtil)
+        raeLocals.AddToPlanningUtilityList(expUtil)
+        raeLocals.AddToPlanningUtilityList(expUtil + curUtil)
     globalTimer.UpdateSimCounter(simTime)
 
     #retcode = plannedTree.GetRetcode()
@@ -493,7 +501,7 @@ def RAEplanChoice(task, planArgs):
 
     taskToRefine = planLocals.GetTaskToRefine()
 
-    return (taskToRefine.GetBestMethod(), globalTimer.GetSimulationCounter())
+    return (taskToRefine.GetBestMethodAndUtility(), globalTimer.GetSimulationCounter())
     
 def RAEplanChoice_UCT(task, planArgs):
     """
@@ -550,7 +558,7 @@ def RAEplanChoice_UCT(task, planArgs):
 
     taskToRefine = planLocals.GetTaskToRefine()
 
-    return (taskToRefine.GetBestMethod_UCT(), globalTimer.GetSimulationCounter())
+    return (taskToRefine.GetBestMethodAndUtility_UCT(), globalTimer.GetSimulationCounter())
 
 def GetCandidates(task, tArgs):
     """ Called from PlanTask """
@@ -834,10 +842,12 @@ def DoCommandInRealWorld(cmd, cmdArgs):
 
     path[raeLocals.GetStackId()].pop()
 
-    if cmd.__name__ == "fail":
+    if cmd.__name__ == "fail" or retcode == 'Failure':
         util1 = GetFailureUtility(cmd, cmdArgs)
+        raeLocals.AddToPlanningUtilityList('fail')
     else:
         util1 = GetUtility(cmd, cmdArgs)
+        raeLocals.AddToPlanningUtilityList(cmd.__name__)
     util2 = raeLocals.GetUtility()
     raeLocals.SetUtility(util1 + util2)
 

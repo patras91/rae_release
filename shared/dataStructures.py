@@ -17,6 +17,7 @@ class rL():
 class rL_APE(rL):
     def SetMainTask(self, t):
         self.rL.mainTask = t
+        self.rL.planningUtilities = []
 
     def GetMainTask(self):
         return self.rL.mainTask
@@ -69,6 +70,12 @@ class rL_APE(rL):
 
     def GetUtility(self):
         return self.rL.util
+
+    def AddToPlanningUtilityList(self, item):
+        self.rL.planningUtilities.append(item)
+
+    def GetPlanningUtilitiesList(self):
+        return self.rL.planningUtilities
 
 class rL_PLAN(rL):
 
