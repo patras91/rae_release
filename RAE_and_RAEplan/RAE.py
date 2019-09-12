@@ -152,7 +152,7 @@ def PrintResultSummaryVersion2(taskInfo):
         else:
             succ = 0
             fail = 1
-        print(succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), 
+        print("v2", succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), 
             globalTimer.GetRealCommandExecutionCounter(), eff, height, taskCount, commandCount)
         utilString = ""
         for u in utilitiesList:

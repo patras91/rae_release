@@ -606,13 +606,16 @@ def DepositData_Method2(r):
 
 def Recharge_Method1(r):
     c = 'c1'
-    if state.pos[c] not in rv.LOCATIONS and state.pos[c] != r:
-        gui.Simulate("%s cannot find charger %s\n" %(r, c))
-        alg.do_command(fail)
-    elif state.loc[r] != state.pos[c] and state.pos[c] != r:
-        dist = EE_GETDISTANCE(state.loc[r], state.pos[c])
+    l1 = state.loc[r]
+    if state.pos[c] != l1 and state.pos[c] != r:
+        if state.pos[c] in rv.LOCATIONS: 
+            l2 = state.pos[c]
+        else:
+            r2 = state.pos[c]
+            l2 = state.loc[r2]
+        dist = EE_GETDISTANCE(l1, l2)
         if state.charge[r] >= dist:
-            alg.do_task('moveTo', r, state.pos[c])
+            alg.do_task('moveTo', r, l2)
             alg.do_command(charge, r, c)
         else:
             gui.Simulate("%s is stranded without any possibility of charging\n" %r)
@@ -622,13 +625,16 @@ def Recharge_Method1(r):
 
 def Recharge_Method2(r):
     c = 'c1'
-    if state.pos[c] not in rv.LOCATIONS and state.pos[c] != r:
-        gui.Simulate("%s cannot find charger %s\n" %(r, c))
-        alg.do_command(fail)
-    elif state.loc[r] != state.pos[c] and state.pos[c] != r:
-        dist = EE_GETDISTANCE(state.loc[r], state.pos[c])
+    l1 = state.loc[r]
+    if state.pos[c] != l1 and state.pos[c] != r:
+        if state.pos[c] in rv.LOCATIONS: 
+            l2 = state.pos[c]
+        else:
+            r2 = state.pos[c]
+            l2 = state.loc[r2]
+        dist = EE_GETDISTANCE(l1, l2)
         if state.charge[r] >= dist:
-            alg.do_task('moveTo', r, state.pos[c])
+            alg.do_task('moveTo', r, l2)
             alg.do_command(charge, r, c)
             alg.do_command(take, r, c)
         else:
@@ -740,6 +746,14 @@ def Heuristic2(args):
         dist += EE_GETDISTANCE(l1, l2)
     return 1/dist
 
+def Heuristic2_e(args):
+    r = args[0]
+    l1 = state.loc[r]
+    l2 = args[1]
+    dist = EE_GETDISTANCE(l1, l2)
+    return 1/dist
+
 
 if GLOBALS.GetHeuristicName() == 'h2':
     alg.declare_heuristic('doActivities', Heuristic2)
+    alg.declare_heuristic('handleEmergency', Heuristic2_e)

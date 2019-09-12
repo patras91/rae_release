@@ -43,6 +43,16 @@ def GetProblemsSD(part):
     names = ["problem{}".format(item) for item in p2]
     return names
 
+def GetProblemsEE(part):
+    l = list(range(1, 193))
+    random.seed(750)
+    random.shuffle(l)
+    p1 = l[0:50]
+    begin = (part - 1)*5
+    p2 = p1[begin: begin + 5]
+    names = ["problem{}".format(item) for item in p2]
+    return names
+
 #problems = {
 #    "CR": GetProblemsCR(),
 #    "SD": [],
@@ -74,7 +84,7 @@ UCT_max_depth = {
     "CR": [5, 25, 50, 75],
     "SD": [5, 25, 50, 75],
     "SR": [5, 25, 50, 75],
-    "EE": [],
+    "EE": [5, 25, 50, 75],
     "IP": [],
     "OF": [5, 25, 50, 75],
 }
@@ -101,7 +111,7 @@ UCT_lim_depth = {
     "CR": [5, 25, 50],
     "SD": [5, 25, 50],
     "SR": [5, 25, 50],
-    "EE": [],
+    "EE": [5, 25, 50],
     "IP": [],
     "OF": [5, 25, 50],
 }
@@ -260,7 +270,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part):
 
 if __name__=="__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF', 'SD']",
+    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF', 'SD', 'EE']",
                            type=str, required=True)
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)

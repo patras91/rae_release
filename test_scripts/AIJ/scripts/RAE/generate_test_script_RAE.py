@@ -35,6 +35,14 @@ def GetProblemsSD():
     names = ["problem{}".format(item) for item in p1]
     return names
 
+def GetProblemsEE():
+    l = list(range(1, 193))
+    random.seed(750)
+    random.shuffle(l)
+    p1 = l[0:50]
+    names = ["problem{}".format(item) for item in p1]
+    return names
+
 #problems = {
 #    "CR": GetProblemsCR(),
 #    "SD": [],
@@ -183,7 +191,7 @@ def GenerateTestScriptRAE(domain):
 if __name__=="__main__":
     
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF', 'SD']",
+    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF', 'SD', 'EE']",
                            type=str, required=True)
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)
