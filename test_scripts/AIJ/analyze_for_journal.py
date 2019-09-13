@@ -73,7 +73,15 @@ succCases = {
 
 COLORS = ['ro:', 'bs--', 'm^-.', 'go--']
 
-def CommonStuff(res, domain, f_rae, param): # param may be k or d
+def NotTimeLine(s):
+    if len(s) < 7:
+        return True
+    elif s[2:7] == "loops":
+        return False
+    else:
+        return True
+
+def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
 
     line = f_rae.readline()
     
@@ -108,42 +116,61 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
 
                 counts = f_rae.readline()
                 lineNumber += 1
-                print("line = ", lineNumber)
-                if counts == '':
-                    break
-                if counts == "0 1 0 0 0 0 0 0 0\n":
-                    timeOutCount += 1
-                parts2 = counts.split(' ')
+                print(fileName, " line number = ", lineNumber)
+                while(NotTimeLine(counts)):
+                    if counts == '':
+                        break
+                    if counts == "0 1 0 0 0 0 0 0 0\n":
+                        timeOutCount += 1
 
-                s = int(parts2[0])
-                t = int(parts2[1])
-                r = int(parts2[2])
-                planTime += float(parts2[3])
-                actTime += float(parts2[4])
-                taskEff = float(parts2[5])
-                if taskEff == float("inf"):
-                    print("Infinite efficiency! Normalizing.\n")
-                    taskEff = 1/10
-                nu += taskEff
-                succCount += s
-                totalTasks += t
+                    parts2 = counts.split(' ')
 
-                # for retry ratio
-                if s == t:
-                    if ((id in succCases[domain]) and param > 0): #or (domain in ['CR', 'EE', 'SD', 'IP']):
-                        retryCount += r
-                        totalCountForRetries += t
-                    elif param == 0:
-                        succCases[domain].append(id)
-                        retryCount += r
-                        totalCountForRetries += t
+                    if parts2[0] != "v2":
+                        version = 1
+                        s = int(parts2[0])
+                        t = int(parts2[1])
+                        r = int(parts2[2])
+                        planTime += float(parts2[3])
+                        actTime += float(parts2[4])
+                        taskEff = float(parts2[5])
+                    else:
+                        version = 2
+                        s = int(parts2[1])
+                        t = int(parts2[2])
+                        r = int(parts2[3])
+                        planTime += float(parts2[4])
+                        actTime += float(parts2[5])
+                        taskEff = float(parts2[6])
+
+                    if taskEff == float("inf"):
+                        print("Infinite efficiency! Normalizing.\n")
+                        taskEff = 1/10
+                    nu += taskEff
+                    succCount += s
+                    totalTasks += t
+
+                    # for retry ratio
+                    if s == t:
+                        if ((id in succCases[domain]) and param > 0): #or (domain in ['CR', 'EE', 'SD', 'IP']):
+                            retryCount += r
+                            totalCountForRetries += t
+                        elif param == 0:
+                            succCases[domain].append(id)
+                            retryCount += r
+                            totalCountForRetries += t
+                        else:
+                            pass
                     else:
                         pass
-                else:
-                    pass
 
-            secTimeLine = f_rae.readline()
-            lineNumber += 1
+                    if version == 2:
+                        f_rae.readline() # list of commands and planning efficiencies
+                        lineNumber += 1
+
+                    counts = f_rae.readline()
+                    lineNumber += 1
+            
+            secTimeLine = counts
             parts11 = secTimeLine.split()
             t11 = float(parts11[5])
             unit11 = parts11[6]
@@ -164,18 +191,17 @@ def CommonStuff(res, domain, f_rae, param): # param may be k or d
     res['nu'].append(nu / totalTasks)
     res['timeOut'].append(timeOutCount)
 
+def PopulateHelper_SLATE_max_depth(res, domain, f_rae, k, fileName):
+    CommonStuff(res, domain, f_rae, k, fileName)
 
-def PopulateHelper_SLATE_max_depth(res, domain, f_rae, k):
-    CommonStuff(res, domain, f_rae, k)
+def PopulateHelper_UCT_max_depth(res, domain, f_rae, uct, fileName):
+    CommonStuff(res, domain, f_rae, uct, fileName)
 
-def PopulateHelper_UCT_max_depth(res, domain, f_rae, uct):
-    CommonStuff(res, domain, f_rae, uct)
+def PopulateHelper_SLATE_lim_depth(res, domain, f_rae, depth, fileName):
+    CommonStuff(res, domain, f_rae, depth, fileName)
 
-def PopulateHelper_SLATE_lim_depth(res, domain, f_rae, depth):
-    CommonStuff(res, domain, f_rae, depth)
-
-def PopulateHelper_UCT_lim_depth(res, domain, f_rae, depth):
-    CommonStuff(res, domain, f_rae, depth)
+def PopulateHelper_UCT_lim_depth(res, domain, f_rae, depth, fileName):
+    CommonStuff(res, domain, f_rae, depth, fileName)
 
 def Populate_SLATE_max_depth(res, domain):
     for b in B_max_depth[domain]:
@@ -184,13 +210,13 @@ def Populate_SLATE_max_depth(res, domain):
                 f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
                 f_rae = open(f_rae_name, "r")
                 print(f_rae_name)
-                PopulateHelper_SLATE_max_depth(res[b], domain, f_rae, k)
+                PopulateHelper_SLATE_max_depth(res[b], domain, f_rae, k, f_rae_name)
                 f_rae.close()
             else:
                 fname = '{}{}_v_journal/rae_plan_b_{}_k_{}.txt'.format(resultsFolder, domain, b, k)
                 fptr = open(fname)
                 print(fname)
-                PopulateHelper_SLATE_max_depth(res[b], domain, open(fname), k)
+                PopulateHelper_SLATE_max_depth(res[b], domain, open(fname), k, fname)
                 fptr.close()
 
 def Populate_UCT_max_depth(res, domain):
@@ -199,13 +225,13 @@ def Populate_UCT_max_depth(res, domain):
             f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
             f_rae = open(f_rae_name, "r")
             print(f_rae_name)
-            PopulateHelper_UCT_max_depth(res, domain, f_rae, uct)
+            PopulateHelper_UCT_max_depth(res, domain, f_rae, uct, f_rae_name)
             f_rae.close()
         else:
             fname = '{}{}_v_journal/rae_plan_uct_{}.txt'.format(resultsFolder, domain, uct)
             fptr = open(fname)
             print(fname)
-            PopulateHelper_UCT_max_depth(res, domain, open(fname), uct)
+            PopulateHelper_UCT_max_depth(res, domain, open(fname), uct, fname)
             fptr.close()
 
 def Populate_SLATE_lim_depth(res, domain):  
@@ -216,13 +242,13 @@ def Populate_SLATE_lim_depth(res, domain):
                 f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
                 f_rae = open(f_rae_name, "r")
                 print(f_rae_name)
-                PopulateHelper_SLATE_lim_depth(res[b], domain, f_rae, depth)
+                PopulateHelper_SLATE_lim_depth(res[b], domain, f_rae, depth, f_rae_name)
                 f_rae.close()
             else:
                 fname = '{}{}_v_journal/rae_plan_b_{}_k_{}_d_{}.txt'.format(resultsFolder, domain, b, k, depth)
                 fptr = open(fname)
                 print(fname)
-                PopulateHelper_SLATE_lim_depth(res[b], domain, open(fname), depth)
+                PopulateHelper_SLATE_lim_depth(res[b], domain, open(fname), depth, fname)
                 fptr.close()
 
 def Populate_UCT_lim_depth(res, domain):  
@@ -232,13 +258,13 @@ def Populate_UCT_lim_depth(res, domain):
                 f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
                 f_rae = open(f_rae_name, "r")
                 print(f_rae_name)
-                PopulateHelper_UCT_lim_depth(res[uct], domain, f_rae, depth)
+                PopulateHelper_UCT_lim_depth(res[uct], domain, f_rae, depth, f_rae_name)
                 f_rae.close()
             else:
                 fname = '{}{}_v_journal/rae_plan_uct_{}_d_{}.txt'.format(resultsFolder, domain, uct, depth)
                 fptr = open(fname)
                 print(fname)
-                PopulateHelper_UCT_lim_depth(res[uct], domain, open(fname), depth)
+                PopulateHelper_UCT_lim_depth(res[uct], domain, open(fname), depth, fname)
                 fptr.close()
 
 def GeneratePlots_SLATE_max_depth():
