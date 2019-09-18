@@ -20,7 +20,7 @@ UCT_max_depth = {
     "CR": [5, 25, 50, 75],
     "SD": [5, 25, 50, 75],
     "SR": [5, 25, 50, 75],
-    "EE": [],
+    "EE": [5, 25, 50, 75],
     "IP": [],
     "OF": [5, 25, 50, 75],
 }
@@ -47,7 +47,7 @@ UCT_lim_depth = {
     "CR": [5, 25, 50],
     "SD": [5, 25, 50],
     "SR": [5, 25, 50],
-    "EE": [],
+    "EE": [5, 25, 50],
     "IP": [],
     "OF": [5, 25, 50],
 }
@@ -109,7 +109,7 @@ def Merge(domain, mode, depth):
                 MergeHelper(fList, fName)
 
 if __name__ == "__main__":
-    for domain in ["SD"]:
+    for domain in ["EE"]:
         for mode in ["UCT"]:
             for depth in ["max", "lim"]:
                 Merge(domain, mode, depth)

@@ -45,7 +45,8 @@ Depth = {
     'SR': [0, 5, 10, 15],
     'CR': [0, 5, 10, 15],
     'OF': [0, 5, 10, 15],
-    'SD': [0, 5, 10, 15]
+    'SD': [0, 5, 10, 15],
+    'EE': [0, 5, 10, 15],
 }
 
 UCT_max_depth = {
@@ -53,6 +54,7 @@ UCT_max_depth = {
     'SR': [0,5,25,50,75],
     'OF': [0, 5, 25, 50, 75],
     'SD': [0, 5, 25, 50, 75],
+    'EE': [0, 5, 25, 50, 75],
 }
 
 UCT_lim_depth = {
@@ -60,6 +62,7 @@ UCT_lim_depth = {
     'SR': [5, 25, 50],
     'OF': [5, 25, 50],
     'SD': [5, 25, 50],
+    'EE': [5, 25, 50],
 }
 
 succCases = {
@@ -71,7 +74,7 @@ succCases = {
     'OF': [],
 }
 
-COLORS = ['ro:', 'bs--', 'm^-.', 'go--']
+COLORS = ['ro:', 'bs--', 'm^-.', 'go--', 'c^:']
 
 def NotTimeLine(s):
     if len(s) < 7:
@@ -191,11 +194,83 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
     res['nu'].append(nu / totalTasks)
     res['timeOut'].append(timeOutCount)
 
+def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
+
+    line = f_rae.readline()
+    
+    id = 0
+    lineNumber = 0
+    while(line != ''):
+
+        parts = line.split(' ')
+
+        if parts[0] == 'Time':
+
+            succ = 0
+            total = 0
+
+            id += 1
+
+            counts = f_rae.readline()
+            lineNumber += 1
+            print(fileName, " line number = ", lineNumber)
+            while(NotTimeLine(counts)):
+                if counts == '':
+                    break
+                if counts == "0 1 0 0 0 0 0 0 0\n":
+                    pass
+
+                parts2 = counts.split(' ')
+
+                if parts2[0] != "v2":
+                    version = 1
+                    taskEff = float(parts2[5])
+                else:
+                    version = 2
+                    taskEff = float(parts2[6])
+
+                if taskEff == float("inf"):
+                    print("Infinite efficiency! Normalizing.\n")
+                    taskEff = 1/10
+
+                if version == 2:
+                    planningUtils = f_rae.readline() # list of commands and planning efficiencies
+                    lineNumber += 1
+                    # update the planning utility error ratios
+                    subs = planningUtils.split(' ')
+                    commCount = 0
+                    itr = 0
+                    for item in subs:
+                        chars = [str(i) for i in range(0,10)]
+                        if item[0] in chars:
+                            errorRatio = abs(taskEff - float(item))
+                            if itr == 2:
+                                if commCount in res:
+                                    res[commCount] += errorRatio
+                                else:
+                                    res[commCount] = errorRatio
+                            itr += 1
+                            if itr == 3:
+                                itr = 0
+                        else:
+                            commCount += 1
+                            if commCount > 10:
+                                break
+
+                counts = f_rae.readline()
+                lineNumber += 1
+            
+        line = f_rae.readline()
+        lineNumber += 1
+
 def PopulateHelper_SLATE_max_depth(res, domain, f_rae, k, fileName):
     CommonStuff(res, domain, f_rae, k, fileName)
 
 def PopulateHelper_UCT_max_depth(res, domain, f_rae, uct, fileName):
     CommonStuff(res, domain, f_rae, uct, fileName)
+
+def PopulateHelper_UCT_max_depth_planning_utilities(res, domain, f_rae, uct, fileName):
+    CommonStuffPlanningUtilities(res, domain, f_rae, uct, fileName)
 
 def PopulateHelper_SLATE_lim_depth(res, domain, f_rae, depth, fileName):
     CommonStuff(res, domain, f_rae, depth, fileName)
@@ -232,6 +307,21 @@ def Populate_UCT_max_depth(res, domain):
             fptr = open(fname)
             print(fname)
             PopulateHelper_UCT_max_depth(res, domain, open(fname), uct, fname)
+            fptr.close()
+
+def Populate_UCT_max_depth_planning_utilities(res, domain):
+    for uct in UCT_max_depth[domain]:
+        if uct == 0:
+            f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+            f_rae = open(f_rae_name, "r")
+            print(f_rae_name)
+            PopulateHelper_UCT_max_depth_planning_utilities(res[uct], domain, f_rae, uct, f_rae_name)
+            f_rae.close()
+        else:
+            fname = '{}{}_v_journal/rae_plan_uct_{}.txt'.format(resultsFolder, domain, uct)
+            fptr = open(fname)
+            print(fname)
+            PopulateHelper_UCT_max_depth_planning_utilities(res[uct], domain, open(fname), uct, fname)
             fptr.close()
 
 def Populate_SLATE_lim_depth(res, domain):  
@@ -330,6 +420,26 @@ def GeneratePlots_UCT_max_depth():
     print(resDict)
     for util in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_UCT_max(resDict, util)
+
+def GeneratePlots_UCT_max_depth_planning_utilities():
+    resDict = {}
+    for domain in D:
+        resDict[domain] = {}
+        for uct in UCT_max_depth[domain]:
+            resDict[domain][uct] = {}
+
+    for domain in D:
+        Populate_UCT_max_depth_planning_utilities(resDict[domain], domain)
+
+    plt.clf()
+    font = {
+        'family' : 'times',
+        'weight' : 'bold',
+        'size'   : 24}
+    plt.rc('font', **font)
+    
+    print(resDict)
+    PlotHelper_UCT_max_planning_utilities(resDict)
 
 def GeneratePlots_SLATE_lim_depth():
     resDict = {
@@ -540,6 +650,33 @@ def PlotHelper_SLATE_lim(resDict, util):
         plt.ylabel(GetYlabel(util)) 
         plt.savefig(fname, bbox_inches='tight')
 
+def PlotHelper_UCT_max_planning_utilities(resDict):
+    width = 0.25
+
+    for domain in D:
+        plt.clf()
+        fname = '{}{}_UCT_max_depth_planning_utilities.png'.format(figuresFolder, domain)
+        
+        i = 0
+        for uct in UCT_max_depth[domain]:
+            sortedDict = {}
+            for k in sorted(resDict[domain][uct]):
+                sortedDict[k] = resDict[domain][uct][k]
+            print(sortedDict)
+            PlotViaMatlab(sortedDict.keys(),
+                sortedDict.values(),
+                COLORS[i],
+                'rollouts={}'.format(uct))
+            i += 1
+        
+        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
+            
+        plt.xlabel('Number of commands executed')
+        plt.xticks(list(sortedDict.keys()),
+           GetString(list(sortedDict.keys())))
+        plt.ylabel("Expected Utility for Planning") 
+        plt.savefig(fname, bbox_inches='tight')
+
 def PlotViaMatlab(x, y, c, l):
     line1, = plt.plot(x, y, c, label=l, linewidth=4, MarkerSize=10, markerfacecolor='white')
 
@@ -556,6 +693,8 @@ if __name__=="__main__":
                            type=str, required=False, default='h2')
     argparser.add_argument("--s", help="SamplingStrategy ",
                            type=str, required=True)
+    argparser.add_argument("--planning", help="PlanningUtilities", default='n',
+                            type=str, required=False)
     args = argparser.parse_args()
 
     heuristic = args.heuristic
@@ -564,12 +703,18 @@ if __name__=="__main__":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()
         else:
-            GeneratePlots_UCT_max_depth()
+            if args.planning == "n":
+                GeneratePlots_UCT_max_depth()
+            else:
+                GeneratePlots_UCT_max_depth_planning_utilities()
     elif args.depth == "lim":
         if args.s == "SLATE":
             GeneratePlots_SLATE_lim_depth()
         else:
-            GeneratePlots_UCT_lim_depth()
+            if args.planning == "n":
+                GeneratePlots_UCT_lim_depth()
+            else:
+                GeneratePlots_UCT_lim_depth_planning_utilities()
     else:
         print("Incorrect value depth: should be 'max' or 'lim'.")
 

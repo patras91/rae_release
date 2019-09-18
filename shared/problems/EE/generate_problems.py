@@ -140,7 +140,7 @@ class Map():
 MAPS = [Map(1), Map(2), Map(3)]
 
 def generateProblems():
-    num = 1
+    num = 200
     for map1 in MAPS: # 3 
         charge1 = [random.choice([50, 80]), random.choice([50, 80]), random.choice([50, 80])] # uav, r1, r2
         charge2 = [random.choice([50, 80]), random.choice([50, 80]), random.choice([50, 80])]
