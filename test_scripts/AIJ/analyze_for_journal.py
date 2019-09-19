@@ -200,14 +200,12 @@ def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param m
     
     id = 0
     lineNumber = 0
+    total = 0
     while(line != ''):
 
         parts = line.split(' ')
 
         if parts[0] == 'Time':
-
-            succ = 0
-            total = 0
 
             id += 1
 
@@ -236,14 +234,16 @@ def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param m
                 if version == 2:
                     planningUtils = f_rae.readline() # list of commands and planning efficiencies
                     lineNumber += 1
+                    total += 1
                     # update the planning utility error ratios
                     subs = planningUtils.split(' ')
                     commCount = 0
                     itr = 0
                     for item in subs:
                         chars = [str(i) for i in range(0,10)]
-                        if item[0] in chars:
-                            errorRatio = abs(taskEff - float(item))
+                        if item[0] in chars or item == "inf":
+
+                            errorRatio = abs(taskEff - float(item))/(1 + taskEff)
                             if itr == 2:
                                 if commCount in res:
                                     res[commCount] += errorRatio
@@ -262,6 +262,9 @@ def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param m
             
         line = f_rae.readline()
         lineNumber += 1
+
+    for commCount in res:
+        res[commCount] /= total
 
 def PopulateHelper_SLATE_max_depth(res, domain, f_rae, k, fileName):
     CommonStuff(res, domain, f_rae, k, fileName)
@@ -658,7 +661,7 @@ def PlotHelper_UCT_max_planning_utilities(resDict):
         fname = '{}{}_UCT_max_depth_planning_utilities.png'.format(figuresFolder, domain)
         
         i = 0
-        for uct in UCT_max_depth[domain]:
+        for uct in UCT_max_depth[domain][1:]:
             sortedDict = {}
             for k in sorted(resDict[domain][uct]):
                 sortedDict[k] = resDict[domain][uct][k]
@@ -674,7 +677,7 @@ def PlotHelper_UCT_max_planning_utilities(resDict):
         plt.xlabel('Number of commands executed')
         plt.xticks(list(sortedDict.keys()),
            GetString(list(sortedDict.keys())))
-        plt.ylabel("Expected Utility for Planning") 
+        plt.ylabel("Error ratio (normalized)") 
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotViaMatlab(x, y, c, l):
