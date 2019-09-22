@@ -1,6 +1,6 @@
 #!/bin/sh
 domain="OF"
-runs=2
+runs=1
 P=(
 "problem55" 
 "problem109" 
