@@ -12,7 +12,7 @@ do
             for p in ${Parts[@]}
             do
             	fname="test_RAEplan_${domain}_${m}_${d}_part_${p}.bash"
-            	sbatch -n 1 -N 1 --share -t 20:00:00 ./$fname
+            	sbatch -n 1 -N 1 --share -t 4:00:00 ./$fname
             done
         done
     done

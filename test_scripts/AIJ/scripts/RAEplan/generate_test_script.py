@@ -157,9 +157,9 @@ def writeProblems(name, file, part, domain):
         l = GetProblemsEE(part)
     writeList(name, l, file)
 
-def GenerateTestScriptRAEplan(mode, domain, depth, part):
+def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
     fname = 'test_RAEplan_{}_{}_{}_part_{}.bash'.format(domain, mode, depth, part)
-    
+
     file = open(fname,"w") 
     file.write("#!/bin/sh\n")
     file.write("domain=\"{}\"\n".format(domain))
@@ -204,7 +204,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part):
     file.write("sys.path.append(\'../../../../shared/problems/{}/auto\')\n".format(domain))
     file.write("sys.path.append(\'../../../../shared/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
-    file.write("GLOBALS.SetOpt('max')\n")
+    #file.write("GLOBALS.SetOpt('max')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
 
     if mode == "SLATE":
@@ -215,6 +215,12 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part):
         file.write("GLOBALS.SetUCTRuns($uctCount)\n")
         file.write("GLOBALS.SetUCTmode(\'UCT\')\n")
 
+    if opt == "max":
+        file.write("GLOBALS.SetOpt(\'max\')\n")
+        folderAnnex = ""
+    elif opt == "sr":
+        file.write("GLOBALS.SetOpt(\'sr\')\n")
+        folderAnnex = "sr"
     if depth == "max":
         file.write("GLOBALS.SetSearchDepth(float(\\\"inf\\\"))\"\n")
     else:
@@ -229,27 +235,31 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part):
     
     if mode == "SLATE" and depth == "max":
         file.write("            echo \"b = \" $b \" k = \" $k\n")
-        str1 = "            fname=\"../../results/${domain}_v_journal/rae_plan_b_${b}_k_${k}"
-        str2 = "_part_{}.txt\"\n".format(part)
-        file.write(str1 + str2)
+        str1 = "            fname=\"../../results/${domain}_v_journal_" 
+        str2 = "/rae_plan_b_${b}_k_${k}"
+        str3 = "_part_{}.txt\"\n".format(part)
+        file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $b $k\" >> $fname\n")
     elif mode == "SLATE" and depth == "lim":
         file.write("            echo \"b = \" $b \" k = \" $k \" d = \" $d\n")
-        str1 = "            fname=\"../../results/${domain}_v_journal/rae_plan_b_${b}_k_${k}_d_${d}"
-        str2 = "_part_{}.txt\"\n".format(part)
-        file.write(str1 + str2)
+        str1 = "            fname=\"../../results/${domain}_v_journal_"
+        str2 = "/rae_plan_b_${b}_k_${k}_d_${d}"
+        str3 = "_part_{}.txt\"\n".format(part)
+        file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $b $k $d\" >> $fname\n")
     elif mode == "UCT" and depth == "max":
         file.write("            echo \"uctCount = \" $uctCount\n")
-        str1 = "            fname=\"../../results/${domain}_v_journal/rae_plan_uct_${uctCount}"
-        str2 = "_part_{}.txt\"\n".format(part)
-        file.write(str1 + str2)
+        str1 = "            fname=\"../../results/${domain}_v_journal_"
+        str2 = "/rae_plan_uct_${uctCount}"
+        str3 = "_part_{}.txt\"\n".format(part)
+        file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $uctCount\" >> $fname\n")
     else:
         file.write("            echo \"uctCount = \" $uctCount \" d = \" $d\n")
-        str1 = "            fname=\"../../results/${domain}_v_journal/rae_plan_uct_${uctCount}_d_${d}"
-        str2 = "_part_{}.txt\"\n".format(part)
-        file.write(str1 + str2)
+        str1 = "            fname=\"../../results/${domain}_v_journal_"
+        str2 = "/rae_plan_uct_${uctCount}_d_${d}"
+        str3 = "_part_{}.txt\"\n".format(part)
+        file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $uctCount $d\" >> $fname\n")
 
     file.write("            python3 -m timeit -n 1 -r 1 -s \"$setup\" \"$time_test\" >> $fname\n")
@@ -276,11 +286,21 @@ if __name__=="__main__":
                            type=str, required=True)
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)
+    argparser.add_argument("--utility", help=" efficiency or successRatio? ",
+                           type=str, required=True)
     args = argparser.parse_args()
 
     global runs
     runs = args.count
+    if args.utility == "efficiency":
+        opt = "max"
+    elif args.utility == "successRatio":
+        opt = "sr"
+    else:
+        print("Invalid utility")
+        exit(1)
+
     for mode in ["UCT"]:
         for depth in ["max", "lim"]:
             for part in range(1, 11):
-                GenerateTestScriptRAEplan(mode, args.domain, depth, part)
+                GenerateTestScriptRAEplan(mode, args.domain, depth, part, opt)

@@ -31,10 +31,10 @@ sys.path.append('../../../../shared/domains/')
 sys.path.append('../../../../shared/problems/CR/auto')
 sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
-GLOBALS.SetOpt('max')
 GLOBALS.SetTimeLimit(300)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
+GLOBALS.SetOpt('sr')
 GLOBALS.SetSearchDepth($d)
 GLOBALS.SetHeuristicName(\"h2\")"
 counter=1
@@ -43,7 +43,7 @@ do
             echo $domain $problem " Run " $counter/$runs
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"
             echo "uctCount = " $uctCount " d = " $d
-            fname="../../results/${domain}_v_journal/rae_plan_uct_${uctCount}_d_${d}_part_3.txt"
+            fname="../../results/${domain}_v_journal_sr/rae_plan_uct_${uctCount}_d_${d}_part_3.txt"
             echo "Time test of $domain $problem $uctCount $d" >> $fname
             python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
 ((counter++))

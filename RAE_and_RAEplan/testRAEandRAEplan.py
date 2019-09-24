@@ -38,7 +38,6 @@ def testRAEandRAEplan(domain, problem, useRAEplan):
     :return:
     '''
     domain_module = InitializeDomain(domain, problem)
-    GLOBALS.SetOpt('max')
     GLOBALS.SetDoPlanning(useRAEplan)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
@@ -129,6 +128,8 @@ if __name__ == "__main__":
                            type=str, default='n', required=False)
     argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n') (not implemented yet)",
                            type=str, default='n', required=False)
+    argparser.add_argument("--utility", help="efficiency or successRatio?",
+                           type=str, default="efficiency", required=False)
 
     args = argparser.parse_args()
 
@@ -150,5 +151,12 @@ if __name__ == "__main__":
     GLOBALS.SetUCTRuns(args.uctCount)
     GLOBALS.SetDomain(args.domain)
     GLOBALS.SetTimeLimit(args.timeLim)
+    if args.utility == "efficiency":
+        GLOBALS.SetOpt("max")
+    elif args.utility == "successRatio":
+        GLOBALS.SetOpt("sr")
+    else:
+        print("Invalid --utility. Please lookup help (-h)")
+        exit(1)
     testRAEandRAEplan(args.domain, args.problem, s)
     
