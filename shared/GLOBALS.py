@@ -69,7 +69,7 @@ def GetOpt():
     return g.opt 
 
 def SetOpt(opt):
-    assert(opt == 'min' or opt == 'max')
+    assert(opt == 'min' or opt == 'max' or opt == "sr")
     g.opt = opt
 
 def SetUCTRuns(v):

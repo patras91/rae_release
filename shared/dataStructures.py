@@ -77,6 +77,12 @@ class rL_APE(rL):
     def GetPlanningUtilitiesList(self):
         return self.rL.planningUtilities
 
+    def SetEfficiency(self, e):
+        self.rL.eff = e
+
+    def GetEfficiency(self):
+        return self.rL.eff
+
 class rL_PLAN(rL):
 
     def __init__(self):

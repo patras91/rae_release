@@ -18,7 +18,7 @@ import sys, pprint
 import os
 import GLOBALS
 import rTree
-#import colorama
+import colorama
 from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
@@ -271,12 +271,16 @@ def RAE1(task, raeArgs):
 
     if retcode == 'Failure':
         raeLocals.SetUtility(Utility('Failure'))
+        raeLocals.SetEfficiency(0)
+
+    if GLOBALS.GetOpt() == "max":
+        assert(numpy.isclose(raeLocals.GetEfficiency(), raeLocals.GetUtility().GetValue()))
 
     #raeLocals.GetActingTree().PrintUsingGraphviz()
     h, t, c = raeLocals.GetActingTree().GetMetaData()
     return (retcode, 
         raeLocals.GetRetryCount(), 
-        raeLocals.GetUtility(), 
+        raeLocals.GetEfficiency(), 
         h, t, c, 
         raeLocals.GetPlanningUtilitiesList())
 
@@ -293,6 +297,7 @@ def InitializeStackLocals(task, raeArgs):
     aT.SetPrevState(GetState().copy())
     raeLocals.SetActingTree(aT)
     raeLocals.SetUtility(Utility('Success'))
+    raeLocals.SetEfficiency(float("inf"))
     
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -311,7 +316,6 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         queue, 
         candidates,
         GetState().copy(),
-        raeLocals.GetGuideList(),
         raeLocals.GetSearchTree()])
 
     p.start()
@@ -366,6 +370,8 @@ def DoTaskInRealWorld(task, taskArgs):
 
         node.Clear() # Clear it on every iteration for a fresh start
         node.SetPrevState(GetState().copy())
+        if GLOBALS.GetOpt() == "sr": # there may be a better way to do this
+            raeLocals.SetUtility(Utility("Success"))
 
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
         node.SetLabelAndType(m, 'method')
@@ -595,13 +601,18 @@ def FollowSearchTree_task(task, taskArgs, node):
 
 def GetHeuristicEstimate():
     task, args = planLocals.GetHeuristicArgs()
-    return heuristic[task](args)
+    res = heuristic[task](args)
+    if GLOBALS.GetOpt() == "sr":
+        if res > 0:
+            return 1
+        else:
+            return 0
+    return res
     
 def PlanTask(task, taskArgs):
     # Need to look through several candidates for this task
     cand, state, flag = GetCandidates(task, taskArgs)
 
-    #guideList = planLocals.GetGuideList()
     searchTreeNode = planLocals.GetSearchTreeNode()
     taskNode = rTree.SearchTreeNode('task', 'task')
     searchTreeNode.AddChild(taskNode)
@@ -776,6 +787,18 @@ def GetNewId():
     return GetNewId.num
 GetNewId.num = 0
 
+def AddEfficiency(e1, e2):
+
+    if e1 == float("inf"):
+        res = e2
+    elif e2 == float("inf"):
+        res = e1
+    elif e1 == 0 and e2 == 0:
+        res = 0
+    else:
+        res = e1 * e2 / (e1 + e2)
+    return res
+
 def DoCommandInRealWorld(cmd, cmdArgs):
     global path
     path[raeLocals.GetStackId()].append([cmd, cmdArgs])
@@ -845,11 +868,15 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     if cmd.__name__ == "fail" or retcode == 'Failure':
         util1 = GetFailureUtility(cmd, cmdArgs)
         raeLocals.AddToPlanningUtilityList('fail')
+        eff1 = GetFailureEfficiency(cmd, cmdArgs)
     else:
         util1 = GetUtility(cmd, cmdArgs)
+        eff1 = GetEfficiency(cmd, cmdArgs)
         raeLocals.AddToPlanningUtilityList(cmd.__name__)
     util2 = raeLocals.GetUtility()
     raeLocals.SetUtility(util1 + util2)
+    eff2 = raeLocals.GetEfficiency()
+    raeLocals.SetEfficiency(AddEfficiency(eff1, eff2))
 
     if verbose > 1:
         print_entire_stack(raeLocals.GetStackId(), path)
@@ -1012,18 +1039,37 @@ def GetCost(cmd, cmdArgs):
         return cost
 
 def GetFailureUtility(cmd, cmdArgs):
-    return Utility(1/20)
+    if GLOBALS.GetOpt() != "sr":
+        return Utility(1/20)
+    else:
+        return Utility("Failure")
 
 def GetUtility(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")
-    if GLOBALS.GetDomain() == "SD" and cmd.__name__ == "helpRobot":
+    if GLOBALS.GetDomain() == "SD" and cmd.__name__ == "helpRobot": # kluge because I forgot to add this cost in the auto-gen problems
+        cost = 7
+    else:
+        cost = DURATION.COUNTER[cmd.__name__]
+    if GLOBALS.GetOpt() == "sr":
+        return Utility("Success")
+    elif type(cost) == types.FunctionType:
+        return Utility(1/cost(*cmdArgs))
+    else:
+        return Utility(1/cost)
+
+def GetFailureEfficiency(cmd, cmdArgs):
+    return 1/20
+
+def GetEfficiency(cmd, cmdArgs):
+    assert(cmd.__name__ != "fail")
+    if GLOBALS.GetDomain() == "SD" and cmd.__name__ == "helpRobot": # kluge because I forgot to add this cost in the auto-gen problems
         cost = 7
     else:
         cost = DURATION.COUNTER[cmd.__name__]
     if type(cost) == types.FunctionType:
-        return Utility(1/cost(*cmdArgs))
+        return 1/cost(*cmdArgs)
     else:
-        return Utility(1/cost)
+        return 1/cost
 
 ## Verbosity functions 
 

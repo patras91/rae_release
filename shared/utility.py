@@ -10,12 +10,21 @@ class Utility():
                 self.value = float("inf")
             else:
                 self.value = val    
-        else:
+        elif GLOBALS.GetOpt() == 'max':
             if val == 'Failure':
                 self.value = 0
             elif val == 'Success':
                 self.value = float("inf")
             else:
+                self.value = val
+        elif GLOBALS.GetOpt() == "sr":
+            if val == "Failure":
+                self.value = 0
+            elif val == "Success":
+                self.value = 1
+            else:
+                if val != "UNK":
+                    assert(val >= 0 and val <= 1)
                 self.value = val
 
     def __gt__(self, other): 
@@ -54,17 +63,22 @@ class Utility():
         return str(self.value)
 
     def __add__(self, other):
-        e1 = self.value
-        e2 = other.value
-        if e1 == float("inf"):
-            res = e2
-        elif e2 == float("inf"):
-            res = e1
-        elif e1 == 0 and e2 == 0:
-            res = 0
-        else:
-            res = e1 * e2 / (e1 + e2)
-        return Utility(res)
+        if GLOBALS.GetOpt() == "max":
+            e1 = self.value
+            e2 = other.value
+            if e1 == float("inf"):
+                res = e2
+            elif e2 == float("inf"):
+                res = e1
+            elif e1 == 0 and e2 == 0:
+                res = 0
+            else:
+                res = e1 * e2 / (e1 + e2)
+            return Utility(res)
+        elif GLOBALS.GetOpt() == "sr":
+            sr1 = self.value
+            sr2 = other.value
+            return Utility(sr1 * sr2)
 
     def SetValue(self, val):
         self.value = val

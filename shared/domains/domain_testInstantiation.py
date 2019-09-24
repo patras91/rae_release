@@ -11,9 +11,25 @@ import gui
 from state import state, rv
 from timer import globalTimer
 import GLOBALS
+import numpy
 
 def fail():
     return FAILURE
+
+commandProb = {
+    'sr1': [0.9, 0.1],
+    'sr2': [0.7, 0.3],
+    'sr3': [0.3, 0.7],
+}
+
+def Sense(cmd):
+    p = commandProb[cmd]
+    outcome = numpy.random.choice(len(p), 50, p=p)
+    res = outcome[0]
+    if res == 0:
+        return SUCCESS
+    else:
+        return FAILURE
 
 def m1_t(o):
     print("object is ", o, "\n")
@@ -73,16 +89,54 @@ def m2_t3():
     alg.do_task("t1")
     alg.do_task("t2")
 
+
+# success ratio optimization test
+
+def sr1():
+    gui.Simulate('sr1')
+    res = Sense('sr1')
+    return res
+
+def sr2():
+
+    gui.Simulate('sr2')
+    res = Sense('sr2')
+    return res
+
+def sr3():
+    gui.Simulate('sr3')
+    res = Sense('sr3')
+    return res
+
+def m1_tsr():
+    alg.do_task('t_sr1')
+
+def m2_tsr():
+    alg.do_task('t_sr2')
+
+def m1_tsr1():
+    alg.do_command(sr1)
+    alg.do_command(sr3)
+
+def m1_tsr2():
+    alg.do_command(sr2)
+
 alg.declare_task('t', 'o')
 alg.declare_task('t1')
 alg.declare_task('t2')
 alg.declare_task('t3')
+alg.declare_task('t_sr')
+alg.declare_task('t_sr1')
+alg.declare_task('t_sr2')
 
 alg.declare_methods('t', m1_t, m2_t, m3_t, m4_t)
 alg.declare_methods('t1', m1_t1, m2_t1)
 alg.declare_methods('t2', m1_t2, m2_t2)
 alg.declare_methods('t3', m1_t3, m2_t3)
+alg.declare_methods('t_sr', m1_tsr, m2_tsr)
+alg.declare_methods('t_sr1', m1_tsr1)
+alg.declare_methods('t_sr2', m1_tsr2)
 
-alg.declare_commands([fail, t1_c1, t1_c2])
+alg.declare_commands([fail, t1_c1, t1_c2, sr1, sr2, sr3])
 
 

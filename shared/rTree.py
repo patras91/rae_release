@@ -619,7 +619,7 @@ class SearchTreeNode():
         index = None
         bestQ = Utility('Failure')
         
-        l = [q.GetValue() for q in self.Q]
+        #l = [q.GetValue() for q in self.Q]
         for i in range(0, len(self.Q)):
             if self.Q[i] > bestQ:
                 bestQ = self.Q[i]

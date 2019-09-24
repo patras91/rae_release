@@ -22,7 +22,7 @@ UCT_max_depth = {
     "SR": [5, 25, 50, 75],
     "EE": [5, 25, 50, 75],
     "IP": [],
-    "OF": [5, 25, 50, 75],
+    "OF": [5, 25, 50, 75, 100, 150],
 }
 
 b_lim_depth = {
@@ -49,7 +49,7 @@ UCT_lim_depth = {
     "SR": [5, 25, 50],
     "EE": [5, 25, 50],
     "IP": [],
-    "OF": [5, 25, 50],
+    "OF": [5, 25, 50, 75, 100],
 }
 
 DEPTH = {
@@ -58,7 +58,7 @@ DEPTH = {
     "SR": [5, 10, 15],
     "EE": [5, 10, 15],
     "IP": [5, 10, 15],
-    "OF": [5, 10, 15],
+    "OF": [10, 15], # 5
 }
 def MergeHelper(l, name):
     fwrite = open(name, "w")
@@ -109,7 +109,7 @@ def Merge(domain, mode, depth):
                 MergeHelper(fList, fName)
 
 if __name__ == "__main__":
-    for domain in ["EE"]:
+    for domain in ["OF"]:
         for mode in ["UCT"]:
             for depth in ["max", "lim"]:
                 Merge(domain, mode, depth)

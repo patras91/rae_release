@@ -1,5 +1,6 @@
 *.xlsx
 *.pyc
+*.out
 misc.xml
 *.xml
 *.

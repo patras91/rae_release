@@ -273,7 +273,7 @@ def CreateNewStackSimulation(pArgs, queue):
         method, util = methodUtil
     queue.put((method, util, planningTime))
 
-def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, gL, searchTree):
+def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, searchTree):
     # Simulating one stack now
     # TODO: Simulate multiple stacks in future
 
@@ -286,7 +286,6 @@ def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, gL, searchTree):
     pArgs.SetStackId(1)
     pArgs.SetTask(task)
     pArgs.SetCandidates(candidateMethods)
-    pArgs.SetGuideList(gL)
     pArgs.SetState(state)
     pArgs.SetSearchTree(searchTree)
 
