@@ -279,7 +279,7 @@ def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, searchTree):
 
     SetMode('Counter') #Counter mode in simulation
     GLOBALS.SetPlanningMode(True)
-    RemoveLocksFromState()
+    #RemoveLocksFromState()
 
     pArgs = PlanArgs()
     pArgs.SetTaskArgs(taskArgs)

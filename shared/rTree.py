@@ -599,12 +599,35 @@ class SearchTreeNode():
             if self.parent != None:
                 self.parent.IncrementPointerAndSetUtility()
 
-    def UpdateChildPointers(self):
+    def UpdateChildPointers(self): # for SLATE
         if self.children == []:
             # reached the bottom of the tree, start moving up now
             self.parent.IncrementPointerAndSetUtility()
         else:
             self.children[self.childPtr].UpdateChildPointers()
+
+    def UpdateQValues(self, utilVal): # for UCT
+        if self.type == "task":
+            index = self.updateIndex
+            if self.n[index] > 0:
+                self.Q[index] = \
+                    Utility(((utilVal + self.n[index] * self.Q[index].GetValue()) / \
+                    (1 + self.n[index])))
+            else:
+                self.Q[index] = Utility(utilVal)
+
+            self.n[index] += 1
+            self.N += 1
+            self.updateIndex = None # to be safe
+            self.children[index].UpdateQValues(utilVal)
+        elif self.type == "method" or self.type == "state":
+            if len(self.children) > 0:
+                assert(len(self.children) == 1)
+                self.children[0].UpdateQValues(utilVal)
+        elif self.type == "command":
+            child = self.updateChild
+            self.updateChild = None
+            child.UpdateQValues(utilVal)
 
     def GetBestMethodAndUtility(self):
         bestMethod = 'Failure'
@@ -636,7 +659,7 @@ class SearchTreeNode():
                 self.childWeights[index] += 1
 
     def GetPrettyString(self, elem):
-        if elem.label == 'task' or elem.label == 'root' or elem.label == 'heuristic':
+        if elem.label == 'task' or elem.type == 'task' or elem.label == 'root' or elem.label == 'heuristic':
             return elem.label
         elif elem.type == 'method':
             return elem.label.GetName()

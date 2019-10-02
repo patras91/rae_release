@@ -63,6 +63,12 @@ def t1_c1():
 def t1_c2():
     return SUCCESS
 
+def c10():
+    if state.v[0] == 1:
+        return FAILURE
+    else:
+        return SUCCESS
+
 def m1_t1():
     gui.Simulate("m1_t1\n")
     alg.do_command(t1_c1)
@@ -121,6 +127,19 @@ def m1_tsr1():
 def m1_tsr2():
     alg.do_command(sr2)
 
+def m1_t10():
+    alg.do_task('t10_1')
+    alg.do_command(c10)
+
+def m1_t10_1():
+    gui.Simulate("m1\n")
+    state.v[0] = 1
+
+def m2_t10_1():
+    gui.Simulate("m2\n")
+    if state.v[0] != 1:
+        state.v[0] = 2
+
 alg.declare_task('t', 'o')
 alg.declare_task('t1')
 alg.declare_task('t2')
@@ -128,6 +147,9 @@ alg.declare_task('t3')
 alg.declare_task('t_sr')
 alg.declare_task('t_sr1')
 alg.declare_task('t_sr2')
+alg.declare_task('t10')
+alg.declare_task('t10_1')
+alg.declare_task('t10_2')
 
 alg.declare_methods('t', m1_t, m2_t, m3_t, m4_t)
 alg.declare_methods('t1', m1_t1, m2_t1)
@@ -136,7 +158,9 @@ alg.declare_methods('t3', m1_t3, m2_t3)
 alg.declare_methods('t_sr', m1_tsr, m2_tsr)
 alg.declare_methods('t_sr1', m1_tsr1)
 alg.declare_methods('t_sr2', m1_tsr2)
+alg.declare_methods('t10', m1_t10)
+alg.declare_methods('t10_1', m1_t10_1, m2_t10_1)
 
-alg.declare_commands([fail, t1_c1, t1_c2, sr1, sr2, sr3])
+alg.declare_commands([fail, t1_c1, t1_c2, sr1, sr2, sr3, c10])
 
 

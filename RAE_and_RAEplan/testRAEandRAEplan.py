@@ -84,7 +84,7 @@ def InitializeSecurityDomain(v, state):
         rM = threading.Thread(target=raeMult)
         rM.start()
     except Exception as e:
-        print('Failed to tart RAE and RAEplan {}'.format(e))
+        print('Failed to start RAE and RAEplan {}'.format(e))
     return taskQueue, cmdExecQueue, cmdStatusQueue 
 
 if __name__ == "__main__":

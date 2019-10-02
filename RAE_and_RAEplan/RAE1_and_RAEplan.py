@@ -47,7 +47,8 @@ def verbosity(level):
     global verbose
     verbose = level
     if level > 0:
-        import colorama
+        pass
+        #import colorama
 
 # Both RAE and RAEplan
 TASKS = {} # dictionary of tasknames and the task parameters
@@ -304,7 +305,8 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     RAE calls this functions when it wants suggestions from RAEplan
     """
     if verbose > 0:
-        print(colorama.Fore.RED, "Starting simulation for stack")
+        #print(colorama.Fore.RED, "Starting simulation for stack")
+        print("Starting simulation for stack")
 
     queue = multiprocessing.Queue()
     actingTree = raeLocals.GetActingTree()
@@ -335,7 +337,8 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     #retcode = plannedTree.GetRetcode()
 
     if verbose > 0:
-        print("Done with simulation. Result = {} \n".format(methodInstance), colorama.Style.RESET_ALL)
+        #print("Done with simulation. Result = {} \n".format(methodInstance), colorama.Style.RESET_ALL)
+        print("Done with simulation. Result = {} \n".format(methodInstance))
 
     if methodInstance == 'Failure':
         #random.shuffle(candidates)
@@ -346,7 +349,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
 
 def choose_candidate(candidates, task, taskArgs):
     if GLOBALS.GetDoPlanning() == False or len(candidates) == 1:
-        #random.shuffle(candidates)
+        random.shuffle(candidates)
         return(candidates[0], candidates[1:])
     else:
         return GetCandidateByPlanning(candidates, task, taskArgs)
@@ -548,10 +551,17 @@ def RAEplanChoice_UCT(task, planArgs):
             planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
             planLocals.SetFlip(False)
             RestoreState(searchTreeRoot.GetNext().GetPrevState())
-            do_task(task, *taskArgs)    
+            searchTreeRoot.updateIndex = 0
+            do_task(task, *taskArgs) 
+            #searchTreeRoot.PrintUsingGraphviz()
+            searchTreeRoot.UpdateQValues(planLocals.GetUtilRollout().GetValue())   
         except Failed_Rollout as e:
             v_failedCommand(e)
+            #searchTreeRoot.PrintUsingGraphviz()
+            searchTreeRoot.UpdateQValues(planLocals.GetUtilRollout().GetValue())
         except DepthLimitReached as e:
+            #searchTreeRoot.PrintUsingGraphviz()
+            searchTreeRoot.UpdateQValues(planLocals.GetUtilRollout().GetValue())
             pass
         else:
             pass
@@ -614,7 +624,7 @@ def PlanTask(task, taskArgs):
     cand, state, flag = GetCandidates(task, taskArgs)
 
     searchTreeNode = planLocals.GetSearchTreeNode()
-    taskNode = rTree.SearchTreeNode('task', 'task')
+    taskNode = rTree.SearchTreeNode(task, 'task')
     searchTreeNode.AddChild(taskNode)
     if flag == 1:
         planLocals.SetTaskToRefine(taskNode)
@@ -638,7 +648,7 @@ def PlanTask_UCT(task, taskArgs):
     
     if searchTreeNode.children == []:
         # add new nodes with this task and its applicable method instances
-        taskNode = rTree.SearchTreeNode('task', 'task')
+        taskNode = rTree.SearchTreeNode(task, 'task')
         searchTreeNode.AddChild(taskNode)
         # Need to look through several candidates for this task
         cand, state, flag = GetCandidates(task, taskArgs)
@@ -657,6 +667,7 @@ def PlanTask_UCT(task, taskArgs):
 
             # Is this node needed?
             taskNode.AddChild(newNode)
+            taskNode.updateIndex = 0
             raise DepthLimitReached()
 
         for m in cand:
@@ -672,7 +683,7 @@ def PlanTask_UCT(task, taskArgs):
 
         if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
             newNode = taskNode.children[0]
-
+            taskNode.updateIndex = 0
             util1 = planLocals.GetUtilRollout()
             util2 = Utility(GetHeuristicEstimate())
             planLocals.SetUtilRollout(util1 + util2)
@@ -712,20 +723,11 @@ def PlanTask_UCT(task, taskArgs):
         PlanMethod(m, task, taskArgs)
     except Failed_Rollout as e:
         failed = True
-        pass
     except DepthLimitReached as e:
         depthLimReached = True
 
-    utilVal = planLocals.GetUtilRollout().GetValue()
-    if taskNode.n[index] > 0:
-        taskNode.Q[index] = \
-            Utility(((utilVal + taskNode.n[index] * taskNode.Q[index].GetValue()) / \
-            (1 + taskNode.n[index])))
-    else:
-        taskNode.Q[index] = Utility(utilVal)
+    taskNode.updateIndex = index
 
-    taskNode.n[index] += 1
-    taskNode.N += 1
     if failed:
         raise Failed_Rollout()
     elif depthLimReached:
@@ -769,7 +771,7 @@ def do_command(cmd, *cmdArgs):
     Perform command cmd(cmdArgs).
     """
     if GLOBALS.GetPlanningMode() == True:
-        #planLocals.IncreaseDepthBy1()
+        planLocals.IncreaseDepthBy1()
         if GLOBALS.GetUCTmode() == True:
             PlanCommand_UCT(cmd, cmdArgs)
         else:
@@ -911,20 +913,21 @@ def CallCommand_OperationalModel(cmd, cmdArgs):
     v_begin_c(cmd, cmdArgs)
     path[planLocals.GetStackId()].append([cmd, cmdArgs])
     cmdRet = {'state':'running'}
-    cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
-    cmdThread.start()
+    #cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
+    #cmdThread.start()
 
-    if GLOBALS.GetPlanningMode() == False:
-        EndCriticalRegion()
-        BeginCriticalRegion(planLocals.GetStackId())
+    beginCommand(cmd, cmdRet, cmdArgs)
+    #if GLOBALS.GetPlanningMode() == False:
+    #    EndCriticalRegion()
+    #    BeginCriticalRegion(planLocals.GetStackId())
 
-    while (cmdRet['state'] == 'running'):
-        if verbose > 0:
-            print_stack_size(planLocals.GetStackId(), path)
-            print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
-        if GLOBALS.GetPlanningMode() == False:
-            EndCriticalRegion()
-            BeginCriticalRegion(planLocals.GetStackId())
+    #while (cmdRet['state'] == 'running'):
+    #    if verbose > 0:
+    #        print_stack_size(planLocals.GetStackId(), path)
+    #        print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
+    #    if GLOBALS.GetPlanningMode() == False:
+    #        EndCriticalRegion()
+    #        BeginCriticalRegion(planLocals.GetStackId())
 
     if verbose > 0:
         print_stack_size(planLocals.GetStackId(), path)
@@ -1011,6 +1014,7 @@ def PlanCommand_UCT(cmd, cmdArgs):
         nextStateNode.SetUtility(Utility('Failure'))
         commandNode.AddChild(nextStateNode)
         planLocals.SetUtilRollout(Utility('Failure'))
+        commandNode.updateChild = nextStateNode
         raise Failed_Rollout()
     else:
         nextStateNode = commandNode.FindAmongChildren(nextState) 
@@ -1018,13 +1022,11 @@ def PlanCommand_UCT(cmd, cmdArgs):
             nextStateNode = rTree.SearchTreeNode(nextState, 'state')
 
             commandNode.AddChild(nextStateNode)
-
-        planLocals.SetCurrentNode(nextStateNode)
         
         util1 = planLocals.GetUtilRollout()
         util2 = GetUtility(cmd, cmdArgs)
         planLocals.SetUtilRollout(util1 + util2)
-
+        commandNode.updateChild = nextStateNode
         planLocals.SetSearchTreeNode(nextStateNode)
 
 def GetCost(cmd, cmdArgs):

@@ -1,6 +1,6 @@
 #!/bin/sh
 domain="CR"
-runs=5
+runs=10
 P=(
 "problem1106" 
 "problem1004" 
@@ -62,13 +62,14 @@ sys.path.append('../../../../shared/domains/')
 sys.path.append('../../../../shared/problems/CR/auto')
 sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
-GLOBALS.SetOpt('max')"
+GLOBALS.SetOpt('max')
+GLOBALS.SetTimeLimit(300)"
 counter=1
 while [ $counter -le $runs ]
 do
             echo $domain $problem " Run " $counter/$runs
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=False)"
-            fname="../../results/${domain}_v_journal/RAE.txt"
+            fname="../../../../../raeResults/${domain}_v_journal/RAE.txt"
             echo "Time test of $domain $problem" >> $fname
             python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
 ((counter++))

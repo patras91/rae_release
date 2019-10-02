@@ -175,7 +175,7 @@ def GenerateTestScriptRAE(domain):
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
     file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', useRAEplan=False)\"\n")
     
-    str1 = "            fname=\"../../results/${domain}_v_journal/RAE.txt\"\n"
+    str1 = "            fname=\"../../../../../raeResults/${domain}_v_journal/RAE.txt\"\n"
     file.write(str1)
     file.write("            echo \"Time test of $domain $problem\" >> $fname\n")
 
