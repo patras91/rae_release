@@ -63,7 +63,7 @@ sys.path.append('../../../../shared/problems/OF/auto')
 sys.path.append('../../../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetOpt('max')
-GLOBALS.SetTimeLimit(600)"
+GLOBALS.SetTimeLimit(100)"
 counter=1
 while [ $counter -le $runs ]
 do

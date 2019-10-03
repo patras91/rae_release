@@ -166,10 +166,9 @@ def PrintResultSummaryVersion2(taskInfo):
 
 def StartEnv():
     while(True):
-        while(envArgs.envActive == False):
-            pass
         envArgs.sem.acquire()
         if envArgs.exit == True:
+            ipcArgs.sem[0].release() # main controller
             return
 
         StartEnv.counter += 1
@@ -181,8 +180,7 @@ def StartEnv():
                 t = threading.Thread(target=event, args=eventParams)
                 t.setDaemon(True)  # Setting the environment thread to daemon because we don't want the environment running once the tasks are done
                 t.start()
-        envArgs.envActive = False
-        envArgs.sem.release()
+        ipcArgs.sem[0].release()
 
 def add_tasks(tasks):
     current_counter = GetNewTasks.counter
@@ -192,7 +190,7 @@ def add_tasks(tasks):
         problem_module.tasks[current_counter + 1] += tasks
 
 def raeMult():
-    ipcArgs.sem = threading.Semaphore(1)  #the semaphore to control progress of each stack and master
+    ipcArgs.sem = [threading.Semaphore(1)]  #the semaphores to control progress of each stack and master
     ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
     ipcArgs.threadList = [] #keeps track of all the stacks in RAE Agenda
     lastActiveStack = 0 #keeps track of the last stack that was Progressed
@@ -201,8 +199,7 @@ def raeMult():
     StartEnv.counter = 0
     taskInfo = {}
 
-    envArgs.sem = threading.Semaphore(1)
-    envArgs.envActive = False
+    envArgs.sem = threading.Semaphore(0)
     envArgs.exit = False
 
     envThread = threading.Thread(target=StartEnv)
@@ -211,9 +208,9 @@ def raeMult():
 
 
     while (True):
-        if ipcArgs.nextStack == 0 or ipcArgs.threadList[ipcArgs.nextStack-1].isAlive() == False:
-            ipcArgs.sem.acquire()
-
+        #if ipcArgs.nextStack == 0 or ipcArgs.threadList[ipcArgs.nextStack-1].isAlive() == False:
+        if True:
+            ipcArgs.sem[0].acquire()
             if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
 
                 taskParams = GetNewTasks()
@@ -226,16 +223,13 @@ def raeMult():
                         raeArgs.task = newTask[0]
                         raeArgs.taskArgs = newTask[1:]
 
+                        ipcArgs.sem.append(threading.Semaphore(0))
                         ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, raeArgs)))
                         ipcArgs.threadList[numstacks-1].start()
 
                 lastActiveStack = 0 # for the environment
-
-                envArgs.envActive = True
                 envArgs.sem.release()
-                while(envArgs.envActive == True):
-                    pass
-                envArgs.sem.acquire()
+                ipcArgs.sem[0].acquire()
 
                 globalTimer.IncrementTime()
 
@@ -245,15 +239,14 @@ def raeMult():
                 if res != -1:
                     ipcArgs.nextStack = res
                     lastActiveStack = res
-                    ipcArgs.sem.release()
+                    ipcArgs.sem[res].release()
                 else:
                     if noNewTasks():
-                        envArgs.envActive = True
                         envArgs.exit = True
                         envArgs.sem.release()
                         break
             else:
-                ipcArgs.sem.release()
+                ipcArgs.sem[0].release()
 
     if GLOBALS.GetShowOutputs() == 'on':
         print("----Done with RAE----\n")

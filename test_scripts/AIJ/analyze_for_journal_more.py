@@ -75,7 +75,7 @@ succCases = {
 }
 
 timeLimit = {
-    "OF": 1200,
+    "OF": 600,
     "CR": 300,
     "SR": 300,
     "EE": 300,
@@ -661,7 +661,7 @@ util = None
 
 if __name__=="__main__":
     util = '_eff'
-    D = ['CR', 'SR', 'SD', 'EE', 'OF']
+    D = ['SD', 'EE', 'OF']
     depth = "max"
     s = "UCT"
     if depth == "max":

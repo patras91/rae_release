@@ -86,7 +86,7 @@ UCT_max_depth = {
     "SR": [5, 25, 50, 75, 100, 125],
     "EE": [5, 25, 50, 75, 100, 125],
     "IP": [],
-    "OF": [5, 25, 50, 75, 100, 125],
+    "OF": [5, 25, 50, 75, 100, 125, 150],
 }
 
 b_lim_depth = {
@@ -109,25 +109,25 @@ k_lim_depth = {
 
 UCT_lim_depth = {
     "CR": [50],
-    "SD": [5, 25, 50],
+    "SD": [50],
     "SR": [50],
-    "EE": [5, 25, 50],
+    "EE": [50],
     "IP": [],
     #"OF": [5, 25, 50],
-    "OF": [75, 100],
+    "OF": [75],
 }
 
 DEPTH = {
     "CR": [5, 10, 15, 20],
-    "SD": [5, 10, 15],
+    "SD": [5, 10, 15, 20],
     "SR": [5, 10, 15, 20],
-    "EE": [5, 10, 15],
+    "EE": [5, 10, 15, 20],
     "IP": [5, 10, 15],
     "OF": [10, 15],
 }
 
 timeLimit = {
-    "OF": 1200,
+    "OF": 300,
     "CR": 300,
     "SR": 300,
     "EE": 300,
@@ -301,9 +301,9 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in [args.domain]: #["CR", "SR", "SD", "EE"]:
+    for domain in ["OF"]: #["CR", "SR", "SD", "EE"]:
         for optz in ["max", "sr"]:
             for mode in ["UCT"]:
-                for depth in ["lim", "max"]:
+                for depth in ["max"]:
                     for part in range(1, 11):
                         GenerateTestScriptRAEplan(mode, domain, depth, part, optz)

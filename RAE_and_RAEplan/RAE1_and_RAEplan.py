@@ -208,13 +208,13 @@ ipcArgs = IpcArgs()
 envArgs = IpcArgs()
 
 def BeginCriticalRegion(stackid):
-    while(ipcArgs.nextStack != stackid):
-        pass
-    ipcArgs.sem.acquire()
+    #while(ipcArgs.nextStack != stackid):
+    #    pass
+    ipcArgs.sem[stackid].acquire()
 
 def EndCriticalRegion():
-    ipcArgs.nextStack = 0
-    ipcArgs.sem.release()
+    #ipcArgs.nextStack = 0
+    ipcArgs.sem[0].release()
 
 #****************************************************************
 
@@ -275,7 +275,8 @@ def RAE1(task, raeArgs):
         raeLocals.SetEfficiency(0)
 
     if GLOBALS.GetOpt() == "max":
-        assert(numpy.isclose(raeLocals.GetEfficiency(), raeLocals.GetUtility().GetValue()))
+        if GLOBALS.GetDomain() != "OF":
+            assert(numpy.isclose(raeLocals.GetEfficiency(), raeLocals.GetUtility().GetValue()))
 
     #raeLocals.GetActingTree().PrintUsingGraphviz()
     h, t, c = raeLocals.GetActingTree().GetMetaData()
@@ -874,7 +875,21 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     else:
         util1 = GetUtility(cmd, cmdArgs)
         eff1 = GetEfficiency(cmd, cmdArgs)
-        raeLocals.AddToPlanningUtilityList(cmd.__name__)
+        wait = False
+        if GLOBALS.GetDomain() == "OF": # to avoid overflow in output files
+            if cmd.__name__ == "wait":
+                wait = True
+                if len(raeLocals.GetPlanningUtilitiesList()) > 1:
+                    lastItem = str(raeLocals.GetPlanningUtilitiesList()[-1])
+                    if lastItem[0:4] == "wait":
+                        n = int(lastItem[4:]) + 1
+                        raeLocals.GetPlanningUtilitiesList()[-1] = "wait" + str(n)
+                    else:
+                        raeLocals.AddToPlanningUtilityList("wait0")
+                else:
+                    raeLocals.AddToPlanningUtilityList("wait0")
+        if wait == False:
+            raeLocals.AddToPlanningUtilityList(cmd.__name__)
     util2 = raeLocals.GetUtility()
     raeLocals.SetUtility(util1 + util2)
     eff2 = raeLocals.GetEfficiency()
