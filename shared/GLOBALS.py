@@ -101,3 +101,9 @@ def SetTimeLimit(t):
 
 def GetTimeLimit():
     return g.timeLimit
+
+def SetLearningMode(m):
+    g.learningMode = m
+
+def GetLearningMode():
+    return g.learningMode

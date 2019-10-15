@@ -60,10 +60,13 @@ def wait():
     #while (globalTimer.IsCommandExecutionOver('wait', start) == False):
     #    pass
 
-    t1 = time()
-    while(time() - t1 < 3):
-        pass
-    return SUCCESS
+    if GLOBALS.GetPlanningMode() == True:
+        return FAILURE
+    else:
+        t1 = time()
+        while(time() - t1 < 3):
+            pass
+        return SUCCESS
 
 
 def Redoer(command, *args):
@@ -211,11 +214,13 @@ Order_Method2.parameters = "[(m, objList, p) for m in rv.MACHINES for objList in
 # for free r
 def PickupAndLoad_Method1(orderName, o, m, r):
     # wait for robot if needed
-    t1 = time()
-    while state.busy[r] == True:
-        if time() - t1 > 10:
-            ape.do_command(fail)
+    i = 0
+    while state.busy[r] == True and i < 5:
         ape.do_command(wait)
+        i += 1
+
+    if state.busy[r] == True:
+        ape.do_command(fail)
 
     # acquire robot
     ape.do_task('redoer', acquireRobot, r)
@@ -232,11 +237,13 @@ def PickupAndLoad_Method1(orderName, o, m, r):
     ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[m], dist)
 
     # wait if needed
-    t1 = time()
-    while state.busy[m] != False and state.busy[m] != orderName:
-        if time() - t1 > 10:
-            ape.do_command(fail)
+    i = 0
+    while state.busy[m] != False and state.busy[m] != orderName and i < 5:
         ape.do_command(wait)
+        i += 1
+
+    if state.busy[m] != False and state.busy[m] != orderName:
+        ape.do_command(fail)
 
     # load machine
     ape.do_task('redoer', loadMachine, orderName, r, m, o)
@@ -249,11 +256,13 @@ PickupAndLoad_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
 # for free r
 def UnloadAndDeliver_Method1(m, package, r):
     # wait for robot if needed
-    t1 = time()
-    while state.busy[r] == True:
-        if time() - t1 > 10:
-            ape.do_command(fail)
+    i = 0
+    while state.busy[r] == True and i < 5:
         ape.do_command(wait)
+        i += 1
+
+    if state.busy[r] == True:
+        ape.do_command(fail)
 
     ape.do_task('redoer', acquireRobot, r)
 
@@ -279,11 +288,13 @@ UnloadAndDeliver_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
 # for free r
 def MoveToPallet_Method1(o, p, r):
     # wait for robot if needed
-    t1 = time()
-    while state.busy[r] == True:
-        if time() - t1 > 10:
-            ape.do_command(fail)
+    i = 0
+    while state.busy[r] == True and i < 5:
         ape.do_command(wait)
+        i += 1
+
+    if state.busy[r] == True:
+        ape.do_command(fail)
 
     ape.do_task('redoer', acquireRobot, r)
 

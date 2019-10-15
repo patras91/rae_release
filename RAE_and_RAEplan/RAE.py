@@ -8,6 +8,7 @@ import threading
 import GLOBALS
 import os
 from sharedData import *
+from learningData import WriteTrainingData
 
 __author__ = 'patras'
 
@@ -248,6 +249,8 @@ def raeMult():
             else:
                 ipcArgs.sem[0].release()
 
+    if GLOBALS.GetLearningMode() == "genData":
+        WriteTrainingData()
     if GLOBALS.GetShowOutputs() == 'on':
         print("----Done with RAE----\n")
         PrintResult(taskInfo)

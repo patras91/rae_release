@@ -25,6 +25,7 @@ from APE_stack import print_entire_stack, print_stack_size
 from utility import Utility
 import time
 from sharedData import *
+from learningData import trainingDataRecords
 ############################################################
 
 ### for debugging
@@ -396,6 +397,14 @@ def DoTaskInRealWorld(task, taskArgs):
     if retcode == 'Failure':
         raise Failed_task('{}{}'.format(task, taskArgs))
     elif retcode == 'Success':
+        if GLOBALS.GetLearningMode() == "genData":
+            trainingDataRecords.Add(
+                GetState(), 
+                m, 
+                raeLocals.GetEfficiency(),
+                task,
+                raeLocals.GetMainTask(),
+            )
         return retcode
     else:
         raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))

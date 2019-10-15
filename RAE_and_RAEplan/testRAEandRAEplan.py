@@ -16,7 +16,7 @@ sys.path.append('../shared/problems/EE/manual')
 sys.path.append('../shared/problems/OF/auto')
 sys.path.append('../shared/problems/OF/manual')
 sys.path.append('../shared/problems/SR/auto')
-sys.path.append('../shared/problems/SR/manual')
+#sys.path.append('../shared/problems/SR/manual')
 sys.path.append('../shared/problems/SDN')
 sys.path.append('../shared/problems/unitTests')
 
@@ -52,6 +52,7 @@ def testRAEandRAEplan(domain, problem, useRAEplan):
 def testBatch(domain, problem, useRAEplan):
     SetMode('Counter')
     verbosity(0)
+    GLOBALS.SetLearningMode('genData')
     GLOBALS.SetShowOutputs('off')
     GLOBALS.SetDomain(domain)
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
@@ -151,6 +152,7 @@ if __name__ == "__main__":
     GLOBALS.SetUCTRuns(args.uctCount)
     GLOBALS.SetDomain(args.domain)
     GLOBALS.SetTimeLimit(args.timeLim)
+    GLOBALS.SetLearningMode('genData')
     if args.utility == "efficiency":
         GLOBALS.SetOpt("max")
     elif args.utility == "successRatio":

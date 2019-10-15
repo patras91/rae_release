@@ -45,8 +45,8 @@ Depth = {
     'SR': [0, 5, 10, 15, 20],
     'CR': [0, 5, 10, 15, 20],
     'OF': [0, 5, 10, 15, 20], # 5
-    'SD': [0, 5, 10, 15],
-    'EE': [0, 5, 10, 15],
+    'SD': [0, 5, 10, 15, 20],
+    'EE': [0, 5, 10, 15, 20],
 }
 
 UCT_max_depth = {
@@ -614,7 +614,7 @@ def PlotHelper_UCT_max(resDict, utilp):
 
     for domain in D:
         plt.clf()
-        fname = '{}{}_{}_UCT_max_depth{}.png'.format(figuresFolder, domain, utilp, util)
+        fname = '{}{}_{}_UCT_max_depth.png'.format(figuresFolder, domain, utilp)
         
         if util == "_sr":
             PlotViaMatlab(UCT_max_depth[domain], 
@@ -646,20 +646,20 @@ def PlotHelper_UCT_lim(resDict, utilp):
 
     for domain in D:
         plt.clf()
-        fname = '{}{}_{}_UCT_lim_depth{}.png'.format(figuresFolder, domain, utilp, util)
+        fname = '{}{}_{}_UCT_lim_depth.png'.format(figuresFolder, domain, utilp)
         
         i = 0
         if util == "_sr":
             for uct in UCT_lim_depth[domain]:
                 PlotViaMatlab(Depth[domain],
-                    resDict[domain]['_eff'][uct][index1],
-                    COLORS[i],
-                    'when optimizing efficiency with {} rollouts'.format(uct))
-                i += 1
-                PlotViaMatlab(Depth[domain],
                     resDict[domain]['_sr'][uct][index1],
                     COLORS[i],
                     'when optimizing success ratio with {} rollouts'.format(uct))
+                i += 1
+                PlotViaMatlab(Depth[domain],
+                    resDict[domain]['_eff'][uct][index1],
+                    COLORS[i],
+                    'when optimizing efficiency with {} rollouts'.format(uct))
                 i += 1
         else:
             for uct in UCT_lim_depth[domain]:
@@ -778,7 +778,7 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["SD", "EE"]
+    D = ["SD", "EE", "CR", "SR"]
     if args.depth == "max":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()

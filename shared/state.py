@@ -14,6 +14,15 @@ class State():
     def __setattr__(self, key, value):
         self.__dict__[key] = StateDict(value)
 
+    def GetFeatureString(self):
+        res = ""
+        if self != False:
+            for (key, val) in vars(self).items():
+                res = res + key + " " + val.__str__() + "\n"
+        else:
+            res = 'False'
+        return res[0:-1]
+
     def __str__(self):
         res = ""
         if self != False:
