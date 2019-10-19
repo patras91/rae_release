@@ -107,3 +107,15 @@ def SetLearningMode(m):
 
 def GetLearningMode():
     return g.learningMode
+
+def SetUseTrainedModel(t):
+    g.useTrainedModel = t
+
+def GetUseTrainedModel():
+    return g.useTrainedModel
+
+def SetModelPath(p):
+    g.modelPath = p
+
+def GetModelPath():
+    return g.modelPath

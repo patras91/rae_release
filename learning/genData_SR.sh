@@ -117,6 +117,7 @@ GLOBALS.SetTimeLimit(300)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
+GLOBALS.SetLearningMode('genDataPlanner')
 GLOBALS.SetSearchDepth(float(\"inf\"))"
 counter=1
 while [ $counter -le $runs ]

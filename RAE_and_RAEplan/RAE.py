@@ -8,7 +8,7 @@ import threading
 import GLOBALS
 import os
 from sharedData import *
-from learningData import WriteTrainingData
+from learningData import WriteTrainingDataActor, WriteTrainingDataPlanner, TrainingDataItem
 
 __author__ = 'patras'
 
@@ -232,6 +232,8 @@ def raeMult():
                 envArgs.sem.release()
                 ipcArgs.sem[0].acquire()
 
+                if GLOBALS.GetDomain() == "SDN":
+                    UpdateCommandStatus()
                 globalTimer.IncrementTime()
 
             if numstacks > 0:
@@ -249,8 +251,10 @@ def raeMult():
             else:
                 ipcArgs.sem[0].release()
 
-    if GLOBALS.GetLearningMode() == "genData":
-        WriteTrainingData()
+    if GLOBALS.GetLearningMode() == "genDataActor":
+        WriteTrainingDataActor()
+    elif GLOBALS.GetLearningMode() == "genDataPlanner":
+        WriteTrainingDataPlanner()
     if GLOBALS.GetShowOutputs() == 'on':
         print("----Done with RAE----\n")
         PrintResult(taskInfo)

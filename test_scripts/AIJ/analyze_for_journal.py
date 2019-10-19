@@ -316,6 +316,19 @@ def Populate_UCT_max_depth(res, domain, u):
             PopulateHelper_UCT_max_depth(res, domain, open(fname), uct, fname)
             fptr.close()
 
+def Populate_UCT_max_depth_learning(res, domain, model):
+    if model == "actor":
+        f1 = "{}{}_v_journal/RAE_with_trained_model_actor.txt".format(resultsFolder, domain)
+    elif model == "planner":
+        f1 = "{}{}_v_journal/RAE_with_trained_model_planner.txt".format(resultsFolder, domain)
+    elif model == "planning":
+        f1 = "{}{}_v_journal_eff/rae_plan_uct_100.txt".format(resultsFolder, domain)
+    elif model == "reactive":
+        f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+    f1_p = open(f1, "r")
+    PopulateHelper_UCT_max_depth(res, domain, f1_p, 0, f1)
+    f1_p.close()
+
 def Populate_UCT_max_depth_planning_utilities(res, domain):
     for uct in UCT_max_depth[domain]:
         if uct == 0:
@@ -437,7 +450,7 @@ def GeneratePlots_UCT_max_depth():
                 'nu': [],
                 'timeOut': [],
                 }
-            Populate_UCT_max_depth(resDict[domain], domain)
+            Populate_UCT_max_depth(resDict[domain], domain, '_eff')
 
     plt.clf()
     font = {
@@ -450,6 +463,62 @@ def GeneratePlots_UCT_max_depth():
     print(resDict)
     for metric in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_UCT_max(resDict, metric)
+
+def GeneratePlots_UCT_max_depth_learning():
+    resDict = {}
+    for domain in D:
+        resDict[domain] = {}
+        resDict[domain]['planning'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            }
+        resDict[domain]['reactive'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            }
+        Populate_UCT_max_depth_learning(resDict[domain]['planning'], domain, 'planning')
+        Populate_UCT_max_depth_learning(resDict[domain]['reactive'], domain, 'reactive')
+        
+        resDict[domain]['learning_from_actor'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            }
+        resDict[domain]['learning_from_planner'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            }
+        Populate_UCT_max_depth_learning(resDict[domain]['learning_from_actor'], domain, 'actor')
+        Populate_UCT_max_depth_learning(resDict[domain]['learning_from_planner'], domain, 'planner')
+    plt.clf()
+    font = {
+        'family' : 'times',
+        'weight' : 'regular',
+        'size'   : 15}
+    plt.rc('font', **font)
+    
+    print(resDict)
+    for metric in ['nu', 'successRatio', 'retryRatio']:
+        PlotHelper_UCT_max_learning(resDict, metric)
 
 def GeneratePlots_UCT_max_depth_planning_utilities():
     resDict = {}
@@ -640,6 +709,64 @@ def PlotHelper_UCT_max(resDict, utilp):
 
         plt.savefig(fname, bbox_inches='tight')
 
+import numpy as np 
+
+def PlotHelper_UCT_max_learning(resDict, utilp):
+    index1 = utilp
+    #K = [0, 1, 2, 3, 4, 8, 16]
+
+    fname = '{}{}UCT_max_depth_learning.png'.format(figuresFolder, utilp)
+    plt.clf()
+    
+    labels = D
+
+    reactive = []
+    trainedFromActor = []
+    trainedFromPlanner = []
+    calledPlanner = []
+
+    for domain in D:
+        print(resDict[domain]['planning'][index1])
+        reactive.append(resDict[domain]['reactive'][index1][0])
+        trainedFromActor.append(resDict[domain]['learning_from_actor'][index1][0])
+        trainedFromPlanner.append(resDict[domain]['learning_from_planner'][index1][0])
+        calledPlanner.append(resDict[domain]['planning'][index1][0])
+    x = np.arange(len(labels))  # the label locations
+    width = 0.15  # the width of the bars
+
+    fig, ax = plt.subplots()
+    rects1 = ax.bar(x - 3*width/2, reactive, width, label='Purely Reactive Acting')
+    rects2 = ax.bar(x - width/2, trainedFromActor, width, label='Used model trained from acting data')
+    rects3 = ax.bar(x + width/2, trainedFromPlanner, width, label='Used model trained from planning data')
+    rects4 = ax.bar(x + 3*width/2, calledPlanner, width, label='Called RAEplan-UCT')
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel(GetYlabel(utilp))
+    ax.set_xlabel("Domains")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+
+    #for domain in D:
+        # PlotViaMatlab(UCT_max_depth[domain], 
+        #     resDict[domain]['learning_from_planner'][index1],
+        #     COLORS[0],
+        #     "learned from planner")
+        # PlotViaMatlab(UCT_max_depth[domain], 
+        #     resDict[domain]['learning_from_actor'][index1],
+        #     COLORS[1],
+        #     "learned from actor")
+
+        # PlotViaMatlab(UCT_max_depth[domain], 
+        #     resDict[domain]['planning'][index1],
+        #     COLORS[2],
+        #     "called RAEplan - UCT")
+    
+    plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
+            
+
+    plt.savefig(fname, bbox_inches='tight')
+
 def PlotHelper_UCT_lim(resDict, utilp):
     index1 = utilp
     width = 0.25
@@ -751,11 +878,16 @@ def PlotHelper_UCT_max_planning_utilities(resDict):
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotViaMatlab(x, y, c, l):
-    line1, = plt.plot(x, y, c, label=l, linewidth=4, MarkerSize=10, markerfacecolor='white')
+    line1, = plt.plot(x, y, c, 
+        label=l, 
+        linewidth=4, 
+        MarkerSize=10, 
+        markerfacecolor='white')
 
 D = None
 heuristic = None
 util = None
+l = None
 
 if __name__=="__main__":
     argparser = argparse.ArgumentParser()
@@ -771,9 +903,12 @@ if __name__=="__main__":
                             type=str, required=False)
     argparser.add_argument("--utility", help="efficiency or successRatio?",
                             type=str, required=True)
+    argparser.add_argument("--l", help="Compare with learning? ('y' or 'n')?",
+                            type=str, default='n', required=False)
     args = argparser.parse_args()
 
     heuristic = args.heuristic
+    learning = args.l
     if args.utility == "efficiency":
         util = "_eff"
     else:
@@ -784,8 +919,12 @@ if __name__=="__main__":
             GeneratePlots_SLATE_max_depth()
         else:
             if args.planning == "n":
-                GeneratePlots_UCT_max_depth()
+                if args.l == "n":
+                    GeneratePlots_UCT_max_depth()
+                else:
+                    GeneratePlots_UCT_max_depth_learning()
             else:
+                assert(args.l != 'n')
                 GeneratePlots_UCT_max_depth_planning_utilities()
     elif args.depth == "lim":
         if args.s == "SLATE":

@@ -115,7 +115,6 @@ def GetNums(s):
 
 	if len(nums) == 1:
 		nums.append('0')
-	print(" ".join(nums))
 	return " ".join(nums)
 
 def GetLoadString(s):
@@ -141,7 +140,6 @@ def GetLoadString(s):
 
 	if len(res) == 1:
 		res.append('0')
-	print(" ".join(res))
 	return " ".join(res)
 
 def GetPosString(pos):
@@ -168,7 +166,6 @@ def GetPosString(pos):
 
 	if len(res) == 1:
 		res.append('0')
-	print(" ".join(res))
 	return " ".join(res)
 
 def GetEmS(e):
@@ -194,7 +191,6 @@ def GetEmS(e):
 
 	if len(res) == 1:
 		res.append('0')
-	print(" ".join(res))
 	return " ".join(res)
 
 def GetViewString(v):
@@ -222,7 +218,6 @@ def GetViewString(v):
 		while(len(res) < 10):
 			res.append('0')
 
-	print(" ".join(res))
 	return " ".join(res)
 
 
@@ -265,7 +260,6 @@ def GetLocsSR(s):
 
 	while(len(nums) < 8):
 		nums.append('0')
-	print(" ".join(nums))
 	return " ".join(nums)
 
 def GetMedsSR(s):
@@ -274,7 +268,6 @@ def GetMedsSR(s):
 	items = s.split(",")
 	for item in items:
 		parts = item.split(": ")
-		print(parts)
 		key = parts[0]
 		val = parts[1]
 		nums.append(val)
@@ -285,7 +278,6 @@ def GetMedsSR(s):
 
 	while(len(nums) < 4):
 		nums.append('0')
-	print(" ".join(nums))
 	return " ".join(nums)
 
 def ReadStateVars_SR(line, f):
@@ -348,7 +340,6 @@ def GetLoadString_SD(s):
 
 	while len(res) < 4:
 		res.append('0')
-	print(" ".join(res))
 	return " ".join(res)
 
 def GetStatusString_SD(s):
@@ -555,7 +546,6 @@ def GetLoadStr_EE(s):
 
 	while len(res) < 4:
 		res.append('0')
-	print(" ".join(res))
 	return " ".join(res)
 
 def ReadStateVars_EE(line, f):
@@ -595,17 +585,151 @@ def AddToRecords(l, new):
 
 import argparse
 
+def ConvertToInt(a):
+	x = a.split(" ")
+	return [float(i) for i in x]
+
+def EncodeState_CR(state):
+	a = state.split("\n")
+	locs = a[0][4:]
+	locNumbers = ConvertToInt(GetNums(locs))
+
+	charge = a[1][6:]
+	chargeNumbers = ConvertToInt(GetNums(charge))
+
+	load = a[2][5:]
+	loadString = ConvertToInt(GetLoadString(load))
+
+	pos = a[3][4:]
+	posString = ConvertToInt(GetPosString(pos))
+
+	emergencyHandling = a[5][18:]
+	emergencyString = ConvertToInt(GetEmS(emergencyHandling))
+
+	view = a[6][5:]
+	viewString = ConvertToInt(GetViewString(view))
+
+	return locNumbers + chargeNumbers + loadString + posString + emergencyString + viewString
+
+def EncodeState_SD(state):
+	a = state.split("\n")
+	#load {'r1': 'nil', 'r2': 'nil', 'r3': 'nil'}	
+	a1 = a[0][5:]
+
+	#status {'r1': 'busy', 'r2': 'free', 'r3': 'busy'}
+	a2 = a[1][7:]
+
+	#loc {'r1': 2, 'r2': 1, 'r3': 2}
+	a3 = a[2][4:]
+
+	#pos {'o1': 1}
+	a4 = a[3][4:]
+
+	#doorStatus {'d1': 'closed', 'd2': 'closed'}
+	a5 = a[4][11:]
+
+	#doorType {'d1': 'Unknown', 'd2': 'Unknown'}
+	a6 = a[5][9:]
+
+	return ConvertToInt(GetLoadString_SD(a1)) + ConvertToInt(GetStatusString_SD(a2)) + ConvertToInt(GetLocStr_SD(a3)) + ConvertToInt(GetPosStr_SD(a4)) + ConvertToInt(GetDoorStatusStr_SD(a5)) + ConvertToInt(GetDoorTypeStr_SD(a6))
+
+def EncodeState_SR(state):
+
+	a = state.split("\n")
+	#loc {'w1': (7, 24), 'w2': (24, 11), 'p1': (22, 30), 'a1': (23, 15)}
+
+	locs = a[0][4:]
+	locNumbers = ConvertToInt(GetLocsSR(locs))
+
+	#hasMedicine {'a1': 0, 'w1': 0, 'w2': 0}
+	med = a[1][12:]
+	medStr = ConvertToInt(GetMedsSR(med))
+
+	#robotType {'w1': 'wheeled', 'a1': 'uav', 'w2': 'wheeled'}
+	ty = a[2][10:]
+	
+	#status {'w1': 'free', 'w2': 'free', 'a1': 'Unknown', 'p1': 'Unknown', (22, 30): 'Unknown'}
+	stat = a[3][7:]
+
+	#altitude {'a1': 'high'}
+	alt = a[4][9:]
+
+	#currentImage {'a1': None}
+	#realStatus {'w1': 'OK', 'p1': 'OK', 'w2': 'OK', 'a1': 'ok', (22, 30): 'hasDebri'}
+	#realPerson {(22, 30): 'p1'}
+	#newRobot {1: None}
+	
+	#weather {(22, 30): 'clear'}
+
+	record = locNumbers + medStr #, tyStr, statStr, altStr]
+	return record
+
+def EncodeState_EE(state):
+	a = state.split("\n")
+	#loc {'r1': 'base', 'r2': 'z5', 'UAV': 'base'}
+	a1 = a[0][4:]
+
+	#charge {'UAV': 80, 'r1': 80, 'r2': 15}
+	a2 = a[1][7:]
+
+	#data {'UAV': 3, 'r1': 3, 'r2': 1}
+	a3 = a[2][5:]
+
+	#pos {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base', 'o1': 'UAV'}
+	a4 = a[3][4:]
+
+	#load {'r1': 'nil', 'r2': 'nil', 'UAV': 'o1'}
+	a5 = a[4][5:]
+
+	#storm {'active': True}
+
+	return ConvertToInt(GetLocsStr_EE(a1)) + \
+		ConvertToInt(GetChargeStr_EE(a2)) + \
+		ConvertToInt(GetChargeStr_EE(a3)) + \
+		ConvertToInt(GetPosStr_EE(a4)) + \
+		ConvertToInt(GetLoadStr_EE(a5))
+
+def Encode(domain, state, task, mainTask):
+	if domain == "CR":
+		x = EncodeState_CR(state)
+	elif domain == "SR":
+		x = EncodeState_SR(state)
+	elif domain == "SD":
+		x = EncodeState_SD(state)
+	elif domain == "EE":
+		x = EncodeState_EE(state)
+	elif domain == "OF":
+		x = EncodeState_OF(state)
+
+	taskCode = taskCodes[domain][task]
+	x.append(taskCode)
+	mainTaskCode = taskCodes[domain][mainTask]
+	x.append(mainTaskCode)
+	return x
+
+def Decode(domain, code):
+	for m in methodCodes[domain]:
+		if methodCodes[domain][m] == round(float(code)):
+			return m
+	return None
+
 if __name__ == "__main__":
 
 	argparser = argparse.ArgumentParser()
 	argparser.add_argument("--domain", help="domain in ['CR', 'SD', SR', EE']",
                            type=str, required=True)
+	argparser.add_argument("--dataFrom", help="actor (a) or planner (p) ?",
+                           type=str, required=True)
 	args = argparser.parse_args()
 	domain = args.domain
 
-	fname = "{}_data.txt".format(domain)
+	if args.dataFrom == 'a':
+		suffix = 'actor'
+	else:
+		suffix = 'planner'
+	fname = "{}_data_{}.txt".format(domain, suffix)
 	f = open(fname)
-	fwrite = open("numericData_{}.txt".format(domain), "w")
+	fwrite = open("numericData_{}_{}.txt".format(domain, suffix), "w")
 	recordL = []
 	line = f.readline()
 	while(line != ""):
