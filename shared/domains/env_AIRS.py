@@ -3,7 +3,7 @@
 
 This file defines the command probabilities for the AIRS SDN domain.
 """
-
+__author__ = "alex"
 import numpy
 from domain_constants import SUCCESS, FAILURE
 

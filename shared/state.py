@@ -6,6 +6,7 @@ from threading import Lock
 # may want to change logic to not require import
 import itertools
 import random
+import copy
 
 class State():
     def __init__(self):
@@ -35,13 +36,14 @@ class State():
     def copy(self):
         s = State()
         for (key, val) in vars(self).items():
-            s.__setattr__(key, val.GetVal())
+            s.__setattr__(key, copy.deepcopy(val.GetVal()))
             s.__dict__[key].DeleteLocks() # because locks are not picklable
         return s
 
     def restore(self, s):
+        self.__dict__ = {}
         for (key, val) in vars(s).items():
-            self.__setattr__(key, val.GetVal())
+            self.__setattr__(key, copy.deepcopy(val.GetVal()))
         return s
 
     def ReleaseLocks(self):

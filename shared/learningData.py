@@ -22,14 +22,17 @@ class TrainingData():
 	def Add(self, state, method, eff_sub, task, mainTask):
 		self.l.append(TrainingDataItem(state, method, eff_sub, task, mainTask))
 
-	def PrintInFile(self):
+	def PrintInFile(self, suffix):
 		domain = GLOBALS.GetDomain()
-		fname = "{}_data.txt".format(domain)
+		fname = "{}_data_{}.txt".format(domain, suffix)
 		f = open(fname, "a")
 		for item in self.l:
 			item.WriteInFile(f)
 
 trainingDataRecords = TrainingData()
 
-def WriteTrainingData():
-	trainingDataRecords.PrintInFile()
+def WriteTrainingDataActor():
+	trainingDataRecords.PrintInFile("actor")
+
+def WriteTrainingDataPlanner():
+	trainingDataRecords.PrintInFile("planner")

@@ -19,6 +19,7 @@ sys.path.append('../shared/problems/SR/auto')
 #sys.path.append('../shared/problems/SR/manual')
 sys.path.append('../shared/problems/SDN')
 sys.path.append('../shared/problems/unitTests')
+sys.path.append('../learning/')
 
 import argparse
 import gui
@@ -52,7 +53,6 @@ def testRAEandRAEplan(domain, problem, useRAEplan):
 def testBatch(domain, problem, useRAEplan):
     SetMode('Counter')
     verbosity(0)
-    GLOBALS.SetLearningMode('genData')
     GLOBALS.SetShowOutputs('off')
     GLOBALS.SetDomain(domain)
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
@@ -67,8 +67,11 @@ def InitializeSecurityDomain(v, state):
     GLOBALS.SetSearchDepth(float("inf"))
     verbosity(v)
     SetMode('Counter')
-    GLOBALS.SetShowOutputs('off')
+    GLOBALS.SetShowOutputs('on')
     GLOBALS.SetUCTmode('UCT')
+    #GLOBALS.Setb(3)
+    #GLOBALS.Setk(5)
+    GLOBALS.SetLearningMode(None)
     GLOBALS.SetUCTRuns(50) # to decide later accordingly
     GLOBALS.SetTimeLimit(300)
     '''
@@ -79,6 +82,7 @@ def InitializeSecurityDomain(v, state):
     GLOBALS.SetDomain('SDN')
     GLOBALS.SetOpt('max') # maximizing the efficiency to start with
     GLOBALS.SetDoPlanning(True)
+    GLOBALS.SetUseTrainedModel('n')
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
@@ -131,11 +135,14 @@ if __name__ == "__main__":
                            type=str, default='n', required=False)
     argparser.add_argument("--utility", help="efficiency or successRatio?",
                            type=str, default="efficiency", required=False)
+    argparser.add_argument("--useTrainedModel", help="use Model Trained with Actor (a) / use Model Trained with Planner (p) / None (n)?", 
+                        type=str, default="n", required=False)
 
     args = argparser.parse_args()
 
     if args.plan == 'y':
         s = True
+        assert(args.useTrainedModel == 'n')
     else:
         s = False
 
@@ -152,7 +159,9 @@ if __name__ == "__main__":
     GLOBALS.SetUCTRuns(args.uctCount)
     GLOBALS.SetDomain(args.domain)
     GLOBALS.SetTimeLimit(args.timeLim)
-    GLOBALS.SetLearningMode('genData')
+    GLOBALS.SetLearningMode(None)
+    GLOBALS.SetUseTrainedModel(args.useTrainedModel)
+    GLOBALS.SetModelPath("../learning/")
     if args.utility == "efficiency":
         GLOBALS.SetOpt("max")
     elif args.utility == "successRatio":

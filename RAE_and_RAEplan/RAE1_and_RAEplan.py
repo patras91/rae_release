@@ -26,6 +26,7 @@ from utility import Utility
 import time
 from sharedData import *
 from learningData import trainingDataRecords
+from convertData import Encode, Decode
 ############################################################
 
 ### for debugging
@@ -301,6 +302,8 @@ def InitializeStackLocals(task, raeArgs):
     raeLocals.SetActingTree(aT)
     raeLocals.SetUtility(Utility('Success'))
     raeLocals.SetEfficiency(float("inf"))
+    if GLOBALS.GetDomain() == "SDN":
+        cmdStatusStack[raeArgs.stack] = None
     
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -312,7 +315,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
 
     queue = multiprocessing.Queue()
     actingTree = raeLocals.GetActingTree()
-
+    #actingTree.PrintUsingGraphviz()
     p = multiprocessing.Process(
         target=RAE.RAEPlanMain, 
         args=[raeLocals.GetMainTask(), 
@@ -346,13 +349,59 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         #random.shuffle(candidates)
         return (candidates[0], candidates[1:])
     else:
+        if GLOBALS.GetLearningMode() == "genDataPlanner":
+            trainingDataRecords.Add(
+                    GetState(), 
+                    methodInstance, 
+                    raeLocals.GetEfficiency(),
+                    task,
+                    raeLocals.GetMainTask(),
+                )
         candidates.pop(candidates.index(methodInstance))
         return (methodInstance, candidates)
 
+import torch
+import torch.nn as nn
+
+def GetCandidateFromLearnedModel(fname, task, candidates):
+    device = "cpu"
+
+    features = {
+        "EE": 22,
+        "SD": 24,
+        "SR": 14,
+        "OF": 0,
+        "CR": 22,
+    }
+
+    model = nn.Sequential(nn.Linear(features[GLOBALS.GetDomain()], 1)).to(device) 
+    model.load_state_dict(torch.load(fname))
+    model.eval()
+
+    x = Encode(GLOBALS.GetDomain(), GetState().GetFeatureString(), task, raeLocals.GetMainTask())
+    np_x = numpy.array(x)
+    x_tensor = torch.from_numpy(np_x).float()
+    y = model(x_tensor)
+    m = Decode(GLOBALS.GetDomain(), y)
+
+    for i in range(len(candidates)):
+        if m == candidates[i].GetName():
+            res = candidates[i]
+            candidates.pop(i)
+            return res, candidates
+
+    return (candidates[0], candidates[1:])
+
 def choose_candidate(candidates, task, taskArgs):
-    if GLOBALS.GetDoPlanning() == False or len(candidates) == 1:
+    if len(candidates) == 1 or (GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "n"):
         random.shuffle(candidates)
         return(candidates[0], candidates[1:])
+    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "a":
+        fname = GLOBALS.GetModelPath() + "model{}_actor".format(GLOBALS.GetDomain())
+        return GetCandidateFromLearnedModel(fname, task, candidates)
+    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "p":
+        fname = GLOBALS.GetModelPath() + "model{}_planner".format(GLOBALS.GetDomain())
+        return GetCandidateFromLearnedModel(fname, task, candidates)
     else:
         return GetCandidateByPlanning(candidates, task, taskArgs)
 
@@ -372,7 +421,6 @@ def DoTaskInRealWorld(task, taskArgs):
     parent, node = raeLocals.GetCurrentNodes()
 
     while (retcode != 'Success'):
-
         node.Clear() # Clear it on every iteration for a fresh start
         node.SetPrevState(GetState().copy())
         if GLOBALS.GetOpt() == "sr": # there may be a better way to do this
@@ -397,7 +445,7 @@ def DoTaskInRealWorld(task, taskArgs):
     if retcode == 'Failure':
         raise Failed_task('{}{}'.format(task, taskArgs))
     elif retcode == 'Success':
-        if GLOBALS.GetLearningMode() == "genData":
+        if GLOBALS.GetLearningMode() == "genDataActor":
             trainingDataRecords.Add(
                 GetState(), 
                 m, 
@@ -583,7 +631,6 @@ def RAEplanChoice_UCT(task, planArgs):
         PrintState()
 
     taskToRefine = planLocals.GetTaskToRefine()
-
     return (taskToRefine.GetBestMethodAndUtility_UCT(), globalTimer.GetSimulationCounter())
 
 def GetCandidates(task, tArgs):
@@ -738,6 +785,7 @@ def PlanTask_UCT(task, taskArgs):
 
     taskNode.updateIndex = index
 
+
     if failed:
         raise Failed_Rollout()
     elif depthLimReached:
@@ -829,7 +877,9 @@ def DoCommandInRealWorld(cmd, cmdArgs):
         cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
         cmdThread.start()
     else:
-        cmdExecQueue.put([GetNewId(), cmd, cmdArgs])
+        newCmdId = GetNewId()
+        AddToCommandStackTable(newCmdId, raeLocals.GetStackId())
+        cmdExecQueue.put([newCmdId, cmd, cmdArgs])
 
     if cmd.__name__ in raeLocals.GetCommandCount():
         raeLocals.GetCommandCount()[cmd.__name__] += 1
@@ -848,7 +898,7 @@ def DoCommandInRealWorld(cmd, cmdArgs):
             EndCriticalRegion()
             BeginCriticalRegion(raeLocals.GetStackId())
     else:
-        while(cmdStatusQueue.empty() == True):
+        while(cmdStatusStack[raeLocals.GetStackId()] == None):
             EndCriticalRegion()
             BeginCriticalRegion(raeLocals.GetStackId())
 
@@ -859,7 +909,8 @@ def DoCommandInRealWorld(cmd, cmdArgs):
     if domain != 'SDN':
         retcode = cmdRet['state']
     else:
-        [id, retcode, nextState] = cmdStatusQueue.get()
+        [id, retcode, nextState] = cmdStatusStack[raeLocals.GetStackId()]
+        assert(retcode == 'Success' or retcode == 'Failure')
         RestoreState(nextState)
 
     par, cmdNode = raeLocals.GetCurrentNodes()
@@ -1019,12 +1070,14 @@ def PlanCommand(cmd, cmdArgs):
 def PlanCommand_UCT(cmd, cmdArgs):
 
     searchTreeNode = planLocals.GetSearchTreeNode()
+    #planLocals.GetSearchTreeRoot().PrintUsingGraphviz()
     if searchTreeNode.children == []:
         commandNode = rTree.SearchTreeNode(cmd, 'command')
         searchTreeNode.AddChild(commandNode)
     else:
         commandNode = searchTreeNode.children[0]
         assert(commandNode.GetType() == 'command')
+        assert(commandNode.GetLabel() == cmd)
     if planLocals.GetFlip() == False:
         retcode = 'Success'
         nextState = commandNode.GetNext().GetLabel()

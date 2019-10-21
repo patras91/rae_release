@@ -38,6 +38,8 @@ class GUI():
 def Simulate(*t):
     if (GLOBALS.GetPlanningMode() == True or GLOBALS.GetShowOutputs() == 'off'):
         return
+    elif GLOBALS.GetDomain() == "SDN" and GLOBALS.GetShowOutputs() == "on":
+        print(t)
     globalQueue.put(t)
 
 def start(domain, rv):
