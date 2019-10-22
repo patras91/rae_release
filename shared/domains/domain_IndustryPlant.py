@@ -624,6 +624,9 @@ declare_methods('getRobot', GetRobot_Method1, GetRobot_Method2, GetRobot_Method3
 def Heuristic1(args):
     return float("inf")
 
+def Heuristic2(args):
+    return 
+
 if GLOBALS.GetHeuristicName() == 'h1':
     declare_heuristic('order', Heuristic1)
     

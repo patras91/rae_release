@@ -305,6 +305,11 @@ def InitializeStackLocals(task, raeArgs):
     if GLOBALS.GetDomain() == "SDN":
         cmdStatusStack[raeArgs.stack] = None
     
+def RunUCTwithCommandsOnly(task):
+    pass
+    # how are the commands represented
+    # how to integrate this with RAEplan and RAE
+
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
     RAE calls this functions when it wants suggestions from RAEplan
@@ -347,7 +352,14 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
 
     if methodInstance == 'Failure':
         #random.shuffle(candidates)
-        return (candidates[0], candidates[1:])
+        if GLOBALS.GetBackupUCT() == True:
+            cmd = RunUCTwithCommandsOnly(task)
+            if cmd != 'Failure':
+                return cmd
+            else:
+                return (candidates[0], candidates[1:])
+        else:
+            return (candidates[0], candidates[1:])
     else:
         if GLOBALS.GetLearningMode() == "genDataPlanner":
             trainingDataRecords.Add(
@@ -356,6 +368,15 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
                     raeLocals.GetEfficiency(),
                     task,
                     raeLocals.GetMainTask(),
+                )
+        elif GLOBALS.GetLearningMode() == "genEffDataPlanner":
+            trainingDataRecords.Add(
+                    GetState(), 
+                    methodInstance, 
+                    expUtil,
+                    task,
+                    raeLocals.GetMainTask(),
+                    raeLocals.GetActingTree().GetLastFiveItems()
                 )
         candidates.pop(candidates.index(methodInstance))
         return (methodInstance, candidates)
@@ -369,12 +390,21 @@ def GetCandidateFromLearnedModel(fname, task, candidates):
     features = {
         "EE": 22,
         "SD": 24,
-        "SR": 14,
+        "SR": 23,
         "OF": 0,
         "CR": 22,
     }
 
-    model = nn.Sequential(nn.Linear(features[GLOBALS.GetDomain()], 1)).to(device) 
+    outClasses = {
+        "EE": 17,
+        "SD": 9,
+        "SR": 16,
+        "OF": 0,
+        "CR": 10,
+    }
+
+    #model = nn.Sequential(nn.Linear(features[GLOBALS.GetDomain()], 1)).to(device) 
+    model = nn.Sequential(nn.Linear(features[GLOBALS.GetDomain()], 512), nn.ReLU(inplace=True), nn.Linear(512, outClasses[GLOBALS.GetDomain()]))
     model.load_state_dict(torch.load(fname))
     model.eval()
 
@@ -567,8 +597,10 @@ def RAEplanChoice(task, planArgs):
         PrintState()
 
     taskToRefine = planLocals.GetTaskToRefine()
+    trainingData = []
+    searchTreeRoot.GetTrainingItems(trainingData)
 
-    return (taskToRefine.GetBestMethodAndUtility(), globalTimer.GetSimulationCounter())
+    return (taskToRefine.GetBestMethodAndUtility(), globalTimer.GetSimulationCounter(), trainingData)
     
 def RAEplanChoice_UCT(task, planArgs):
     """
@@ -668,7 +700,8 @@ def FollowSearchTree_task(task, taskArgs, node):
 
 def GetHeuristicEstimate():
     task, args = planLocals.GetHeuristicArgs()
-    res = heuristic[task](args)
+    #res = heuristic[task](args)
+    
     if GLOBALS.GetOpt() == "sr":
         if res > 0:
             return 1

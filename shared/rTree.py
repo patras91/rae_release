@@ -407,6 +407,16 @@ class ActingTree():
         h, t, c =  self.root.GetMetaData()
         return h - 1, t - 1, c
 
+    def GetLastFiveItems(self):
+        preOrder = self.root.GetPreorderTraversal()
+        five = [0]*5
+        i = 0
+        preOrder.reverse()
+        for item in preOrder[0:5]:
+            five[i] = item.GetPrettyString(item)
+            i += 1
+        return five
+
 class GuideNode():
     def __init__(self, m, s1, s2, c):
         self.label = m
@@ -690,3 +700,15 @@ class SearchTreeNode():
             next += 1
             level[next] = []
         g.view()
+
+    def GetTrainingItems(self, l):
+        if self.type == "task":
+            #for each child get q and labels and add to l
+            for child in self.children:
+                self.child.GetTrainingItems(l)
+        elif self.type == "method" or self.type == "state":
+            if len(self.children) > 0:
+                self.children[0].GetTrainingItems(l)
+        elif self.type == "command":
+            for child in self.children:
+                child.GetTrainingItems(l)

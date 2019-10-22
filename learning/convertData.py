@@ -1,3 +1,11 @@
+import torch
+import math
+import ast
+
+def GetLabel(yhat):
+    r, predicted = torch.max(yhat, 0)
+    return predicted.long()
+
 methodCodes = {
 	"CR": {
 	'Search_Method1': 0, 
@@ -12,52 +20,52 @@ methodCodes = {
 	'NonEmergencyMove_Method1': 9,
 	},
 	"SR": {
-    'MoveTo_Method4' : 1,
-    'MoveTo_Method3': 2, 
-    'MoveTo_Method2': 3, 
-    'MoveTo_Method1': 4,
-    'Rescue_Method1': 5,
-    'Rescue_Method2': 6,
-    'HelpPerson_Method2': 7,
-    'HelpPerson_Method1': 8, 
-    'GetSupplies_Method2': 9,
-    'GetSupplies_Method1': 10,
-    'Survey_Method1': 11,
-    'Survey_Method2': 12,
-    'GetRobot_Method1': 13,
-    'GetRobot_Method2': 14,
-    'AdjustAltitude_Method1': 15,
-    'AdjustAltitude_Method2': 16,
+    'MoveTo_Method4' : 0,
+    'MoveTo_Method3': 1, 
+    'MoveTo_Method2': 2, 
+    'MoveTo_Method1': 3,
+    'Rescue_Method1': 4,
+    'Rescue_Method2': 5,
+    'HelpPerson_Method2': 6,
+    'HelpPerson_Method1': 7, 
+    'GetSupplies_Method2': 8,
+    'GetSupplies_Method1': 9,
+    'Survey_Method1': 10,
+    'Survey_Method2': 11,
+    'GetRobot_Method1': 12,
+    'GetRobot_Method2': 13,
+    'AdjustAltitude_Method1': 14,
+    'AdjustAltitude_Method2': 15,
 	},
 	"SD": {
-	"Fetch_Method1": 1,
-	"MoveTo_Method1": 2,
-	"MoveThroughDoorway_Method1": 3,
-	"MoveThroughDoorway_Method3": 4,
-	"MoveThroughDoorway_Method4": 5,
-	"MoveThroughDoorway_Method2": 6,
-	"Unlatch_Method1": 7,
-	"Unlatch_Method2": 8,
-	"Recover_Method1": 9,
+	"Fetch_Method1": 0,
+	"MoveTo_Method1": 1,
+	"MoveThroughDoorway_Method1": 2,
+	"MoveThroughDoorway_Method3": 3,
+	"MoveThroughDoorway_Method4": 4,
+	"MoveThroughDoorway_Method2": 5,
+	"Unlatch_Method1": 6,
+	"Unlatch_Method2": 7,
+	"Recover_Method1": 8,
 	},
 	"EE": {
-	"Explore_Method1": 1,
-    "GetEquipment_Method1": 2,
-    "GetEquipment_Method2": 3,
-    "GetEquipment_Method3": 4,
-    "MoveTo_Method1": 5,
-    "FlyTo_Method1": 6,
-    "FlyTo_Method2": 7,
-    "Recharge_Method1": 8,
-    "Recharge_Method2": 9,
-    "DepositData_Method1": 10,
-    "DepositData_Method2": 11, 
-    "DoActivities_Method1": 12, 
-    "DoActivities_Method2": 13, 
-    "DoActivities_Method3": 14,
-    "HandleEmergency_Method2": 15, 
-    "HandleEmergency_Method1": 16,
-    "HandleEmergency_Method3": 17,
+	"Explore_Method1": 0,
+    "GetEquipment_Method1": 1,
+    "GetEquipment_Method2": 2,
+    "GetEquipment_Method3": 3,
+    "MoveTo_Method1": 4,
+    "FlyTo_Method1": 5,
+    "FlyTo_Method2": 6,
+    "Recharge_Method1": 7,
+    "Recharge_Method2": 8,
+    "DepositData_Method1": 9,
+    "DepositData_Method2": 10, 
+    "DoActivities_Method1": 11, 
+    "DoActivities_Method2": 12, 
+    "DoActivities_Method3": 13,
+    "HandleEmergency_Method2": 14, 
+    "HandleEmergency_Method1": 15,
+    "HandleEmergency_Method3": 16,
 	}
 }
 
@@ -98,6 +106,31 @@ taskCodes = {
 	}
 }
 
+actingNodeCodes = {
+	"CR": {
+	'Search_Method1': 1, 
+	'Search_Method2': 2,
+	'Fetch_Method1': 3, 
+	'Fetch_Method2': 4,
+	'Recharge_Method1': 5, 
+	'Recharge_Method2': 6,
+	'Recharge_Method3': 7,
+	'MoveTo_Method1': 8,
+ 	'Emergency_Method1': 9,
+	'NonEmergencyMove_Method1': 10,
+	"0": 0,
+	"root": 11,
+	"put": 12, 
+	"take": 13, 
+	"perceive": 14,
+	"charge": 15, 
+	"move": 16, 
+	"moveToEmergency": 17, 
+	"addressEmergency": 18, 
+	"wait": 19, 
+	"fail": 20,
+	},
+}
 maxNum = 0
 def GetNums(s):
 	s = s[1:-1]
@@ -118,21 +151,17 @@ def GetNums(s):
 	return " ".join(nums)
 
 def GetLoadString(s):
-	s = s[1:-1]
+	d = ast.literal_eval(s)
 	res = []
-	items = s.split(",")
-	for item in items:
-		parts = item.split(": ")
-		key = parts[0]
-		val = parts[1]
-		if val == '\'nil\'':
+	for key in d:
+		if d[key] == 'nil':
 			res.append('0')
-		elif val == '\'o1\'':
+		elif d[key] == 'o1':
 			res.append('1')
-		elif val == '\'c1\'':
+		elif d[key] == 'c1':
 			res.append('2')
 		else:
-			print("error ", val)
+			print("error ", d[key])
 			exit()
 	if len(res) > 2:
 		print("error")
@@ -220,7 +249,6 @@ def GetViewString(v):
 
 	return " ".join(res)
 
-
 def ReadStateVars_CR(line, f):
 	locs = line[4:-1]
 	locNumbers = GetNums(locs)
@@ -244,7 +272,7 @@ def ReadStateVars_CR(line, f):
 
 	return [locNumbers, chargeNumbers, loadString, posString, emergencyString, viewString]
 
-import ast
+
 
 def GetLocsSR(s):
 	d = ast.literal_eval(s)
@@ -280,6 +308,35 @@ def GetMedsSR(s):
 		nums.append('0')
 	return " ".join(nums)
 
+def GetStatStr_SR(s):
+	d = ast.literal_eval(s)
+	nums = []
+	for key in d:
+		if d[key] == 'free':
+			nums.append('1')
+		elif d[key] == 'Unknown':
+			nums.append('2')
+		elif d[key] == 'OK':
+			nums.append('3')
+		elif d[key] == 'dead':
+			nums.append('4')
+		elif d[key] == 'OK':
+			nums.append('5')
+		elif d[key] == 'injured':
+			nums.append('6')
+		elif d[key] == 'hasDebri':
+			nums.append('7')
+		elif d[key] == 'clear':
+			nums.append('8')
+		elif d[key] == 'busy':
+			nums.append('9')
+		else:
+			print("unknown status in SR ", d[key])
+			exit()
+
+
+	return (" ".join(nums))
+
 def ReadStateVars_SR(line, f):
 	#loc {'w1': (7, 24), 'w2': (24, 11), 'p1': (22, 30), 'a1': (23, 15)}
 
@@ -292,15 +349,19 @@ def ReadStateVars_SR(line, f):
 
 	#robotType {'w1': 'wheeled', 'a1': 'uav', 'w2': 'wheeled'}
 	ty = f.readline()[10:-1]
-	
+	#tyStr = GetTypeStr_SR(ty)
+
 	#status {'w1': 'free', 'w2': 'free', 'a1': 'Unknown', 'p1': 'Unknown', (22, 30): 'Unknown'}
 	stat = f.readline()[7:-1]
+	statStr = GetStatStr_SR(stat)
 
 	#altitude {'a1': 'high'}
 	alt = f.readline()[9:-1]
+	altStr = GetAltStr_SR(alt)
 
 	#currentImage {'a1': None}
-	f.readline()
+	img = f.readline()[13:-1]
+	imgStr = GetImgStr_SR(img)
 
 	#realStatus {'w1': 'OK', 'p1': 'OK', 'w2': 'OK', 'a1': 'ok', (22, 30): 'hasDebri'}
 	#realPerson {(22, 30): 'p1'}
@@ -310,26 +371,26 @@ def ReadStateVars_SR(line, f):
 	f.readline()
 	
 	#weather {(22, 30): 'clear'}
-	f.readline()
-
-	record = [locNumbers, medStr] #, tyStr, statStr, altStr]
+	w = f.readline()[8:-1]
+	weatherStr = GetWeatherStr_SR(w)
+	record = [locNumbers, medStr, statStr, altStr, imgStr, weatherStr]
 	return record
 
 def GetLoadString_SD(s):
-	s = s[1:-1]
+	print("s")
+	print(s)
+	print("s")
+	d = ast.literal_eval(s)
 	res = []
-	items = s.split(",")
-	for item in items:
-		parts = item.split(": ")
-		key = parts[0]
-		val = parts[1]
-		if val == '\'nil\'':
+	for key in d:
+		val = d[key]
+		if val == 'nil':
 			res.append('0')
-		elif val == '\'o1\'':
+		elif val == 'o1':
 			res.append('1')
-		elif val == '\'o1\'':
+		elif val == 'o1':
 			res.append('2')
-		elif val == "\'H\'":
+		elif val == 'H':
 			res.append('3')
 		else:
 			print("error load = ", val, " in SD")
@@ -357,6 +418,49 @@ def GetStatusString_SD(s):
 		nums.append('0')
 
 	return (" ".join(nums))
+
+def GetAltStr_SR(s):
+	d = ast.literal_eval(s)
+	nums = []
+	for key in d:
+		if d[key] == 'high':
+			nums.append('1')
+		else:
+			nums.append('0')
+
+	return (" ".join(nums))
+
+def GetImgStr_SR(s):
+	d = ast.literal_eval(s)
+	nums = []
+	for key in d:
+		if d[key] == None:
+			nums.append('0 0')
+		else:
+			d2 = d[key]
+			if d2['loc'] != None:
+				(l1, l2) = d2['loc']
+				nums.append(str(l1) + ' ' + str(l2))
+			else:
+				nums.append('0 0')
+	return (" ".join(nums))
+
+def GetWeatherStr_SR(s):
+	d = ast.literal_eval(s)
+	nums = []
+	#"clear", "rainy", "dustStorm", "foggy"
+	for key in d:
+		if d[key] == 'clear':
+			nums.append('0')
+		elif d[key] == 'rainy':
+			nums.append('1')
+		elif d[key] == 'dustStorm':
+			nums.append('2')
+		else:
+			nums.append('3')
+
+	return (" ".join(nums))
+
 
 def GetLocStr_SD(s):
 	d = ast.literal_eval(s)
@@ -457,6 +561,7 @@ def GetDoorTypeStr_SD(s):
 
 def ReadStateVars_SD(line, f):
 	#load {'r1': 'nil', 'r2': 'nil', 'r3': 'nil'}
+	print("reading stat vars")
 	a1 = line[5:-1]
 
 	#status {'r1': 'busy', 'r2': 'free', 'r3': 'busy'}
@@ -646,22 +751,30 @@ def EncodeState_SR(state):
 	medStr = ConvertToInt(GetMedsSR(med))
 
 	#robotType {'w1': 'wheeled', 'a1': 'uav', 'w2': 'wheeled'}
-	ty = a[2][10:]
-	
+	#ty = a[2][10:]
+	#tyStr = ConvertToInt(GetTypeStr_SR(ty))
+
 	#status {'w1': 'free', 'w2': 'free', 'a1': 'Unknown', 'p1': 'Unknown', (22, 30): 'Unknown'}
 	stat = a[3][7:]
+	statStr = ConvertToInt(GetStatStr_SR(stat))
 
 	#altitude {'a1': 'high'}
 	alt = a[4][9:]
+	altStr = ConvertToInt(GetAltStr_SR(alt))
 
 	#currentImage {'a1': None}
+	img = a[5][13:]
+	imgStr = ConvertToInt(GetImgStr_SR(img))
+
 	#realStatus {'w1': 'OK', 'p1': 'OK', 'w2': 'OK', 'a1': 'ok', (22, 30): 'hasDebri'}
 	#realPerson {(22, 30): 'p1'}
 	#newRobot {1: None}
 	
 	#weather {(22, 30): 'clear'}
+	w = a[9][8:]
+	weatherStr = ConvertToInt(GetWeatherStr_SR(w))
 
-	record = locNumbers + medStr #, tyStr, statStr, altStr]
+	record = locNumbers + medStr + statStr + altStr + imgStr + weatherStr
 	return record
 
 def EncodeState_EE(state):
@@ -707,11 +820,48 @@ def Encode(domain, state, task, mainTask):
 	x.append(mainTaskCode)
 	return x
 
-def Decode(domain, code):
+def Decode(domain, yhat):
+	label = GetLabel(yhat)
 	for m in methodCodes[domain]:
-		if methodCodes[domain][m] == round(float(code)):
+		if methodCodes[domain][m] == label:
 			return m
 	return None
+
+def normalize(l):
+	l2 = []
+	for item in l:
+		res = []
+		for x in item:
+			p = x.split(' ')
+			for y in p:
+				res.append(float(y))
+		l2.append(res)
+
+	n = len(l2)
+	sums = [0]*len(l2[0])
+	for item in l2:
+		for i in range(len(item)):
+			sums[i] += item[i]
+
+	means = [x/n for x in sums]
+
+	var = [0]*len(l2[0])
+	for item in l2:
+		for i in range(len(item)):
+			var[i] += (item[i] - means[i])*(item[i] - means[i])/(n-1)
+
+	sigmas = [math.sqrt(x) for x in var]
+
+	#print(l2)
+	print(sigmas[-1])
+	print(means[-1])
+
+	for item in l2:
+		for i in range(len(item)):
+			if sigmas[i] != 0:
+				item[i] = (item[i] - means[i])/sigmas[i]
+
+	return l2
 
 if __name__ == "__main__":
 
@@ -720,16 +870,29 @@ if __name__ == "__main__":
                            type=str, required=True)
 	argparser.add_argument("--dataFrom", help="actor (a) or planner (p) ?",
                            type=str, required=True)
+	argparser.add_argument("--learnWhat", help="method (m) or efficiency(e)",
+						   type=str, required=True)
 	args = argparser.parse_args()
 	domain = args.domain
 
 	if args.dataFrom == 'a':
 		suffix = 'actor'
-	else:
+	elif args.dataFrom == 'p':
 		suffix = 'planner'
-	fname = "{}_data_{}.txt".format(domain, suffix)
+	else:
+		print("Invalid value for --dataFrom")
+		exit()
+
+	learnWhat = args.learnWhat
+	if learnWhat == "m":
+		fname = "{}_data_{}.txt".format(domain, suffix)
+		fwrite = open("numericData_{}_{}.txt".format(domain, suffix), "w")
+	elif learnWhat == "e":
+		fname = "{}_data_eff_{}.txt".format(domain, suffix)
+		fwrite = open("numericData_eff_{}_{}.txt".format(domain, suffix), "w")
+	
 	f = open(fname)
-	fwrite = open("numericData_{}_{}.txt".format(domain, suffix), "w")
+	
 	recordL = []
 	line = f.readline()
 	while(line != ""):
@@ -752,14 +915,33 @@ if __name__ == "__main__":
 
 		record.append(str(taskCode))
 		record.append(str(mainTaskCode))
-		record.append(str(methodCode))
 
-		AddToRecords(recordL, record)
+		eff = f.readline()[0:-1]
+
+		if learnWhat == "m":
+			record.append(str(methodCode))
+		else:
+			record.append(str(methodCode))
+
+			if domain == "SD":
+				for i in range(5):
+					actingTreeNode = f.readline()[0:-1]
+				#record.append(str(actingNodeCodes[domain][actingTreeNode]))
+			record.append(str(eff))
+
+
+		if domain == "EE" and (taskCode == 1 or taskCode == 4):
+			pass
+		else:
+			AddToRecords(recordL, record)
 		
-		eff = f.readline()
-
 		line = f.readline()
 	f.close()
-	for item in recordL:
-		fwrite.write(" ".join(item) + "\n")
+	if learnWhat == "e":
+		recordN = normalize(recordL)
+		for item in recordN:
+			fwrite.write(" ".join([str(i) for i in item]) + "\n")
+	else:
+		for item in recordL:
+			fwrite.write(" ".join(item) + "\n")
 

@@ -146,7 +146,7 @@ GLOBALS.SetTimeLimit(300)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
-GLOBALS.SetLearningMode('genDataPlanner')
+GLOBALS.SetLearningMode('genEffDataPlanner')
 GLOBALS.SetSearchDepth(float(\"inf\"))"
 counter=1
 while [ $counter -le $runs ]
@@ -155,8 +155,8 @@ do
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"
             echo "uctCount = " $uctCount
             fname="../../raeResults/${domain}_v_journal_eff/training_data_rae_plan_uct_${uctCount}.txt"
-            echo "Time test of $domain $problem $uctCount" >> $fname
-            python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
+            echo "Time test of $domain $problem $uctCount"
+            python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" 
 ((counter++))
 done
     done

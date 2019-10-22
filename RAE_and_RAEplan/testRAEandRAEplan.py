@@ -137,6 +137,8 @@ if __name__ == "__main__":
                            type=str, default="efficiency", required=False)
     argparser.add_argument("--useTrainedModel", help="use Model Trained with Actor (a) / use Model Trained with Planner (p) / None (n)?", 
                         type=str, default="n", required=False)
+    argparser.add_argument("--useBackupUCT", help="If RAEplanUCT fails, do you want to run UCT with only commands?",
+                        type=bool, default=False, required=False)
 
     args = argparser.parse_args()
 
@@ -162,6 +164,7 @@ if __name__ == "__main__":
     GLOBALS.SetLearningMode(None)
     GLOBALS.SetUseTrainedModel(args.useTrainedModel)
     GLOBALS.SetModelPath("../learning/")
+    GLOBALS.SetBackupUCT(args.useBackupUCT)
     if args.utility == "efficiency":
         GLOBALS.SetOpt("max")
     elif args.utility == "successRatio":

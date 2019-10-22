@@ -13,6 +13,7 @@ g.doPlanning = False
 g.planningMode = False
 g.heuristic = None
 g.mode = True
+g.backupUCT = False
 
 def SetDoPlanning(s):
 	g.doPlanning = s
@@ -119,3 +120,9 @@ def SetModelPath(p):
 
 def GetModelPath():
     return g.modelPath
+
+def SetBackupUCT(b):
+    g.backupUCT = b
+
+def GetBackupUCT():
+    return g.backupUCT

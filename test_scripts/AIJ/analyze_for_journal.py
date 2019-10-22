@@ -84,8 +84,15 @@ def NotTimeLine(s):
     else:
         return True
 
-def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
+def GetMSEError(l, mean):
+    variance = 0
+    for i in l:
+        variance += (i - mean) * (i - mean)
 
+    return variance/(len(l) - 1)/len(l)
+
+def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
+    print(fileName)
     line = f_rae.readline()
     
     succCount = 0
@@ -100,6 +107,10 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
 
     clock = 0
     nu = 0
+
+    nu_L = []
+    sr_L = []
+    rr_L = []
 
     timeOutCount = 0
     
@@ -153,17 +164,21 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
                     print("Infinite efficiency! Normalizing.\n")
                     taskEff = 1/10
                 nu += taskEff
+                nu_L.append(taskEff)
                 succCount += s
+                sr_L.append(s)
                 totalTasks += t
 
                 # for retry ratio
                 if s == t:
                     if ((id in succCases[domain]) and param > 0): #or (domain in ['CR', 'EE', 'SD', 'IP']):
                         retryCount += r
+                        rr_L.append(r)
                         totalCountForRetries += t
                     elif param == 0:
                         succCases[domain].append(id)
                         retryCount += r
+                        rr_L.append(r)
                         totalCountForRetries += t
                     else:
                         pass
@@ -188,14 +203,18 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
         lineNumber += 1
 
     res['successRatio'].append(succCount/totalTasks)
+    res['sr_error'].append(GetMSEError(sr_L, succCount/totalTasks))
     if totalCountForRetries != 0:
         res['retryRatio'].append(retryCount/totalCountForRetries)
+        res['rr_error'].append(GetMSEError(rr_L, retryCount/totalCountForRetries))
     else:
         res['retryRatio'].append(0)
+        res['rr_error'].append(0)
     res['planTime'].append(planTime)
     res['actTime'].append(actTime)
     res['totalTime'].append(1 * planTime + 1 * actTime)
     res['nu'].append(nu / totalTasks)
+    res['nu_error'].append(GetMSEError(nu_L, nu/totalTasks))
     res['timeOut'].append(timeOutCount)
 
 def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
@@ -398,6 +417,9 @@ def GeneratePlots_SLATE_max_depth():
                 'totalTime': [],
                 'nu': [],
                 'timeOut': [],
+                'nu_error': [],
+                'sr_error': [],
+                'rr_error': [],
             }
     for d in D:
         Populate_SLATE_max_depth(resDict[d], d)
@@ -428,6 +450,9 @@ def GeneratePlots_UCT_max_depth():
                 'totalTime': [],
                 'nu': [],
                 'timeOut': [],
+                'nu_error': [],
+                'sr_error': [],
+                'rr_error': [],
                 }
             resDict[domain]['_eff'] = {
                 'successRatio': [], 
@@ -437,6 +462,9 @@ def GeneratePlots_UCT_max_depth():
                 'totalTime': [],
                 'nu': [],
                 'timeOut': [],
+                'nu_error': [],
+                'sr_error': [],
+                'rr_error': [],
                 }
             Populate_UCT_max_depth(resDict[domain]['_sr'], domain, '_sr')
             Populate_UCT_max_depth(resDict[domain]['_eff'], domain, '_eff')
@@ -449,6 +477,9 @@ def GeneratePlots_UCT_max_depth():
                 'totalTime': [],
                 'nu': [],
                 'timeOut': [],
+                'nu_error': [],
+                'sr_error': [],
+                'rr_error': [],
                 }
             Populate_UCT_max_depth(resDict[domain], domain, '_eff')
 
@@ -476,6 +507,9 @@ def GeneratePlots_UCT_max_depth_learning():
             'totalTime': [],
             'nu': [],
             'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
             }
         resDict[domain]['reactive'] = {
             'successRatio': [], 
@@ -485,6 +519,9 @@ def GeneratePlots_UCT_max_depth_learning():
             'totalTime': [],
             'nu': [],
             'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
             }
         Populate_UCT_max_depth_learning(resDict[domain]['planning'], domain, 'planning')
         Populate_UCT_max_depth_learning(resDict[domain]['reactive'], domain, 'reactive')
@@ -497,6 +534,9 @@ def GeneratePlots_UCT_max_depth_learning():
             'totalTime': [],
             'nu': [],
             'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
             }
         resDict[domain]['learning_from_planner'] = {
             'successRatio': [], 
@@ -506,6 +546,9 @@ def GeneratePlots_UCT_max_depth_learning():
             'totalTime': [],
             'nu': [],
             'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
             }
         Populate_UCT_max_depth_learning(resDict[domain]['learning_from_actor'], domain, 'actor')
         Populate_UCT_max_depth_learning(resDict[domain]['learning_from_planner'], domain, 'planner')
@@ -517,8 +560,13 @@ def GeneratePlots_UCT_max_depth_learning():
     plt.rc('font', **font)
     
     print(resDict)
+    errIndex = {
+        'nu': 'nu_error',
+        'successRatio': 'sr_error',
+        'retryRatio': 'rr_error'
+    }
     for metric in ['nu', 'successRatio', 'retryRatio']:
-        PlotHelper_UCT_max_learning(resDict, metric)
+        PlotHelper_UCT_max_learning(resDict, metric, errIndex[metric])
 
 def GeneratePlots_UCT_max_depth_planning_utilities():
     resDict = {}
@@ -560,6 +608,9 @@ def GeneratePlots_SLATE_lim_depth():
                 'totalTime': [],
                 'nu': [],
                 'timeOut': [],
+                'nu_error': [],
+                'sr_error': [],
+                'rr_error': [],
             }
 
     for d in D:
@@ -594,6 +645,9 @@ def GeneratePlots_UCT_lim_depth():
                     'totalTime': [],
                     'nu': [],
                     'timeOut': [],
+                    'nu_error': [],
+                    'sr_error': [],
+                    'rr_error': [],
                 }
                 resDict[domain]['_eff'][uct] = {
                     'successRatio': [], 
@@ -603,6 +657,9 @@ def GeneratePlots_UCT_lim_depth():
                     'totalTime': [],
                     'nu': [],
                     'timeOut': [],
+                    'nu_error': [],
+                    'sr_error': [],
+                    'rr_error': [],
                 }
             Populate_UCT_lim_depth(resDict[domain]['_sr'], domain, '_sr')
             Populate_UCT_lim_depth(resDict[domain]['_eff'], domain, '_eff')
@@ -619,6 +676,9 @@ def GeneratePlots_UCT_lim_depth():
                     'totalTime': [],
                     'nu': [],
                     'timeOut': [],
+                    'nu_error': [],
+                    'sr_error': [],
+                    'rr_error': [],
                 }
         for d in D:
             Populate_UCT_lim_depth(resDict[d], d)
@@ -711,7 +771,7 @@ def PlotHelper_UCT_max(resDict, utilp):
 
 import numpy as np 
 
-def PlotHelper_UCT_max_learning(resDict, utilp):
+def PlotHelper_UCT_max_learning(resDict, utilp, errorP):
     index1 = utilp
     #K = [0, 1, 2, 3, 4, 8, 16]
 
@@ -725,20 +785,31 @@ def PlotHelper_UCT_max_learning(resDict, utilp):
     trainedFromPlanner = []
     calledPlanner = []
 
+    errReactive = []
+    errP = []
+    errTA = []
+    errTP = []
+
     for domain in D:
         print(resDict[domain]['planning'][index1])
         reactive.append(resDict[domain]['reactive'][index1][0])
         trainedFromActor.append(resDict[domain]['learning_from_actor'][index1][0])
         trainedFromPlanner.append(resDict[domain]['learning_from_planner'][index1][0])
         calledPlanner.append(resDict[domain]['planning'][index1][0])
+
+        # the errors
+        errReactive.append(resDict[domain]['reactive'][errorP][0])
+        errTA.append(resDict[domain]['learning_from_actor'][errorP][0])
+        errTP.append(resDict[domain]['learning_from_planner'][errorP][0])
+        errP.append(resDict[domain]['planning'][errorP][0])
     x = np.arange(len(labels))  # the label locations
     width = 0.15  # the width of the bars
 
     fig, ax = plt.subplots()
-    rects1 = ax.bar(x - 3*width/2, reactive, width, label='Purely Reactive Acting')
-    rects2 = ax.bar(x - width/2, trainedFromActor, width, label='Used model trained from acting data')
-    rects3 = ax.bar(x + width/2, trainedFromPlanner, width, label='Used model trained from planning data')
-    rects4 = ax.bar(x + 3*width/2, calledPlanner, width, label='Called RAEplan-UCT')
+    rects1 = ax.bar(x - 3*width/2, reactive, width, label='Purely Reactive Acting', yerr=errReactive)
+    rects2 = ax.bar(x - width/2, trainedFromActor, width, label='Used model trained from acting data', yerr=errTA)
+    rects3 = ax.bar(x + width/2, trainedFromPlanner, width, label='Used model trained from planning data', yerr=errTP)
+    rects4 = ax.bar(x + 3*width/2, calledPlanner, width, label='Called RAEplan-UCT', yerr=errP)
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel(GetYlabel(utilp))
@@ -913,7 +984,7 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["SD", "EE", "CR", "SR"]
+    D = ["EE", "SD", "CR", "SR"]
     if args.depth == "max":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()

@@ -6,8 +6,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 device = 'cpu' #if torch.cuda.is_available() else 'cpu'
-domain = "EE"
-modelFrom = "planner"
+domain = "SD"
+modelFrom = "actor"
 
 torch.manual_seed(100)
 np.random.seed(200)
@@ -20,7 +20,11 @@ def make_train_step(model, loss_fn, optimizer):
         # Makes predictions
         yhat = model(x)
         # Computes loss
-        loss = loss_fn(y, yhat)
+
+        #print("y =  ,", y)
+        #print("yhat = ", yhat) 
+
+        loss = loss_fn(yhat, y)
         # Computes gradients
         loss.backward()
         # Updates parameters and zeroes gradients
@@ -42,37 +46,35 @@ while(line != ""):
     items = nums.split(" ")
     x_row = [float(i) for i in items[0:-1]]
     x.append(x_row)
-    y.append([int(items[-1])])
+    y.append(int(items[-1]))
     line = fileIn.readline()
 fileIn.close()
 
 trainingSetSize = {
-    "EE": 200,
-    "SD": 200,
-    "SR": 100,
-    "CR": 100,
-    "OF": 200,
+    "EE": round(0.8*len(x)),
+    "SD": round(0.8*len(x)),
+    "SR": round(0.8*len(x)),
+    "CR": round(0.8*len(x)),
+    "OF": round(0.8*len(x)),
 }
 
 validationSetSize = {
-    "EE": len(x) - 200,
-    "SD": len(x) - 200,
-    "SR": len(x) - 100,
-    "CR": len(x) - 100,
-    "OF": len(x) - 200,
+    "EE": len(x) - trainingSetSize["EE"],
+    "SD": len(x) - trainingSetSize["SD"],
+    "SR": len(x) - trainingSetSize["SR"],
+    "CR": len(x) - trainingSetSize["CR"],
+    "OF": len(x) - trainingSetSize["OF"],
 }
 
 x = np.array(x)
 y = np.array(y)
-
 
 #x = np.random.rand(10, 3, 1)
 #print(" x is ", x)
 #y = 1 + .1 * np.random.randn(10, 1)
 
 x_tensor = torch.from_numpy(x).float()
-y_tensor = torch.from_numpy(y).float()
-
+y_tensor = torch.from_numpy(y).long()
 
 print("y_tensor is ", y_tensor)
 # Builds dataset with ALL data
@@ -80,8 +82,8 @@ dataset = TensorDataset(x_tensor, y_tensor)
 # Splits randomly into train and validation datasets
 train_dataset, val_dataset = random_split(dataset, [trainingSetSize[domain], validationSetSize[domain]]) 
 # Builds a loader for each dataset to perform mini-batch gradient descent
-train_loader = DataLoader(dataset=train_dataset, batch_size=1)
-val_loader = DataLoader(dataset=val_dataset, batch_size=1)
+train_loader = DataLoader(dataset=train_dataset, batch_size=10)
+val_loader = DataLoader(dataset=val_dataset, batch_size=10)
 
 # Builds a simple sequential model
 
@@ -92,16 +94,25 @@ features = {
     "OF": 0,
     "CR": 22,
 }
-model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
+
+outClasses = {
+    "EE": 17,
+    "SD": 9,
+    "SR": 16,
+    "OF": 0,
+    "CR": 10,
+}
+#model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
+model = nn.Sequential(nn.Linear(features[domain], 512), nn.ReLU(inplace=True), nn.Linear(512, outClasses[domain]))
 print(model.state_dict())
 
 # Sets hyper-parameters
 if modelFrom == "actor":
     lrD = {
-        "EE": 1e-4,
+        "EE": 1e-3,
         "SD": 1e-3,
         "SR": 1e-5,
-        "CR": 1e-3,
+        "CR": 1e-2,
         "OF": 1e-3,
     }
 else:
@@ -113,16 +124,37 @@ else:
         "OF": 1e-3,
     }
 lr = lrD[domain]
-n_epochs = 1
+n_epochs = 10
 
 # Defines loss function and optimizer
-loss_fn = nn.MSELoss(reduction='mean')
+#loss_fn = nn.MSELoss(reduction='mean')
+loss_fn = nn.CrossEntropyLoss()
+#loss_fn = nn.NLLLoss()
+#loss_fn = nn.BCEWithLogitsLoss()
 optimizer = optim.SGD(model.parameters(), lr=lr)
 
-losses = []
+tr_losses = []
 val_losses = []
+tr_accuracy = []
+val_accuracy = []
+
+def GetAccValue(acc):
+    v = 0
+    s = 0
+    for i in acc:
+        v += i
+        s += 1
+    return v/s
+
+def GetLabel(yhat):
+    r, predicted = torch.max(yhat.data, 1)
+    #print("yhat = ",yhat)
+    #print("r = ",r, "predicted = ", predicted)
+    return predicted.long()
+
 # Creates function to perform train step from model, loss and optimizer
 train_step = make_train_step(model, loss_fn, optimizer)
+
 
 # Training loop
 for epoch in range(n_epochs):
@@ -134,10 +166,12 @@ for epoch in range(n_epochs):
         y_batch = y_batch.to(device)
         # One stpe of training
         loss = train_step(x_batch, y_batch)
-        losses.append(loss)
+        tr_losses.append(loss)
         with torch.no_grad():
         # Uses loader to fetch one mini-batch for validation
             v = []
+            acc = []
+            acct = []
             for x_val, y_val in val_loader:
                 # Again, sends data to same device as model
                 x_val = x_val.to(device)
@@ -147,11 +181,37 @@ for epoch in range(n_epochs):
                 model.eval()
                 # Makes predictions
                 yhat = model(x_val)
+                #print(yhat)
                 # Computes validation loss
-                val_loss = loss_fn(y_val, yhat)
+                val_loss = loss_fn(yhat, y_val)
+
+                if y_val.long() == GetLabel(yhat):
+                    acc.append(1)
+                else:
+                    acc.append(0)
                 #print(val_loss)
                 v.append(val_loss)
-            val_losses.append(np.mean(v))
+            for x_val, y_val in train_loader:
+                # Again, sends data to same device as model
+                x_val = x_val.to(device)
+                y_val = y_val.to(device)
+                
+                # What is that?!
+                model.eval()
+                # Makes predictions
+                yhat = model(x_val)
+                # Computes validation loss
+                #t_loss = loss_fn(y_val, yhat)
+                if y_val.long() == GetLabel(yhat):
+                    acct.append(1)
+                else:
+                    acct.append(0)
+                #print(val_loss)
+                #v.append(val_loss)
+            #val_losses.append(np.mean(v))
+            #print(acc)
+            print(GetAccValue(acct), " epoch = ", epoch)
+            #accuracy.append(GetAccValue(acc))
         
     # After finishing training steps for all mini-batches,
     # it is time for evaluation!
@@ -224,12 +284,15 @@ def printList(l):
     for i in l:
         print(i)
 #print(model.state_dict())
-print("training losses ")
-printList(losses)
+#print("training losses ")
+#printList(losses)
 
 print("validation losses")
 printList(val_losses)
-CreatePlot(losses, val_losses)
-print(" mean training loss " , np.mean(losses))
+
+#CreatePlot(tr_losses, val_losses)
+
+print(" mean training loss " , np.mean(tr_losses))
 print(" mean validation loss ", np.mean(val_losses))
+
 torch.save(model.state_dict(), "model{}_{}".format(domain, modelFrom))
