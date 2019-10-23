@@ -227,3 +227,9 @@ class PlanArgs():
 
     def GetSearchTree(self):
         return self.searchTree
+
+    def SetCurUtil(self, u):
+        self.util = u
+
+    def GetCurUtil(self):
+        return self.util

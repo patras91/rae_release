@@ -927,6 +927,8 @@ if __name__ == "__main__":
 				for i in range(5):
 					actingTreeNode = f.readline()[0:-1]
 				#record.append(str(actingNodeCodes[domain][actingTreeNode]))
+			if eff == "inf":
+				eff = 1
 			record.append(str(eff))
 
 

@@ -270,7 +270,7 @@ def CreateNewStackSimulation(pArgs, queue):
         method, util = methodUtil
     queue.put((method, util, planningTime))
 
-def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, searchTree):
+def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, searchTree, curUtil):
     # Simulating one stack now
     # TODO: Simulate multiple stacks in future
 
@@ -285,6 +285,7 @@ def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, searchTree):
     pArgs.SetCandidates(candidateMethods)
     pArgs.SetState(state)
     pArgs.SetSearchTree(searchTree)
+    pArgs.SetCurUtil(curUtil)
 
     ipcArgs.nextStack = 0
     ipcArgs.sem = threading.Semaphore(1)
@@ -293,6 +294,9 @@ def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, searchTree):
 
     thread.start()
     thread.join()
+
+    WriteTrainingData()
+    
     #while(True):
     #    if ipcArgs.nextStack == 0 or thread.isAlive() == False:
     #        ipcArgs.sem.acquire()

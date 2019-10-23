@@ -15,9 +15,9 @@ class TrainingDataItem():
 		f.write(self.maintask + "\n")
 		f.write(self.m.GetName() + "\n")
 		f.write(str(self.e1) + "\n")
-		if GLOBALS.GetLearningMode() == "genEffDataPlanner":
-			for item in self.actingTreeNodes:
-				f.write(str(item)+"\n")
+		#if GLOBALS.GetLearningMode() == "genEffDataPlanner":
+		#	for item in self.actingTreeNodes:
+		#		f.write(str(item)+"\n")
 
 class TrainingData():
 	def __init__(self):
@@ -25,6 +25,13 @@ class TrainingData():
 
 	def Add(self, state, method, eff_sub, task, mainTask, treeNodes=None):
 		self.l.append(TrainingDataItem(state, method, eff_sub, task, mainTask, treeNodes))
+
+	#def AddBulk(self, l2, mainTask, curUtil):
+	#	for item in l2:
+	#		item.maintask = mainTask
+	#		item.e1 = item.e1 + curUtil
+	#		self.l.append(item)
+	#	print("added in bulk")
 
 	def PrintInFile(self, suffix):
 		domain = GLOBALS.GetDomain()

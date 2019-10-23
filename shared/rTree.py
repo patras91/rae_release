@@ -6,6 +6,7 @@ from timer import DURATION
 import types
 from utility import Utility
 import GLOBALS
+from learningData import TrainingDataItem
 
 class PlanningTree():
     def __init__(self, n, args, type1):
@@ -701,14 +702,18 @@ class SearchTreeNode():
             level[next] = []
         g.view()
 
-    def GetTrainingItems(self, l):
+    def GetTrainingItems(self, l, util, mainTask):
         if self.type == "task":
             #for each child get q and labels and add to l
+            for i in range(0, len(self.Q)):
+                l.Add(self.children[i].prevState, 
+                    self.children[i].GetLabel(), self.Q[i] + util, 
+                    self.label, mainTask, None) 
             for child in self.children:
-                self.child.GetTrainingItems(l)
+                child.GetTrainingItems(l, util, mainTask)
         elif self.type == "method" or self.type == "state":
             if len(self.children) > 0:
-                self.children[0].GetTrainingItems(l)
+                self.children[0].GetTrainingItems(l, util, mainTask)
         elif self.type == "command":
             for child in self.children:
-                child.GetTrainingItems(l)
+                child.GetTrainingItems(l, util, mainTask)

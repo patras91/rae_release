@@ -34,7 +34,7 @@ def make_train_step(model, loss_fn, optimizer):
         optimizer.step()
         optimizer.zero_grad()
         # Returns the loss
-        return loss.item()
+        return loss.item(), yhat
     
     # Returns the function that will be called inside the train loop
     return train_step
@@ -86,7 +86,7 @@ def GetAccValue(acc):
 def GetEff(x):
     #return x
     #return x*0.422 + 0.0408 #CR
-    return x*0.027 + 0.02 #SD
+    return x*0.076 + 0.031 #SD
     
 
 def GetOneHotAccuracyValues(yhat, y):
@@ -188,7 +188,7 @@ if __name__ == "__main__":
         "EE": round(0.8*len(x)),
         "SD": round(0.8*len(x)),
         "SR": round(0.8*len(x)),
-        "CR": round(0.1*len(x)),
+        "CR": round(0.8*len(x)),
         "OF": round(0.8*len(x)),
     }
 
@@ -215,8 +215,8 @@ if __name__ == "__main__":
     # Splits randomly into train and validation datasets
     train_dataset, val_dataset = random_split(dataset, [trainingSetSize[domain], validationSetSize[domain]]) 
     # Builds a loader for each dataset to perform mini-batch gradient descent
-    train_loader = DataLoader(dataset=train_dataset, batch_size=1)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=1)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=3)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=3)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
     model = nn.Sequential(nn.Linear(features[domain], 512), 
@@ -250,11 +250,14 @@ if __name__ == "__main__":
     # Creates function to perform train step from model, loss and optimizer
     train_step = make_train_step(model, loss_fn, optimizer)
 
-    
+
     # Training loop
     for epoch in range(n_epochs):
         # Uses loader to fetch one mini-batch for training
-        print("epoch ", epoch)
+        
+
+        tAcc1 = []
+        tLoss1 = []
         for x_batch, y_batch in train_loader:
 
             # NOW, sends the mini-batch data to the device
@@ -262,16 +265,17 @@ if __name__ == "__main__":
             x_batch = x_batch.to(device)
             y_batch = y_batch.to(device)
             # One step of training
-            loss = train_step(x_batch, y_batch)
-            #tr_losses.append(loss)
+            loss, yhat = train_step(x_batch, y_batch)
+            
+            tLoss1.append(loss)
+            tAcc1 += GetOneHotAccuracyValues(yhat, y_batch)
 
         with torch.no_grad():
         # Uses loader to fetch one mini-batch for validation
             vLoss1 = []
-            tLoss1 = []
 
             vAcc1 = []
-            tAcc1 = []
+
 
             for x_val, y_val in val_loader:
                 # Again, sends data to same device as model
@@ -292,24 +296,33 @@ if __name__ == "__main__":
 
                 vAcc1 += GetOneHotAccuracyValues(yhat, y_val)
 
-            for x_tr, y_tr in train_loader:
+            #for x_tr, y_tr in train_loader:
                 # Again, sends data to same device as model
-                x_tr = x_tr.to(device)
-                y_tr = y_tr.to(device)
+            #    x_tr = x_tr.to(device)
+            #    y_tr = y_tr.to(device)
                 
                 # What is that?!
-                model.eval()
+            #    model.eval()
                 # Makes predictions
-                yhat = model(x_tr)
-                t_loss = loss_fn(yhat, y_val)
-                tLoss1.append(t_loss)
+            #    yhat = model(x_tr)
+            #    t_loss = loss_fn(yhat, y_tr)
+            #    tLoss1.append(t_loss)
                 
-                tAcc1 += GetOneHotAccuracyValues(yhat, y_tr)
+            #    tAcc1 += GetOneHotAccuracyValues(yhat, y_tr)
 
-            val_losses.append(np.mean(vLoss1))
-            tr_losses.append(np.mean(tLoss1))
-            val_accuracy.append(GetAccValue(vAcc1))
-            tr_accuracy.append(GetAccValue(tAcc1))
+            num1 = np.mean(vLoss1)
+            num2 = np.mean(tLoss1)
+            num3 = GetAccValue(vAcc1)
+            num4 = GetAccValue(tAcc1)
+            val_losses.append(num1)
+            tr_losses.append(num2)
+            val_accuracy.append(num3)
+            tr_accuracy.append(num4)
+            print("epoch ", epoch, 
+                " TLoss = ", num2, 
+                " TAcc = ", num4, 
+                " VLoss = ", num1, 
+                " VAcc = ", num3)
         
         # After finishing training steps for all mini-batches,
         # it is time for evaluation!
@@ -331,20 +344,20 @@ if __name__ == "__main__":
                 #val_loss = loss_fn(y_val, yhat)
                 #print(val_loss)
                 #val_losses.append(val_loss.item())
-    print("training losses ")
-    printList(tr_losses)
+    #print("training losses ")
+    #printList(tr_losses)
 
-    print("validation losses")
-    printList(val_losses)
+    #print("validation losses")
+    #printList(val_losses)
     CreatePlot(tr_losses, val_losses)
     #print(" mean training loss " , np.mean(tr_losses))
     #print(" mean validation loss ", np.mean(val_losses))
 
-    print("Training accuracy")
-    printList(tr_accuracy)
+    #print("Training accuracy")
+    #printList(tr_accuracy)
 
-    print("Validation accuracy")
-    printList(val_accuracy)
+    #print("Validation accuracy")
+    #printList(val_accuracy)
     torch.save(model.state_dict(), "model_for_eff_{}_{}".format(domain, modelFrom))
     
 

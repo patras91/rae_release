@@ -337,7 +337,8 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         queue, 
         candidates,
         GetState().copy(),
-        raeLocals.GetSearchTree()])
+        raeLocals.GetSearchTree(),
+        raeLocals.GetUtility()])
 
     p.start()
     p.join(GLOBALS.GetTimeLimit())
@@ -351,7 +352,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         raeLocals.AddToPlanningUtilityList(curUtil)
         raeLocals.AddToPlanningUtilityList(expUtil)
         raeLocals.AddToPlanningUtilityList(expUtil + curUtil)
-    globalTimer.UpdateSimCounter(simTime)
+        globalTimer.UpdateSimCounter(simTime)
 
     #retcode = plannedTree.GetRetcode()
 
@@ -378,15 +379,6 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
                     raeLocals.GetEfficiency(),
                     task,
                     raeLocals.GetMainTask(),
-                )
-        elif GLOBALS.GetLearningMode() == "genEffDataPlanner":
-            trainingDataRecords.Add(
-                    GetState(), 
-                    methodInstance, 
-                    expUtil,
-                    task,
-                    raeLocals.GetMainTask(),
-                    raeLocals.GetActingTree().GetLastFiveItems()
                 )
         candidates.pop(candidates.index(methodInstance))
         return (methodInstance, candidates)
@@ -675,6 +667,8 @@ def RAEplanChoice_UCT(task, planArgs):
         PrintState()
 
     taskToRefine = planLocals.GetTaskToRefine()
+    taskToRefine.GetTrainingItems(trainingDataRecords, planArgs.GetCurUtil(), planArgs.GetTask())
+
     return (taskToRefine.GetBestMethodAndUtility_UCT(), globalTimer.GetSimulationCounter())
 
 def GetCandidates(task, tArgs):

@@ -31,7 +31,7 @@ def make_train_step(model, loss_fn, optimizer):
         optimizer.step()
         optimizer.zero_grad()
         # Returns the loss
-        return loss.item()
+        return loss.item(), yhat
     
     # Returns the function that will be called inside the train loop
     return train_step
