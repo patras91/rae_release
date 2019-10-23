@@ -86,7 +86,7 @@ def GetAccValue(acc):
 def GetEff(x):
     #return x
     #return x*0.422 + 0.0408 #CR
-    return x*0.076 + 0.031 #SD
+    return x*0.073 + 0.031 #SD
     
 
 def GetOneHotAccuracyValues(yhat, y):
@@ -215,8 +215,8 @@ if __name__ == "__main__":
     # Splits randomly into train and validation datasets
     train_dataset, val_dataset = random_split(dataset, [trainingSetSize[domain], validationSetSize[domain]]) 
     # Builds a loader for each dataset to perform mini-batch gradient descent
-    train_loader = DataLoader(dataset=train_dataset, batch_size=3)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=3)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=100)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=100)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
     model = nn.Sequential(nn.Linear(features[domain], 512), 
@@ -240,7 +240,7 @@ if __name__ == "__main__":
             "EE": 1e-3,
             "SD": 1e-3,
             "SR": 1e-3,
-            "CR": 1e-3,
+            "CR": 1e-1,
             "OF": 1e-3,
         }
     lr = lrD[domain]
