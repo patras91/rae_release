@@ -130,22 +130,24 @@ def CreatePlot(training, validation):
         "SR": 10,
         "CR": 10,
     }
-    x = list(range(0, trainingSetSize[domain]))
+    x = list(range(0, len(training)))
 
+    print("x is ", x)
+    print("training is, ", training)
     PlotViaMatlab(x,
                 training,
                 COLORS[0],
                 'Training Loss in {} domain'.format(domain))
-    PlotViaMatlab(x,
+    PlotViaMatlab(list(range(0, len(validation))),
                 validation,
                 COLORS[1],
                 'Validation Loss in {} domain'.format(domain))
 
-    fname = 'Loss_{}_{}.png'.format(domain, modelFrom)
+    fname = 'Loss_eff_{}_{}.png'.format(domain, modelFrom)
     plt.xlabel('Training steps')
     plt.xticks(np.arange(min(x), max(x)+10, gap[domain]))
     plt.ylabel("Loss")
-    plt.legend(bbox_to_anchor=(0.3, 0.7), loc=3, ncol=1, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(0.3, 1), loc=3, ncol=1, borderaxespad=0.)
     plt.savefig(fname, bbox_inches='tight')
 
 def printList(l):
@@ -186,7 +188,7 @@ if __name__ == "__main__":
         "EE": round(0.8*len(x)),
         "SD": round(0.8*len(x)),
         "SR": round(0.8*len(x)),
-        "CR": round(0.8*len(x)),
+        "CR": round(0.1*len(x)),
         "OF": round(0.8*len(x)),
     }
 
@@ -213,8 +215,8 @@ if __name__ == "__main__":
     # Splits randomly into train and validation datasets
     train_dataset, val_dataset = random_split(dataset, [trainingSetSize[domain], validationSetSize[domain]]) 
     # Builds a loader for each dataset to perform mini-batch gradient descent
-    train_loader = DataLoader(dataset=train_dataset, batch_size=3)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=3)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=1)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=1)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
     model = nn.Sequential(nn.Linear(features[domain], 512), 
@@ -261,7 +263,7 @@ if __name__ == "__main__":
             y_batch = y_batch.to(device)
             # One step of training
             loss = train_step(x_batch, y_batch)
-            tr_losses.append(loss)
+            #tr_losses.append(loss)
 
         with torch.no_grad():
         # Uses loader to fetch one mini-batch for validation
@@ -299,10 +301,13 @@ if __name__ == "__main__":
                 model.eval()
                 # Makes predictions
                 yhat = model(x_tr)
+                t_loss = loss_fn(yhat, y_val)
+                tLoss1.append(t_loss)
                 
                 tAcc1 += GetOneHotAccuracyValues(yhat, y_tr)
 
             val_losses.append(np.mean(vLoss1))
+            tr_losses.append(np.mean(tLoss1))
             val_accuracy.append(GetAccValue(vAcc1))
             tr_accuracy.append(GetAccValue(tAcc1))
         
@@ -331,7 +336,7 @@ if __name__ == "__main__":
 
     print("validation losses")
     printList(val_losses)
-    #CreatePlot(losses, val_losses)
+    CreatePlot(tr_losses, val_losses)
     #print(" mean training loss " , np.mean(tr_losses))
     #print(" mean validation loss ", np.mean(val_losses))
 

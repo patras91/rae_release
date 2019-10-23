@@ -199,6 +199,9 @@ class Expanded_Search_Tree_Node(Exception):
 class DepthLimitReached(Exception):
     pass
 
+class UsingBackupUCT(Exception):
+    pass
+
 #****************************************************************
 #Functions to control Progress of each stack step by step
 class IpcArgs():
@@ -260,6 +263,9 @@ def RAE1(task, raeArgs):
             print_stack_size(raeLocals.GetStackId(), path)
             print('Failed task {}'.format(e))
         retcode = 'Failure'
+    except UsingBackupUCT as e:
+        print("e is ", e, type(e))
+        retcode = e()
     else:
         pass
     if verbose > 1:
@@ -302,11 +308,14 @@ def InitializeStackLocals(task, raeArgs):
     raeLocals.SetActingTree(aT)
     raeLocals.SetUtility(Utility('Success'))
     raeLocals.SetEfficiency(float("inf"))
+
+    raeLocals.SetUseBackupUCT(False)
+
     if GLOBALS.GetDomain() == "SDN":
         cmdStatusStack[raeArgs.stack] = None
     
 def RunUCTwithCommandsOnly(task):
-    pass
+    return commands["u1"]
     # how are the commands represented
     # how to integrate this with RAEplan and RAE
 
@@ -353,9 +362,10 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     if methodInstance == 'Failure':
         #random.shuffle(candidates)
         if GLOBALS.GetBackupUCT() == True:
+            raeLocals.SetUseBackupUCT(True)
             cmd = RunUCTwithCommandsOnly(task)
             if cmd != 'Failure':
-                return cmd
+                return (cmd, "usingBackupUCT")
             else:
                 return (candidates[0], candidates[1:])
         else:
@@ -457,6 +467,8 @@ def DoTaskInRealWorld(task, taskArgs):
             raeLocals.SetUtility(Utility("Success"))
 
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
+        if candidates == "usingBackupUCT":
+            raise UsingBackupUCT(m)
         node.SetLabelAndType(m, 'method')
         raeLocals.SetCurrentNode(node)
         retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)

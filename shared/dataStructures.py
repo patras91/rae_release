@@ -83,6 +83,12 @@ class rL_APE(rL):
     def GetEfficiency(self):
         return self.rL.eff
 
+    def SetUseBackupUCT(self, u):
+        self.rL.backupUCT = u
+
+    def GetUseBackupUCT(self):
+        return self.rL.backupUCT
+
 class rL_PLAN(rL):
 
     def __init__(self):
