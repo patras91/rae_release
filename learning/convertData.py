@@ -681,12 +681,22 @@ def ReadStateVars_EE(line, f):
 
 domain = None
 
-def AddToRecords(l, new):
+def AddToRecordsAllTogether(l, new):
 	for item in l:
 		if new == item:
 			print("found match")
 			return
 	l.append(new)
+
+def AddToRecordsTaskBased(l, new, task):
+	if task not in l:
+		l[task] = []
+	for item in l[task]:
+		if item == new:
+			print(" item found in records for ", task)
+			return
+	l[task].append(new)
+
 
 import argparse
 
@@ -872,6 +882,8 @@ if __name__ == "__main__":
                            type=str, required=True)
 	argparser.add_argument("--learnWhat", help="method (m) or efficiency(e)",
 						   type=str, required=True)
+	argparser.add_argument("--taskBased", help="divide based on tasks (y) or not(n)?",
+						   type=str, required=True)
 	args = argparser.parse_args()
 	domain = args.domain
 
@@ -885,15 +897,23 @@ if __name__ == "__main__":
 
 	learnWhat = args.learnWhat
 	if learnWhat == "m":
+		assert(args.taskBased == "n")
 		fname = "{}_data_{}.txt".format(domain, suffix)
 		fwrite = open("numericData_{}_{}.txt".format(domain, suffix), "w")
+		recordL = []
 	elif learnWhat == "e":
 		fname = "{}_data_eff_{}.txt".format(domain, suffix)
-		fwrite = open("numericData_eff_{}_{}.txt".format(domain, suffix), "w")
-	
+		taskBased = args.taskBased
+		if taskBased == 'n':
+			fwrite = open("numericData_eff_{}_{}.txt".format(domain, suffix), "w")
+			recordL = []
+		else:
+			fwrite = {}
+			recordL = {}
+			for task in taskCodes[domain]:
+				fwrite[task] = open("numericData_eff_{}_{}_task_{}.txt".format(domain, suffix, task), "w")
 	f = open(fname)
 	
-	recordL = []
 	line = f.readline()
 	while(line != ""):
 		if domain == "CR":
@@ -913,8 +933,8 @@ if __name__ == "__main__":
 		mainTaskCode = taskCodes[domain][mainTask]
 		methodCode = methodCodes[domain][method]
 
-		record.append(str(taskCode))
-		record.append(str(mainTaskCode))
+		#record.append(str(taskCode))
+		#record.append(str(mainTaskCode))
 
 		eff = f.readline()[0:-1]
 
@@ -929,20 +949,33 @@ if __name__ == "__main__":
 				#record.append(str(actingNodeCodes[domain][actingTreeNode]))
 			if eff == "inf":
 				eff = 1
-			record.append(str(eff))
+			if float(eff) == 0:
+				cost = '100'
+			else:
+				cost = str(1/float(eff))
+			record.append(cost)
 
 
 		if domain == "EE" and (taskCode == 1 or taskCode == 4):
 			pass
 		else:
-			AddToRecords(recordL, record)
+			if taskBased == "y":
+				AddToRecordsTaskBased(recordL, record, task)
+			else:
+				AddToRecordsAllTogether(recordL, record)
 		
 		line = f.readline()
 	f.close()
 	if learnWhat == "e":
-		recordN = normalize(recordL)
-		for item in recordN:
-			fwrite.write(" ".join([str(i) for i in item]) + "\n")
+		if taskBased == "y":
+			for task in recordL:
+				recordN = normalize(recordL[task])
+				for item in recordN:
+					fwrite[task].write(" ".join([str(i) for i in item]) + "\n")
+		else:
+			recordN = normalize(recordL)
+			for item in recordN:
+				fwrite[task].write(" ".join([str(i) for i in item]) + "\n")
 	else:
 		for item in recordL:
 			fwrite.write(" ".join(item) + "\n")

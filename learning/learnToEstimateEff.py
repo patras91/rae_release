@@ -43,10 +43,10 @@ def make_train_step(model, loss_fn, optimizer):
 
 features = {
     "EE": 23+5,
-    "SD": 25,
+    "SD": 25 - 2,
     "SR": 24+5,
     "OF": 0,
-    "CR": 23,
+    "CR": 23 - 2,
 }
 
 outClasses = {
@@ -92,8 +92,8 @@ def GetEff(x):
 def GetOneHotAccuracyValues(yhat, y):
     res = []
     for i1, i2 in zip(yhat, y):
-        y1 = GetEff(i1)
-        y2 = GetEff(i2)
+        y1 = i1
+        y2 = i2
         if abs(y1 - y2)/abs(y2) < 0.1:
             res.append(1)
             #res.append(abs(y1 - y2)/abs(y2))
@@ -163,6 +163,8 @@ if __name__ == "__main__":
                            type=str, required=True)
     argparser.add_argument("--nepochs", help="how many epochs (>=1) ?",
                            type=int, required=False, default = 1)
+    argparser.add_argument("--task", help="which task? ('all' for all together)",
+                           type=str, required=True)
     args = argparser.parse_args()
     domain = args.domain
     n_epochs = args.nepochs
@@ -171,7 +173,10 @@ if __name__ == "__main__":
     else:
         modelFrom = "planner"
 
-    fileIn = open("numericData_eff_{}_{}.txt".format(domain, modelFrom))
+    if args.task == "all":
+        fileIn = open("numericData_eff_{}_{}.txt".format(domain, modelFrom))
+    else:
+        fileIn = open("numericData_eff_{}_{}_task_{}.txt".format(domain, modelFrom, args.task))
     x = []
     y = []
     line = fileIn.readline()
@@ -215,12 +220,13 @@ if __name__ == "__main__":
     # Splits randomly into train and validation datasets
     train_dataset, val_dataset = random_split(dataset, [trainingSetSize[domain], validationSetSize[domain]]) 
     # Builds a loader for each dataset to perform mini-batch gradient descent
-    train_loader = DataLoader(dataset=train_dataset, batch_size=100)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=100)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=10)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=10)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
     model = nn.Sequential(nn.Linear(features[domain], 512), 
-        nn.ReLU(inplace=True), 
+        nn.ReLU(inplace=False), 
+        #nn.LogSigmoid(),
         #nn.Linear(128, 128), 
         #nn.ReLU(inplace=True), 
         nn.Linear(512, outClasses[domain]))
@@ -238,9 +244,9 @@ if __name__ == "__main__":
     else:
         lrD = {
             "EE": 1e-3,
-            "SD": 1e-3,
+            "SD": 1e-4,
             "SR": 1e-3,
-            "CR": 1e-1,
+            "CR": 1e-3,
             "OF": 1e-3,
         }
     lr = lrD[domain]
@@ -295,6 +301,8 @@ if __name__ == "__main__":
                 vLoss1.append(val_loss)
 
                 vAcc1 += GetOneHotAccuracyValues(yhat, y_val)
+                #print("predicted", yhat)
+                #print("real ", y_val)
 
             #for x_tr, y_tr in train_loader:
                 # Again, sends data to same device as model
@@ -358,7 +366,7 @@ if __name__ == "__main__":
 
     #print("Validation accuracy")
     #printList(val_accuracy)
-    torch.save(model.state_dict(), "model_for_eff_{}_{}".format(domain, modelFrom))
+    #torch.save(model.state_dict(), "model_for_eff_{}_{}".format(domain, modelFrom))
     
 
 
