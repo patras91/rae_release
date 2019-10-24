@@ -684,7 +684,7 @@ domain = None
 def AddToRecordsAllTogether(l, new):
 	for item in l:
 		if new == item:
-			print("found match")
+			#print("found match")
 			return
 	l.append(new)
 
@@ -693,7 +693,7 @@ def AddToRecordsTaskBased(l, new, task):
 		l[task] = []
 	for item in l[task]:
 		if item == new:
-			print(" item found in records for ", task)
+			#print(" item found in records for ", task)
 			return
 	l[task].append(new)
 
@@ -949,11 +949,11 @@ if __name__ == "__main__":
 				#record.append(str(actingNodeCodes[domain][actingTreeNode]))
 			if eff == "inf":
 				eff = 1
-			if float(eff) == 0:
-				cost = '100'
-			else:
-				cost = str(1/float(eff))
-			record.append(cost)
+			#if float(eff) == 0:
+			#	cost = '100'
+			#else:
+			#	cost = str(1/float(eff))
+			record.append(str(eff))
 
 
 		if domain == "EE" and (taskCode == 1 or taskCode == 4):

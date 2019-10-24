@@ -42,9 +42,9 @@ def make_train_step(model, loss_fn, optimizer):
 # Builds a simple sequential model
 
 features = {
-    "EE": 23+5,
+    "EE": 23 - 2,
     "SD": 25 - 2,
-    "SR": 24+5,
+    "SR": 24 - 2,
     "OF": 0,
     "CR": 23 - 2,
 }
@@ -225,7 +225,7 @@ if __name__ == "__main__":
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
     model = nn.Sequential(nn.Linear(features[domain], 512), 
-        nn.ReLU(inplace=False), 
+        nn.ReLU(inplace=True), 
         #nn.LogSigmoid(),
         #nn.Linear(128, 128), 
         #nn.ReLU(inplace=True), 
