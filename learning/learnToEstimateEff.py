@@ -5,6 +5,9 @@ from torch.utils.data.dataset import random_split
 import torch.nn as nn
 import torch.optim as optim
 import argparse
+import pdb
+import random
+from torch.optim.lr_scheduler import MultiStepLR
 
 device = 'cpu' #if torch.cuda.is_available() else 'cpu'
 domain = None
@@ -27,7 +30,7 @@ def make_train_step(model, loss_fn, optimizer):
 
         #print("in training yhat = ", yhat)
         #print("in training y = ", y)
-        loss = loss_fn(yhat, y)
+        loss = 1 * loss_fn(yhat, y)
         # Computes gradients
         loss.backward()
         # Updates parameters and zeroes gradients
@@ -46,7 +49,7 @@ features = {
     "SD": 25 - 2,
     "SR": 24 - 2,
     "OF": 0,
-    "CR": 23 - 2,
+    "CR": 98, #23 - 2,
 }
 
 outClasses = {
@@ -60,7 +63,8 @@ outClasses = {
 n_epochs = 10
 
 # Defines loss function and optimizer
-loss_fn = nn.MSELoss(reduction='mean')
+#loss_fn = nn.MSELoss(reduction='mean')
+loss_fn = nn.SmoothL1Loss(reduction='sum')
 #loss_fn = nn.CrossEntropyLoss()
 #loss_fn = nn.NLLLoss()
 #loss_fn = nn.BCEWithLogitsLoss()
@@ -95,11 +99,11 @@ def GetOneHotAccuracyValues(yhat, y):
         y1 = i1
         y2 = i2
         if abs(y1 - y2)/abs(y2) < 0.1:
-            res.append(1)
-            #res.append(abs(y1 - y2)/abs(y2))
+            #res.append(1)
+            res.append(abs(y1 - y2)) #/abs(y2))
         else:
-            res.append(0)
-            #res.append(abs(y1 - y2)/abs(y2))
+            #res.append(0)
+            res.append(abs(y1 - y2)) #/abs(y2))
     return res
 
 import matplotlib.pyplot as plt
@@ -180,12 +184,16 @@ if __name__ == "__main__":
     x = []
     y = []
     line = fileIn.readline()
+
+    r = np.random.rand()
     while(line != ""):
         nums = line[0:-1]
-        items = nums.split(" ")
-        x_row = [float(i) for i in items[0:-1]]
-        x.append(x_row)
-        y.append([float(items[-1])])
+        if r < 0.1:
+            items = nums.split(" ")
+            x_row = [float(i) for i in items[0:-1]]
+            x.append(x_row)
+            y.append([float(items[-1])])
+        r = np.random.rand()
         line = fileIn.readline()
     fileIn.close()
 
@@ -220,16 +228,18 @@ if __name__ == "__main__":
     # Splits randomly into train and validation datasets
     train_dataset, val_dataset = random_split(dataset, [trainingSetSize[domain], validationSetSize[domain]]) 
     # Builds a loader for each dataset to perform mini-batch gradient descent
-    train_loader = DataLoader(dataset=train_dataset, batch_size=10)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=10)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=128)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=64)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
-    model = nn.Sequential(nn.Linear(features[domain], 512), 
+    model = nn.Sequential(nn.Linear(features[domain], 64), 
         nn.ReLU(inplace=True), 
-        #nn.LogSigmoid(),
+        #nn.PReLU(),
+        #nn.Sigmoid(),
         #nn.Linear(128, 128), 
         #nn.ReLU(inplace=True), 
-        nn.Linear(512, outClasses[domain]))
+        nn.Linear(64, outClasses[domain]))
+        #nn.Sigmoid()))
     #print(model.state_dict())
 
     # Sets hyper-parameters
@@ -244,7 +254,7 @@ if __name__ == "__main__":
     else:
         lrD = {
             "EE": 1e-3,
-            "SD": 1e-4,
+            "SD": 1e-3,
             "SR": 1e-3,
             "CR": 1e-3,
             "OF": 1e-3,
@@ -256,19 +266,22 @@ if __name__ == "__main__":
     # Creates function to perform train step from model, loss and optimizer
     train_step = make_train_step(model, loss_fn, optimizer)
 
+    scheduler = MultiStepLR(optimizer, milestones=[30,60], gamma=0.1) 
 
     # Training loop
     for epoch in range(n_epochs):
         # Uses loader to fetch one mini-batch for training
         
-
+        scheduler.step()
         tAcc1 = []
         tLoss1 = []
         for x_batch, y_batch in train_loader:
 
             # NOW, sends the mini-batch data to the device
             # so it matches location of the MODEL
+
             x_batch = x_batch.to(device)
+            #pdb.set_trace()
             y_batch = y_batch.to(device)
             # One step of training
             loss, yhat = train_step(x_batch, y_batch)
@@ -363,6 +376,8 @@ if __name__ == "__main__":
 
     #print("Training accuracy")
     #printList(tr_accuracy)
+
+    print(model.state_dict())
 
     #print("Validation accuracy")
     #printList(val_accuracy)

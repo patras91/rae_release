@@ -169,7 +169,9 @@ def m2_t10_1():
         state.v[0] = 2
 
 def m1_tbackup():
-    alg.do_command(fail)
+    state.v[0] = 1
+    alg.do_task("l1")
+    alg.do_command(u1)
 
 def m2_tbackup():
     alg.do_command(fail)
@@ -186,6 +188,7 @@ alg.declare_task('t10_1')
 alg.declare_task('t10_2')
 
 alg.declare_task('tbackup')
+alg.declare_task('l1')
 
 alg.declare_methods('t', m1_t, m2_t, m3_t, m4_t)
 alg.declare_methods('t1', m1_t1, m2_t1)
@@ -197,6 +200,7 @@ alg.declare_methods('t_sr2', m1_tsr2)
 alg.declare_methods('t10', m1_t10)
 alg.declare_methods('t10_1', m1_t10_1, m2_t10_1)
 alg.declare_methods('tbackup', m1_tbackup, m2_tbackup)
+alg.declare_methods('l1', t1_c1)# t1_c1)
 
 alg.declare_commands([fail, t1_c1, t1_c2, sr1, sr2, sr3, c10, u1, u2, u3, u4])
 

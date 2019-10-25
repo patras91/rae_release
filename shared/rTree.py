@@ -627,6 +627,8 @@ class SearchTreeNode():
             else:
                 self.Q[index] = Utility(utilVal)
 
+            if self.Q[index] == Utility(float("inf")):
+                print("infinite Q")
             self.n[index] += 1
             self.N += 1
             self.updateIndex = None # to be safe
@@ -706,11 +708,13 @@ class SearchTreeNode():
         if self.type == "task":
             #for each child get q and labels and add to l
             for i in range(0, len(self.Q)):
-                l.Add(self.children[i].prevState, 
-                    self.children[i].GetLabel(), self.Q[i] + util, 
-                    self.label, mainTask, None) 
-            for child in self.children:
-                child.GetTrainingItems(l, util, mainTask)
+                if self.n[i] == 0:
+                    print("Found an unexplored path")
+                else:
+                    l.Add(self.children[i].prevState, 
+                        self.children[i].GetLabel(), self.Q[i] + util, 
+                        self.label, mainTask, None) 
+                    self.children[i].GetTrainingItems(l, util, mainTask)
         elif self.type == "method" or self.type == "state":
             if len(self.children) > 0:
                 self.children[0].GetTrainingItems(l, util, mainTask)

@@ -1,10 +1,23 @@
 import torch
 import math
 import ast
+import numpy as np
+import pdb
 
 def GetLabel(yhat):
     r, predicted = torch.max(yhat, 0)
     return predicted.long()
+
+UpperLimits = {
+	"CR": {
+		"loc": 11,
+		"charge": 5,
+		"load": 4,
+		"pos": 13,
+		"emergencyHandling": 2,
+		"view": 2,
+	}
+}
 
 methodCodes = {
 	"CR": {
@@ -181,11 +194,11 @@ def GetPosString(pos):
 		key = parts[0]
 		val = parts[1]
 		if val == '\'Unknown\'':
-			res.append('0.1')
+			res.append('0')
 		elif val == '\'r1\'':
-			res.append('0.3')
+			res.append('11')
 		elif val == '\'r2\'':
-			res.append('0.6')
+			res.append('12')
 		else:
 			res.append(val)
 
@@ -249,28 +262,60 @@ def GetViewString(v):
 
 	return " ".join(res)
 
+def ConvertToOneHot(label, upper):
+	onehot = np.zeros(upper)
+	onehot[int(label)]=1
+	return list(onehot)
+
 def ReadStateVars_CR(line, f):
 	locs = line[4:-1]
 	locNumbers = GetNums(locs)
+	locations = locNumbers.split(' ')
+	onehotlocNumbers = []
+	for i in locations:
+		onehotlocNumbers+=ConvertToOneHot(i,UpperLimits['CR']['loc'])[1:]
+	onehotlocNumbers = [str(i) for i in onehotlocNumbers]
 
 	charge = f.readline()[6:-1]
 	chargeNumbers = GetNums(charge)
+	chargeNumbers = chargeNumbers.split(' ')
+	onehotchargeNumbers = []
+	for i in chargeNumbers:
+		onehotchargeNumbers+=ConvertToOneHot(i,UpperLimits['CR']['charge'])
+	onehotchargeNumbers = [str(i) for i in onehotchargeNumbers]
 
 	load = f.readline()[5:-1]
-	loadString = GetLoadString(load)
+	loadString = GetLoadString(load).split(' ')
+	onehotloadstring = []
+	for i in loadString:
+		onehotloadstring+=ConvertToOneHot(i,UpperLimits['CR']['load'])
+	onehotloadstring = [str(i) for i in onehotloadstring]
 
 	pos = f.readline()[4:-1]
-	posString = GetPosString(pos)
+	posString = GetPosString(pos).split(' ')
+	onehotposstring = []
+	for i in posString:
+		onehotposstring+=ConvertToOneHot(i,UpperLimits['CR']['pos'])
+	onehotposstring = [str(i) for i in onehotposstring]
 
 	containers = f.readline()[11:-1]
 
 	emergencyHandling = f.readline()[18:-1]
-	emergencyString = GetEmS(emergencyHandling)
+	emergencyString = GetEmS(emergencyHandling).split(' ')
+	onehotemstring = []
+	for i in emergencyString:
+		onehotemstring+=ConvertToOneHot(i,UpperLimits['CR']['emergencyHandling'])
+	onehotemstring = [str(i) for i in onehotemstring]
 
 	view = f.readline()[5:-1]
-	viewString = GetViewString(view)
-
-	return [locNumbers, chargeNumbers, loadString, posString, emergencyString, viewString]
+	viewString = GetViewString(view).split(' ')
+	onehotviewstring = []
+	for i in viewString:
+		onehotviewstring+=ConvertToOneHot(i,UpperLimits['CR']['view'])
+	onehotviewstring = [str(i) for i in onehotviewstring]
+	returnstring = onehotlocNumbers + onehotchargeNumbers + onehotloadstring + onehotposstring \
+					+ onehotemstring + onehotviewstring
+	return returnstring
 
 
 
@@ -691,12 +736,18 @@ def AddToRecordsAllTogether(l, new):
 def AddToRecordsTaskBased(l, new, task):
 	if task not in l:
 		l[task] = []
-	for item in l[task]:
-		if item == new:
-			#print(" item found in records for ", task)
+		AddToRecordsTaskBased.Counts[task] = []
+	for i in range(len(l[task])):
+		item = l[task][i]
+		if item[0:-1] == new[0:-1]:
+			n = AddToRecordsTaskBased.Counts[task][i]
+			item[-1] = str((float(new[-1]) + n * float(item[-1]))/(n+1))
+			print(" item found in records for ", task)
+			AddToRecordsTaskBased.Counts[task][i] += 1
 			return
 	l[task].append(new)
-
+	AddToRecordsTaskBased.Counts[task].append(1)
+AddToRecordsTaskBased.Counts = {}
 
 import argparse
 
@@ -932,7 +983,10 @@ if __name__ == "__main__":
 		taskCode = taskCodes[domain][task]
 		mainTaskCode = taskCodes[domain][mainTask]
 		methodCode = methodCodes[domain][method]
+		methodCode = ConvertToOneHot(methodCode, 10)
 
+		methodCode = [str(i) for i in methodCode]
+		#pdb.set_trace()
 		#record.append(str(taskCode))
 		#record.append(str(mainTaskCode))
 
@@ -941,7 +995,8 @@ if __name__ == "__main__":
 		if learnWhat == "m":
 			record.append(str(methodCode))
 		else:
-			record.append(str(methodCode))
+			record += methodCode
+			#record.append(str(methodCode))
 
 			if domain == "SD":
 				for i in range(5):
@@ -962,19 +1017,22 @@ if __name__ == "__main__":
 			if taskBased == "y":
 				AddToRecordsTaskBased(recordL, record, task)
 			else:
-				AddToRecordsAllTogether(recordL, record)
+				#AddToRecordsAllTogether(recordL, record)
 		
+				fwrite.write(" ".join(record) + "\n")
+				print("written")
 		line = f.readline()
 	f.close()
 	if learnWhat == "e":
 		if taskBased == "y":
 			for task in recordL:
-				recordN = normalize(recordL[task])
-				for item in recordN:
+				#recordN = normalize(recordL[task])
+				#recordN = ConvertToOneHot(recordL[task])
+				for item in recordL[task]:
 					fwrite[task].write(" ".join([str(i) for i in item]) + "\n")
 		else:
-			recordN = normalize(recordL)
-			for item in recordN:
+			#recordN = normalize(recordL)
+			for item in recordL:
 				fwrite[task].write(" ".join([str(i) for i in item]) + "\n")
 	else:
 		for item in recordL:
