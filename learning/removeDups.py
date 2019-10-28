@@ -1,5 +1,11 @@
+import argparse
+
 if __name__=="__main__":
-	domain = "SD"
+	argparser.add_argument("--domain", help="domain in ['CR', 'SD', SR', 'EE', 'OF']",
+                           type=str, required=True)
+
+	args = argparser.parse_args()
+	domain == args.domain
 	f = open("../../raeResults/learning/{}/{}_data_eff_planner.txt".format(domain, domain), "r")
 	fw = open("../../raeResults/learning/{}/{}_data_eff_planner_without_dup.txt".format(domain, domain), "w")
 
