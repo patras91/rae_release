@@ -7,7 +7,7 @@ def ConvertToInt(a):
 	
 def GetChargeStr_EE(s):
 	d = ast.literal_eval(s)
-	nums = [str(item/10) for item in d.values()]
+	nums = [str(int(item/10)) for item in d.values()]
 	if len(nums) > 3:
 		print(" too many robots in EE")
 		exit()
@@ -31,46 +31,80 @@ def GetLocsStr_EE(s):
 		nums.append('0')
 	return (" ".join(nums))
 
+def GetPosStr_EE(s):
+	d = ast.literal_eval(s)
+	nums = []
+	for item in d.values():
+		if item[0] == 'b':
+			nums.append('0')
+		elif item[0] == 'z':
+			nums.append(item[1:])
+		elif item == "UAV":
+			nums.append('8')
+		elif item == "r1":
+			nums.append('9')
+		elif item == 'r2':
+			nums.append('10')
+		else:
+			print("Unconsidered position ", item)
+
+	if len(nums) > 3:
+		print(" too many robots in EE")
+		exit()
+	while(len(nums) < 3):
+		nums.append('0')
+	return (" ".join(nums))
+
+def GetDataStr_EE(s):
+	d = ast.literal_eval(s)
+	nums = []
+	for item in d.values():
+		nums.append(str(item))
+
+	if len(nums) > 3:
+		print(" too many robots in EE")
+		exit()
+	while(len(nums) < 3):
+		nums.append('0')
+	return (" ".join(nums))
+
 def EncodeState_EE(state):
 	a = state.split("\n")
 	#loc {'r1': 'base', 'r2': 'z5', 'UAV': 'base'}
 	a1 = a[0][4:]
+	a1H = ConvertToOneHot(ConvertToInt(GetLocsStr_EE(a1)), 'loc', 'EE')
 
 	#charge {'UAV': 80, 'r1': 80, 'r2': 15}
 	a2 = a[1][7:]
+	a2H = ConvertToOneHot(ConvertToInt(GetChargeStr_EE(a2)), 'charge', 'EE')
 
 	#data {'UAV': 3, 'r1': 3, 'r2': 1}
 	a3 = a[2][5:]
+	a3H = ConvertToOneHot(ConvertToInt(GetDataStr_EE(a3)), 'data', 'EE')
 
 	#pos {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base', 'o1': 'UAV'}
 	a4 = a[3][4:]
+	a4H = ConvertToOneHot(ConvertToInt(GetPosStr_EE(a4)), 'pos', 'EE')
 
 	#load {'r1': 'nil', 'r2': 'nil', 'UAV': 'o1'}
 	a5 = a[4][5:]
+	a5H = ConvertToOneHot(ConvertToInt(GetLoadStr_EE(a5)), 'load', 'EE')
 
 	#storm {'active': True}
 
-	return ConvertToInt(GetLocsStr_EE(a1)) + \
-		ConvertToInt(GetChargeStr_EE(a2)) + \
-		ConvertToInt(GetChargeStr_EE(a3)) + \
-		ConvertToInt(GetPosStr_EE(a4)) + \
-		ConvertToInt(GetLoadStr_EE(a5))
+	return a1H + a2H + a3H + a4H + a5H
 
 def GetPosStr_EE(s):
 	d = ast.literal_eval(s)
 	pos = [str(item) for item in d.values()]
 	for i in range(0, len(pos)):
-		if pos[i] not in ['base', 'z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7', 'z8', 'z9', 'z10', 'z11']:
+		if pos[i] not in ['base', 'z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7']:
 			if pos[i] == 'r1':
-				pos[i] = '12'
+				pos[i] = '8'
 			elif pos[i] == 'r2':
-				pos[i] = '13'
-			elif pos[i] == 'r3':
-				pos[i] = '14'
-			elif pos[i] == 'r4':
-				pos[i] = '15'
-			elif pos[i] == "UAV":
-				pos[i] = '16'
+				pos[i] = '9'
+			elif pos[i] == 'UAV':
+				pos[i] = '10'
 			else:
 				print(" invalid position in EE ", pos[i])
 				exit()
@@ -98,30 +132,84 @@ def GetLoadStr_EE(s):
 			res.append('0')
 		elif val == '\'o1\'':
 			res.append('1')
-		elif val == '\'o1\'':
-			res.append('2')
 		elif val == '\'e1\'':
-			res.append('3')
+			res.append('2')
 		elif val == '\'e2\'':
-			res.append('4')
+			res.append('3')
 		elif val == '\'e3\'':
-			res.append('5')
+			res.append('4')
 		elif val == '\'e4\'':
-			res.append('6')
+			res.append('5')
 		elif val == '\'e5\'':
-			res.append('7')
+			res.append('6')
 		elif val == '\'c1\'':
-			res.append('8')
+			res.append('7')
 		else:
 			print("error load = ", val, " in EE")
 			exit()
-	if len(res) > 4:
-		print("error more than 4 robots in EE")
+	if len(res) > 3:
+		print("error more than 3 robots in EE")
 		exit()
 
-	while len(res) < 4:
+	while len(res) < 3:
 		res.append('0')
 	return " ".join(res)
+
+def ReadTaskAndArgs_EE(taskAndArgs):
+	params = taskAndArgs.split(' ')
+	task = params[0]
+	robotStr = params[1]
+	robot = robotStr[2:4]
+	#print("robot = ", robot)
+	if robot == "r1":
+		res = [1, 0, 0]
+	elif robot == "r2":
+		res = [0, 1, 0]
+	elif robot == "UA":
+		res = [0, 0, 1]
+	else:
+		print("unknown robot ", robot)
+	
+	if task == "moveTo" or task == "flyTo" or task == "handleEmergency":
+		if params[2][1] == 'b':
+			l = 0
+		else:
+			l = int(params[2][2:3])
+		#print(" l = ", l)
+
+		res += ConvertToOneHotHelper(l, 8)
+	elif task == "explore":
+		if params[3][1] == 'b':
+			l = 0
+		else:
+			#print(params[3])
+			l = int(params[3][2:3])
+		#print(" l = ", l)
+		#print(" l = ",l)
+		res +=  ConvertToOneHotHelper(l, 8)
+	else:
+		res += [0]*8
+
+	if task == "moveThroughDoorway":
+		door = params[2][1:3]
+	elif task == "unlatch":
+		door = params[2][1:3]
+	else:
+		door = None
+
+	#print("door = ", door)
+	if door == None:
+		res += [0, 0, 0]
+	elif door == "d1":
+		res += [1, 0, 0]
+	elif door == "d2":
+		res += [0, 1, 0]
+	else:
+		res += [0, 0, 1]
+
+	#print(task)
+	#print(res)
+	return res
 
 def ReadStateVars_EE(line, f):
 	for i in range(0, 6):

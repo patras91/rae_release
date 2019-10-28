@@ -46,7 +46,7 @@ def make_train_step(model, loss_fn, optimizer):
 # Builds a simple sequential model
 
 features = {
-    "EE": 23 - 2,
+    "EE": 204, #23 - 2,
     "SD": 144, #25 - 2,
     "SR": 401, #24 - 2,
     "OF": 0,
@@ -54,7 +54,7 @@ features = {
 }
 
 outClasses = {
-    "EE": 1,
+    "EE": 100,
     "SD": 75,
     "SR": 10,
     "OF": 1,
@@ -278,7 +278,7 @@ if __name__ == "__main__":
         }
     else:
         lrD = {
-            "EE": 1e-3,
+            "EE": 1e-1,
             "SD": 1e-1,
             "SR": 1e-1,
             "CR": 1e-2,

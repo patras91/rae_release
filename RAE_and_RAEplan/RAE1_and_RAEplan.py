@@ -718,7 +718,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
     if GLOBALS.GetUseTrainedModel() == "hp" and GLOBALS.GetOpt() == "max":
         domain = GLOBALS.GetDomain()
         features = {
-            "EE": 23 - 2,
+            "EE": 204, #23 - 2,
             "SD": 144,
             "SR": 401,
             "OF": 0,
@@ -726,7 +726,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
         }
 
         outClasses = {
-            "EE": 1,
+            "EE": 100,
             "SD": 75,
             "SR": 10,
             "OF": 1,
@@ -744,7 +744,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
             nn.Linear(512, 512), 
             nn.ReLU(inplace=True), 
             nn.Linear(512, outClasses[domain]))
-        elif domain == "SR" or domain == "SD":
+        elif domain == "SR" or domain == "SD" or domain == "EE":
             model = nn.Sequential(nn.Linear(features[domain], 1024), 
             nn.ReLU(inplace=True),
             nn.Linear(1024, outClasses[domain]))

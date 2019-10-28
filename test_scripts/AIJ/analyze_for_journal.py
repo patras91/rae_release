@@ -215,7 +215,7 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
     res['actTime'].append(actTime)
     res['totalTime'].append(1 * planTime + 1 * actTime)
     res['nu'].append(nu / totalTasks)
-    res['nu_error'].append(GetMSEError(nu_L, nu/totalTasks, 25))
+    res['nu_error'].append(GetMSEError(nu_L, nu/totalTasks, 100))
     res['timeOut'].append(timeOutCount)
 
 def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
@@ -342,7 +342,7 @@ def Populate_UCT_max_depth_learning(res, domain, model):
     elif model == "planner":
         f1 = "{}{}_v_journal/RAE_with_trained_model_planner.txt".format(resultsFolder, domain)
     elif model == "planning":
-        if domain == "CR":
+        if domain == "CR" or domain == "EE":
             f1 = "{}{}_v_journal/RAE_with_planning.txt".format(resultsFolder, domain)
         else:
             f1 = "{}{}_v_journal_eff/rae_plan_uct_100.txt".format(resultsFolder, domain)
@@ -350,7 +350,7 @@ def Populate_UCT_max_depth_learning(res, domain, model):
         f1 = "{}{}_v_journal/RAE_with_trained_heuristic_10_3.txt".format(resultsFolder, domain)
     elif model == "reactive" or domain == "SD":
         f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
-    elif model == "heuristic0_10_3" or domain == "SR":
+    elif model == "heuristic0_10_3" or domain == "SR" or domain == "EE":
         f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0_10_3.txt".format(resultsFolder, domain)
     elif model == "heuristic":
         f1 = "{}{}_v_journal/RAE_with_trained_heuristic.txt".format(resultsFolder, domain)
@@ -921,9 +921,9 @@ def PlotHelper_UCT_max_learning(resDict, utilp, errorP):
     rects5 = ax.bar(x + 5*width/2, calledPlanner, width, label='Called RAEplan-UCT', yerr=errP)
     #rects6 = ax.bar(x + 7*width/2, learnedHeuristic0_10_3, width, label='Baseline with 0 heuristic', yerr=errHE0_10_3)
     if index1 == "nu":
-        ax.set_ylim(bottom=0.06)
+        ax.set_ylim(bottom=0.0)
     elif index1 == "successRatio":
-        ax.set_ylim(bottom=0.75)
+        ax.set_ylim(bottom=0.1)
 
     #rects5 = ax.bar(x + 5*width/2, learnedHeuristic, width, label='Learned Efficiency', yerr=errHE)
     #rects5 = ax.bar(x + 7*width/2, learnedHeuristic5, width, label='Learned Efficiency 5', yerr=errHE5)
@@ -1102,7 +1102,7 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["SD"] #, "SD"] #"EE", "OF", "SR"]
+    D = ["EE"] #, "SD"] #"EE", "OF", "SR"]
     if args.depth == "max":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()

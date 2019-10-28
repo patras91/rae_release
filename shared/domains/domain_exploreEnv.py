@@ -757,3 +757,7 @@ def Heuristic2_e(args):
 if GLOBALS.GetHeuristicName() == 'h2':
     alg.declare_heuristic('doActivities', Heuristic2)
     alg.declare_heuristic('handleEmergency', Heuristic2_e)
+elif GLOBALS.GetHeuristicName() == "h1":
+    alg.declare_heuristic('doActivities', Heuristic1)
+    alg.declare_heuristic('handleEmergency', Heuristic1)
+
