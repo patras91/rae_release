@@ -89,27 +89,6 @@ def GetAccValue(acc):
         s += 1
     return v/s
 
-def GetEff(x):
-    #return x
-    #return x*0.422 + 0.0408 #CR
-    return x*0.073 + 0.031 #SD
-    
-
-def GetOneHotAccuracyValues1(yhat, y):
-    res = []
-    for i1, i2 in zip(yhat, y):
-        y1 = i1
-        y2 = i2
-        #if abs(y1 - y2)/abs(y2) < 0.1 or (abs(y2) == 0 and abs(y1) < 0.001):
-        if y1 == y2:
-            res.append(1)
-            #res.append(abs(y1 - y2)/(abs(y2)))
-        #elif abs(y2) != 0:
-        else:
-            res.append(0)
-            #res.append(abs(y1 - y2)/(abs(y2)))
-    return res
-
 def GetOneHotAccuracyValues(yhat, y):
     res = []
     for i1, i2 in zip(yhat, y):
@@ -206,10 +185,6 @@ if __name__ == "__main__":
             items = nums.split(" ")
             x_row = [float(i) for i in items[0:-1]]
             x.append(x_row)
-            #y.append([float(items[-1])])
-            #if float(items[-1]) > 0.09918952176412826:
-            #    items[-1] = 99
-            #print(int(items[-1])/2)
             y.append(int(int(items[-1])))
         r = np.random.rand()
         line = fileIn.readline()
@@ -250,21 +225,30 @@ if __name__ == "__main__":
     val_loader = DataLoader(dataset=val_dataset, batch_size=128)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
-    model = nn.Sequential(nn.Linear(features[domain], 1024), 
-        nn.ReLU(inplace=True),
-        #nn.Linear(1024, 1024), 
-        #nn.ReLU(inplace=True),
-        #nn.Tanh(),
-        #nn.Tanhshrink(),
-        #nn.Softplus(),
-        #nn.Sigmoid(), 
-        #nn.Dropout(p=0.1), #was in CR
-        #nn.PReLU(),
-        #nn.Sigmoid(),
-        #nn.Linear(512, 512), 
-        #nn.ReLU(inplace=True), # was in CR
-        nn.Linear(1024, outClasses[domain]))
-        #nn.Sigmoid()))
+    if domain == "EE" or domain == "SR" or domain == "SD":
+        model = nn.Sequential(nn.Linear(features[domain], 1024), 
+            nn.ReLU(inplace=True),
+            #nn.Linear(1024, 1024), 
+            #nn.ReLU(inplace=True),
+            #nn.Tanh(),
+            #nn.Tanhshrink(),
+            #nn.Softplus(),
+            #nn.Sigmoid(), 
+            #nn.Dropout(p=0.1), 
+            #nn.PReLU(),
+            #nn.Sigmoid(),
+            #nn.Linear(512, 512), 
+            #nn.ReLU(inplace=True), 
+            nn.Linear(1024, outClasses[domain]))
+            #nn.Sigmoid()))
+    elif domain == "CR":
+        model = nn.Sequential(nn.Linear(features[domain], 512), 
+            nn.ReLU(inplace=True),
+            nn.Linear(512, 512), 
+            nn.Dropout(p=0.1),
+            nn.Linear(512, 512), 
+            nn.ReLU(inplace=True), 
+            nn.Linear(512, outClasses[domain]))
     #print(model.state_dict())
 
     # Sets hyper-parameters
