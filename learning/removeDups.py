@@ -1,11 +1,12 @@
 import argparse
 
 if __name__=="__main__":
+	argparser = argparse.ArgumentParser()
 	argparser.add_argument("--domain", help="domain in ['CR', 'SD', SR', 'EE', 'OF']",
                            type=str, required=True)
 
 	args = argparser.parse_args()
-	domain == args.domain
+	domain = args.domain
 	f = open("../../raeResults/learning/{}/{}_data_eff_planner.txt".format(domain, domain), "r")
 	fw = open("../../raeResults/learning/{}/{}_data_eff_planner_without_dup.txt".format(domain, domain), "w")
 
@@ -13,9 +14,10 @@ if __name__=="__main__":
 	records = []
 	count = 0
 
-	lim  = {
-		"SR": 13,
+	lim  = { # num of stat vars + 3
+		"SR": 13, 
 		"SD": 9,
+		"EE": 9,
 	}
 	lineN = 0
 	while(line != ""):
