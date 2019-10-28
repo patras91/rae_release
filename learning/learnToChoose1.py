@@ -323,7 +323,7 @@ if __name__ == "__main__":
 
     print("Validation accuracy")
     printList(val_accuracy)
-    #torch.save(model.state_dict(), "model{}_{}".format(domain, modelFrom))
+    #torch.save(model.state_dict(), "models/model{}_{}".format(domain, modelFrom))
     
 
 

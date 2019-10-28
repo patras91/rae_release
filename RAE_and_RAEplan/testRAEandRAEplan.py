@@ -135,7 +135,7 @@ if __name__ == "__main__":
                            type=str, default='n', required=False)
     argparser.add_argument("--utility", help="efficiency or successRatio?",
                            type=str, default="efficiency", required=False)
-    argparser.add_argument("--useTrainedModel", help="use Model Trained with Actor (a) / use Model Trained with Planner (p) / None (n)?", 
+    argparser.add_argument("--useTrainedModel", help="use Model Trained with Actor (a) / use Model Trained with Planner (p) / use learned heuristic (hp) / None (n)?", 
                         type=str, default="n", required=False)
     argparser.add_argument("--useBackupUCT", help="If RAEplanUCT fails, do you want to run UCT with only commands?",
                         type=bool, default=False, required=False)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
     if args.plan == 'y':
         s = True
-        assert(args.useTrainedModel == 'n')
+        assert(args.useTrainedModel == 'n' or args.useTrainedModel == 'hp')
     else:
         s = False
 
@@ -163,8 +163,10 @@ if __name__ == "__main__":
     GLOBALS.SetTimeLimit(args.timeLim)
     GLOBALS.SetLearningMode(None)
     GLOBALS.SetUseTrainedModel(args.useTrainedModel)
-    GLOBALS.SetModelPath("../learning/")
-    GLOBALS.SetBackupUCT(args.useBackupUCT)
+    GLOBALS.SetModelPath("../learning/models/")
+
+    GLOBALS.SetBackupUCT(args.useBackupUCT) # for NRL
+    
     if args.utility == "efficiency":
         GLOBALS.SetOpt("max")
     elif args.utility == "successRatio":

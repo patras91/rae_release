@@ -193,7 +193,7 @@ P=(
 "problem189"
 )
 UCT=(
-"100" 
+"5000" 
 )
 for problem in ${P[@]}
 do
@@ -210,8 +210,10 @@ GLOBALS.SetTimeLimit(300)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
+GLOBALS.SetHeuristicName('h2')
 GLOBALS.SetLearningMode('genEffDataPlanner')
-GLOBALS.SetSearchDepth(float(\"inf\"))"
+GLOBALS.SetUseTrainedModel('n')
+GLOBALS.SetSearchDepth(30)"
 counter=1
 while [ $counter -le $runs ]
 do

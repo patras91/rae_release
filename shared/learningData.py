@@ -15,6 +15,7 @@ class TrainingDataItem():
 		f.write(self.maintask + "\n")
 		f.write(self.m.GetName() + "\n")
 		f.write(str(self.e1) + "\n")
+		#print(str(self.e1) + "\n")
 		#if GLOBALS.GetLearningMode() == "genEffDataPlanner":
 		#	for item in self.actingTreeNodes:
 		#		f.write(str(item)+"\n")
@@ -35,7 +36,7 @@ class TrainingData():
 
 	def PrintInFile(self, suffix):
 		domain = GLOBALS.GetDomain()
-		fname = "{}_data_{}.txt".format(domain, suffix)
+		fname = "../../raeResults/learning/{}/{}_data_{}.txt".format(domain, domain, suffix)
 		f = open(fname, "a")
 		for item in self.l:
 			item.WriteInFile(f)

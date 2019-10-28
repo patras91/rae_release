@@ -2,7 +2,22 @@ import torch
 import math
 import ast
 import numpy as np
-import pdb
+
+def ConvertToOneHotHelper(label, upper):
+	onehot = np.zeros(upper)
+	onehot[int(label)]=1
+	return list(onehot)
+
+def ConvertToOneHot(a_int, varName, domain):
+	aH = []
+	for i in a_int:
+		aH += ConvertToOneHotHelper(i, UpperLimits[domain][varName])
+	return aH
+
+from encoder_CR import *
+from encoder_SR import *
+from encoder_SD import *
+#from encoder_EE import *
 
 def GetLabel(yhat):
     r, predicted = torch.max(yhat, 0)
@@ -16,9 +31,34 @@ UpperLimits = {
 		"pos": 13,
 		"emergencyHandling": 2,
 		"view": 2,
+	},
+	"SR": {
+		"loc": 30, #31
+		"medicine": 6,
+		"weather": 4,
+		"status": 9,
+		"currentImage": 2, #31
+		"altitude": 2,
+		"robot": 3,
+	},
+	"SD": {
+		"loc": 8,
+		"pos": 12,
+		"status": 3,
+		"doorType": 4,
+		"doorStatus": 4,
+		"load": 5,
 	}
 }
 
+intervals = {
+	# CR 100
+	# SD 75
+	# SR 10
+	"CR": [0, 3.991874036777851e-05, 8.183341775394595e-05, 0.00012584382900942176, 0.00017205476082767136, 0.00022057623923683347, 0.0002715237915664537, 0.0003250187215125549, 0.0003811883979559612, 0.00044016655822153776, 0.0005020936265003931, 0.0005671170481931913, 0.0006353916409706295, 0.0007070799633869394, 0.0007823527019240649, 0.0008613890773880468, 0.0009443772716252277, 0.0010315148755742677, 0.0011230093597207596, 0.001219078568074576, 0.0013199512368460835, 0.0014258675390561662, 0.001537079656376753, 0.0016538523795633694, 0.0017764637389093164, 0.0019052056662225607, 0.0020403846899014672, 0.002182322664764319, 0.0023313575383703137, 0.0024878441556566077, 0.002652155103807217, 0.0028246815993653563, 0.0030058344197014027, 0.0031960448810542516, 0.003395765865474743, 0.0036054728991162586, 0.0038256652844398504, 0.004056867289029622, 0.004299629393848882, 0.004554529603909104, 0.004822174824472338, 0.005103202306063734, 0.005398281161734699, 0.005708113960189213, 0.006033438398566452, 0.006375029058862554, 0.00673369925217346, 0.007110302955149912, 0.0075057368432751865, 0.007920942425806725, 0.00835690828746484, 0.008814672442205861, 0.009295324804683933, 0.009800009785285908, 0.010329929014917982, 0.01088634420603166, 0.011470580156701021, 0.012084027904903852, 0.012728148040516824, 0.013404474182910445, 0.014114616632423747, 0.014860266204412713, 0.01564319825500113, 0.016465276908118963, 0.01732845949389269, 0.018234801208955105, 0.019186460009770638, 0.02018570175062695, 0.021234905578526076, 0.02233656959782016, 0.023493316818078945, 0.02470790139935067, 0.025983215209685984, 0.027322294710538063, 0.028728328186432745, 0.03020466333612216, 0.03175481524329605, 0.03338247474582863, 0.03509151722348784, 0.03688601182503001, 0.03877023115664929, 0.04074866145484954, 0.042826013267959796, 0.045007232671725565, 0.047297513045679626, 0.049702307438331386, 0.05222734155061574, 0.05487862736851431, 0.05766247747730781, 0.06058552009154098, 0.06365471483648581, 0.06687736931867788, 0.07026115652497955, 0.07381413309159632, 0.07754475848654392, 0.0814619151512389, 0.08557492964916863, 0.08989359487199484, 0.09442819335596236, 0.09918952176412826, 1],
+	"SR": [0, 0.00015524707093654436, 0.000426929445075497, 0.0009023735998186641, 0.0017344008706192066, 0.0031904485945201556, 0.0057385321113468165, 0.010197678265793472, 0.018001184036075122, 0.03165731913406801],
+	"SD": [0, 3.489955672036314e-06, 7.398706024716986e-06, 1.1776506419719338e-05, 1.6679642862121975e-05, 2.217115567761293e-05, 2.8321650030962798e-05, 3.5210203706714654e-05, 4.292538382355673e-05, 5.156638555441986e-05, 6.124430749298656e-05, 7.208358006418127e-05, 8.422356534391934e-05, 9.782034885722598e-05, 0.00011304874639212942, 0.00013010455163122128, 0.00014920705349900416, 0.000170601855590921, 0.00019456403393386783, 0.0002214016736779683, 0.00025145983019136085, 0.0002851249654863605, 0.0003228299170167601, 0.0003650594627308077, 0.000412356553930541, 0.0004653292960742423, 0.0005246587672751877, 0.0005911077750202466, 0.0006655306636947125, 0.0007488842990101144, 0.0008422403705633646, 0.0009467991707030047, 0.0010639050268594016, 0.0011950635857545663, 0.0013419611717171507, 0.0015064864679952452, 0.0016907547998267112, 0.001897135331477953, 0.002128281526927344, 0.0023871652658306614, 0.0026771150534023774, 0.003001858815482699, 0.0033655718290126597, 0.0037729304041662155, 0.004229172008338198, 0.004740162605010818, 0.005312472073284153, 0.005953458677750289, 0.00667136367475236, 0.007475417271394681, 0.00837595729963408, 0.009384562131262207, 0.010514199542685709, 0.011779393443480031, 0.013196410612369673, 0.014783469841526072, 0.01656097617818124, 0.018551783275235025, 0.020781487223935267, 0.023278755646479538, 0.02607569627972912, 0.029208269788968653, 0.03271675211931693, 0.036646252329307, 0.04104729256449588, 0.045976457627907426, 0.051497122498928356, 0.057680267154471804, 0.06460538916868046, 0.07236152582459415, 0.0810483988792175, 0.09077769670039565, 0.10167451026011518, 0.11387894144700104, 0.12754790437631322, 1],
+}
 methodCodes = {
 	"CR": {
 	'Search_Method1': 0, 
@@ -80,6 +120,13 @@ methodCodes = {
     "HandleEmergency_Method1": 15,
     "HandleEmergency_Method3": 16,
 	}
+}
+
+numMethods = {
+	"CR": 10,
+	"SR": 16,
+	"EE": 17,	
+	"SD": 9,
 }
 
 taskCodes = {
@@ -144,594 +191,25 @@ actingNodeCodes = {
 	"fail": 20,
 	},
 }
-maxNum = 0
-def GetNums(s):
-	s = s[1:-1]
-	nums = []
-	items = s.split(",")
-	for item in items:
-		parts = item.split(": ")
-		key = parts[0]
-		val = parts[1]
-		nums.append(val)
 
-	if len(nums) > 2:
-		print("error")
-		exit()
-
-	if len(nums) == 1:
-		nums.append('0')
-	return " ".join(nums)
-
-def GetLoadString(s):
-	d = ast.literal_eval(s)
-	res = []
-	for key in d:
-		if d[key] == 'nil':
-			res.append('0')
-		elif d[key] == 'o1':
-			res.append('1')
-		elif d[key] == 'c1':
-			res.append('2')
-		else:
-			print("error ", d[key])
-			exit()
-	if len(res) > 2:
-		print("error")
-		exit()
-
-	if len(res) == 1:
-		res.append('0')
-	return " ".join(res)
-
-def GetPosString(pos):
-	pos = pos[1:-1]
-
-	res = []
-	items = pos.split(",")
-	for item in items:
-		parts = item.split(": ")
-		key = parts[0]
-		val = parts[1]
-		if val == '\'Unknown\'':
-			res.append('0')
-		elif val == '\'r1\'':
-			res.append('11')
-		elif val == '\'r2\'':
-			res.append('12')
-		else:
-			res.append(val)
-
-	if len(res) > 2:
-		print("error")
-		exit()
-
-	if len(res) == 1:
-		res.append('0')
-	return " ".join(res)
-
-def GetEmS(e):
-	e = e[1:-1]
-
-	res = []
-	items = e.split(",")
-	for item in items:
-		parts = item.split(": ")
-		key = parts[0]
-		val = parts[1]
-		if val == 'True':
-			res.append('1')
-		elif val == 'False':
-			res.append('0')
-		else:
-			print("error")
-			exit()
-
-	if len(res) > 2:
-		print("error")
-		exit()
-
-	if len(res) == 1:
-		res.append('0')
-	return " ".join(res)
-
-def GetViewString(v):
-	v = v[1:-1]
-
-	res = []
-	items = v.split(",")
-	for item in items:
-		parts = item.split(": ")
-		key = parts[0]
-		val = parts[1]
-		if val == 'True':
-			res.append('1')
-		elif val == 'False':
-			res.append('0')
-		else:
-			print("error")
-			exit()
-
-	if len(res) > 10:
-		print("error")
-		exit()
-
-	if len(res) < 10:
-		while(len(res) < 10):
-			res.append('0')
-
-	return " ".join(res)
-
-def ConvertToOneHot(label, upper):
-	onehot = np.zeros(upper)
-	onehot[int(label)]=1
-	return list(onehot)
-
-def ReadStateVars_CR(line, f):
-	locs = line[4:-1]
-	locNumbers = GetNums(locs)
-	locations = locNumbers.split(' ')
-	onehotlocNumbers = []
-	for i in locations:
-		onehotlocNumbers+=ConvertToOneHot(i,UpperLimits['CR']['loc'])[1:]
-	onehotlocNumbers = [str(i) for i in onehotlocNumbers]
-
-	charge = f.readline()[6:-1]
-	chargeNumbers = GetNums(charge)
-	chargeNumbers = chargeNumbers.split(' ')
-	onehotchargeNumbers = []
-	for i in chargeNumbers:
-		onehotchargeNumbers+=ConvertToOneHot(i,UpperLimits['CR']['charge'])
-	onehotchargeNumbers = [str(i) for i in onehotchargeNumbers]
-
-	load = f.readline()[5:-1]
-	loadString = GetLoadString(load).split(' ')
-	onehotloadstring = []
-	for i in loadString:
-		onehotloadstring+=ConvertToOneHot(i,UpperLimits['CR']['load'])
-	onehotloadstring = [str(i) for i in onehotloadstring]
-
-	pos = f.readline()[4:-1]
-	posString = GetPosString(pos).split(' ')
-	onehotposstring = []
-	for i in posString:
-		onehotposstring+=ConvertToOneHot(i,UpperLimits['CR']['pos'])
-	onehotposstring = [str(i) for i in onehotposstring]
-
-	containers = f.readline()[11:-1]
-
-	emergencyHandling = f.readline()[18:-1]
-	emergencyString = GetEmS(emergencyHandling).split(' ')
-	onehotemstring = []
-	for i in emergencyString:
-		onehotemstring+=ConvertToOneHot(i,UpperLimits['CR']['emergencyHandling'])
-	onehotemstring = [str(i) for i in onehotemstring]
-
-	view = f.readline()[5:-1]
-	viewString = GetViewString(view).split(' ')
-	onehotviewstring = []
-	for i in viewString:
-		onehotviewstring+=ConvertToOneHot(i,UpperLimits['CR']['view'])
-	onehotviewstring = [str(i) for i in onehotviewstring]
-	returnstring = onehotlocNumbers + onehotchargeNumbers + onehotloadstring + onehotposstring \
-					+ onehotemstring + onehotviewstring
-	return returnstring
-
-
-
-def GetLocsSR(s):
-	d = ast.literal_eval(s)
-	nums = []
-	for key in d:
-		(x, y) = d[key]
-		nums.append(str(x))
-		nums.append(str(y))
-
-	if len(nums) > 8:
-		print("error")
-		exit()
-
-	while(len(nums) < 8):
-		nums.append('0')
-	return " ".join(nums)
-
-def GetMedsSR(s):
-	s = s[1:-1]
-	nums = []
-	items = s.split(",")
-	for item in items:
-		parts = item.split(": ")
-		key = parts[0]
-		val = parts[1]
-		nums.append(val)
-
-	if len(nums) > 4:
-		print("error")
-		exit()
-
-	while(len(nums) < 4):
-		nums.append('0')
-	return " ".join(nums)
-
-def GetStatStr_SR(s):
-	d = ast.literal_eval(s)
-	nums = []
-	for key in d:
-		if d[key] == 'free':
-			nums.append('1')
-		elif d[key] == 'Unknown':
-			nums.append('2')
-		elif d[key] == 'OK':
-			nums.append('3')
-		elif d[key] == 'dead':
-			nums.append('4')
-		elif d[key] == 'OK':
-			nums.append('5')
-		elif d[key] == 'injured':
-			nums.append('6')
-		elif d[key] == 'hasDebri':
-			nums.append('7')
-		elif d[key] == 'clear':
-			nums.append('8')
-		elif d[key] == 'busy':
-			nums.append('9')
-		else:
-			print("unknown status in SR ", d[key])
-			exit()
-
-
-	return (" ".join(nums))
-
-def ReadStateVars_SR(line, f):
-	#loc {'w1': (7, 24), 'w2': (24, 11), 'p1': (22, 30), 'a1': (23, 15)}
-
-	locs = line[4:-1]
-	locNumbers = GetLocsSR(locs)
-
-	#hasMedicine {'a1': 0, 'w1': 0, 'w2': 0}
-	med = f.readline()[12:-1]
-	medStr = GetMedsSR(med)
-
-	#robotType {'w1': 'wheeled', 'a1': 'uav', 'w2': 'wheeled'}
-	ty = f.readline()[10:-1]
-	#tyStr = GetTypeStr_SR(ty)
-
-	#status {'w1': 'free', 'w2': 'free', 'a1': 'Unknown', 'p1': 'Unknown', (22, 30): 'Unknown'}
-	stat = f.readline()[7:-1]
-	statStr = GetStatStr_SR(stat)
-
-	#altitude {'a1': 'high'}
-	alt = f.readline()[9:-1]
-	altStr = GetAltStr_SR(alt)
-
-	#currentImage {'a1': None}
-	img = f.readline()[13:-1]
-	imgStr = GetImgStr_SR(img)
-
-	#realStatus {'w1': 'OK', 'p1': 'OK', 'w2': 'OK', 'a1': 'ok', (22, 30): 'hasDebri'}
-	#realPerson {(22, 30): 'p1'}
-	#newRobot {1: None}
-	f.readline()
-	f.readline()
-	f.readline()
-	
-	#weather {(22, 30): 'clear'}
-	w = f.readline()[8:-1]
-	weatherStr = GetWeatherStr_SR(w)
-	record = [locNumbers, medStr, statStr, altStr, imgStr, weatherStr]
-	return record
-
-def GetLoadString_SD(s):
-	print("s")
-	print(s)
-	print("s")
-	d = ast.literal_eval(s)
-	res = []
-	for key in d:
-		val = d[key]
-		if val == 'nil':
-			res.append('0')
-		elif val == 'o1':
-			res.append('1')
-		elif val == 'o1':
-			res.append('2')
-		elif val == 'H':
-			res.append('3')
-		else:
-			print("error load = ", val, " in SD")
-			exit()
-	if len(res) > 4:
-		print("error more than 4 robots in SD")
-		exit()
-
-	while len(res) < 4:
-		res.append('0')
-	return " ".join(res)
-
-def GetStatusString_SD(s):
-	d = ast.literal_eval(s)
-	nums = []
-	for key in d:
-		if d[key] == 'busy':
-			nums.append('1')
-		else:
-			nums.append('0')
-	if len(nums) > 4:
-		print(" too many robots in SD")
-		exit()
-	while(len(nums) < 4):
-		nums.append('0')
-
-	return (" ".join(nums))
-
-def GetAltStr_SR(s):
-	d = ast.literal_eval(s)
-	nums = []
-	for key in d:
-		if d[key] == 'high':
-			nums.append('1')
-		else:
-			nums.append('0')
-
-	return (" ".join(nums))
-
-def GetImgStr_SR(s):
-	d = ast.literal_eval(s)
-	nums = []
-	for key in d:
-		if d[key] == None:
-			nums.append('0 0')
-		else:
-			d2 = d[key]
-			if d2['loc'] != None:
-				(l1, l2) = d2['loc']
-				nums.append(str(l1) + ' ' + str(l2))
-			else:
-				nums.append('0 0')
-	return (" ".join(nums))
-
-def GetWeatherStr_SR(s):
-	d = ast.literal_eval(s)
-	nums = []
-	#"clear", "rainy", "dustStorm", "foggy"
-	for key in d:
-		if d[key] == 'clear':
-			nums.append('0')
-		elif d[key] == 'rainy':
-			nums.append('1')
-		elif d[key] == 'dustStorm':
-			nums.append('2')
-		else:
-			nums.append('3')
-
-	return (" ".join(nums))
-
-
-def GetLocStr_SD(s):
-	d = ast.literal_eval(s)
-	nums = [str(item) for item in d.values()]
-	if len(nums) > 4:
-		print(" too many robots in SD")
-		exit()
-	while(len(nums) < 4):
-		nums.append('0')
-	return (" ".join(nums))
-
-def GetChargeStr_EE(s):
-	d = ast.literal_eval(s)
-	nums = [str(item/10) for item in d.values()]
-	if len(nums) > 3:
-		print(" too many robots in EE")
-		exit()
-	while(len(nums) < 3):
-		nums.append('0')
-	return (" ".join(nums))
-
-def GetLocsStr_EE(s):
-	d = ast.literal_eval(s)
-	nums = []
-	for item in d.values():
-		if item[0] == 'b':
-			nums.append('0')
-		else:
-			nums.append(item[1:])
-
-	if len(nums) > 3:
-		print(" too many robots in EE")
-		exit()
-	while(len(nums) < 3):
-		nums.append('0')
-	return (" ".join(nums))
-
-def GetPosStr_SD(s):
-	d = ast.literal_eval(s)
-	pos = [str(item) for item in d.values()]
-	for i in range(0, len(pos)):
-		if pos[i] not in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']:
-			if pos[i] == 'r1':
-				pos[i] = '12'
-			elif pos[i] == 'r2':
-				pos[i] = '13'
-			elif pos[i] == 'r3':
-				pos[i] = '14'
-			elif pos[i] == 'r4':
-				pos[i] = '15'
-			else:
-				print(" invalid position in SD ", pos[i])
-				exit()
-	if len(pos) > 2:
-		print(" too many objects in SD")
-		exit()
-	while(len(pos) < 2):
-		pos.append('0')
-	return " ".join(pos)
-
-def GetDoorStatusStr_SD(s):
-	d = ast.literal_eval(s)
-	res = []
-	for key in d:
-		if d[key] == "opened":
-			res.append('0')
-		elif d[key] == "closed":
-			res.append('1')
-		elif d[key] == "held":
-			res.append('2')
-		else:
-			print("invalid door status")
-			exit()
-
-	while(len(res) < 4):
-		res.append('0')
-
-	return " ".join(res)
-
-def GetDoorTypeStr_SD(s):
-	d = ast.literal_eval(s)
-	res = []
-	for key in d:
-		if d[key] == "Unknown":
-			res.append('0')
-		elif d[key] == "ordinary":
-			res.append('1')
-		elif d[key] == "spring":
-			res.append('2')
-		else:
-			print("invalid door type")
-			exit()
-
-	while(len(res) < 4):
-		res.append('0')
-
-	return " ".join(res)
-
-def ReadStateVars_SD(line, f):
-	#load {'r1': 'nil', 'r2': 'nil', 'r3': 'nil'}
-	print("reading stat vars")
-	a1 = line[5:-1]
-
-	#status {'r1': 'busy', 'r2': 'free', 'r3': 'busy'}
-	a2 = f.readline()[7:-1]
-
-	#loc {'r1': 2, 'r2': 1, 'r3': 2}
-	a3 = f.readline()[4:-1]
-
-	#pos {'o1': 1}
-	a4 = f.readline()[4:-1]
-
-	#doorStatus {'d1': 'closed', 'd2': 'closed'}
-	a5 = f.readline()[11:-1]
-
-	#doorType {'d1': 'Unknown', 'd2': 'Unknown'}
-	a6 = f.readline()[9:-1]
-
-	return [GetLoadString_SD(a1), 
-		GetStatusString_SD(a2), 
-		GetLocStr_SD(a3), 
-		GetPosStr_SD(a4), 
-		GetDoorStatusStr_SD(a5), 
-		GetDoorTypeStr_SD(a6)]
-
-def GetPosStr_EE(s):
-	d = ast.literal_eval(s)
-	pos = [str(item) for item in d.values()]
-	for i in range(0, len(pos)):
-		if pos[i] not in ['base', 'z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7', 'z8', 'z9', 'z10', 'z11']:
-			if pos[i] == 'r1':
-				pos[i] = '12'
-			elif pos[i] == 'r2':
-				pos[i] = '13'
-			elif pos[i] == 'r3':
-				pos[i] = '14'
-			elif pos[i] == 'r4':
-				pos[i] = '15'
-			elif pos[i] == "UAV":
-				pos[i] = '16'
-			else:
-				print(" invalid position in EE ", pos[i])
-				exit()
-		else:
-			if pos[i] == 'base':
-				pos[i] = '0'
-			else:
-				pos[i] = pos[i][1:]
-	if len(pos) > 7:
-		print(" too many objects in EE", len(pos), pos)
-		exit()
-	while(len(pos) < 7):
-		pos.append('0')
-	return " ".join(pos)
-
-def GetLoadStr_EE(s):
-	s = s[1:-1]
-	res = []
-	items = s.split(",")
-	for item in items:
-		parts = item.split(": ")
-		key = parts[0]
-		val = parts[1]
-		if val == '\'nil\'':
-			res.append('0')
-		elif val == '\'o1\'':
-			res.append('1')
-		elif val == '\'o1\'':
-			res.append('2')
-		elif val == '\'e1\'':
-			res.append('3')
-		elif val == '\'e2\'':
-			res.append('4')
-		elif val == '\'e3\'':
-			res.append('5')
-		elif val == '\'e4\'':
-			res.append('6')
-		elif val == '\'e5\'':
-			res.append('7')
-		elif val == '\'c1\'':
-			res.append('8')
-		else:
-			print("error load = ", val, " in EE")
-			exit()
-	if len(res) > 4:
-		print("error more than 4 robots in EE")
-		exit()
-
-	while len(res) < 4:
-		res.append('0')
-	return " ".join(res)
-
-def ReadStateVars_EE(line, f):
-	#loc {'r1': 'base', 'r2': 'z5', 'UAV': 'base'}
-	a1 = line[4:-1]
-
-	#charge {'UAV': 80, 'r1': 80, 'r2': 15}
-	a2 = f.readline()[7:-1]
-
-	#data {'UAV': 3, 'r1': 3, 'r2': 1}
-	a3 = f.readline()[5:-1]
-
-	#pos {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base', 'o1': 'UAV'}
-	a4 = f.readline()[4:-1]
-
-	#load {'r1': 'nil', 'r2': 'nil', 'UAV': 'o1'}
-	a5 = f.readline()[5:-1]
-
-	#storm {'active': True}
-	f.readline()
-
-	return [GetLocsStr_EE(a1), 
-		GetChargeStr_EE(a2),
-		GetChargeStr_EE(a3),
-		GetPosStr_EE(a4),
-		GetLoadStr_EE(a5),
-		] 
 
 domain = None
 
 def AddToRecordsAllTogether(l, new):
-	for item in l:
-		if new == item:
-			#print("found match")
+	if len(l) % 100 == 0:
+		print(len(l))
+	for i in range(len(l)):
+		item = l[i]
+		if new[0:-1] == item[0:-1]:
+			n = AddToRecordsAllTogether.Counts[i]
+			eff = (float(new[-1]) + n * float(item[-1]))/(n+1)
+			item[-1] = str(eff)
+			#print("Updated ", i)
+			AddToRecordsAllTogether.Counts[i] += 1
 			return
 	l.append(new)
+	AddToRecordsAllTogether.Counts.append(1)
+AddToRecordsAllTogether.Counts = []
 
 def AddToRecordsTaskBased(l, new, task):
 	if task not in l:
@@ -755,114 +233,6 @@ def ConvertToInt(a):
 	x = a.split(" ")
 	return [float(i) for i in x]
 
-def EncodeState_CR(state):
-	a = state.split("\n")
-	locs = a[0][4:]
-	locNumbers = ConvertToInt(GetNums(locs))
-
-	charge = a[1][6:]
-	chargeNumbers = ConvertToInt(GetNums(charge))
-
-	load = a[2][5:]
-	loadString = ConvertToInt(GetLoadString(load))
-
-	pos = a[3][4:]
-	posString = ConvertToInt(GetPosString(pos))
-
-	emergencyHandling = a[5][18:]
-	emergencyString = ConvertToInt(GetEmS(emergencyHandling))
-
-	view = a[6][5:]
-	viewString = ConvertToInt(GetViewString(view))
-
-	return locNumbers + chargeNumbers + loadString + posString + emergencyString + viewString
-
-def EncodeState_SD(state):
-	a = state.split("\n")
-	#load {'r1': 'nil', 'r2': 'nil', 'r3': 'nil'}	
-	a1 = a[0][5:]
-
-	#status {'r1': 'busy', 'r2': 'free', 'r3': 'busy'}
-	a2 = a[1][7:]
-
-	#loc {'r1': 2, 'r2': 1, 'r3': 2}
-	a3 = a[2][4:]
-
-	#pos {'o1': 1}
-	a4 = a[3][4:]
-
-	#doorStatus {'d1': 'closed', 'd2': 'closed'}
-	a5 = a[4][11:]
-
-	#doorType {'d1': 'Unknown', 'd2': 'Unknown'}
-	a6 = a[5][9:]
-
-	return ConvertToInt(GetLoadString_SD(a1)) + ConvertToInt(GetStatusString_SD(a2)) + ConvertToInt(GetLocStr_SD(a3)) + ConvertToInt(GetPosStr_SD(a4)) + ConvertToInt(GetDoorStatusStr_SD(a5)) + ConvertToInt(GetDoorTypeStr_SD(a6))
-
-def EncodeState_SR(state):
-
-	a = state.split("\n")
-	#loc {'w1': (7, 24), 'w2': (24, 11), 'p1': (22, 30), 'a1': (23, 15)}
-
-	locs = a[0][4:]
-	locNumbers = ConvertToInt(GetLocsSR(locs))
-
-	#hasMedicine {'a1': 0, 'w1': 0, 'w2': 0}
-	med = a[1][12:]
-	medStr = ConvertToInt(GetMedsSR(med))
-
-	#robotType {'w1': 'wheeled', 'a1': 'uav', 'w2': 'wheeled'}
-	#ty = a[2][10:]
-	#tyStr = ConvertToInt(GetTypeStr_SR(ty))
-
-	#status {'w1': 'free', 'w2': 'free', 'a1': 'Unknown', 'p1': 'Unknown', (22, 30): 'Unknown'}
-	stat = a[3][7:]
-	statStr = ConvertToInt(GetStatStr_SR(stat))
-
-	#altitude {'a1': 'high'}
-	alt = a[4][9:]
-	altStr = ConvertToInt(GetAltStr_SR(alt))
-
-	#currentImage {'a1': None}
-	img = a[5][13:]
-	imgStr = ConvertToInt(GetImgStr_SR(img))
-
-	#realStatus {'w1': 'OK', 'p1': 'OK', 'w2': 'OK', 'a1': 'ok', (22, 30): 'hasDebri'}
-	#realPerson {(22, 30): 'p1'}
-	#newRobot {1: None}
-	
-	#weather {(22, 30): 'clear'}
-	w = a[9][8:]
-	weatherStr = ConvertToInt(GetWeatherStr_SR(w))
-
-	record = locNumbers + medStr + statStr + altStr + imgStr + weatherStr
-	return record
-
-def EncodeState_EE(state):
-	a = state.split("\n")
-	#loc {'r1': 'base', 'r2': 'z5', 'UAV': 'base'}
-	a1 = a[0][4:]
-
-	#charge {'UAV': 80, 'r1': 80, 'r2': 15}
-	a2 = a[1][7:]
-
-	#data {'UAV': 3, 'r1': 3, 'r2': 1}
-	a3 = a[2][5:]
-
-	#pos {'c1': 'base', 'e1': 'base', 'e2': 'base', 'e3': 'base', 'e4': 'base', 'e5': 'base', 'o1': 'UAV'}
-	a4 = a[3][4:]
-
-	#load {'r1': 'nil', 'r2': 'nil', 'UAV': 'o1'}
-	a5 = a[4][5:]
-
-	#storm {'active': True}
-
-	return ConvertToInt(GetLocsStr_EE(a1)) + \
-		ConvertToInt(GetChargeStr_EE(a2)) + \
-		ConvertToInt(GetChargeStr_EE(a3)) + \
-		ConvertToInt(GetPosStr_EE(a4)) + \
-		ConvertToInt(GetLoadStr_EE(a5))
-
 def Encode(domain, state, task, mainTask):
 	if domain == "CR":
 		x = EncodeState_CR(state)
@@ -880,6 +250,31 @@ def Encode(domain, state, task, mainTask):
 	mainTaskCode = taskCodes[domain][mainTask]
 	x.append(mainTaskCode)
 	return x
+
+def EncodeForHeuristic(domain, state, method, taskAndArgs):
+	if domain == "CR":
+		x = EncodeState_CR(state)
+	elif domain == "SR":
+		x = EncodeState_SR(state)
+		x += ReadTaskAndArgs_SR(taskAndArgs)
+	elif domain == "SD":
+		x = EncodeState_SD(state)
+		x += ReadTaskAndArgs_SD(taskAndArgs)
+	elif domain == "EE":
+		x = EncodeState_EE(state)
+	elif domain == "OF":
+		x = EncodeState_OF(state)
+
+	methodCode = ConvertToOneHotHelper(methodCodes[domain][method], numMethods[domain])
+	x += methodCode
+	return x
+
+def DecodeForHeuristic(domain, interval):
+	num = GetLabel(interval)
+	return (intervals[domain][num] + intervals[domain][num + 1])/2
+
+	#num = GetLabel(interval)
+	#return (num +0.5)*0.0010419 
 
 def Decode(domain, yhat):
 	label = GetLabel(yhat)
@@ -924,6 +319,88 @@ def normalize(l):
 
 	return l2
 
+eL = []
+maxE = 0
+def AddToeL(e):
+	e1 = float(e) * 10000
+	e2 = round(e1)/10000
+	if e2 not in eL:
+		global maxE
+		if e2 > maxE:
+			print(e2)
+			maxE = e2
+		eL.append(e2)
+
+def DivideIntoIntervalsEqual(l):
+	maxE = 0
+	for item in l:
+		e = float(item[-1])
+		if e > maxE:
+			maxE = e
+
+	step = maxE/100
+
+	print("step = ", step, " maxE = ", maxE)
+
+	for item in l:
+		e = float(item[-1])
+		i = math.floor(e/step)
+		item[-1] = str(i)
+	return l
+
+def DivideIntoIntervals(l, domain):
+	eMax = 0
+	for item in l:
+		e = float(item[-1])
+		if e > eMax:
+			eMax = e
+
+	numIntervals = {
+		"CR": 100,
+		"SR": 10,
+		"SD": 75,
+	}
+
+	factor = {
+		"CR": 1.05,
+		"SR": 1.75,
+		"SD": 1.12,
+	}
+
+	widths = []
+	sum = 0
+	for i in range(numIntervals[domain]):
+		x = pow(factor[domain], i) 
+		widths.append(x)
+		sum += x
+
+	intervalLimits = [0]*numIntervals[domain]
+
+	num = 0
+	for i in range(numIntervals[domain]):
+		intervalLimits[i] = num
+		widths[i] *= eMax/sum
+		num += widths[i]
+
+	print(intervalLimits)
+
+	for item in l:
+		e = float(item[-1])
+		item[-1] = numIntervals[domain] - 1
+		for i in range(numIntervals[domain]):
+			if e < intervalLimits[i]:
+				item[-1] = str(i-1)
+				break
+	return l
+
+def ReadTaskAndArgs(taskAndArgs, domain):
+	if domain == "CR":
+		return []
+	elif domain == "SR":
+		return ReadTaskAndArgs_SR(taskAndArgs)
+	elif domain == "SD":
+		return ReadTaskAndArgs_SD(taskAndArgs)
+
 if __name__ == "__main__":
 
 	argparser = argparse.ArgumentParser()
@@ -949,20 +426,21 @@ if __name__ == "__main__":
 	learnWhat = args.learnWhat
 	if learnWhat == "m":
 		assert(args.taskBased == "n")
-		fname = "{}_data_{}.txt".format(domain, suffix)
-		fwrite = open("numericData_{}_{}.txt".format(domain, suffix), "w")
+		fname = "../../raeResults/learning/{}/{}_data_{}.txt".format(domain, domain, suffix)
+		fwrite = open("../../raeResults/learning/{}/numericData_{}_{}.txt".format(domain, domain, suffix), "w")
 		recordL = []
 	elif learnWhat == "e":
-		fname = "{}_data_eff_{}.txt".format(domain, suffix)
+		fname = "../../raeResults/learning/{}/{}_data_eff_{}_without_dup.txt".format(domain, domain, suffix)
 		taskBased = args.taskBased
 		if taskBased == 'n':
-			fwrite = open("numericData_eff_{}_{}.txt".format(domain, suffix), "w")
+			fwrite = open("../../raeResults/learning/{}/numericData_eff_{}_{}.txt".format(domain, domain, suffix), "w")
 			recordL = []
 		else:
 			fwrite = {}
 			recordL = {}
 			for task in taskCodes[domain]:
-				fwrite[task] = open("numericData_eff_{}_{}_task_{}.txt".format(domain, suffix, task), "w")
+				pass
+				fwrite[task] = open("../../raeResults/learning/{}/numericData_eff_{}_{}_task_{}.txt".format(domain, domain, suffix, task), "w")
 	f = open(fname)
 	
 	line = f.readline()
@@ -976,18 +454,19 @@ if __name__ == "__main__":
 		elif domain == "EE":
 			record = ReadStateVars_EE(line, f)
 
-		task = f.readline()[0:-1]
+		taskAndArgs = f.readline()[0:-1]
 		mainTask = f.readline()[0:-1]
 		method = f.readline()[0:-1]
 
-		taskCode = taskCodes[domain][task]
+		#taskCode = taskCodes[domain][taskAndArgs]
 		mainTaskCode = taskCodes[domain][mainTask]
 		methodCode = methodCodes[domain][method]
-		methodCode = ConvertToOneHot(methodCode, 10)
+		
+		methodCode = ConvertToOneHotHelper(methodCode, numMethods[domain])
 
 		methodCode = [str(i) for i in methodCode]
-		#pdb.set_trace()
-		#record.append(str(taskCode))
+
+		record += ReadTaskAndArgs(taskAndArgs, domain)
 		#record.append(str(mainTaskCode))
 
 		eff = f.readline()[0:-1]
@@ -996,45 +475,35 @@ if __name__ == "__main__":
 			record.append(str(methodCode))
 		else:
 			record += methodCode
-			#record.append(str(methodCode))
-
-			if domain == "SD":
-				for i in range(5):
-					actingTreeNode = f.readline()[0:-1]
-				#record.append(str(actingNodeCodes[domain][actingTreeNode]))
 			if eff == "inf":
 				eff = 1
-			#if float(eff) == 0:
-			#	cost = '100'
-			#else:
-			#	cost = str(1/float(eff))
 			record.append(str(eff))
-
-
-		if domain == "EE" and (taskCode == 1 or taskCode == 4):
-			pass
+		if taskBased == "y":
+			AddToRecordsTaskBased(recordL, record, task)
 		else:
-			if taskBased == "y":
-				AddToRecordsTaskBased(recordL, record, task)
-			else:
-				#AddToRecordsAllTogether(recordL, record)
-		
-				fwrite.write(" ".join(record) + "\n")
-				print("written")
+			AddToRecordsAllTogether(recordL, record)
+			if len(recordL) % 100 == 0:
+				print(len(recordL))
+			#if len(recordL ) > 6000:
+			#	break
+
 		line = f.readline()
 	f.close()
+
 	if learnWhat == "e":
 		if taskBased == "y":
 			for task in recordL:
-				#recordN = normalize(recordL[task])
-				#recordN = ConvertToOneHot(recordL[task])
 				for item in recordL[task]:
+					pass
 					fwrite[task].write(" ".join([str(i) for i in item]) + "\n")
 		else:
-			#recordN = normalize(recordL)
-			for item in recordL:
-				fwrite[task].write(" ".join([str(i) for i in item]) + "\n")
+			recordN = DivideIntoIntervals(recordL, domain)
+			for item in recordN:
+				pass
+				fwrite.write(" ".join([str(i) for i in item]) + "\n")
 	else:
 		for item in recordL:
+			pass
 			fwrite.write(" ".join(item) + "\n")
+	print(len(recordN[0]))
 

@@ -84,12 +84,13 @@ def NotTimeLine(s):
     else:
         return True
 
-def GetMSEError(l, mean):
+def GetMSEError(l, mean, fac):
     variance = 0
     for i in l:
         variance += (i - mean) * (i - mean)
 
-    return variance/(len(l) - 1)/len(l)
+    print("variance = ", variance)
+    return fac*variance/(len(l) - 1)/len(l)
 
 def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
     print(fileName)
@@ -203,10 +204,10 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
         lineNumber += 1
 
     res['successRatio'].append(succCount/totalTasks)
-    res['sr_error'].append(GetMSEError(sr_L, succCount/totalTasks))
+    res['sr_error'].append(GetMSEError(sr_L, succCount/totalTasks, 10))
     if totalCountForRetries != 0:
         res['retryRatio'].append(retryCount/totalCountForRetries)
-        res['rr_error'].append(GetMSEError(rr_L, retryCount/totalCountForRetries))
+        res['rr_error'].append(GetMSEError(rr_L, retryCount/totalCountForRetries, 10))
     else:
         res['retryRatio'].append(0)
         res['rr_error'].append(0)
@@ -214,7 +215,7 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
     res['actTime'].append(actTime)
     res['totalTime'].append(1 * planTime + 1 * actTime)
     res['nu'].append(nu / totalTasks)
-    res['nu_error'].append(GetMSEError(nu_L, nu/totalTasks))
+    res['nu_error'].append(GetMSEError(nu_L, nu/totalTasks, 25))
     res['timeOut'].append(timeOutCount)
 
 def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
@@ -341,9 +342,23 @@ def Populate_UCT_max_depth_learning(res, domain, model):
     elif model == "planner":
         f1 = "{}{}_v_journal/RAE_with_trained_model_planner.txt".format(resultsFolder, domain)
     elif model == "planning":
-        f1 = "{}{}_v_journal_eff/rae_plan_uct_100.txt".format(resultsFolder, domain)
-    elif model == "reactive":
+        if domain == "CR":
+            f1 = "{}{}_v_journal/RAE_with_planning.txt".format(resultsFolder, domain)
+        else:
+            f1 = "{}{}_v_journal_eff/rae_plan_uct_100.txt".format(resultsFolder, domain)
+    elif model == "heuristic_10_3":
+        f1 = "{}{}_v_journal/RAE_with_trained_heuristic_10_3.txt".format(resultsFolder, domain)
+    elif model == "reactive" or domain == "SD":
         f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+    elif model == "heuristic0_10_3" or domain == "SR":
+        f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0_10_3.txt".format(resultsFolder, domain)
+    elif model == "heuristic":
+        f1 = "{}{}_v_journal/RAE_with_trained_heuristic.txt".format(resultsFolder, domain)
+    elif model == "heuristic5":
+        f1 = "{}{}_v_journal/RAE_with_trained_heuristic_5.txt".format(resultsFolder, domain)
+    elif model == "heuristic0":
+        f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0.txt".format(resultsFolder, domain)
+   
     f1_p = open(f1, "r")
     PopulateHelper_UCT_max_depth(res, domain, f1_p, 0, f1)
     f1_p.close()
@@ -550,8 +565,74 @@ def GeneratePlots_UCT_max_depth_learning():
             'sr_error': [],
             'rr_error': [],
             }
+        resDict[domain]['heuristic'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            }
+        resDict[domain]['heuristic5'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            }
+        resDict[domain]['heuristic0'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            }
+        resDict[domain]['heuristic0_10_3'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            }
+        resDict[domain]['heuristic_10_3'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            }
         Populate_UCT_max_depth_learning(resDict[domain]['learning_from_actor'], domain, 'actor')
         Populate_UCT_max_depth_learning(resDict[domain]['learning_from_planner'], domain, 'planner')
+        Populate_UCT_max_depth_learning(resDict[domain]['heuristic5'], domain, 'heuristic5')
+        Populate_UCT_max_depth_learning(resDict[domain]['heuristic'], domain, 'heuristic')
+        Populate_UCT_max_depth_learning(resDict[domain]['heuristic0'], domain, 'heuristic0')
+        Populate_UCT_max_depth_learning(resDict[domain]['heuristic0_10_3'], domain, 'heuristic0_10_3')
+        Populate_UCT_max_depth_learning(resDict[domain]['heuristic_10_3'], domain, 'heuristic_10_3')
+    plt.clf()
     plt.clf()
     font = {
         'family' : 'times',
@@ -563,7 +644,7 @@ def GeneratePlots_UCT_max_depth_learning():
     errIndex = {
         'nu': 'nu_error',
         'successRatio': 'sr_error',
-        'retryRatio': 'rr_error'
+        'retryRatio': 'rr_error',
     }
     for metric in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_UCT_max_learning(resDict, metric, errIndex[metric])
@@ -784,33 +865,70 @@ def PlotHelper_UCT_max_learning(resDict, utilp, errorP):
     trainedFromActor = []
     trainedFromPlanner = []
     calledPlanner = []
+    learnedHeuristic = []
+    learnedHeuristic5 = []
+    learnedHeuristic0 = []
+    learnedHeuristic0_10_3 = []
+    learnedHeuristic_10_3 = []
 
     errReactive = []
     errP = []
     errTA = []
     errTP = []
+    errHE = []
+    errHE5 = []
+    errHE0 = []
+    errHE0_10_3 = []
+    errHE_10_3 = []
 
+    subplot = {
+        "CR": 221,
+        "SR": 222,
+        "SD": 223,
+        "EE": 224,
+    }
     for domain in D:
-        print(resDict[domain]['planning'][index1])
+        #print(resDict[domain]['planning'][index1])
         reactive.append(resDict[domain]['reactive'][index1][0])
         trainedFromActor.append(resDict[domain]['learning_from_actor'][index1][0])
         trainedFromPlanner.append(resDict[domain]['learning_from_planner'][index1][0])
         calledPlanner.append(resDict[domain]['planning'][index1][0])
+        learnedHeuristic.append(resDict[domain]['heuristic'][index1][0])
+        learnedHeuristic5.append(resDict[domain]['heuristic5'][index1][0])
+        learnedHeuristic0.append(resDict[domain]['heuristic0'][index1][0])
+        learnedHeuristic0_10_3.append(resDict[domain]['heuristic0_10_3'][index1][0])
+        learnedHeuristic_10_3.append(resDict[domain]['heuristic_10_3'][index1][0])
 
         # the errors
         errReactive.append(resDict[domain]['reactive'][errorP][0])
         errTA.append(resDict[domain]['learning_from_actor'][errorP][0])
         errTP.append(resDict[domain]['learning_from_planner'][errorP][0])
         errP.append(resDict[domain]['planning'][errorP][0])
+        errHE.append(resDict[domain]['heuristic'][errorP][0])
+        errHE5.append(resDict[domain]['heuristic5'][errorP][0])
+        errHE0.append(resDict[domain]['heuristic0'][errorP][0])
+        errHE0_10_3.append(resDict[domain]['heuristic0_10_3'][errorP][0])
+        errHE_10_3.append(resDict[domain]['heuristic_10_3'][errorP][0])
+
     x = np.arange(len(labels))  # the label locations
-    width = 0.15  # the width of the bars
+    width = 0.15  # 0.003 the width of the bars
 
     fig, ax = plt.subplots()
     rects1 = ax.bar(x - 3*width/2, reactive, width, label='Purely Reactive Acting', yerr=errReactive)
-    rects2 = ax.bar(x - width/2, trainedFromActor, width, label='Used model trained from acting data', yerr=errTA)
-    rects3 = ax.bar(x + width/2, trainedFromPlanner, width, label='Used model trained from planning data', yerr=errTP)
-    rects4 = ax.bar(x + 3*width/2, calledPlanner, width, label='Called RAEplan-UCT', yerr=errP)
+    rects2 = ax.bar(x - width/2, trainedFromActor, width, label='Used model trained from acting data to predict the choice of refinement method', yerr=errTA)
+    rects3 = ax.bar(x + width/2, trainedFromPlanner, width, label='Used model trained from planning data to predict the choice of refinement method', yerr=errTP)
+    rects4 = ax.bar(x + 3*width/2, learnedHeuristic_10_3, width, label='Used trained network to predict efficiency at depth 3', yerr=errHE_10_3)
+    rects5 = ax.bar(x + 5*width/2, calledPlanner, width, label='Called RAEplan-UCT', yerr=errP)
+    #rects6 = ax.bar(x + 7*width/2, learnedHeuristic0_10_3, width, label='Baseline with 0 heuristic', yerr=errHE0_10_3)
+    if index1 == "nu":
+        ax.set_ylim(bottom=0.06)
+    elif index1 == "successRatio":
+        ax.set_ylim(bottom=0.75)
 
+    #rects5 = ax.bar(x + 5*width/2, learnedHeuristic, width, label='Learned Efficiency', yerr=errHE)
+    #rects5 = ax.bar(x + 7*width/2, learnedHeuristic5, width, label='Learned Efficiency 5', yerr=errHE5)
+    #rects5 = ax.bar(x + 9*width/2, learnedHeuristic0, width, label='Inf Efficiency ', yerr=errHE0)
+    
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel(GetYlabel(utilp))
     ax.set_xlabel("Domains")
@@ -984,7 +1102,7 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["EE", "SD", "CR", "SR"]
+    D = ["SD"] #, "SD"] #"EE", "OF", "SR"]
     if args.depth == "max":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()

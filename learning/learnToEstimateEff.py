@@ -30,6 +30,7 @@ def make_train_step(model, loss_fn, optimizer):
 
         #print("in training yhat = ", yhat)
         #print("in training y = ", y)
+
         loss = 1 * loss_fn(yhat, y)
         # Computes gradients
         loss.backward()
@@ -46,25 +47,26 @@ def make_train_step(model, loss_fn, optimizer):
 
 features = {
     "EE": 23 - 2,
-    "SD": 25 - 2,
-    "SR": 24 - 2,
+    "SD": 144, #25 - 2,
+    "SR": 401, #24 - 2,
     "OF": 0,
     "CR": 98, #23 - 2,
 }
 
 outClasses = {
     "EE": 1,
-    "SD": 1,
-    "SR": 1,
+    "SD": 75,
+    "SR": 10,
     "OF": 1,
-    "CR": 1,
+    "CR": 101, #1
 }
 
 n_epochs = 10
 
 # Defines loss function and optimizer
 #loss_fn = nn.MSELoss(reduction='mean')
-loss_fn = nn.SmoothL1Loss(reduction='sum')
+#loss_fn = nn.SmoothL1Loss(reduction='sum')
+loss_fn = nn.CrossEntropyLoss()
 #loss_fn = nn.CrossEntropyLoss()
 #loss_fn = nn.NLLLoss()
 #loss_fn = nn.BCEWithLogitsLoss()
@@ -93,17 +95,29 @@ def GetEff(x):
     return x*0.073 + 0.031 #SD
     
 
-def GetOneHotAccuracyValues(yhat, y):
+def GetOneHotAccuracyValues1(yhat, y):
     res = []
     for i1, i2 in zip(yhat, y):
         y1 = i1
         y2 = i2
-        if abs(y1 - y2)/abs(y2) < 0.1:
-            #res.append(1)
-            res.append(abs(y1 - y2)) #/abs(y2))
+        #if abs(y1 - y2)/abs(y2) < 0.1 or (abs(y2) == 0 and abs(y1) < 0.001):
+        if y1 == y2:
+            res.append(1)
+            #res.append(abs(y1 - y2)/(abs(y2)))
+        #elif abs(y2) != 0:
         else:
-            #res.append(0)
-            res.append(abs(y1 - y2)) #/abs(y2))
+            res.append(0)
+            #res.append(abs(y1 - y2)/(abs(y2)))
+    return res
+
+def GetOneHotAccuracyValues(yhat, y):
+    res = []
+    for i1, i2 in zip(yhat, y):
+        l = GetLabel(i1)
+        if l == i2:
+            res.append(1)
+        else:
+            res.append(0)
     return res
 
 import matplotlib.pyplot as plt
@@ -136,8 +150,8 @@ def CreatePlot(training, validation):
     }
     x = list(range(0, len(training)))
 
-    print("x is ", x)
-    print("training is, ", training)
+    #print("x is ", x)
+    #print("training is, ", training)
     PlotViaMatlab(x,
                 training,
                 COLORS[0],
@@ -178,9 +192,9 @@ if __name__ == "__main__":
         modelFrom = "planner"
 
     if args.task == "all":
-        fileIn = open("numericData_eff_{}_{}.txt".format(domain, modelFrom))
+        fileIn = open("../../raeResults/learning/{}/numericData_eff_{}_{}.txt".format(domain, domain, modelFrom))
     else:
-        fileIn = open("numericData_eff_{}_{}_task_{}.txt".format(domain, modelFrom, args.task))
+        fileIn = open("../../raeResults/learning/{}/numericData_eff_{}_{}_task_{}.txt".format(domain, domain, modelFrom, args.task))
     x = []
     y = []
     line = fileIn.readline()
@@ -188,11 +202,15 @@ if __name__ == "__main__":
     r = np.random.rand()
     while(line != ""):
         nums = line[0:-1]
-        if r < 0.1:
+        if r < 2:
             items = nums.split(" ")
             x_row = [float(i) for i in items[0:-1]]
             x.append(x_row)
-            y.append([float(items[-1])])
+            #y.append([float(items[-1])])
+            #if float(items[-1]) > 0.09918952176412826:
+            #    items[-1] = 99
+            #print(int(items[-1])/2)
+            y.append(int(int(items[-1])))
         r = np.random.rand()
         line = fileIn.readline()
     fileIn.close()
@@ -221,7 +239,7 @@ if __name__ == "__main__":
     #y = 1 + .1 * np.random.randn(10, 1)
 
     x_tensor = torch.from_numpy(x).float()
-    y_tensor = torch.from_numpy(y).float()
+    y_tensor = torch.from_numpy(y).long()
 
     # Builds dataset with ALL data
     dataset = TensorDataset(x_tensor, y_tensor)
@@ -229,16 +247,23 @@ if __name__ == "__main__":
     train_dataset, val_dataset = random_split(dataset, [trainingSetSize[domain], validationSetSize[domain]]) 
     # Builds a loader for each dataset to perform mini-batch gradient descent
     train_loader = DataLoader(dataset=train_dataset, batch_size=128)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=64)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=128)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
-    model = nn.Sequential(nn.Linear(features[domain], 64), 
-        nn.ReLU(inplace=True), 
+    model = nn.Sequential(nn.Linear(features[domain], 1024), 
+        nn.ReLU(inplace=True),
+        #nn.Linear(1024, 1024), 
+        #nn.ReLU(inplace=True),
+        #nn.Tanh(),
+        #nn.Tanhshrink(),
+        #nn.Softplus(),
+        #nn.Sigmoid(), 
+        #nn.Dropout(p=0.1), #was in CR
         #nn.PReLU(),
         #nn.Sigmoid(),
-        #nn.Linear(128, 128), 
-        #nn.ReLU(inplace=True), 
-        nn.Linear(64, outClasses[domain]))
+        #nn.Linear(512, 512), 
+        #nn.ReLU(inplace=True), # was in CR
+        nn.Linear(1024, outClasses[domain]))
         #nn.Sigmoid()))
     #print(model.state_dict())
 
@@ -254,9 +279,9 @@ if __name__ == "__main__":
     else:
         lrD = {
             "EE": 1e-3,
-            "SD": 1e-3,
-            "SR": 1e-3,
-            "CR": 1e-3,
+            "SD": 1e-1,
+            "SR": 1e-1,
+            "CR": 1e-2,
             "OF": 1e-3,
         }
     lr = lrD[domain]
@@ -266,13 +291,13 @@ if __name__ == "__main__":
     # Creates function to perform train step from model, loss and optimizer
     train_step = make_train_step(model, loss_fn, optimizer)
 
-    scheduler = MultiStepLR(optimizer, milestones=[30,60], gamma=0.1) 
+    #scheduler = MultiStepLR(optimizer, milestones=[30, 60], gamma=0.9) 
 
     # Training loop
     for epoch in range(n_epochs):
         # Uses loader to fetch one mini-batch for training
         
-        scheduler.step()
+        #scheduler.step()
         tAcc1 = []
         tLoss1 = []
         for x_batch, y_batch in train_loader:
@@ -377,11 +402,11 @@ if __name__ == "__main__":
     #print("Training accuracy")
     #printList(tr_accuracy)
 
-    print(model.state_dict())
+    #print(model.state_dict())
 
     #print("Validation accuracy")
     #printList(val_accuracy)
-    #torch.save(model.state_dict(), "model_for_eff_{}_{}".format(domain, modelFrom))
+    torch.save(model.state_dict(), "models/model_for_eff_{}_{}_task_{}".format(domain, modelFrom, args.task))
     
 
 
