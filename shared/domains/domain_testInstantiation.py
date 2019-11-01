@@ -23,32 +23,51 @@ commandProb = {
 }
 
 def u1():
-    if state.v[0] == 1:
+    state.v[0] = 0
+    return SUCCESS
+
+def u2():
+    if state.v[0] == 0:
         state.v[0] = 2
         return SUCCESS
     else:
         return FAILURE
 
-def u2():
+def u3():
     if state.v[0] == 2:
         state.v[0] = 3
         return SUCCESS
     else:
         return FAILURE
 
-def u3():
-    if state.v[0] == 3:
+def u4():
+    if state.v[0] == 1:
         state.v[0] = 4
         return SUCCESS
     else:
         return FAILURE
 
-def u4():
-    if state.v[0] == 4:
+def u5():
+    if state.v[0] == 0:
+        state.v[0] = 2
+        return SUCCESS
+    else:
+        return FAILURE
+
+def u6():
+    if state.v[0] == 2:
         state.v[0] = 5
         return SUCCESS
     else:
         return FAILURE
+
+def u7():
+    if state.v[0] == 2:
+        state.v[0] = 6
+        return SUCCESS
+    else:
+        return FAILURE
+
 
 def Sense(cmd):
     p = commandProb[cmd]
@@ -169,12 +188,16 @@ def m2_t10_1():
         state.v[0] = 2
 
 def m1_tbackup():
-    state.v[0] = 1
-    alg.do_task("l1")
-    alg.do_command(u1)
+    alg.do_command(fail)
 
 def m2_tbackup():
     alg.do_command(fail)
+
+def tBackup_Goal():
+    if state.v[0] == 4:
+        return True
+    else:
+        return False
 
 alg.declare_task('t', 'o')
 alg.declare_task('t1')
@@ -202,6 +225,8 @@ alg.declare_methods('t10_1', m1_t10_1, m2_t10_1)
 alg.declare_methods('tbackup', m1_tbackup, m2_tbackup)
 alg.declare_methods('l1', t1_c1)# t1_c1)
 
-alg.declare_commands([fail, t1_c1, t1_c2, sr1, sr2, sr3, c10, u1, u2, u3, u4])
+alg.declare_goalCheck('tbackup', tbackup_Goal)
 
+#alg.declare_commands([fail, t1_c1, t1_c2, sr1, sr2, sr3, c10, u1, u2, u3, u4])
+alg.declare_commands([u1, u2, u3, u4, u5, u6, u7])
 

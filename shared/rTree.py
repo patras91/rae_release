@@ -770,3 +770,110 @@ class SearchTreeNode():
         elif self.type == "command":
             for child in self.children:
                 child.GetTrainingItems_SLATE(l, util, mainTask)
+
+class CommandSearchTreeNode():
+    def __init__(self, l, t, args):
+        self.label = l
+        self.args = args
+        assert(t == "command" or t == "state")
+        self.type = t
+        self.children = []
+        self.childPtr = 0
+        self.childWeights = []
+        self.util = Utility("UNK")
+        self.parent = None
+        assert(GLOBALS.GetUCTmode() == True)
+        if self.type == 'task':
+            self.N = 0
+            self.n = []
+            self.Q = []
+
+    def GetLabel(self):
+        return self.label
+
+    def GetType(self):
+        return self.type
+
+    def SetUtility(self, u):
+        self.util = u
+
+    def GetUtility(self):
+        return self.util
+
+    def SetParent(self, p):
+        self.parent = p
+
+    def GetParent(self):
+        return self.parent
+
+    def AddChild(self, node):
+        node.parent = self
+        self.children.append(node)
+        self.childWeights.append(1)
+        if self.type == 'task':
+            self.n.append(0)
+            self.Q.append(Utility('Success'))
+
+    def FindAmongChildren(self, s):
+        assert(self.type == 'command')
+        for child in self.children:
+            if child.label.EqualTo(s):
+                return child 
+        return None
+
+    def GetNext(self):
+        if self.childPtr < len(self.children):
+            return self.children[self.childPtr]
+        else:
+            return None
+
+    def GetBestMethodAndUtility_UCT(self):
+        index = None
+        bestQ = Utility('Failure')
+        
+        #l = [q.GetValue() for q in self.Q]
+        for i in range(0, len(self.Q)):
+            if self.Q[i] > bestQ:
+                bestQ = self.Q[i]
+                index = i
+        if index == None:
+            return ('Failure', bestQ)
+        else:
+            return (self.children[index].GetLabel(), bestQ)
+        
+    def IncreaseWeight(self, s):
+        assert(self.type == 'command')
+        for index in range(0, len(self.children)):
+            if self.children[index].GetLabel().EqualTo(s):
+                self.childWeights[index] += 1
+
+    def GetPrettyString(self, elem):
+        if elem.type == 'command':
+            return elem.label.__name__
+        elif elem.type == 'state':
+            return "state"
+        else:
+            return "NONE"
+
+    def PrintUsingGraphviz(self, name='searchTreeWithCommandsOnly'):
+        g = Digraph('G', filename=name, format="png")
+
+        level = {}
+        level[0] = [(self, 0)] # tuple of node and node id
+        level[1] = []
+        curr = 0
+        next = 1
+        newId = 1
+        while(level[curr] != []):
+            for elem, nodeid in level[curr]:
+                elemString = self.GetPrettyString(elem) + "_" + str(nodeid)
+                for child in elem.children:
+                    g.edge(elemString, self.GetPrettyString(child) + "_" + str(newId))
+                    level[next].append((child, newId))
+                    newId += 1
+            curr += 1
+            next += 1
+            level[next] = []
+        g.view()
+
+

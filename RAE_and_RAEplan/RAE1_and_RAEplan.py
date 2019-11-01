@@ -71,6 +71,8 @@ planLocals = rL_PLAN() # APEplan_systematic variables that are local to every ca
                        # multiple threads and each thread call its own APEplan_systematic
 heuristic = {}
 
+goalChecks = {}
+
 ############################################################
 # Functions to tell Rae1 what the commands and methods are
 
@@ -81,6 +83,7 @@ def declare_commands(cmd_list):
     """
     commands.update({cmd.__name__:cmd for cmd in cmd_list})
     return commands
+
 
 def GetCommand(cmd):
     """
@@ -138,6 +141,9 @@ def declare_methods(task_name, *method_list):
             assert(m.__code__.co_varnames[0:q] == taskArgs)
 
         methods[task_name].append(m)
+
+def declare_goalCheck(task, goalCheckMethod):
+    goalChecks[task] = goalCheckMethod
 
 def GetMethodInstances(methods, tArgs):
     
@@ -311,10 +317,8 @@ def InitializeStackLocals(task, raeArgs):
     if GLOBALS.GetDomain() == "SDN":
         cmdStatusStack[raeArgs.stack] = None
     
-def RunUCTwithCommandsOnly(task):
-    return commands["u1"]
-    # how are the commands represented
-    # how to integrate this with RAEplan and RAE
+def RunUCTwithCommandsOnly(task, taskArgs):
+    return ((u1, []), (u2, []))
 
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -323,6 +327,13 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     if verbose > 0:
         #print(colorama.Fore.RED, "Starting simulation for stack")
         print("Starting simulation for stack")
+
+    if raeLocals.GetUseBackupUCT() == True:
+        plan = RunUCTwithCommandsOnly(task, taskArgs)
+        if plan != 'Failure':
+            return (plan, "usingBackupUCT")
+        else:
+            raise Failed_task('{}{}'.format(task, taskArgs))
 
     queue = multiprocessing.Queue()
     actingTree = raeLocals.GetActingTree()
