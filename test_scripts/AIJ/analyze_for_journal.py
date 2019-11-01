@@ -342,10 +342,11 @@ def Populate_UCT_max_depth_learning(res, domain, model):
     elif model == "planner":
         f1 = "{}{}_v_journal/RAE_with_trained_model_planner.txt".format(resultsFolder, domain)
     elif model == "planning":
-        if domain == "CR" or domain == "EE":
-            f1 = "{}{}_v_journal/RAE_with_planning.txt".format(resultsFolder, domain)
-        else:
-            f1 = "{}{}_v_journal_eff/rae_plan_uct_100.txt".format(resultsFolder, domain)
+        f1 = "{}{}_v_journal/rae_plan_uct_1000.txt".format(resultsFolder, domain)
+        #if domain == "CR" or domain == "EE":
+            #f1 = "{}{}_v_journal/RAE_with_planning.txt".format(resultsFolder, domain)
+        #else:
+        #    f1 = "{}{}_v_journal_eff/rae_plan_uct_100.txt".format(resultsFolder, domain)
     elif model == "heuristic_10_3":
         f1 = "{}{}_v_journal/RAE_with_trained_heuristic_10_3.txt".format(resultsFolder, domain)
     elif model == "reactive" or domain == "SD":
@@ -920,10 +921,10 @@ def PlotHelper_UCT_max_learning(resDict, utilp, errorP):
     rects4 = ax.bar(x + 3*width/2, learnedHeuristic_10_3, width, label='Used trained network to predict efficiency at depth 3', yerr=errHE_10_3)
     rects5 = ax.bar(x + 5*width/2, calledPlanner, width, label='Called RAEplan-UCT', yerr=errP)
     #rects6 = ax.bar(x + 7*width/2, learnedHeuristic0_10_3, width, label='Baseline with 0 heuristic', yerr=errHE0_10_3)
-    if index1 == "nu":
-        ax.set_ylim(bottom=0.0)
-    elif index1 == "successRatio":
-        ax.set_ylim(bottom=0.1)
+    #if index1 == "nu":
+    #    ax.set_ylim(bottom=0.0)
+    #elif index1 == "successRatio":
+    #    ax.set_ylim(bottom=0.1)
 
     #rects5 = ax.bar(x + 5*width/2, learnedHeuristic, width, label='Learned Efficiency', yerr=errHE)
     #rects5 = ax.bar(x + 7*width/2, learnedHeuristic5, width, label='Learned Efficiency 5', yerr=errHE5)
@@ -938,7 +939,7 @@ def PlotHelper_UCT_max_learning(resDict, utilp, errorP):
 
     #for domain in D:
         # PlotViaMatlab(UCT_max_depth[domain], 
-        #     resDict[domain]['learning_from_planner'][index1],
+        #      resDict[domain]['learning_from_planner'][index1],
         #     COLORS[0],
         #     "learned from planner")
         # PlotViaMatlab(UCT_max_depth[domain], 
@@ -955,6 +956,7 @@ def PlotHelper_UCT_max_learning(resDict, utilp, errorP):
             
 
     plt.savefig(fname, bbox_inches='tight')
+    print("saved")
 
 def PlotHelper_UCT_lim(resDict, utilp):
     index1 = utilp
@@ -1093,7 +1095,7 @@ if __name__=="__main__":
     argparser.add_argument("--utility", help="efficiency or successRatio?",
                             type=str, required=True)
     argparser.add_argument("--l", help="Compare with learning? ('y' or 'n')?",
-                            type=str, default='n', required=False)
+                            type=str, default='n', required=True)
     args = argparser.parse_args()
 
     heuristic = args.heuristic
@@ -1102,7 +1104,7 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["EE"] #, "SD"] #"EE", "OF", "SR"]
+    D = ["EE", "SD", "SR", "CR"]
     if args.depth == "max":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()

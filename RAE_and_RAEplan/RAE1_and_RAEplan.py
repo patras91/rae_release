@@ -26,8 +26,10 @@ from utility import Utility
 import time
 from sharedData import *
 from learningData import trainingDataRecords
-from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
-import pdb
+#from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
+#import torch
+#import torch.nn as nn
+#import pdb
 ############################################################
 
 ### for debugging
@@ -200,9 +202,6 @@ class Expanded_Search_Tree_Node(Exception):
 class DepthLimitReached(Exception):
     pass
 
-class UsingBackupUCT(Exception):
-    pass
-
 #****************************************************************
 #Functions to control Progress of each stack step by step
 class IpcArgs():
@@ -264,9 +263,6 @@ def RAE1(task, raeArgs):
             print_stack_size(raeLocals.GetStackId(), path)
             print('Failed task {}'.format(e))
         retcode = 'Failure'
-    except UsingBackupUCT as e:
-        print("e is ", e, type(e))
-        retcode = e()
     else:
         pass
     if verbose > 1:
@@ -365,9 +361,9 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         #random.shuffle(candidates)
         if GLOBALS.GetBackupUCT() == True:
             raeLocals.SetUseBackupUCT(True)
-            cmd = RunUCTwithCommandsOnly(task)
-            if cmd != 'Failure':
-                return (cmd, "usingBackupUCT")
+            plan = RunUCTwithCommandsOnly(task, taskArgs)
+            if plan != 'Failure':
+                return (plan, "usingBackupUCT")
             else:
                 return (candidates[0], candidates[1:])
         else:
@@ -384,8 +380,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         candidates.pop(candidates.index(methodInstance))
         return (methodInstance, candidates)
 
-import torch
-import torch.nn as nn
+
 
 def GetCandidateFromLearnedModel(fname, task, candidates):
     device = "cpu"
@@ -461,10 +456,18 @@ def DoTaskInRealWorld(task, taskArgs):
 
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
         if candidates == "usingBackupUCT":
-            raise UsingBackupUCT(m)
-        node.SetLabelAndType(m, 'method')
-        raeLocals.SetCurrentNode(node)
-        retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
+            plan = m
+            retcode = "Success"
+            for (cmd, cmdArgs) in plan:
+                try:
+                    DoCommandInRealWorld(cmd, cmdArgs)
+                except Failed_command as e:
+                    retcode = "Failure"
+                    break
+        else:
+            node.SetLabelAndType(m, 'method')
+            raeLocals.SetCurrentNode(node)
+            retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
 
         if candidates == []:
             break

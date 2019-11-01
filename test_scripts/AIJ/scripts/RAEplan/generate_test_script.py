@@ -80,6 +80,15 @@ k_max_depth = {
     "OF": [1,3,5],
 }
 
+#UCT_max_depth = {
+#    "CR": [5, 25, 50, 75, 100, 125],
+#    "SD": [5, 25, 50, 75, 100, 125],
+#    "SR": [5, 25, 50, 75, 100, 125],
+#    "EE": [5, 25, 50, 75, 100, 125],
+#    "IP": [],
+#    "OF": [5, 25, 50, 75, 100, 125, 150],
+#}
+
 UCT_max_depth = {
     "CR": [5, 25, 50, 75, 100, 125],
     "SD": [5, 25, 50, 75, 100, 125],
@@ -88,6 +97,16 @@ UCT_max_depth = {
     "IP": [],
     "OF": [5, 25, 50, 75, 100, 125, 150],
 }
+
+# for ICAPS 2020
+UCT_max_depth = {
+    "CR": [1000],
+    "SD": [1000],
+    "EE": [1000],
+    "SR": [1000],
+    "OF": [1000],
+}
+
 
 b_lim_depth = {
     "CR": [1,2],
@@ -204,6 +223,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
     file.write("sys.path.append(\'../../../../shared/domains/\')\n")
     file.write("sys.path.append(\'../../../../shared/problems/{}/auto\')\n".format(domain))
     file.write("sys.path.append(\'../../../../shared/\')\n")
+    file.write("sys.path.append(\'../../../../learning/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
     #file.write("GLOBALS.SetOpt('max')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
@@ -223,10 +243,16 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
         file.write("GLOBALS.SetOpt(\'sr\')\n")
         folderAnnex = "_sr"
     if depth == "max":
-        file.write("GLOBALS.SetSearchDepth(float(\\\"inf\\\"))\"\n")
+        #file.write("GLOBALS.SetSearchDepth(float(\\\"inf\\\"))\"\n")
+        file.write("GLOBALS.SetSearchDepth(30)\n")
+        file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
     else:
         file.write("GLOBALS.SetSearchDepth($d)\n")
-        file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\"\n")
+        file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
+
+    file.write("GLOBALS.SetLearningMode(None)\n")
+    file.write("GLOBALS.SetModelPath(\'../../../../learning/\')\n")
+    file.write("GLOBALS.SetUseTrainedModel(\'n\')\"\n")
     file.write("counter=1\n")
     file.write("while [ $counter -le $runs ]\n")
     file.write("do\n")
@@ -288,7 +314,7 @@ if __name__=="__main__":
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)
     argparser.add_argument("--utility", help=" efficiency or successRatio? ",
-                           type=str, required=False, default="efficiency")
+                           type=str, required=True, default="efficiency")
     args = argparser.parse_args()
 
     global runs
@@ -301,8 +327,8 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in ["OF"]: #["CR", "SR", "SD", "EE"]:
-        for optz in ["max", "sr"]:
+    for domain in ["SR", "CR"]:
+        for optz in ["max"]:
             for mode in ["UCT"]:
                 for depth in ["max"]:
                     for part in range(1, 11):
