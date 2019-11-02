@@ -342,7 +342,10 @@ def Populate_UCT_max_depth_learning(res, domain, model):
     elif model == "planner":
         f1 = "{}{}_v_journal/RAE_with_trained_model_planner.txt".format(resultsFolder, domain)
     elif model == "planning":
-        f1 = "{}{}_v_journal/rae_plan_uct_1000.txt".format(resultsFolder, domain)
+        if domain == "CR":
+            f1 = "{}{}_v_journal/rae_plan_uct_5000.txt".format(resultsFolder, domain)
+        else:
+            f1 = "{}{}_v_journal/rae_plan_uct_1000.txt".format(resultsFolder, domain)
         #if domain == "CR" or domain == "EE":
             #f1 = "{}{}_v_journal/RAE_with_planning.txt".format(resultsFolder, domain)
         #else:

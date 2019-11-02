@@ -317,8 +317,93 @@ def InitializeStackLocals(task, raeArgs):
     if GLOBALS.GetDomain() == "SDN":
         cmdStatusStack[raeArgs.stack] = None
     
+def DoOneRollout(task, tasArgs):
+    goalCheck = goalChecks[task]
+    if goalCheck() == True:
+        return
+    curNode = planLocals.GetSearchTreeNode()
+    if curNode.children == []:
+        for cmd in commands:
+            newSearchTreeNode = rTree.CommandSearchTreeNode(cmd, 'command', cmdArgs)
+            curNode.AddChild(newSearchTreeNode)
+
+    untried = []
+
+    if curNode.N == 0:
+        untried = curNode.children
+    else:
+        for child in curNode.children:
+            if child.children == []:
+                untried.append(child) # command that has not been simulated yet
+
+    if untried != []:
+        cNode = random.choice(untried)
+        index = curNode.children.index(cNode)
+    else:
+        vmax = 0
+        cNode = None
+        index = None
+        for i in range(0, len(curNode.children)):
+            v = curNode.Q[i].GetValue() + \
+                GLOBALS.GetC() * math.sqrt(math.log(curNode.N)/curNode.n[i])
+            if v >= vmax:
+                vmax = v
+                cNode = curNode.children[i]
+                index = i
+
+    c = cNode.GetLabel()
+
+    retcode = CallCommand_OperationalModel(c, []) # add args later
+        nextState = GetState().copy()
+
+    if retcode == 'Failure':
+        nSN = rTree.SearchTreeNode(nextState, 'state', None) # next state node
+        nSN.SetUtility(Utility('Failure'))
+        cNode.AddChild(nSN)
+        planLocals.SetUtilRollout(Utility('Failure'))
+        return 
+    else:
+        nSN = cNode.FindAmongChildren(nextState) 
+        if nSN == None:
+            nSN = rTree.SearchTreeNode(nextState, 'state', None)
+
+            cNode.AddChild(nSN)
+        
+        util1 = planLocals.GetUtilRollout()
+        util2 = GetUtility(cmd, []) # cmdArgs
+        planLocals.SetUtilRollout(util1 + util2)
+        nSN.SetUtility(GetUtility(cmd, [])) # cmdArgs
+        planLocals.SetSearchTreeNode(nSN)
+        DoOneRollout(task, taskArgs)
+
+
+def RunUCTwithCommandsOnlyMain(task, taskArgs, state):
+
+    root = rTree.CommandSearchTreeNode(state.copy() , 'state', None)
+
+    planLocals.SetSearchTreeRoot(root)
+    planLocals.SetSearchTreeNode(root)
+    for i in range(GLOBALS.GetUCTRuns()):
+
+        RestoreState(state)
+        DoOneRollout(task, taskArgs)
+
 def RunUCTwithCommandsOnly(task, taskArgs):
-    return ((u1, []), (u2, []))
+
+    queue = multiprocessing.Queue()
+    p = multiprocessing.Process(
+            target=RunUCTwithCommandsOnlyMain,
+            args=[task, taskArgs, GetState()])
+
+    p.start()
+    p.join(GLOBALS.GetTimeLimit())
+
+    if p.is_alive() == True:
+        p.terminate()
+        return 'Failure'
+    else:
+        plan = queue.get()
+        return plan
 
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -1197,6 +1282,7 @@ def PlanCommand_UCT(cmd, cmdArgs):
         commandNode = searchTreeNode.children[0]
         assert(commandNode.GetType() == 'command')
         assert(commandNode.GetLabel() == cmd)
+
     if planLocals.GetFlip() == False:
         retcode = 'Success'
         nextState = commandNode.GetNext().GetLabel()

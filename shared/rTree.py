@@ -810,7 +810,7 @@ class CommandSearchTreeNode():
         node.parent = self
         self.children.append(node)
         self.childWeights.append(1)
-        if self.type == 'task':
+        if self.type == 'state':
             self.n.append(0)
             self.Q.append(Utility('Success'))
 

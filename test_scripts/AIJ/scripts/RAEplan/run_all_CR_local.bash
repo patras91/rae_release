@@ -13,8 +13,8 @@ do
             do
             	fname1="test_RAEplan_${domain}_${m}_${d}_part_${p}_eff.bash"
             	./$fname1
-                fname2="test_RAEplan_${domain}_${m}_${d}_part_${p}_sr.bash"
-                ./$fname2
+                #fname2="test_RAEplan_${domain}_${m}_${d}_part_${p}_sr.bash"
+                #./$fname2
             done
         done
     done

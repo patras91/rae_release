@@ -100,7 +100,7 @@ UCT_max_depth = {
 
 # for ICAPS 2020
 UCT_max_depth = {
-    "CR": [1000],
+    "CR": [5000],
     "SD": [1000],
     "EE": [1000],
     "SR": [1000],
@@ -327,7 +327,7 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in ["SR", "CR"]:
+    for domain in ["CR"]:
         for optz in ["max"]:
             for mode in ["UCT"]:
                 for depth in ["max"]:
