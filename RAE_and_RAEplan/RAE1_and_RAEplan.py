@@ -360,7 +360,7 @@ def DoOneRollout(task, taskArgs):
     nextState = GetState().copy()
 
     if retcode == 'Failure':
-        nSN = rTree.SearchTreeNode(nextState, 'state', None) # next state node
+        nSN = rTree.CommandSearchTreeNode(nextState, 'state', None) # next state node
         nSN.SetUtility(Utility('Failure'))
         cNode.AddChild(nSN)
         planLocals.SetUtilRollout(Utility('Failure'))
@@ -368,7 +368,7 @@ def DoOneRollout(task, taskArgs):
     else:
         nSN = cNode.FindAmongChildren(nextState) 
         if nSN == None:
-            nSN = rTree.SearchTreeNode(nextState, 'state', None)
+            nSN = rTree.CommandSearchTreeNode(nextState, 'state', None)
 
             cNode.AddChild(nSN)
         
@@ -378,31 +378,35 @@ def DoOneRollout(task, taskArgs):
         nSN.SetUtility(GetUtility(c, [])) # cmdArgs
         planLocals.SetSearchTreeNode(nSN)
         DoOneRollout(task, taskArgs)
-        curNode.Q[index] = Utility((curNode.Q[index].GetValue() * 
-                                curNode.n[index] + 
-                                planLocals.GetUtility()) /
+        curNode.Q[index] = Utility((curNode.Q[index].GetValue() * \
+                                curNode.n[index] + \
+                                planLocals.GetUtilRollout().GetValue()) / \
                             (curNode.n[index] + 1))
         curNode.n[index] += 1
 
 
 
-def RunUCTwithCommandsOnlyMain(task, taskArgs, state):
+def RunUCTwithCommandsOnlyMain(task, taskArgs, state, queue):
 
     root = rTree.CommandSearchTreeNode(state.copy() , 'state', None)
 
-    planLocals.SetSearchTreeRoot(root)
-    planLocals.SetSearchTreeNode(root)
+    plan = []
     for i in range(GLOBALS.GetUCTRuns()):
-
+        print("rollout ", i)
         RestoreState(state)
+        planLocals.SetSearchTreeNode(root)
+        planLocals.SetUtilRollout(Utility("Success"))
         DoOneRollout(task, taskArgs)
+
+
+    queue.put(plan)
 
 def RunUCTwithCommandsOnly(task, taskArgs):
 
     queue = multiprocessing.Queue()
     p = multiprocessing.Process(
             target=RunUCTwithCommandsOnlyMain,
-            args=[task, taskArgs, GetState()])
+            args=[task, taskArgs, GetState(), queue])
 
     p.start()
     p.join(GLOBALS.GetTimeLimit())
