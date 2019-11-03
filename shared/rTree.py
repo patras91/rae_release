@@ -783,7 +783,7 @@ class CommandSearchTreeNode():
         self.util = Utility("UNK")
         self.parent = None
         assert(GLOBALS.GetUCTmode() == True)
-        if self.type == 'task':
+        if self.type == 'state':
             self.N = 0
             self.n = []
             self.Q = []

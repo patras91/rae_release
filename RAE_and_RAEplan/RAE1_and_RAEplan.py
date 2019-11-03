@@ -317,14 +317,14 @@ def InitializeStackLocals(task, raeArgs):
     if GLOBALS.GetDomain() == "SDN":
         cmdStatusStack[raeArgs.stack] = None
     
-def DoOneRollout(task, tasArgs):
+def DoOneRollout(task, taskArgs):
     goalCheck = goalChecks[task]
     if goalCheck() == True:
         return
     curNode = planLocals.GetSearchTreeNode()
     if curNode.children == []:
-        for cmd in commands:
-            newSearchTreeNode = rTree.CommandSearchTreeNode(cmd, 'command', cmdArgs)
+        for cmd in commands.values():
+            newSearchTreeNode = rTree.CommandSearchTreeNode(cmd, 'command', [])
             curNode.AddChild(newSearchTreeNode)
 
     untried = []
@@ -353,8 +353,11 @@ def DoOneRollout(task, tasArgs):
 
     c = cNode.GetLabel()
 
-    retcode = CallCommand_OperationalModel(c, []) # add args later
-        nextState = GetState().copy()
+    cmdRet = {'state':'running'}
+    beginCommand(c, cmdRet, [])
+    retcode = cmdRet['state']
+
+    nextState = GetState().copy()
 
     if retcode == 'Failure':
         nSN = rTree.SearchTreeNode(nextState, 'state', None) # next state node
@@ -370,11 +373,17 @@ def DoOneRollout(task, tasArgs):
             cNode.AddChild(nSN)
         
         util1 = planLocals.GetUtilRollout()
-        util2 = GetUtility(cmd, []) # cmdArgs
+        util2 = GetUtility(c, []) # cmdArgs
         planLocals.SetUtilRollout(util1 + util2)
-        nSN.SetUtility(GetUtility(cmd, [])) # cmdArgs
+        nSN.SetUtility(GetUtility(c, [])) # cmdArgs
         planLocals.SetSearchTreeNode(nSN)
         DoOneRollout(task, taskArgs)
+        curNode.Q[index] = Utility((curNode.Q[index].GetValue() * 
+                                curNode.n[index] + 
+                                planLocals.GetUtility()) /
+                            (curNode.n[index] + 1))
+        curNode.n[index] += 1
+
 
 
 def RunUCTwithCommandsOnlyMain(task, taskArgs, state):

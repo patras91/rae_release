@@ -193,7 +193,7 @@ def m1_tbackup():
 def m2_tbackup():
     alg.do_command(fail)
 
-def tBackup_Goal():
+def tbackup_Goal():
     if state.v[0] == 4:
         return True
     else:
@@ -228,5 +228,5 @@ alg.declare_methods('l1', t1_c1)# t1_c1)
 alg.declare_goalCheck('tbackup', tbackup_Goal)
 
 #alg.declare_commands([fail, t1_c1, t1_c2, sr1, sr2, sr3, c10, u1, u2, u3, u4])
-alg.declare_commands([u1, u2, u3, u4, u5, u6, u7])
+alg.declare_commands([u1, u2, u3, u4, u5, u6, u7, fail])
 
