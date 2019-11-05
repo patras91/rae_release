@@ -18,6 +18,7 @@ from encoder_CR import *
 from encoder_SR import *
 from encoder_SD import *
 from encoder_EE import *
+from encoder_OF import *
 
 def GetLabel(yhat):
     r, predicted = torch.max(yhat, 0)
@@ -55,6 +56,13 @@ UpperLimits = {
 		"data": 5, # 0 to 4
 		"pos": 11, # 8 locations + 3 robots
 		"load": 8, # 5 equipments + 1 charger + nil
+	},
+	"OF": {
+		"OBJECTS": 2,
+		"OBJ_WEIGHT": 15,
+		"OBJ_CLASS": 5,
+		"loc": 15,
+		"busy": 2,
 	}
 }
 
@@ -127,6 +135,14 @@ methodCodes = {
     "HandleEmergency_Method2": 14, 
     "HandleEmergency_Method1": 15,
     "HandleEmergency_Method3": 16,
+	},
+	"OF": {
+	"OrderStart_Method1": 0,
+	"Order_Method1": 1,
+	"Order_Method2": 2,
+	"PickupAndLoad_Method1": 3,
+	"UnloadAndDeliver_Method1": 4,
+	"MoveToPallet_Method1": 5,
 	}
 }
 
@@ -135,6 +151,7 @@ numMethods = {
 	"SR": 16,
 	"EE": 17,	
 	"SD": 9,
+	"OF": 6,
 }
 
 taskCodes = {
@@ -171,6 +188,13 @@ taskCodes = {
 	'depositData': 6, 
 	'doActivities': 7,
 	'handleEmergency': 8,
+	},
+	"OF": {
+	'orderStart': 1,
+	'order': 2,
+	'pickupAndLoad': 3,
+	'unloadAndDeliver': 4,
+	'moveToPallet': 5,
 	}
 }
 
