@@ -62,22 +62,41 @@ def GetProblemsEE(part):
 #    "OF": [],
 #}
 
+#b_max_depth = {
+#    "CR": [1,2,3],
+#    "SD": [2,5,8],
+#    "SR": [2,3,4],
+#    "EE": [1,2,3],
+#    "IP": [1,2,3],
+#    "OF": [3,6,9],
+#}
+
 b_max_depth = {
-    "CR": [1,2,3],
-    "SD": [2,5,8],
-    "SR": [2,3,4],
-    "EE": [1,2,3],
-    "IP": [1,2,3],
-    "OF": [3,6,9],
+    "CR": [2],
+    "SD": [2],
+    "SR": [2],
+    "EE": [2],
+    "IP": [2],
+    "OF": [2],
 }
 
+
+# k_max_depth = {
+#     "CR": [1,3,5],
+#     "SD": [1,3,5],
+#     "SR": [1,3,5],
+#     "EE": [],
+#     "IP": [],
+#     "OF": [1,3,5],
+# }
+
 k_max_depth = {
-    "CR": [1,3,5],
-    "SD": [1,3,5],
-    "SR": [1,3,5],
-    "EE": [],
+    "CR": [2],
+    "SD": [2],
+    "SR": [2],
+    "EE": [2],
     "IP": [],
-    "OF": [1,3,5],
+    "OF": [2],
 }
 
 #UCT_max_depth = {
@@ -88,15 +107,6 @@ k_max_depth = {
 #    "IP": [],
 #    "OF": [5, 25, 50, 75, 100, 125, 150],
 #}
-
-UCT_max_depth = {
-    "CR": [5, 25, 50, 75, 100, 125],
-    "SD": [5, 25, 50, 75, 100, 125],
-    "SR": [5, 25, 50, 75, 100, 125],
-    "EE": [5, 25, 50, 75, 100, 125],
-    "IP": [],
-    "OF": [5, 25, 50, 75, 100, 125, 150],
-}
 
 # for ICAPS 2020
 UCT_max_depth = {
@@ -177,9 +187,9 @@ def writeProblems(name, file, part, domain):
 
 def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
     if opt == "max":
-        fname = 'test_RAEplan_{}_{}_{}_part_{}_eff.bash'.format(domain, mode, depth, part)
+        fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_eff.bash'.format(domain, domain, mode, depth, part)
     elif opt == "sr":
-        fname = 'test_RAEplan_{}_{}_{}_part_{}_sr.bash'.format(domain, mode, depth, part)
+        fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_sr.bash'.format(domain, domain, mode, depth, part)
     file = open(fname,"w") 
     file.write("#!/bin/sh\n")
     file.write("domain=\"{}\"\n".format(domain))
@@ -244,7 +254,10 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
         folderAnnex = "_sr"
     if depth == "max":
         #file.write("GLOBALS.SetSearchDepth(float(\\\"inf\\\"))\"\n")
-        file.write("GLOBALS.SetSearchDepth(30)\n")
+        if mode == "SLATE":
+            file.write("GLOBALS.SetSearchDepth(20)\n")
+        else:
+            file.write("GLOBALS.SetSearchDepth(30)\n")
         file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
     else:
         file.write("GLOBALS.SetSearchDepth($d)\n")
@@ -327,9 +340,9 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in ["CR"]:
+    for domain in ["OF"]: #["CR", "SR", "SD", "EE"]:
         for optz in ["max"]:
-            for mode in ["UCT"]:
+            for mode in ["SLATE", "UCT"]:
                 for depth in ["max"]:
                     for part in range(1, 11):
                         GenerateTestScriptRAEplan(mode, domain, depth, part, optz)

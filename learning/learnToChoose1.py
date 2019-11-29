@@ -32,7 +32,7 @@ def make_train_step(model, loss_fn, optimizer):
         optimizer.step()
         optimizer.zero_grad()
         # Returns the loss
-        return loss.item()
+        return yhat, loss.item()
     
     # Returns the function that will be called inside the train loop
     return train_step
@@ -40,11 +40,11 @@ def make_train_step(model, loss_fn, optimizer):
 # Builds a simple sequential model
 
 features = {
-    "EE": 22,
-    "SD": 24,
-    "SR": 23,
+    "EE": 182, #22,
+    "SD": 126, #24,
+    "SR": 330, #23,
     "OF": 0,
-    "CR": 22,
+    "CR": 97, #22, #91
 }
 
 outClasses = {
@@ -137,9 +137,11 @@ def CreatePlot(training, validation):
     plt.legend(bbox_to_anchor=(0.3, 0.7), loc=3, ncol=1, borderaxespad=0.)
     plt.savefig(fname, bbox_inches='tight')
 
-def printList(l):
+def PrintList(l, fname):
+    f = open(fname, "w")
     for i in l:
-        print(i)
+        f.write(str(i)+"\n")
+    f.close()
 #print(model.state_dict())
 
 if __name__ == "__main__":
@@ -158,10 +160,12 @@ if __name__ == "__main__":
     else:
         modelFrom = "planner"
 
-    fileIn = open("numericData_{}_{}.txt".format(domain, modelFrom))
+    fileIn = open("../../raeResults/learning/{}/numericData_{}_{}.txt".format(domain, domain, modelFrom))
+    
     x = []
     y = []
     line = fileIn.readline()
+    
     while(line != ""):
         nums = line[0:-1]
         items = nums.split(" ")
@@ -202,8 +206,8 @@ if __name__ == "__main__":
     # Splits randomly into train and validation datasets
     train_dataset, val_dataset = random_split(dataset, [trainingSetSize[domain], validationSetSize[domain]]) 
     # Builds a loader for each dataset to perform mini-batch gradient descent
-    train_loader = DataLoader(dataset=train_dataset, batch_size=3)
-    val_loader = DataLoader(dataset=val_dataset, batch_size=3)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=100)
+    val_loader = DataLoader(dataset=val_dataset, batch_size=100)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
     model = nn.Sequential(nn.Linear(features[domain], 512), nn.ReLU(inplace=True), nn.Linear(512, outClasses[domain]))
@@ -212,18 +216,18 @@ if __name__ == "__main__":
     # Sets hyper-parameters
     if modelFrom == "actor":
         lrD = {
-            "EE": 1e-3,
-            "SD": 1e-3,
-            "SR": 1e-3,
+            "EE": 1e-2, #1e-3,
+            "SD": 1e-2, #1e-3,
+            "SR": 1e-1,
             "CR": 1e-2,
             "OF": 1e-3,
         }
     else:
         lrD = {
-            "EE": 1e-3,
-            "SD": 1e-3,
-            "SR": 1e-3,
-            "CR": 1e-3,
+            "EE": 1e-2, #1e-3,
+            "SD": 1e-2, #1e-3,
+            "SR": 1e-2,
+            "CR": 1e-1, #1e-1,
             "OF": 1e-3,
         }
     lr = lrD[domain]
@@ -233,11 +237,17 @@ if __name__ == "__main__":
     # Creates function to perform train step from model, loss and optimizer
     train_step = make_train_step(model, loss_fn, optimizer)
 
-    
+
     # Training loop
     for epoch in range(n_epochs):
+
+        vLoss1 = []
+        tLoss1 = []
+
+        vAcc1 = []
+        tAcc1 = []
         # Uses loader to fetch one mini-batch for training
-        print("epoch ", epoch)
+        
         for x_batch, y_batch in train_loader:
 
             # NOW, sends the mini-batch data to the device
@@ -245,17 +255,13 @@ if __name__ == "__main__":
             x_batch = x_batch.to(device)
             y_batch = y_batch.to(device)
             # One step of training
-            loss = train_step(x_batch, y_batch)
-            tr_losses.append(loss)
+            yhat, loss = train_step(x_batch, y_batch)
+            tLoss1.append(loss)
+            tAcc1 += GetOneHotAccuracyValues(yhat, y_batch)
 
         with torch.no_grad():
         # Uses loader to fetch one mini-batch for validation
-            vLoss1 = []
-            tLoss1 = []
-
-            vAcc1 = []
-            tAcc1 = []
-
+            
             for x_val, y_val in val_loader:
                 # Again, sends data to same device as model
                 x_val = x_val.to(device)
@@ -270,60 +276,38 @@ if __name__ == "__main__":
                 # Computes validation loss and accuracy
                 val_loss = loss_fn(yhat, y_val)
                 vLoss1.append(val_loss)
-
                 vAcc1 += GetOneHotAccuracyValues(yhat, y_val)
+                  
+            trLoss = np.mean(tLoss1)
+            vLoss = np.mean(vLoss1)
+            trAcc = GetAccValue(tAcc1)
+            vAcc = GetAccValue(vAcc1)
 
-            for x_tr, y_tr in train_loader:
-                # Again, sends data to same device as model
-                x_tr = x_tr.to(device)
-                y_tr = y_tr.to(device)
-                
-                # What is that?!
-                model.eval()
-                # Makes predictions
-                yhat = model(x_tr)
-                
-                tAcc1 += GetOneHotAccuracyValues(yhat, y_tr)
+            val_losses.append(vLoss)
+            tr_losses.append(trLoss)
+            val_accuracy.append(vAcc)
+            tr_accuracy.append(trAcc)
 
-            val_losses.append(np.mean(vLoss1))
-            val_accuracy.append(GetAccValue(vAcc1))
-            tr_accuracy.append(GetAccValue(tAcc1))
-        
-        # After finishing training steps for all mini-batches,
-        # it is time for evaluation!
-            
-        # We tell PyTorch to NOT use autograd...
-        # Do you remember why?
-        #with torch.no_grad():
-            # Uses loader to fetch one mini-batch for validation
-            #for x_val, y_val in val_loader:
-                # Again, sends data to same device as model
-                #x_val = x_val.to(device)
-                #y_val = y_val.to(device)
-                
-                # What is that?!
-                #model.eval()
-                # Makes predictions
-                #yhat = model(x_val)
-                # Computes validation loss
-                #val_loss = loss_fn(y_val, yhat)
-                #print(val_loss)
-                #val_losses.append(val_loss.item())
-    print("training losses ")
-    printList(tr_losses)
+            print("epoch ", epoch, " TrLoss = ", trLoss, " TAcc = ", trAcc, " Vloss = ", vLoss, " Vacc = ", vAcc)
 
-    print("validation losses")
-    printList(val_losses)
-    CreatePlot(tr_losses, val_losses)
+    
+    print("------------------- training losses ")
+    PrintList(tr_losses, "../../raeResults/learning/{}/TLoss.txt".format(domain))
+
+    print("------------------- validation losses")
+    PrintList(val_losses, "../../raeResults/learning/{}/VLoss.txt".format(domain))
+    #printList(val_losses)
+    #CreatePlot(tr_losses, val_losses)
     #print(" mean training loss " , np.mean(tr_losses))
     #print(" mean validation loss ", np.mean(val_losses))
 
-    print("Training accuracy")
-    printList(tr_accuracy)
+    print("------------------- Training accuracy")
+    PrintList(tr_accuracy, "../../raeResults/learning/{}/TAcc.txt".format(domain))
 
-    print("Validation accuracy")
-    printList(val_accuracy)
-    #torch.save(model.state_dict(), "models/model{}_{}".format(domain, modelFrom))
+    print("------------------- Validation accuracy")
+    PrintList(val_accuracy, "../../raeResults/learning/{}/Vacc.txt".format(domain))
+
+    torch.save(model.state_dict(), "models/model_to_choose_{}_{}".format(domain, modelFrom))
     
 
 

@@ -26,10 +26,9 @@ from utility import Utility
 import time
 from sharedData import *
 from learningData import trainingDataRecords
-#from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
-#import torch
-#import torch.nn as nn
-#import pdb
+from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
+import torch
+import torch.nn as nn
 ############################################################
 
 ### for debugging
@@ -494,14 +493,21 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
 def GetCandidateFromLearnedModel(fname, task, candidates):
     device = "cpu"
 
-    features = {
-        "EE": 22,
-        "SD": 24,
-        "SR": 23,
-        "OF": 0,
-        "CR": 22,
-    }
+    # features = {
+    #     "EE": 22,
+    #     "SD": 24,
+    #     "SR": 23,
+    #     "OF": 0,
+    #     "CR": 22,
+    # }
 
+    features = {
+    "EE": 182, #22,
+    "SD": 126, #24,
+    "SR": 330, #23,
+    "OF": 0,
+    "CR": 97, #22, #91
+    }
     outClasses = {
         "EE": 17,
         "SD": 9,
@@ -534,10 +540,10 @@ def choose_candidate(candidates, task, taskArgs):
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
     elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "a":
-        fname = GLOBALS.GetModelPath() + "model{}_actor".format(GLOBALS.GetDomain())
+        fname = GLOBALS.GetModelPath() + "model_to_choose_{}_actor".format(GLOBALS.GetDomain())
         return GetCandidateFromLearnedModel(fname, task, candidates)
     elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "p":
-        fname = GLOBALS.GetModelPath() + "model{}_planner".format(GLOBALS.GetDomain())
+        fname = GLOBALS.GetModelPath() + "model_to_choose_{}_planner".format(GLOBALS.GetDomain())
         return GetCandidateFromLearnedModel(fname, task, candidates)
     else:
         return GetCandidateByPlanning(candidates, task, taskArgs)
@@ -592,7 +598,7 @@ def DoTaskInRealWorld(task, taskArgs):
     if retcode == 'Failure':
         raise Failed_task('{}{}'.format(task, taskArgs))
     elif retcode == 'Success':
-        if GLOBALS.GetLearningMode() == "genDataActor":
+        if GLOBALS.GetLearningMode() == "genDataActor" or GLOBALS.GetLearningMode() == "genDataPlanner":
             trainingDataRecords.Add(
                 GetState(), 
                 m, 
@@ -834,29 +840,29 @@ def GetHeuristicEstimate(task=None, tArgs=None):
             "SD": 144,
             "SR": 401,
             "OF": 0,
-            "CR": 98, #23 - 2,
+            "CR": 100 #98, #23 - 2,
         }
 
         outClasses = {
-            "EE": 100,
+            "EE": 200,
             "SD": 75,
             "SR": 10,
             "OF": 1,
-            "CR": 101, #1
+            "CR": 100, #1
         }
         #model = nn.Sequential(nn.Linear(features[domain], 512), 
         #nn.ReLU(inplace=True),
         #nn.Linear(512, outClasses[domain]))
 
-        if domain == "CR":
-            model = nn.Sequential(nn.Linear(features[domain], 512), 
-            nn.ReLU(inplace=True),
-            nn.Linear(512, 512), 
-            nn.Dropout(p=0.1),
-            nn.Linear(512, 512), 
-            nn.ReLU(inplace=True), 
-            nn.Linear(512, outClasses[domain]))
-        elif domain == "SR" or domain == "SD" or domain == "EE":
+        # if domain == "CR1":
+        #     model = nn.Sequential(nn.Linear(features[domain], 512), 
+        #     nn.ReLU(inplace=True),
+        #     nn.Linear(512, 512), 
+        #     nn.Dropout(p=0.1),
+        #     nn.Linear(512, 512), 
+        #     nn.ReLU(inplace=True), 
+        #     nn.Linear(512, outClasses[domain]))
+        if domain == "SR" or domain == "SD" or domain == "EE" or domain == "CR":
             model = nn.Sequential(nn.Linear(features[domain], 1024), 
             nn.ReLU(inplace=True),
             nn.Linear(1024, outClasses[domain]))

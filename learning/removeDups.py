@@ -15,6 +15,7 @@ if __name__=="__main__":
 	count = 0
 
 	lim  = { # num of stat vars + 3
+		"CR": 10,
 		"SR": 13, 
 		"SD": 9,
 		"EE": 9,
@@ -25,7 +26,6 @@ if __name__=="__main__":
 		for i in range(lim[domain] - 1):
 			s += f.readline()
 			lineN += 1
-		print(lineN)
 		e = f.readline()
 		if e == "UNK\n":
 			unk = True

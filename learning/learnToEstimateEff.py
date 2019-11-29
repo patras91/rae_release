@@ -50,15 +50,15 @@ features = {
     "SD": 144, #25 - 2,
     "SR": 401, #24 - 2,
     "OF": 0,
-    "CR": 98, #23 - 2,
+    "CR": 100, #23 - 2,
 }
 
 outClasses = {
-    "EE": 100,
+    "EE": 200,
     "SD": 75,
     "SR": 10,
     "OF": 1,
-    "CR": 101, #1
+    "CR": 100, #1
 }
 
 n_epochs = 10
@@ -147,9 +147,12 @@ def CreatePlot(training, validation):
     plt.legend(bbox_to_anchor=(0.3, 1), loc=3, ncol=1, borderaxespad=0.)
     plt.savefig(fname, bbox_inches='tight')
 
-def printList(l):
+def PrintList(l, fname):
+    f = open(fname, "w")
     for i in l:
-        print(i)
+        f.write(str(i)+"\n")
+    f.close()
+
 #print(model.state_dict())
 
 if __name__ == "__main__":
@@ -185,7 +188,11 @@ if __name__ == "__main__":
             items = nums.split(" ")
             x_row = [float(i) for i in items[0:-1]]
             x.append(x_row)
-            y.append(int(int(items[-1])))
+            
+            y_row = int(items[-1])
+            if y_row > 90:
+                print(y_row)
+            y.append(y_row)
         r = np.random.rand()
         line = fileIn.readline()
     fileIn.close()
@@ -225,7 +232,7 @@ if __name__ == "__main__":
     val_loader = DataLoader(dataset=val_dataset, batch_size=128)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
-    if domain == "EE" or domain == "SR" or domain == "SD":
+    if domain == "EE" or domain == "SR" or domain == "SD" or domain == "CR":
         model = nn.Sequential(nn.Linear(features[domain], 1024), 
             nn.ReLU(inplace=True),
             #nn.Linear(1024, 1024), 
@@ -265,7 +272,7 @@ if __name__ == "__main__":
             "EE": 1e-1,
             "SD": 1e-1,
             "SR": 1e-1,
-            "CR": 1e-2,
+            "CR": 1e-1,
             "OF": 1e-3,
         }
     lr = lrD[domain]
@@ -354,42 +361,22 @@ if __name__ == "__main__":
                 " VLoss = ", num1, 
                 " VAcc = ", num3)
         
-        # After finishing training steps for all mini-batches,
-        # it is time for evaluation!
-            
-        # We tell PyTorch to NOT use autograd...
-        # Do you remember why?
-        #with torch.no_grad():
-            # Uses loader to fetch one mini-batch for validation
-            #for x_val, y_val in val_loader:
-                # Again, sends data to same device as model
-                #x_val = x_val.to(device)
-                #y_val = y_val.to(device)
-                
-                # What is that?!
-                #model.eval()
-                # Makes predictions
-                #yhat = model(x_val)
-                # Computes validation loss
-                #val_loss = loss_fn(y_val, yhat)
-                #print(val_loss)
-                #val_losses.append(val_loss.item())
-    #print("training losses ")
-    #printList(tr_losses)
+    print("------------------- training losses ")
+    PrintList(tr_losses, "../../raeResults/learning/{}/TLoss_eff.txt".format(domain))
 
-    #print("validation losses")
-    #printList(val_losses)
-    CreatePlot(tr_losses, val_losses)
+    print("------------------- validation losses")
+    PrintList(val_losses, "../../raeResults/learning/{}/VLoss_eff.txt".format(domain))
+
+    #CreatePlot(tr_losses, val_losses)
     #print(" mean training loss " , np.mean(tr_losses))
     #print(" mean validation loss ", np.mean(val_losses))
 
-    #print("Training accuracy")
-    #printList(tr_accuracy)
+    print("------------------- Training accuracy")
+    PrintList(tr_accuracy, "../../raeResults/learning/{}/TAcc_eff.txt".format(domain))
 
-    #print(model.state_dict())
+    print("------------------- Validation accuracy")
+    PrintList(val_accuracy, "../../raeResults/learning/{}/Vacc_eff.txt".format(domain))
 
-    #print("Validation accuracy")
-    #printList(val_accuracy)
     torch.save(model.state_dict(), "models/model_for_eff_{}_{}_task_{}".format(domain, modelFrom, args.task))
     
 

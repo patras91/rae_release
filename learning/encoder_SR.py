@@ -207,6 +207,7 @@ def ReadStateVars_SR(line, f):
 			a7Hs = [str(i) for i in a7H]
 		
 		elif line[0:3] == "new":
+			#newRobot {1: None}
 			a8 = line[9:-1]
 			a8 = GetRobotStr_SR(a8).split(' ')
 			a8H = ConvertToOneHot(a8, 'robot', 'SR')
@@ -217,7 +218,7 @@ def ReadStateVars_SR(line, f):
 			#tyStr = GetTypeStr_SR(ty)
 			#realStatus {'w1': 'OK', 'p1': 'OK', 'w2': 'OK', 'a1': 'ok', (22, 30): 'hasDebri'}
 			#realPerson {(22, 30): 'p1'}
-			#newRobot {1: None}
+
 		if i < 9:
 			line = f.readline()
 	

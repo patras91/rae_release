@@ -1,6 +1,6 @@
 #!/bin/sh
 domain="SR"
-runs=10
+runs=1
 P=(
 "problem43" 
 "problem32" 
@@ -59,17 +59,21 @@ setup="
 import sys
 sys.path.append('../../../../RAE_and_RAEplan/')
 sys.path.append('../../../../shared/domains/')
-sys.path.append('../../../../shared/problems/SR/auto')
+sys.path.append('../../../../shared/problems/SR/training')
 sys.path.append('../../../../shared/')
+sys.path.append('../../../../learning/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetOpt('max')
+GLOBALS.SetUseTrainedModel('n')
+GLOBALS.SetLearningMode(None)
+GLOBALS.SetModelPath('../../../../learning/models/')
 GLOBALS.SetTimeLimit(300)"
 counter=1
 while [ $counter -le $runs ]
 do
             echo $domain $problem " Run " $counter/$runs
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=False)"
-            fname="../../../../../raeResults/${domain}_v_journal/RAE.txt"
+            fname="../../../../../raeResults/${domain}_v_journal/RAE_training.txt"
             echo "Time test of $domain $problem" >> $fname
             python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
 ((counter++))

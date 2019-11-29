@@ -140,7 +140,7 @@ class Map():
 MAPS = [Map(1), Map(2), Map(3)]
 
 def generateProblems():
-    num = 200
+    num = 100
     for map1 in MAPS: # 3 
         charge1 = [random.choice([50, 80]), random.choice([50, 80]), random.choice([50, 80])] # uav, r1, r2
         charge2 = [random.choice([50, 80]), random.choice([50, 80]), random.choice([50, 80])]
@@ -186,7 +186,7 @@ EQUIPMENT = {'survey': 'e1', 'monitor': 'e2', 'screen': 'e3', 'sample': 'e4', 'p
 
 def writeProblem(num, map, charge, chargerLoc, equipmentLoc, data, weather, load, emergency, numTasks):
     
-    fname = 'auto/problem{}_EE.py'.format(num)
+    fname = 'training/problem{}_EE.py'.format(num)
     file = open(fname,"w") 
     writeHeader(file)
 

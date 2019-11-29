@@ -2,9 +2,15 @@ __author__ = 'patras'
 import matplotlib.pyplot as plt
 import csv
 import argparse
+import math
+import matplotlib as mpl
+mpl.rcParams['hatch.linewidth'] = 0.2  # previous pdf hatch linewidth
+#mpl.rcParams['hatch.linewidth'] = 1.0  # previous svg hatch linewidth
 
 figuresFolder = "figures/"
 resultsFolder = "../../../raeResults/"
+
+ptMax = 247264
 
 B_max_depth = {
     "SD": [2,5,8],
@@ -76,6 +82,18 @@ succCases = {
 
 COLORS = ['ro:', 'bs--', 'm^-.', 'go--', 'c^:', 'rs--', 'ms--', 'gs--']
 
+def GetFullName(domain):
+    if domain == "CR":
+        return "Fetch Objects Domain"
+    elif domain == "SD":
+        return "Navigate Doorways Domain"
+    elif domain == "SR":
+        return "Search and Rescue Domain"
+    elif domain == "OF":
+        return "Order Fulfillment (OF)"
+    elif domain == "EE":
+        return "Explore Environment Domain"
+
 def NotTimeLine(s):
     if len(s) < 7:
         return True
@@ -86,16 +104,19 @@ def NotTimeLine(s):
 
 def GetMSEError(l, mean, fac):
     variance = 0
+    if fac > 0:
+        fac = 1.96
     for i in l:
         variance += (i - mean) * (i - mean)
 
-    print("variance = ", variance)
-    return fac*variance/(len(l) - 1)/len(l)
+    print("mean = ", mean, "variance = ", variance)
+    return fac*math.sqrt(variance/(len(l)-1)/len(l))
+    #return fac*variance/(len(l) - 1)/len(l)
 
 def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
     print(fileName)
     line = f_rae.readline()
-    
+    global ptMax
     succCount = 0
     totalTasks = 0
     
@@ -112,6 +133,7 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
     nu_L = []
     sr_L = []
     rr_L = []
+    tt_L = []
 
     timeOutCount = 0
     
@@ -141,6 +163,11 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
                     break
                 if counts == "0 1 0 0 0 0 0 0 0\n":
                     timeOutCount += 1
+                    planTime += ptMax
+                    if domain == "OF":
+                        ignoreThis = True
+                else:
+                    ignoreThis = False
 
                 parts2 = counts.split(' ')
 
@@ -149,34 +176,44 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
                     s = int(parts2[0])
                     t = int(parts2[1])
                     r = int(parts2[2])
-                    planTime += float(parts2[3])
-                    actTime += float(parts2[4])
+                    if ignoreThis == False:
+                        planTime += float(parts2[3])
+                        #if ptMax < float(parts2[3]):
+                        #    ptMax = float(parts2[3])
+                        actTime += float(parts2[4])
+                        tt_L.append(float(parts2[4]) + float(parts2[3]))
                     taskEff = float(parts2[5])
                 else:
                     version = 2
                     s = int(parts2[1])
                     t = int(parts2[2])
                     r = int(parts2[3])
-                    planTime += float(parts2[4])
-                    actTime += float(parts2[5])
+                    if ignoreThis == False:
+                        planTime += float(parts2[4])
+                        #if ptMax < float(parts2[4]):
+                        #    ptMax = float(parts2[4])
+                        actTime += float(parts2[5])
+                        tt_L.append(float(parts2[4]) + float(parts2[5]))
                     taskEff = float(parts2[6])
 
                 if taskEff == float("inf"):
                     print("Infinite efficiency! Normalizing.\n")
                     taskEff = 1/10
-                nu += taskEff
-                nu_L.append(taskEff)
-                succCount += s
-                sr_L.append(s)
-                totalTasks += t
+                if ignoreThis == False:
+                    nu += taskEff
+                    nu_L.append(taskEff)
+                    succCount += s
+                    sr_L.append(s)
+                    totalTasks += t
 
                 # for retry ratio
                 if s == t:
                     if ((id in succCases[domain]) and param > 0): #or (domain in ['CR', 'EE', 'SD', 'IP']):
-                        retryCount += r
-                        rr_L.append(r)
-                        totalCountForRetries += t
-                    elif param == 0:
+                        if ignoreThis == False:
+                            retryCount += r
+                            rr_L.append(r)
+                            totalCountForRetries += t
+                    elif param == 0 and ignoreThis == False:
                         succCases[domain].append(id)
                         retryCount += r
                         rr_L.append(r)
@@ -195,27 +232,57 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
             
             secTimeLine = counts
             parts11 = secTimeLine.split()
-            t11 = float(parts11[5])
-            unit11 = parts11[6]
-            if unit11 == "msec":
-                t11 = t11 / 1000
-            time11 += t11
+            if ignoreThis == False:
+                t11 = float(parts11[5])
+                unit11 = parts11[6]
+                if unit11 == "msec":
+                    t11 = t11 / 1000
+                time11 += t11
+                tt_L.append(t11)
+
         line = f_rae.readline()
         lineNumber += 1
 
+    scalar = {
+        "CR": {
+            "nu": 50,
+            "sr": 25,
+        },
+        "SR": {
+            "nu": 5000,
+            "sr": 100,
+        },
+        "SD": {
+            "nu": 500,
+            "sr": 50,
+        },
+        "EE": {
+            "nu": 100,
+            "sr": 10,
+        },
+        "OF": {
+            "nu": 500,
+            "sr": 10,
+        }
+    }
+
     res['successRatio'].append(succCount/totalTasks)
-    res['sr_error'].append(GetMSEError(sr_L, succCount/totalTasks, 10))
+    res['sr_error'].append(GetMSEError(sr_L, succCount/totalTasks, scalar[domain]['sr']))
     if totalCountForRetries != 0:
         res['retryRatio'].append(retryCount/totalCountForRetries)
         res['rr_error'].append(GetMSEError(rr_L, retryCount/totalCountForRetries, 10))
     else:
         res['retryRatio'].append(0)
         res['rr_error'].append(0)
-    res['planTime'].append(planTime)
-    res['actTime'].append(actTime)
-    res['totalTime'].append(1 * planTime + 1 * actTime)
+    res['planTime'].append(planTime/totalTasks)
+
+    res['actTime'].append(actTime/totalTasks)
+    
+    res['totalTime'].append(time11/totalTasks)
+    res['tt_error'].append(GetMSEError(tt_L, time11/totalTasks, 0.000000))
+
     res['nu'].append(nu / totalTasks)
-    res['nu_error'].append(GetMSEError(nu_L, nu/totalTasks, 100))
+    res['nu_error'].append(GetMSEError(nu_L, nu/totalTasks, scalar[domain]['nu']))
     res['timeOut'].append(timeOutCount)
 
 def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
@@ -336,12 +403,8 @@ def Populate_UCT_max_depth(res, domain, u):
             PopulateHelper_UCT_max_depth(res, domain, open(fname), uct, fname)
             fptr.close()
 
-def Populate_UCT_max_depth_learning(res, domain, model):
-    if model == "actor":
-        f1 = "{}{}_v_journal/RAE_with_trained_model_actor.txt".format(resultsFolder, domain)
-    elif model == "planner":
-        f1 = "{}{}_v_journal/RAE_with_trained_model_planner.txt".format(resultsFolder, domain)
-    elif model == "planning":
+def Populate_learning(res, domain, model):
+    if model == "UCT":
         if domain == "CR":
             f1 = "{}{}_v_journal/rae_plan_uct_5000.txt".format(resultsFolder, domain)
         else:
@@ -350,18 +413,48 @@ def Populate_UCT_max_depth_learning(res, domain, model):
             #f1 = "{}{}_v_journal/RAE_with_planning.txt".format(resultsFolder, domain)
         #else:
         #    f1 = "{}{}_v_journal_eff/rae_plan_uct_100.txt".format(resultsFolder, domain)
-    elif model == "heuristic_10_3":
-        f1 = "{}{}_v_journal/RAE_with_trained_heuristic_10_3.txt".format(resultsFolder, domain)
-    elif model == "reactive" or domain == "SD":
+    elif model == "SLATE":
+        f1 = "{}{}_v_journal/rae_plan_b_2_k_2.txt".format(resultsFolder, domain)
+    elif model == "reactive" or domain == "OF":
+        #if domain == "CR" or domain == "SR":
+        #    f1 = "{}{}_v_journal/RAE_training.txt".format(resultsFolder, domain)
+        #else:
         f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
-    elif model == "heuristic0_10_3" or domain == "SR" or domain == "EE":
-        f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0_10_3.txt".format(resultsFolder, domain)
-    elif model == "heuristic":
-        f1 = "{}{}_v_journal/RAE_with_trained_heuristic.txt".format(resultsFolder, domain)
-    elif model == "heuristic5":
-        f1 = "{}{}_v_journal/RAE_with_trained_heuristic_5.txt".format(resultsFolder, domain)
-    elif model == "heuristic0":
-        f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0.txt".format(resultsFolder, domain)
+    elif model == "heuristic_10_3":
+        #if domain == "EE":
+        #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_40_6.txt".format(resultsFolder, domain)
+        #if domain == "CR" or domain == "SR":
+        #    f1 = "{}{}_v_journal/RAE_with_learnH_training.txt".format(resultsFolder, domain)
+        #else:
+        f1 = "{}{}_v_journal/RAE_with_learnH.txt".format(resultsFolder, domain)
+        #else:
+        #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_10_3.txt".format(resultsFolder, domain)
+    
+    elif model == "actor":
+        #if domain not in  ["SR"]:
+        #    f1 = "{}{}_v_journal/RAE_with_trained_model_actor.txt".format(resultsFolder, domain)
+        #else:
+        #if domain == "CR" or domain == "SR":
+        #    f1 = "{}{}_v_journal/RAE_with_learnM_a_training.txt".format(resultsFolder, domain)
+        #else:
+        f1 = "{}{}_v_journal/RAE_with_learnM_a.txt".format(resultsFolder, domain)
+            
+    elif model == "planner":
+        #if domain not in  ["SR"]:
+        #    f1 = "{}{}_v_journal/RAE_with_trained_model_planner.txt".format(resultsFolder, domain)
+        #else:
+        #if domain == "CR" or domain == "SR":
+        #    f1 = "{}{}_v_journal/RAE_with_learnM_p_training.txt".format(resultsFolder, domain)
+        #else:
+        f1 = "{}{}_v_journal/RAE_with_learnM_p.txt".format(resultsFolder, domain)
+    #elif model == "heuristic0_10_3" or domain == "SR" or domain == "EE":
+    #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0_10_3.txt".format(resultsFolder, domain)
+    #elif model == "heuristic":
+    #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic.txt".format(resultsFolder, domain)
+    #elif model == "heuristic5":
+    #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_5.txt".format(resultsFolder, domain)
+    #elif model == "heuristic0":
+    #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0.txt".format(resultsFolder, domain)
    
     f1_p = open(f1, "r")
     PopulateHelper_UCT_max_depth(res, domain, f1_p, 0, f1)
@@ -514,22 +607,10 @@ def GeneratePlots_UCT_max_depth():
     for metric in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_UCT_max(resDict, metric)
 
-def GeneratePlots_UCT_max_depth_learning():
+def GeneratePlots_learning():
     resDict = {}
     for domain in D:
         resDict[domain] = {}
-        resDict[domain]['planning'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            }
         resDict[domain]['reactive'] = {
             'successRatio': [], 
             'retryRatio': [],
@@ -541,10 +622,21 @@ def GeneratePlots_UCT_max_depth_learning():
             'nu_error': [],
             'sr_error': [],
             'rr_error': [],
+            'tt_error': [],
             }
-        Populate_UCT_max_depth_learning(resDict[domain]['planning'], domain, 'planning')
-        Populate_UCT_max_depth_learning(resDict[domain]['reactive'], domain, 'reactive')
-        
+        resDict[domain]['SLATE'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            'tt_error': [],
+            }
         resDict[domain]['learning_from_actor'] = {
             'successRatio': [], 
             'retryRatio': [],
@@ -556,6 +648,7 @@ def GeneratePlots_UCT_max_depth_learning():
             'nu_error': [],
             'sr_error': [],
             'rr_error': [],
+            'tt_error': [],
             }
         resDict[domain]['learning_from_planner'] = {
             'successRatio': [], 
@@ -568,54 +661,7 @@ def GeneratePlots_UCT_max_depth_learning():
             'nu_error': [],
             'sr_error': [],
             'rr_error': [],
-            }
-        resDict[domain]['heuristic'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            }
-        resDict[domain]['heuristic5'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            }
-        resDict[domain]['heuristic0'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            }
-        resDict[domain]['heuristic0_10_3'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
+            'tt_error': [],
             }
         resDict[domain]['heuristic_10_3'] = {
             'successRatio': [], 
@@ -628,30 +674,95 @@ def GeneratePlots_UCT_max_depth_learning():
             'nu_error': [],
             'sr_error': [],
             'rr_error': [],
+            'tt_error': [],
             }
-        Populate_UCT_max_depth_learning(resDict[domain]['learning_from_actor'], domain, 'actor')
-        Populate_UCT_max_depth_learning(resDict[domain]['learning_from_planner'], domain, 'planner')
-        Populate_UCT_max_depth_learning(resDict[domain]['heuristic5'], domain, 'heuristic5')
-        Populate_UCT_max_depth_learning(resDict[domain]['heuristic'], domain, 'heuristic')
-        Populate_UCT_max_depth_learning(resDict[domain]['heuristic0'], domain, 'heuristic0')
-        Populate_UCT_max_depth_learning(resDict[domain]['heuristic0_10_3'], domain, 'heuristic0_10_3')
-        Populate_UCT_max_depth_learning(resDict[domain]['heuristic_10_3'], domain, 'heuristic_10_3')
-    plt.clf()
-    plt.clf()
-    font = {
-        'family' : 'times',
-        'weight' : 'regular',
-        'size'   : 15}
-    plt.rc('font', **font)
+        resDict[domain]['UCT'] = {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            'tt_error': [],
+            }
+
+
+        Populate_learning(resDict[domain]['UCT'], domain, 'UCT')
+        Populate_learning(resDict[domain]['SLATE'], domain, 'SLATE')
+        Populate_learning(resDict[domain]['reactive'], domain, 'reactive')
+        
+
+        # resDict[domain]['heuristic'] = {
+        #     'successRatio': [], 
+        #     'retryRatio': [],
+        #     'planTime': [],
+        #     'actTime': [],
+        #     'totalTime': [],
+        #     'nu': [],
+        #     'timeOut': [],
+        #     'nu_error': [],
+        #     'sr_error': [],
+        #     'rr_error': [],
+        #     }
+        # resDict[domain]['heuristic5'] = {
+        #     'successRatio': [], 
+        #     'retryRatio': [],
+        #     'planTime': [],
+        #     'actTime': [],
+        #     'totalTime': [],
+        #     'nu': [],
+        #     'timeOut': [],
+        #     'nu_error': [],
+        #     'sr_error': [],
+        #     'rr_error': [],
+        #     }
+        # resDict[domain]['heuristic0'] = {
+        #     'successRatio': [], 
+        #     'retryRatio': [],
+        #     'planTime': [],
+        #     'actTime': [],
+        #     'totalTime': [],
+        #     'nu': [],
+        #     'timeOut': [],
+        #     'nu_error': [],
+        #     'sr_error': [],
+        #     'rr_error': [],
+        #     }
+        # resDict[domain]['heuristic0_10_3'] = {
+        #     'successRatio': [], 
+        #     'retryRatio': [],
+        #     'planTime': [],
+        #     'actTime': [],
+        #     'totalTime': [],
+        #     'nu': [],
+        #     'timeOut': [],
+        #     'nu_error': [],
+        #     'sr_error': [],
+        #     'rr_error': [],
+        #     }
+
+        Populate_learning(resDict[domain]['learning_from_actor'], domain, 'actor')
+        Populate_learning(resDict[domain]['learning_from_planner'], domain, 'planner')
+        #Populate_learning(resDict[domain]['heuristic5'], domain, 'heuristic5')
+        #Populate_learning(resDict[domain]['heuristic'], domain, 'heuristic')
+        #Populate_learning(resDict[domain]['heuristic0'], domain, 'heuristic0')
+        #Populate_learning(resDict[domain]['heuristic0_10_3'], domain, 'heuristic0_10_3')
+        Populate_learning(resDict[domain]['heuristic_10_3'], domain, 'heuristic_10_3')
+
     
     print(resDict)
     errIndex = {
         'nu': 'nu_error',
         'successRatio': 'sr_error',
         'retryRatio': 'rr_error',
+        'totalTime': 'tt_error',
     }
-    for metric in ['nu', 'successRatio', 'retryRatio']:
-        PlotHelper_UCT_max_learning(resDict, metric, errIndex[metric])
+    for metric in ['totalTime']: #['nu', 'successRatio', 'retryRatio', 'totalTime']:
+        PlotHelper_learning(resDict, metric, errIndex[metric])
 
 def GeneratePlots_UCT_max_depth_planning_utilities():
     resDict = {}
@@ -815,11 +926,15 @@ def GetSum(*l):
 
 def GetYlabel(util):
     if util == 'nu':
-        return 'Efficiency, $E$'
+        return 'Efficiency'
     elif util == 'successRatio':
         return 'Success Ratio'
-    else:
+    elif util == "retryRatio":
         return 'Retry Ratio'
+    elif util == "totalTime":
+        return 'Total time'
+    else:
+        return "Y"
 
 def PlotHelper_UCT_max(resDict, utilp):
     index1 = utilp
@@ -856,109 +971,119 @@ def PlotHelper_UCT_max(resDict, utilp):
 
 import numpy as np 
 
-def PlotHelper_UCT_max_learning(resDict, utilp, errorP):
+def PlotHelper_learning(resDict, utilp, errorP):
     index1 = utilp
+    index1 = 'actTime'
     #K = [0, 1, 2, 3, 4, 8, 16]
 
-    fname = '{}{}UCT_max_depth_learning.png'.format(figuresFolder, utilp)
+    fname = '{}{}_learning.png'.format(figuresFolder, utilp)
+
     plt.clf()
+    #font = {
+    #    'family' : 'times',
+    #    'weight' : 'regular',
+    #    'size'   : 8}
+    #plt.rc('font', **font)
     
-    labels = D
+    ax = {}
+    ax['CR'] = plt.subplot2grid(shape=(2,4), loc=(0,0), colspan=2)
+    ax['SD'] = plt.subplot2grid((2,4), (0,2), colspan=2)
+    ax['EE'] = plt.subplot2grid((2,4), (1,0), colspan=2)
+    ax['SR'] = plt.subplot2grid((2,4), (1,2), colspan=2)
+    #ax['OF'] = plt.subplot2grid((2,4), (2,0), colspan=2)
 
-    reactive = []
-    trainedFromActor = []
-    trainedFromPlanner = []
-    calledPlanner = []
-    learnedHeuristic = []
-    learnedHeuristic5 = []
-    learnedHeuristic0 = []
-    learnedHeuristic0_10_3 = []
-    learnedHeuristic_10_3 = []
-
-    errReactive = []
-    errP = []
-    errTA = []
-    errTP = []
-    errHE = []
-    errHE5 = []
-    errHE0 = []
-    errHE0_10_3 = []
-    errHE_10_3 = []
-
-    subplot = {
-        "CR": 221,
-        "SR": 222,
-        "SD": 223,
-        "EE": 224,
+    lowerLim = {
+        "CR":
+        {
+            "nu": 0.065,
+            "retryRatio": 0,
+            "successRatio":0.68,
+            'totalTime': 0,
+        },
+        "SR":
+        {
+            "nu":0,
+            "retryRatio": 0,
+            "successRatio":0.1,
+            'totalTime': 0,
+        },
+        "EE":
+        {
+            "nu": 0,
+            "retryRatio": 0,
+            "successRatio":0.20,
+            'totalTime': 0,
+        },
+        "SD":
+        {
+            "nu":0.018,
+            "retryRatio": 0,
+            "successRatio":0.7,
+            'totalTime': 0,
+        },
+        "OF":
+        {
+            "nu": 0.01,
+            "retryRatio": 0,
+            "successRatio":0.6,
+            'totalTime': 0,
+        }
     }
+    toPlot = {}
+
     for domain in D:
-        #print(resDict[domain]['planning'][index1])
-        reactive.append(resDict[domain]['reactive'][index1][0])
-        trainedFromActor.append(resDict[domain]['learning_from_actor'][index1][0])
-        trainedFromPlanner.append(resDict[domain]['learning_from_planner'][index1][0])
-        calledPlanner.append(resDict[domain]['planning'][index1][0])
-        learnedHeuristic.append(resDict[domain]['heuristic'][index1][0])
-        learnedHeuristic5.append(resDict[domain]['heuristic5'][index1][0])
-        learnedHeuristic0.append(resDict[domain]['heuristic0'][index1][0])
-        learnedHeuristic0_10_3.append(resDict[domain]['heuristic0_10_3'][index1][0])
-        learnedHeuristic_10_3.append(resDict[domain]['heuristic_10_3'][index1][0])
+        toPlot = {'val': {}, 'err': {}}
+        toPlot['val']['RAE\n(no planning)'] = resDict[domain]['reactive'][index1][0]
+        toPlot['val']['RAEplan'] = resDict[domain]['SLATE'][index1][0]
+        toPlot['val']['LearnM-1'] = resDict[domain]['learning_from_actor'][index1][0]
+        toPlot['val']['LearnM-2'] = resDict[domain]['learning_from_planner'][index1][0]
+        toPlot['val']['LearnH'] = resDict[domain]['heuristic_10_3'][index1][0]
+        toPlot['val']['UPOM'] = resDict[domain]['UCT'][index1][0]
 
         # the errors
-        errReactive.append(resDict[domain]['reactive'][errorP][0])
-        errTA.append(resDict[domain]['learning_from_actor'][errorP][0])
-        errTP.append(resDict[domain]['learning_from_planner'][errorP][0])
-        errP.append(resDict[domain]['planning'][errorP][0])
-        errHE.append(resDict[domain]['heuristic'][errorP][0])
-        errHE5.append(resDict[domain]['heuristic5'][errorP][0])
-        errHE0.append(resDict[domain]['heuristic0'][errorP][0])
-        errHE0_10_3.append(resDict[domain]['heuristic0_10_3'][errorP][0])
-        errHE_10_3.append(resDict[domain]['heuristic_10_3'][errorP][0])
+        #toPlot['err']['RAE (no planning)'] = resDict[domain]['reactive'][errorP][0]
+        #toPlot['err']['RAEplan'] = resDict[domain]['SLATE'][errorP][0]
+        #toPlot['err']['LearnM-1'] = resDict[domain]['learning_from_actor'][errorP][0]
+        #toPlot['err']['LearnM-2'] = resDict[domain]['learning_from_planner'][errorP][0]
+        #toPlot['err']['LearnH'] = resDict[domain]['heuristic_10_3'][errorP][0]
+        #toPlot['err']['UPOM'] = resDict[domain]['UCT'][errorP][0]
 
-    x = np.arange(len(labels))  # the label locations
-    width = 0.15  # 0.003 the width of the bars
-
-    fig, ax = plt.subplots()
-    rects1 = ax.bar(x - 3*width/2, reactive, width, label='Purely Reactive Acting', yerr=errReactive)
-    rects2 = ax.bar(x - width/2, trainedFromActor, width, label='Used model trained from acting data to predict the choice of refinement method', yerr=errTA)
-    rects3 = ax.bar(x + width/2, trainedFromPlanner, width, label='Used model trained from planning data to predict the choice of refinement method', yerr=errTP)
-    rects4 = ax.bar(x + 3*width/2, learnedHeuristic_10_3, width, label='Used trained network to predict efficiency at depth 3', yerr=errHE_10_3)
-    rects5 = ax.bar(x + 5*width/2, calledPlanner, width, label='Called RAEplan-UCT', yerr=errP)
-    #rects6 = ax.bar(x + 7*width/2, learnedHeuristic0_10_3, width, label='Baseline with 0 heuristic', yerr=errHE0_10_3)
-    #if index1 == "nu":
-    #    ax.set_ylim(bottom=0.0)
-    #elif index1 == "successRatio":
-    #    ax.set_ylim(bottom=0.1)
-
-    #rects5 = ax.bar(x + 5*width/2, learnedHeuristic, width, label='Learned Efficiency', yerr=errHE)
-    #rects5 = ax.bar(x + 7*width/2, learnedHeuristic5, width, label='Learned Efficiency 5', yerr=errHE5)
-    #rects5 = ax.bar(x + 9*width/2, learnedHeuristic0, width, label='Inf Efficiency ', yerr=errHE0)
+        width = 0.85  # 0.003 the width of the bars
     
-    # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel(GetYlabel(utilp))
-    ax.set_xlabel("Domains")
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.legend()
 
-    #for domain in D:
-        # PlotViaMatlab(UCT_max_depth[domain], 
-        #      resDict[domain]['learning_from_planner'][index1],
-        #     COLORS[0],
-        #     "learned from planner")
-        # PlotViaMatlab(UCT_max_depth[domain], 
-        #     resDict[domain]['learning_from_actor'][index1],
-        #     COLORS[1],
-        #     "learned from actor")
+        labels = list(toPlot['val'].keys())
+        x = np.arange(len(labels))
 
-        # PlotViaMatlab(UCT_max_depth[domain], 
-        #     resDict[domain]['planning'][index1],
-        #     COLORS[2],
-        #     "called RAEplan - UCT")
-    
-    plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
+        print(domain)
+        print(ptMax)
+        print(list(toPlot['val'].values()))
+        continue
+        rects = ax[domain].bar(x, list(toPlot['val'].values()), width, 
+            color=['turquoise', 'grey', 'orange', 'yellowgreen', 'orangered', 'orchid'],
+            yerr=list(toPlot['err'].values()), capsize=3)
+       
+        patterns = ('\\', '\\\\', '/', '+', 'x', '\\\\\\\\')
+        for bar, pattern in zip(rects, patterns):
+            bar.set_hatch(pattern)
+
+        ax[domain].set_ylim(bottom=lowerLim[domain][index1])
+        #elif index1 == "successRatio":
+        #    ax.set_ylim(bottom=0.1)
+
+        # Add some text for labels, title and custom x-axis tick labels, etc.
+        ax[domain].set_ylabel(GetYlabel(utilp))
+        ax[domain].yaxis.grid(True)
+        ax[domain].set_xlabel(domain)
+        ax[domain].get_xaxis().set_visible(False)
+        ax[domain].set_title(GetFullName(domain))
+        #ax[domain].set_xticks(x)
+        #ax[domain].set_xticklabels(labels, rotation=45)
+        #ax[domain].legend()
+    plt.tight_layout()
+    #plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
             
 
-    plt.savefig(fname, bbox_inches='tight')
+    #plt.savefig(fname, bbox_inches='tight')
     print("saved")
 
 def PlotHelper_UCT_lim(resDict, utilp):
@@ -1107,18 +1232,17 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["EE", "SD", "SR", "CR"]
-    if args.depth == "max":
+    D = ["CR", "EE", "SD", "SR"]
+
+    if args.l == "y":
+        GeneratePlots_learning()
+    elif args.depth == "max":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()
         else:
             if args.planning == "n":
-                if args.l == "n":
-                    GeneratePlots_UCT_max_depth()
-                else:
-                    GeneratePlots_UCT_max_depth_learning()
+                GeneratePlots_UCT_max_depth()
             else:
-                assert(args.l != 'n')
                 GeneratePlots_UCT_max_depth_planning_utilities()
     elif args.depth == "lim":
         if args.s == "SLATE":

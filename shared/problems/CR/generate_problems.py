@@ -132,7 +132,7 @@ def generateProblemsEmergencyWithoutSearch():
 
 def writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency):
     
-    fname = 'problem{}_CR.py'.format(num)
+    fname = 'training/problem{}_CR.py'.format(num)
     file = open(fname,"w") 
     writeHeader(file, cost_index)
 
@@ -271,4 +271,8 @@ def writeHeader(file, index):
         file.write("}\n\n") 
 
 if __name__=="__main__":
+    generateProblemsSearchWithNotEnoughCharge()
     generateProblemsSearchWithEmergency()
+    generateProblemsCarryCharger()
+    generateProblemsChargerWithAnotherRobot()
+    generateProblemsEmergencyWithoutSearch()

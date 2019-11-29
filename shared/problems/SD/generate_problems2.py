@@ -134,9 +134,9 @@ class Map():
         return res
 
 def generateProblems():
-    num = 2000
+    num = 1000
     for map in [Map(1), Map(2), Map(3), Map(4)]:
-        for path in map.paths:
+        for path in map.paths:  
             objLocs = map.SelectObjLocs(path)
             for l in objLocs:
                 for robotCount in [3,4]:
@@ -145,7 +145,7 @@ def generateProblems():
                         num += 1
 
 def writeProblem(num, map, path, objLoc, robotCount, collision):
-    fname = 'auto/problem{}_SD.py'.format(num)
+    fname = 'training/problem{}_SD.py'.format(num)
     file = open(fname,"w") 
     writeHeader(file)
 

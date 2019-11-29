@@ -1,6 +1,6 @@
 #!/bin/sh
 domain="SR"
-runs=1
+runs=10
 P=(
 "problem19"
 "problem20"
@@ -100,7 +100,7 @@ P=(
 "problem114"
 )
 UCT=(
-"2000" 
+"100" # 2000
 )
 for problem in ${P[@]}
 do
@@ -110,7 +110,7 @@ setup="
 import sys
 sys.path.append('../RAE_and_RAEplan/')
 sys.path.append('../shared/domains/')
-sys.path.append('../shared/problems/SR/auto')
+sys.path.append('../shared/problems/SR/training')
 sys.path.append('../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetTimeLimit(300)
@@ -118,7 +118,7 @@ GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
 GLOBALS.SetHeuristicName('h2')
-GLOBALS.SetLearningMode('genEffDataPlanner')
+GLOBALS.SetLearningMode('genDataPlanner')
 GLOBALS.SetUseTrainedModel('n')
 GLOBALS.SetSearchDepth(30)"
 counter=1
