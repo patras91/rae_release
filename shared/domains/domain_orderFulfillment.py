@@ -17,8 +17,10 @@ import random
 import numpy as np
 from time import time
 
+
 def fail():
     return FAILURE
+
 
 # Using Dijsktra's algorithm for ground distance
 def OF_GETDISTANCE_GROUND(l0, l1):
@@ -313,7 +315,6 @@ def MoveToPallet_Method1(o, p, r):
 MoveToPallet_Method1.parameters = "[(r,) for r in rv.ROBOTS]"
 
 
-
 def moveRobot(redoId, r, l1, l2, dist):
     state.loc.AcquireLock(r)
     state.shouldRedo.AcquireLock(redoId)
@@ -354,7 +355,11 @@ def pickup(redoId, r, item):
     state.loc.AcquireLock(item)
     state.shouldRedo.AcquireLock(redoId)
 
-    if state.load[r] != NIL:
+    if r not in rv.ROBOTS or item not in state.OBJECTS:
+        gui.Simulate("Passed argument %s or %s isn't a robot or object\n" % (r, item))
+        res = FAILURE
+        state.shouldRedo[redoId] = False
+    elif state.load[r] != NIL:
         gui.Simulate("Robot %s is already carrying an object\n" % r)
         res = FAILURE
         state.shouldRedo[redoId] = False
@@ -544,14 +549,13 @@ def wrap(redoId, orderName, m, objList):
 
             return res
 
-
     if state.busy[m] != orderName:
         gui.Simulate("Machine %s is busy with a differnt order\n" % m)
         res = FAILURE
         state.shouldRedo[redoId] = False
     else:
         start = globalTimer.GetTime()
-        while (globalTimer.IsCommandExecutionOver('wrap', start, redoId, orderName, m, objList) == False):
+        while globalTimer.IsCommandExecutionOver('wrap', start, redoId, orderName, m, objList) == False:
             pass
 
         state.numUses[m] += 1
@@ -588,9 +592,11 @@ def wrap(redoId, orderName, m, objList):
 
     return res
 
+
 # Define heuristics (returns expected efficiency for external tasks)
 def Heuristic1(args):
     return float("inf")
+
 
 def Heuristic2(args):
     order = args[0]
@@ -607,6 +613,7 @@ def Heuristic2(args):
 
         totalDist += minDist
     return 100/totalDist
+
 
 if GLOBALS.GetHeuristicName() == 'h1':
     ape.declare_heuristic('orderStart', Heuristic1)
