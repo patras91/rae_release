@@ -1,16 +1,12 @@
-RAE and RAEplan together form a refinement acting-and-planning engine with multiple stacks. Each stack is implemented as a Python thread.
+RAE and RAEplan/UPOM together form a refinement acting-and-planning engine with multiple stacks. Each stack is implemented as a Python thread.
 
 We have the following domains in the domains folder.
 
 1. domain_chargeableRobot: A chargeable robot collecting different objects
 2. domain_springDoor: Robot needs to collect objects in an environment with spring doors
 3. domain_exploreEnv: Robots and UAV move through an area and collects various data
-4. domain_industrialPlant: Orders of compound tasks involving painting, assembly and packing of components are handled
-
-The following may not work as expected: not tested recently
-5. domain_simpleFetch: Robot collecting objects in a harbour
-6. domain_simpleOpenDoor: Robot opening a door
-7. domain_ste: Robot travelling from one location to another by foot or taxi
+4. domain_searchAndRescue
+5. domain_orderFulfillment
 
 HOW TO USE?
 To test on any domain, use the following command in terminal
@@ -27,18 +23,15 @@ optional arguments:
   --b breadth 	Number of methods RAEplan should look at (for each task and sub-task) during planning
 
 domain codes are as follows:
-domain_simpleFetch: 'SF',
-domain_simpleOpenDoor: 'SOD',
-domain_ste: 'STE',
 domain_chargeableRobot: 'CR',
 domain_springDoor: 'SD',
 domain_exploreEnv: 'EE',
-domain_industrialPlan: 'IP',
+domain_searchAndRescue: 'SR'
 domain_orderFulfillment: 'OF'
 
 
 HOW TO ADD NEW PROBLEMS? 
-A problem file (Please go inside the folder problems to view one) specifies the initial state, the tasks arriving at different times and various parameters specific to the domain. To define a new problem, please follow the
+A problem file (Please go inside the folder problems/domain to view one) specifies the initial state, the tasks arriving at different times and various parameters specific to the domain. To define a new problem, please follow the
 following syntax to name the file.
 
 problemId_domainCode.py
