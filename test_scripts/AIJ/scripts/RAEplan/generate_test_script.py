@@ -3,6 +3,8 @@ import random
 import os
 import argparse
 
+resultFolder="AIJ2020"
+
 def GetProblemsCR(part):
     l = list(range(1000, 1124))
     random.seed(100)
@@ -229,11 +231,11 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
 
     file.write("setup=\"\n")
     file.write("import sys\n")
-    file.write("sys.path.append(\'../../../../RAE_and_RAEplan/\')\n")
-    file.write("sys.path.append(\'../../../../shared/domains/\')\n")
-    file.write("sys.path.append(\'../../../../shared/problems/{}/auto\')\n".format(domain))
-    file.write("sys.path.append(\'../../../../shared/\')\n")
-    file.write("sys.path.append(\'../../../../learning/\')\n")
+    file.write("sys.path.append(\'../../RAE_and_RAEplan/\')\n")
+    file.write("sys.path.append(\'../../shared/domains/\')\n")
+    file.write("sys.path.append(\'../../shared/problems/{}/auto\')\n".format(domain))
+    file.write("sys.path.append(\'../../shared/\')\n")
+    file.write("sys.path.append(\'../../learning/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
     #file.write("GLOBALS.SetOpt('max')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
@@ -264,7 +266,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
         file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
 
     file.write("GLOBALS.SetLearningMode(None)\n")
-    file.write("GLOBALS.SetModelPath(\'../../../../learning/\')\n")
+    file.write("GLOBALS.SetModelPath(\'../learning/\')\n")
     file.write("GLOBALS.SetUseTrainedModel(\'n\')\"\n")
     file.write("counter=1\n")
     file.write("while [ $counter -le $runs ]\n")
@@ -273,32 +275,27 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
     file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', useRAEplan=True)\"\n")
     
+    str1 = "            fname=\"../../../raeResults/" + resultFolder + "/${domain}_v_journal" 
+    str3 = "_part_{}.txt\"\n".format(part)
+
     if mode == "SLATE" and depth == "max":
-        file.write("            echo \"b = \" $b \" k = \" $k\n")
-        str1 = "            fname=\"../../../../../raeResults/${domain}_v_journal" 
+        file.write("            echo \"b = \" $b \" k = \" $k\n")    
         str2 = "/rae_plan_b_${b}_k_${k}"
-        str3 = "_part_{}.txt\"\n".format(part)
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $b $k\" >> $fname\n")
     elif mode == "SLATE" and depth == "lim":
         file.write("            echo \"b = \" $b \" k = \" $k \" d = \" $d\n")
-        str1 = "            fname=\"../../../../../raeResults/${domain}_v_journal"
         str2 = "/rae_plan_b_${b}_k_${k}_d_${d}"
-        str3 = "_part_{}.txt\"\n".format(part)
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $b $k $d\" >> $fname\n")
     elif mode == "UCT" and depth == "max":
         file.write("            echo \"uctCount = \" $uctCount\n")
-        str1 = "            fname=\"../../../../../raeResults/${domain}_v_journal"
         str2 = "/rae_plan_uct_${uctCount}"
-        str3 = "_part_{}.txt\"\n".format(part)
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $uctCount\" >> $fname\n")
     else:
         file.write("            echo \"uctCount = \" $uctCount \" d = \" $d\n")
-        str1 = "            fname=\"../../../../../raeResults/${domain}_v_journal"
         str2 = "/rae_plan_uct_${uctCount}_d_${d}"
-        str3 = "_part_{}.txt\"\n".format(part)
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $uctCount $d\" >> $fname\n")
 
@@ -342,7 +339,7 @@ if __name__=="__main__":
 
     for domain in ["OF"]: #["CR", "SR", "SD", "EE"]:
         for optz in ["max"]:
-            for mode in ["SLATE", "UCT"]:
+            for mode in ["UCT"]: #"SLATE"
                 for depth in ["max"]:
                     for part in range(1, 11):
                         GenerateTestScriptRAEplan(mode, domain, depth, part, optz)
