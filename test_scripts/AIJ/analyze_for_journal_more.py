@@ -42,11 +42,11 @@ K_max_depth = {
 }
 
 Depth = {
-    'SR': [0, 5, 10, 15, 20],
-    'CR': [0, 5, 10, 15, 20],
-    'OF': [0, 10, 15], # 5
-    'SD': [0, 5, 10, 15],
-    'EE': [0, 5, 10, 15],
+    'SR': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    'CR': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    'OF': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    'SD': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    'EE': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
 }
 
 #UCT_max_depth = {
@@ -62,11 +62,11 @@ UCT_max_depth = {
 }
 
 UCT_lim_depth = {
-    'CR': [50],
-    'SR': [50],
-    'OF': [5, 25, 50, 75, 100],
-    'SD': [5, 25, 50],
-    'EE': [5, 25, 50],
+    'CR': [1000],
+    'SR': [1000],
+    'OF': [1000],
+    'SD': [1000],
+    'EE': [1000],
 }
 
 succCases = {
@@ -79,12 +79,11 @@ succCases = {
 }
 
 timeLimit = {
-    "OF": 300,
-    "CR": 300,
-    "SR": 300,
-    "EE": 300,
-    "IP": 300,
-    "SD": 300,
+    "OF": 1800,
+    "CR": 1800,
+    "SR": 1800,
+    "EE": 1800,
+    "SD": 1800,
 }
 
 
@@ -664,9 +663,9 @@ heuristic = None
 util = None
 
 if __name__=="__main__":
-    util = '_eff'
-    D = ['OF']
-    depth = "max"
+    util = '_sr'
+    D = ['SR']
+    depth = "lim"
     s = "UCT"
     if depth == "max":
         if s == "SLATE":
@@ -680,24 +679,6 @@ if __name__=="__main__":
             GeneratePlots_UCT_lim_depth()
     else:
         print("Incorrect value depth: should be 'max' or 'lim'.")
-
-def Plot(val, res, domain, plotMode, ii):
-    plt.subplot(1, 4, ii)
-    ylabel = ''
-
-    index1 = 'successCount'
-    ylabel = ''
-    color1 = 'white'
-
-    width = 0.25
-    plt.bar(EditToFitBarPlot(val, 0 * width), res['active'][index1], width=width, edgecolor='black', hatch="/", label=label1, color=color1, linewidth=3)
-    plt.bar(EditToFitBarPlot(val, 1.25 * width), res['lazy'][index1], width=width, edgecolor='black', hatch="***", label=label3, tick_label=val, color='white', linewidth=3)
-    #plt.bar(Edit(val, -0.1), res['concurrent'][mode], align='edge', width=-0.2, label='concurrent') # for aligning the right edge
-
-    #plt.ylabel(ylabel)
-    plt.xlabel('k1 in {}'.format(domain))
-    #plt.legend(bbox_to_anchor=(1.05, 0.9), loc=2, borderaxespad=0.)
-    #plt.savefig(fname, bbox_inches='tight')
 
 def PopulateHelper1_SLATE_max_depth(domain, f_rae, k):
 

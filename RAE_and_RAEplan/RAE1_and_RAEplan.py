@@ -894,6 +894,8 @@ def GetHeuristicEstimate(task=None, tArgs=None):
         return effMax
 
     elif GLOBALS.GetOpt() == "sr":
+        mtask, args = planLocals.GetHeuristicArgs()
+        res = heuristic[mtask](args)
         if res > 0:
             return 1
         else:

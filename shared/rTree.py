@@ -658,8 +658,6 @@ class SearchTreeNode():
             else:
                 self.Q[index] = Utility(utilVal)
 
-            if self.Q[index] == Utility(float("inf")):
-                pass
             self.n[index] += 1
             self.N += 1
             self.updateIndex = None # to be safe
