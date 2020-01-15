@@ -3,6 +3,7 @@ import random
 import os
 import argparse
 
+#resultFolder="ICAPS2020"
 resultFolder="AIJ2020"
 
 def GetProblemsCR(part):
@@ -55,15 +56,6 @@ def GetProblemsEE(part):
     names = ["problem{}".format(item) for item in p2]
     return names
 
-#problems = {
-#    "CR": GetProblemsCR(),
-#    "SD": [],
-#    "SR": [],
-#    "EE": [],
-#    "IP": [],
-#    "OF": [],
-#}
-
 #b_max_depth = {
 #    "CR": [1,2,3],
 #    "SD": [2,5,8],
@@ -111,12 +103,22 @@ k_max_depth = {
 #}
 
 # for ICAPS 2020
+#UCT_max_depth = {
+#    "CR": [5000],
+#    "SD": [1000],
+#    "EE": [1000],
+#    "SR": [1000],
+#    "OF": [0],
+#}
+
+# for AIJ2020
 UCT_max_depth = {
-    "CR": [5000],
-    "SD": [1000],
-    "EE": [1000],
-    "SR": [1000],
-    "OF": [1000],
+    "CR": [5, 25, 50, 75, 100, 125],
+    "SD": [5, 25, 50, 75, 100, 125],
+    "SR": [5, 25, 50, 75, 100, 125],
+    "EE": [5, 25, 50, 75, 100, 125],
+#    "IP": [],
+    "OF": [500, 1000, 1500, 2000],
 }
 
 
@@ -139,31 +141,29 @@ k_lim_depth = {
 }
 
 UCT_lim_depth = {
-    "CR": [50],
-    "SD": [50],
-    "SR": [50],
-    "EE": [50],
-    "IP": [],
-    #"OF": [5, 25, 50],
-    "OF": [75],
+    "CR": [1000],
+    "SD": [1000],
+    "SR": [1000],
+    "EE": [1000],
+    "OF": [1000],
 }
 
 DEPTH = {
-    "CR": [5, 10, 15, 20],
-    "SD": [5, 10, 15, 20],
-    "SR": [5, 10, 15, 20],
-    "EE": [5, 10, 15, 20],
-    "IP": [5, 10, 15],
-    "OF": [10, 15],
+    "CR": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    "SD": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    "SR": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    "EE": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    "OF": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
 }
 
+# was 300 for ICAPS 2020 submission
+
 timeLimit = {
-    "OF": 300,
-    "CR": 300,
-    "SR": 300,
-    "EE": 300,
-    "IP": 300,
-    "SD": 300,
+    "OF": 1800,
+    "CR": 1800,
+    "SR": 1800,
+    "EE": 1800,
+    "SD": 1800,
 }
 
 def writeList(name, l, file):
@@ -188,7 +188,7 @@ def writeProblems(name, file, part, domain):
     writeList(name, l, file)
 
 def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
-    if opt == "max":
+    if opt == "eff":
         fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_eff.bash'.format(domain, domain, mode, depth, part)
     elif opt == "sr":
         fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_sr.bash'.format(domain, domain, mode, depth, part)
@@ -231,11 +231,11 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
 
     file.write("setup=\"\n")
     file.write("import sys\n")
-    file.write("sys.path.append(\'../../RAE_and_RAEplan/\')\n")
-    file.write("sys.path.append(\'../../shared/domains/\')\n")
-    file.write("sys.path.append(\'../../shared/problems/{}/auto\')\n".format(domain))
-    file.write("sys.path.append(\'../../shared/\')\n")
-    file.write("sys.path.append(\'../../learning/\')\n")
+    file.write("sys.path.append(\'../../../../RAE_and_RAEplan/\')\n")
+    file.write("sys.path.append(\'../../../../shared/domains/\')\n")
+    file.write("sys.path.append(\'../../../../shared/problems/{}/auto\')\n".format(domain))
+    file.write("sys.path.append(\'../../../../shared/\')\n")
+    file.write("sys.path.append(\'../../../../learning/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
     #file.write("GLOBALS.SetOpt('max')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
@@ -248,26 +248,27 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
         file.write("GLOBALS.SetUCTRuns($uctCount)\n")
         file.write("GLOBALS.SetUCTmode(\'UCT\')\n")
 
-    if opt == "max":
+    if opt == "eff":
         file.write("GLOBALS.SetOpt(\'max\')\n")
         folderAnnex = "_eff"
     elif opt == "sr":
         file.write("GLOBALS.SetOpt(\'sr\')\n")
         folderAnnex = "_sr"
     if depth == "max":
-        #file.write("GLOBALS.SetSearchDepth(float(\\\"inf\\\"))\"\n")
+        #file.write("GLOBALS.SetMaxDepth(float(\\\"inf\\\"))\"\n")
         if mode == "SLATE":
-            file.write("GLOBALS.SetSearchDepth(20)\n")
+            file.write("GLOBALS.SetMaxDepth(20)\n")
         else:
-            file.write("GLOBALS.SetSearchDepth(30)\n")
+            file.write("GLOBALS.SetMaxDepth(30)\n")
         file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
     else:
-        file.write("GLOBALS.SetSearchDepth($d)\n")
+        file.write("GLOBALS.SetMaxDepth($d)\n")
         file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
 
     file.write("GLOBALS.SetLearningMode(None)\n")
-    file.write("GLOBALS.SetModelPath(\'../learning/\')\n")
+    file.write("GLOBALS.SetModelPath(\'../learning/models/\')\n")
     file.write("GLOBALS.SetUseTrainedModel(\'n\')\"\n")
+
     file.write("counter=1\n")
     file.write("while [ $counter -le $runs ]\n")
     file.write("do\n")
@@ -275,7 +276,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
     file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', useRAEplan=True)\"\n")
     
-    str1 = "            fname=\"../../../raeResults/" + resultFolder + "/${domain}_v_journal" 
+    str1 = "            fname=\"../../../../../raeResults/" + resultFolder + "/${domain}_v_journal" 
     str3 = "_part_{}.txt\"\n".format(part)
 
     if mode == "SLATE" and depth == "max":
@@ -330,16 +331,16 @@ if __name__=="__main__":
     global runs
     runs = args.count
     if args.utility == "efficiency":
-        opt = "max"
+        opt = "eff"
     elif args.utility == "successRatio":
         opt = "sr"
     else:
         print("Invalid utility")
         exit(1)
 
-    for domain in ["OF"]: #["CR", "SR", "SD", "EE"]:
-        for optz in ["max"]:
+    for domain in ["CR", "SR", "SD", "EE", "OF"]:
+        for optz in ["eff", "sr"]:
             for mode in ["UCT"]: #"SLATE"
-                for depth in ["max"]:
+                for depth in ["lim"]:
                     for part in range(1, 11):
                         GenerateTestScriptRAEplan(mode, domain, depth, part, optz)

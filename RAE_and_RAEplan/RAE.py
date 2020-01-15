@@ -1,14 +1,15 @@
 from __future__ import print_function
-from RAE1_and_RAEplan import ipcArgs, envArgs, RAE1, RAEplanChoice, RAEplanChoice_UCT
+from RAE1_and_RAEplan import ipcArgs, envArgs, RAE1, RAEplanChoice, RAEplanChoice_UCT, GetBestTillNow
 from dataStructures import PlanArgs
 from timer import globalTimer, SetMode
-#from time import time
-from state import ReinitializeState, RemoveLocksFromState, RestoreState, PrintState
+from state import ReinitializeState, RemoveLocksFromState, RestoreState
 import threading
 import GLOBALS
 import os
 from sharedData import *
 from learningData import WriteTrainingData
+import signal
+import sys
 
 __author__ = 'patras'
 
@@ -261,16 +262,32 @@ def raeMult():
 
     return taskInfo # for unit tests
 
-def CreateNewStackSimulation(pArgs, queue):
+def HandleTermination(signalId, frame):
+    methodUtil, planningTime = GetBestTillNow()
+    method, util = methodUtil
+    HandleTermination.q.put((method, util, planningTime))
+    sys.exit()
+HandleTermination.q = None 
+
+def CallPlanner(pArgs, queue):
+    """ Calls the planner according to what the user decided."""
     if GLOBALS.GetUCTmode() == True:
-        methodUtil, planningTime = RAEplanChoice_UCT(pArgs.GetTask(), pArgs)
-        method, util = methodUtil
+        HandleTermination.q = queue
+        signal.signal(signal.SIGTERM, HandleTermination)
+        d = 5
+        while(d <= GLOBALS.GetMaxDepth()):
+            pArgs.SetDepth(d)
+            methodUtil, planningTime = RAEplanChoice_UCT(pArgs.GetTask(), pArgs)
+            method, util = methodUtil
+            d += 5
     else:
+        pArgs.SetDepth(GLOBALS.GetMaxDepth())
         methodUtil, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
         method, util = methodUtil
+
     queue.put((method, util, planningTime))
 
-def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, searchTree, curUtil):
+def PlannerMain(task, taskArgs, queue, candidateMethods, state, aTree, curUtil):
     # Simulating one stack now
     # TODO: Simulate multiple stacks in future
 
@@ -284,25 +301,10 @@ def RAEPlanMain(task, taskArgs, queue, candidateMethods, state, searchTree, curU
     pArgs.SetTask(task)
     pArgs.SetCandidates(candidateMethods)
     pArgs.SetState(state)
-    pArgs.SetSearchTree(searchTree)
+    pArgs.SetActingTree(aTree)
     pArgs.SetCurUtil(curUtil)
 
-    ipcArgs.nextStack = 0
-    ipcArgs.sem = threading.Semaphore(1)
-
-    thread = threading.Thread(target=CreateNewStackSimulation, args=[pArgs, queue])
-
-    thread.start()
-    thread.join()
+    CallPlanner(pArgs, queue)
 
     WriteTrainingData()
     
-    #while(True):
-    #    if ipcArgs.nextStack == 0 or thread.isAlive() == False:
-    #        ipcArgs.sem.acquire()
-    #        globalTimer.IncrementTime()
-    #        if thread.isAlive() == False:
-    #            break
-    #        else:
-    #            ipcArgs.nextStack = 1
-    #           ipcArgs.sem.release()

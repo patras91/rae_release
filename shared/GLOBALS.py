@@ -45,10 +45,10 @@ def Getk(): # number of outputs of commands to look at
 def Setk(k):
     g.k = k
 
-def SetSearchDepth(d):
+def SetMaxDepth(d):
     g.depth = d
 
-def GetSearchDepth():
+def GetMaxDepth():
     return g.depth
 
 def SetHeuristicName(name):

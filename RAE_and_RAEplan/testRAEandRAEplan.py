@@ -64,7 +64,7 @@ def testBatch(domain, problem, useRAEplan):
     
 # Specifically set parameters for the SDN domain
 def InitializeSecurityDomain(v, state):
-    GLOBALS.SetSearchDepth(float("inf"))
+    GLOBALS.SetMaxDepth(float("inf"))
     verbosity(v)
     SetMode('Counter')
     GLOBALS.SetShowOutputs('on')
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                            type=int, default=1, required=False)
 
     argparser.add_argument("--depth", help="Search Depth",
-                           type=int, default=float("inf"), required=False)
+                           type=int, default=50, required=False)
     argparser.add_argument("--heuristic", help="Name of the heuristic function",
                            type=str, default='h2', required=False)
     argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
@@ -126,17 +126,16 @@ if __name__ == "__main__":
                            type=int, default=300, required=False)
     # parameter for UCT
     argparser.add_argument("--uctCount", help="Number of rollouts in UCT?",
-                           type=int, default=100, required=False)
+                           type=int, default=500, required=False)
 
-    # these two may be used in future
-    argparser.add_argument("--lazy", help="Whether to do lazy lookahead? ('y' or 'n') (not implemented yet)",
-                           type=str, default='n', required=False)
-    argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n') (not implemented yet)",
-                           type=str, default='n', required=False)
+    #what to optimize?
     argparser.add_argument("--utility", help="efficiency or successRatio?",
                            type=str, default="efficiency", required=False)
+    
+    #use learned models?
     argparser.add_argument("--useTrainedModel", help="use Model Trained with Actor (a) / use Model Trained with Planner (p) / use learned heuristic (hp) / None (n)?", 
                         type=str, default="n", required=False)
+    
     argparser.add_argument("--useBackupUCT", help="If RAEplanUCT fails, do you want to run UCT with only commands?",
                         type=bool, default=False, required=False)
 
@@ -151,7 +150,7 @@ if __name__ == "__main__":
     GLOBALS.Setb(args.b)
     GLOBALS.Setk(args.k)
     assert(args.depth >= 1)
-    GLOBALS.SetSearchDepth(args.depth)
+    GLOBALS.SetMaxDepth(args.depth)
     GLOBALS.SetHeuristicName(args.heuristic)
     verbosity(args.v)
     SetMode(args.clockMode)

@@ -25,10 +25,10 @@ from APE_stack import print_entire_stack, print_stack_size
 from utility import Utility
 import time
 from sharedData import *
-from learningData import trainingDataRecords
-from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
-import torch
-import torch.nn as nn
+#from learningData import trainingDataRecords
+#from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
+#import torch
+#import torch.nn as nn
 ############################################################
 
 ### for debugging
@@ -397,7 +397,6 @@ def RunUCTwithCommandsOnlyMain(task, taskArgs, state, queue):
         planLocals.SetUtilRollout(Utility("Success"))
         DoOneRollout(task, taskArgs)
 
-
     queue.put(plan)
 
 def RunUCTwithCommandsOnly(task, taskArgs):
@@ -436,21 +435,21 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     actingTree = raeLocals.GetActingTree()
     #actingTree.PrintUsingGraphviz()
     p = multiprocessing.Process(
-        target=RAE.RAEPlanMain, 
+        target=RAE.PlannerMain, 
         args=[raeLocals.GetMainTask(), 
         raeLocals.GetMainTaskArgs(), 
         queue, 
         candidates,
         GetState().copy(),
-        raeLocals.GetSearchTree(),
+        raeLocals.GetActingTree(),
         raeLocals.GetUtility()])
 
     p.start()
     p.join(GLOBALS.GetTimeLimit())
+
     if p.is_alive() == True:
         p.terminate()
-        methodInstance = 'Failure'
-        simTime = GLOBALS.GetTimeLimit()
+        methodInstance, expUtil, simTime = queue.get()
     else:
         methodInstance, expUtil, simTime = queue.get()
         curUtil = raeLocals.GetUtility()
@@ -681,6 +680,7 @@ def RAEplanChoice(task, planArgs):
 
     taskArgs = planArgs.GetTaskArgs()
     planLocals.SetHeuristicArgs(task, taskArgs)
+    planLocals.SetRolloutDepth(planArgs.GetDepth())
 
     globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
     
@@ -729,6 +729,10 @@ def RAEplanChoice(task, planArgs):
 
     return (taskToRefine.GetBestMethodAndUtility(), globalTimer.GetSimulationCounter())
     
+def GetBestTillNow():
+    taskToRefine = planLocals.GetTaskToRefine()
+    return (taskToRefine.GetBestMethodAndUtility_UCT(), globalTimer.GetSimulationCounter())
+
 def RAEplanChoice_UCT(task, planArgs):
     """
     RAEplanChoice is the main routine of the planner used by RAE which plans using the available operational models
@@ -742,6 +746,7 @@ def RAEplanChoice_UCT(task, planArgs):
 
     taskArgs = planArgs.GetTaskArgs()
     planLocals.SetHeuristicArgs(task, taskArgs)
+    planLocals.SetRolloutDepth(planArgs.GetDepth())
 
     globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
     
@@ -797,7 +802,7 @@ def RAEplanChoice_UCT(task, planArgs):
             planArgs.GetCurUtil(), 
             planArgs.GetTask())
 
-    return (taskToRefine.GetBestMethodAndUtility_UCT(), globalTimer.GetSimulationCounter())
+    return GetBestTillNow()
 
 def GetCandidates(task, tArgs):
     """ Called from PlanTask """
@@ -910,7 +915,7 @@ def PlanTask(task, taskArgs):
         planLocals.SetRefDepth(planLocals.GetDepth())
 
         
-    if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
+    if planLocals.GetRefDepth() + planLocals.GetRolloutDepth() <= planLocals.GetDepth():
 
         newNode = rTree.SearchTreeNode('heuristic', 'heuristic', taskArgs)
         newNode.SetPrevState(state)
@@ -938,7 +943,7 @@ def PlanTask_UCT(task, taskArgs):
             planLocals.SetTaskToRefine(taskNode)
             planLocals.SetRefDepth(planLocals.GetDepth())
             planLocals.SetFlip(True)
-        if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
+        if planLocals.GetRefDepth() + planLocals.GetRolloutDepth() <= planLocals.GetDepth():
             newNode = rTree.SearchTreeNode('heuristic', 'heuristic', taskArgs)
 
             util1 = planLocals.GetUtilRollout()
@@ -961,7 +966,7 @@ def PlanTask_UCT(task, taskArgs):
             planLocals.SetFlip(True)
             planLocals.SetRefDepth(planLocals.GetDepth())
 
-        if planLocals.GetRefDepth() + GLOBALS.GetSearchDepth() <= planLocals.GetDepth():
+        if planLocals.GetRefDepth() + planLocals.GetRolloutDepth() <= planLocals.GetDepth():
             newNode = taskNode.children[0]
             taskNode.updateIndex = 0
             util1 = planLocals.GetUtilRollout()

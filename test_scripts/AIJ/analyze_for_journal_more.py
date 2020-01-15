@@ -4,7 +4,7 @@ import csv
 import argparse
 
 figuresFolder = "figures/"
-resultsFolder = "../../../raeResults/"
+resultsFolder = "../../../raeResults/AIJ2020/"
 
 B_max_depth = {
     "SD": [2,5,8],
@@ -49,12 +49,16 @@ Depth = {
     'EE': [0, 5, 10, 15],
 }
 
+#UCT_max_depth = {
+#    'CR': [0,5, 25, 50, 75, 100, 125],
+#    'SR': [0,5, 25, 50, 75, 100, 125],
+#    'OF': [0,5, 25, 50, 75, 100, 125, 150],
+#    'SD': [0,5, 25, 50, 75, 100, 125],
+#    'EE': [0,5, 25, 50, 75, 100, 125],
+#}
+
 UCT_max_depth = {
-    'CR': [0,5, 25, 50, 75, 100, 125],
-    'SR': [0,5, 25, 50, 75, 100, 125],
-    'OF': [0,5, 25, 50, 75, 100, 125, 150],
-    'SD': [0,5, 25, 50, 75, 100, 125],
-    'EE': [0,5, 25, 50, 75, 100, 125],
+    'OF': [500, 1000, 1500, 2000],
 }
 
 UCT_lim_depth = {
@@ -661,7 +665,7 @@ util = None
 
 if __name__=="__main__":
     util = '_eff'
-    D = ['SD', 'EE', 'OF']
+    D = ['OF']
     depth = "max"
     s = "UCT"
     if depth == "max":
@@ -753,83 +757,4 @@ def PopulateHelper1_SLATE_lim_depth(domain, f_rae, k, depth):
 
     print("running time = ", time)
 
-def CalculateRunningTime_SLATE_max_depth(domain):
-    for b in B_max_depth[domain]:
-        for k in K_max_depth[domain]:
-            print("b = ", b, ", k = ", k)
-            if k == 0:
-                f_rae_name = "{}/RAE.txt".format(domain)
-                f_rae = open(f_rae_name, "r")
-                #print(f_rae_name)
-                PopulateHelper1_SLATE_max_depth(domain, f_rae, k)
-                f_rae.close()
-            else:
-                fname = '{}/plan_b_{}_k_{}.txt'.format(domain, b, k)
-                fptr = open(fname)
-                #print(fname)
-                PopulateHelper1_SLATE_max_depth(domain, open(fname), k)
-                fptr.close()
 
-def CalculateRunningTime_SLATE_lim_depth(domain):
-    for b in B_lim_depth[domain]:
-        for depth in Depth[domain]:
-            print("b = ", b, ", depth = ", depth)
-            if k == 0:
-                f_rae_name = "{}_v8/RAE.txt".format(domain)
-                f_rae = open(f_rae_name, "r")
-                #print(f_rae_name)
-                PopulateHelper1_SLATE_lim_depth(domain, f_rae, k, depth)
-                f_rae.close()
-            else:
-                fname = '{}_v8/plan_b_{}_k_{}_d_{}.txt'.format(domain, b, k, depth)
-                fptr = open(fname)
-                #print(fname)
-                PopulateHelper1_SLATE_lim_depth(domain, open(fname), k, depth)
-                fptr.close()
-
-def PlotRunningTime_SLATE_lim_depth1(resDict):
-    index1 = 'totalTime'
-    width = 0.25
-
-    for domain in D:
-        plt.clf()
-        line1, = plt.plot(Depth[domain], resDict[domain][1][index1], 'ro:', label='b=1', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        
-        if domain == 'SD' or domain == 'SR':
-            line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4', linewidth=4, MarkerSize=10, markerfacecolor='white')        
-        
-        fname = 'RunningTime_SLATE_lim_depth_{}.png'.format(domain)
-        plt.xlabel('Depth')
-        plt.xticks(Depth[domain],GetString(Depth[domain]))
-        plt.ylabel('Running Time (in counter ticks)')
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
-        plt.savefig(fname, bbox_inches='tight')
-
-def PlotRunningTime_SLATE_lim_depth(resDict):
-    index1 = 'planTime'
-    index2 = 'actTime'
-    width = 0.25
-
-    for domain in D:
-        plt.clf()
-        line1, = plt.plot(Depth[domain], resDict[domain][1][index1], 'ro:', label='b=1 Planning', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        line11, = plt.plot(Depth[domain], resDict[domain][1][index2], 'ro:', label='b=1 Acting', linewidth=8, MarkerSize=10, markerfacecolor='white')
-        
-        #line2, = plt.plot(Depth[domain], resDict[domain][2][index1], 'bs--', label='b=2', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        #line21, = plt.plot(Depth[domain], resDict[domain][2][index2], 'bs--', label='b=2', linewidth=6, MarkerSize=10, markerfacecolor='white')
-        
-        #line3, = plt.plot(Depth[domain], resDict[domain][3][index1], 'm^-.', label='b=3', linewidth=4, MarkerSize=10, markerfacecolor='white')
-        #line31, = plt.plot(Depth[domain], resDict[domain][3][index2], 'm^-.', label='b=3', linewidth=6, MarkerSize=10, markerfacecolor='white')
-        
-        if domain == 'SD' or domain == 'SR':
-            line4, = plt.plot(Depth[domain], resDict[domain][4][index1], 'go--', label='b=4 Planning', linewidth=4, MarkerSize=10, markerfacecolor='white')        
-            line41, = plt.plot(Depth[domain], resDict[domain][4][index2], 'go--', label='b=4 Acting', linewidth=8, MarkerSize=10, markerfacecolor='white')        
-        
-        fname = 'RunningTime_SLATE_lim_depth_{}.png'.format(domain)
-        plt.xlabel('Depth')
-        plt.xticks(Depth[domain],GetString(Depth[domain]))
-        plt.ylabel('Time (in counter ticks)')
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
-        plt.savefig(fname, bbox_inches='tight')

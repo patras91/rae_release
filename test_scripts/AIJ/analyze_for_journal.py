@@ -8,7 +8,7 @@ mpl.rcParams['hatch.linewidth'] = 0.2  # previous pdf hatch linewidth
 #mpl.rcParams['hatch.linewidth'] = 1.0  # previous svg hatch linewidth
 
 figuresFolder = "figures/"
-resultsFolder = "../../../raeResults/"
+resultsFolder = "../../../raeResults/AIJ2020/"
 
 ptMax = 247264
 
@@ -55,13 +55,18 @@ Depth = {
     'EE': [0, 5, 10, 15, 20],
 }
 
+#UCT_max_depth = {
+#    'CR': [0, 5, 25, 50, 75, 100, 125],
+#    'SR': [0, 5, 25, 50, 75, 100, 125],
+#    'OF': [0, 5, 25, 50, 75, 100, 125, 150],
+#    'SD': [0, 5, 25, 50, 75, 100, 125],
+#    'EE': [0, 5, 25, 50, 75, 100, 125],
+#}
+
 UCT_max_depth = {
-    'CR': [0, 5, 25, 50, 75, 100, 125],
-    'SR': [0, 5, 25, 50, 75, 100, 125],
-    'OF': [0, 5, 25, 50, 75, 100, 125, 150],
-    'SD': [0, 5, 25, 50, 75, 100, 125],
-    'EE': [0, 5, 25, 50, 75, 100, 125],
+    'OF': [500, 1000, 1500, 2000],
 }
+
 
 UCT_lim_depth = {
     'CR': [50],
@@ -245,24 +250,24 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
 
     scalar = {
         "CR": {
-            "nu": 50,
-            "sr": 25,
+            "nu": 1,
+            "sr": 1,
         },
         "SR": {
-            "nu": 5000,
-            "sr": 100,
+            "nu": 1,
+            "sr": 1,
         },
         "SD": {
-            "nu": 500,
-            "sr": 50,
+            "nu": 1,
+            "sr": 1,
         },
         "EE": {
-            "nu": 100,
-            "sr": 10,
+            "nu": 1,
+            "sr": 1,
         },
         "OF": {
-            "nu": 500,
-            "sr": 10,
+            "nu": 1,
+            "sr": 1,
         }
     }
 
