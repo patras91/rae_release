@@ -25,7 +25,7 @@ from APE_stack import print_entire_stack, print_stack_size
 from utility import Utility
 import time
 from sharedData import *
-from UCTwithCommandsOnly import *
+import UCTwithCommandsOnly as cOnly
 #from learningData import trainingDataRecords
 #from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
 #import torch
@@ -80,6 +80,7 @@ def declare_commands(cmd_list):
     cmd_list must be a list of functions, not strings.
     """
     commands.update({cmd.__name__:cmd for cmd in cmd_list})
+    cOnly.declare_commands(cmd_list)
     return commands
 
 
@@ -323,9 +324,9 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         print("Starting simulation for stack")
 
     if raeLocals.GetUseBackupUCT() == True:
-        plan = RunUCTwithCommandsOnly(task, taskArgs)
-        if plan != 'Failure':
-            return (plan, "usingBackupUCT")
+        planM = cOnly.RunUCTwithCommandsOnly(task, taskArgs)
+        if planM != 'Failure':
+            return (plan, candidates)
         else:
             raise Failed_task('{}{}'.format(task, taskArgs))
 
@@ -366,9 +367,9 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         #random.shuffle(candidates)
         if GLOBALS.GetBackupUCT() == True:
             raeLocals.SetUseBackupUCT(True)
-            plan = RunUCTwithCommandsOnly(task, taskArgs)
-            if plan != 'Failure':
-                return (plan, "usingBackupUCT")
+            planM = cOnly.RunUCTwithCommandsOnly(task, taskArgs)
+            if planM != 'Failure':
+                return (planM, candidates)
             else:
                 return (candidates[0], candidates[1:])
         else:
@@ -467,24 +468,24 @@ def DoTaskInRealWorld(task, taskArgs):
             raeLocals.SetUtility(Utility("Success"))
 
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
-        if candidates == "usingBackupUCT":
-            plan = m
-            retcode = "Success"
-            for (cmd, cmdArgs) in plan:
-                try:
-                    DoCommandInRealWorld(cmd, cmdArgs)
-                except Failed_command as e:
-                    retcode = "Failure"
-                    break
-        else:
-            node.SetLabelAndType(m, 'method')
-            raeLocals.SetCurrentNode(node)
-            retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
-            
-            if hasattr(m, "cost"):
-                raeLocals.SetEfficiency(AddEfficiency(raeLocals.GetEfficiency(), 1/m.cost))
-                raeLocals.SetUtility(GetUtilityforMethod(m.cost) + raeLocals.GetUtility())
+        # if candidates == "usingBackupUCT":
+        #     plan = m
+        #     retcode = "Success"
+        #     for (cmd, cmdArgs) in plan:
+        #         try:
+        #             DoCommandInRealWorld(cmd, cmdArgs)
+        #         except Failed_command as e:
+        #             retcode = "Failure"
+        #             break
+        # else:
+        node.SetLabelAndType(m, 'method')
+        raeLocals.SetCurrentNode(node)
+        retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
         
+        if hasattr(m, "cost"):
+            raeLocals.SetEfficiency(AddEfficiency(raeLocals.GetEfficiency(), 1/m.cost))
+            raeLocals.SetUtility(GetUtilityforMethod(m.cost) + raeLocals.GetUtility())
+    
         if candidates == []:
             break
 

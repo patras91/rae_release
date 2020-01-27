@@ -1,5 +1,5 @@
 __author__ = 'patras'
-from domain_testInstantiation import *
+from domain_testBackup import *
 from timer import DURATION
 from state import state
 
@@ -12,12 +12,6 @@ DURATION.COUNTER = {
     'u6': 10,
     'u7': 12,
 }
-
-rv.LOCATIONS = [
- 1, 2, 3, 4]
-
-rv.ROBOTS = [
- 'r1', 'r2', 'r3']
 
 def ResetState():
     state.v = {0: 1}
