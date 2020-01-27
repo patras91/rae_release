@@ -126,3 +126,9 @@ def SetBackupUCT(b):
 
 def GetBackupUCT():
     return g.backupUCT
+
+def SetDoIterativeDeepening(s):
+    g.iterativeDeepening = s
+
+def GetDoIterativeDeepening():
+    return g.iterativeDeepening

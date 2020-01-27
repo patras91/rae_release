@@ -25,6 +25,7 @@ from APE_stack import print_entire_stack, print_stack_size
 from utility import Utility
 import time
 from sharedData import *
+from UCTwithCommandsOnly import *
 #from learningData import trainingDataRecords
 #from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
 #import torch
@@ -69,8 +70,6 @@ planLocals = rL_PLAN() # APEplan_systematic variables that are local to every ca
                        # we need this to be thread local because we have multiple stacks in APE as 
                        # multiple threads and each thread call its own APEplan_systematic
 heuristic = {}
-
-goalChecks = {}
 
 ############################################################
 # Functions to tell Rae1 what the commands and methods are
@@ -140,9 +139,6 @@ def declare_methods(task_name, *method_list):
             assert(m.__code__.co_varnames[0:q] == taskArgs)
 
         methods[task_name].append(m)
-
-def declare_goalCheck(task, goalCheckMethod):
-    goalChecks[task] = goalCheckMethod
 
 def GetMethodInstances(methods, tArgs):
     
@@ -316,105 +312,7 @@ def InitializeStackLocals(task, raeArgs):
     if GLOBALS.GetDomain() == "SDN":
         cmdStatusStack[raeArgs.stack] = None
     
-def DoOneRollout(task, taskArgs):
-    goalCheck = goalChecks[task]
-    if goalCheck() == True:
-        return
-    curNode = planLocals.GetSearchTreeNode()
-    if curNode.children == []:
-        for cmd in commands.values():
-            newSearchTreeNode = rTree.CommandSearchTreeNode(cmd, 'command', [])
-            curNode.AddChild(newSearchTreeNode)
 
-    untried = []
-
-    if curNode.N == 0:
-        untried = curNode.children
-    else:
-        for child in curNode.children:
-            if child.children == []:
-                untried.append(child) # command that has not been simulated yet
-
-    if untried != []:
-        cNode = random.choice(untried)
-        index = curNode.children.index(cNode)
-    else:
-        vmax = 0
-        cNode = None
-        index = None
-        for i in range(0, len(curNode.children)):
-            v = curNode.Q[i].GetValue() + \
-                GLOBALS.GetC() * math.sqrt(math.log(curNode.N)/curNode.n[i])
-            if v >= vmax:
-                vmax = v
-                cNode = curNode.children[i]
-                index = i
-
-    c = cNode.GetLabel()
-
-    cmdRet = {'state':'running'}
-    beginCommand(c, cmdRet, [])
-    retcode = cmdRet['state']
-
-    nextState = GetState().copy()
-
-    if retcode == 'Failure':
-        nSN = rTree.CommandSearchTreeNode(nextState, 'state', None) # next state node
-        nSN.SetUtility(Utility('Failure'))
-        cNode.AddChild(nSN)
-        planLocals.SetUtilRollout(Utility('Failure'))
-        return 
-    else:
-        nSN = cNode.FindAmongChildren(nextState) 
-        if nSN == None:
-            nSN = rTree.CommandSearchTreeNode(nextState, 'state', None)
-
-            cNode.AddChild(nSN)
-        
-        util1 = planLocals.GetUtilRollout()
-        util2 = GetUtility(c, []) # cmdArgs
-        planLocals.SetUtilRollout(util1 + util2)
-        nSN.SetUtility(GetUtility(c, [])) # cmdArgs
-        planLocals.SetSearchTreeNode(nSN)
-        DoOneRollout(task, taskArgs)
-        curNode.Q[index] = Utility((curNode.Q[index].GetValue() * \
-                                curNode.n[index] + \
-                                planLocals.GetUtilRollout().GetValue()) / \
-                            (curNode.n[index] + 1))
-        curNode.n[index] += 1
-
-
-
-def RunUCTwithCommandsOnlyMain(task, taskArgs, state, queue):
-
-    root = rTree.CommandSearchTreeNode(state.copy() , 'state', None)
-
-    plan = []
-    for i in range(GLOBALS.GetUCTRuns()):
-        print("rollout ", i)
-        RestoreState(state)
-        planLocals.SetSearchTreeNode(root)
-        planLocals.SetUtilRollout(Utility("Success"))
-        DoOneRollout(task, taskArgs)
-
-    queue.put(plan)
-
-def RunUCTwithCommandsOnly(task, taskArgs):
-
-    queue = multiprocessing.Queue()
-    p = multiprocessing.Process(
-            target=RunUCTwithCommandsOnlyMain,
-            args=[task, taskArgs, GetState(), queue])
-
-    p.start()
-    p.join(GLOBALS.GetTimeLimit())
-
-    if p.is_alive() == True:
-        p.terminate()
-        return 'Failure'
-    else:
-        plan = queue.get()
-        return plan
 
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
@@ -445,7 +343,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         raeLocals.GetUtility()])
 
     p.start()
-    p.join(GLOBALS.GetTimeLimit())
+    p.join(int(0.7*GLOBALS.GetTimeLimit())) # planner gets max 70% of total time 
 
     if p.is_alive() == True:
         p.terminate()
@@ -582,7 +480,11 @@ def DoTaskInRealWorld(task, taskArgs):
             node.SetLabelAndType(m, 'method')
             raeLocals.SetCurrentNode(node)
             retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
-
+            
+            if hasattr(m, "cost"):
+                raeLocals.SetEfficiency(AddEfficiency(raeLocals.GetEfficiency(), 1/m.cost))
+                raeLocals.SetUtility(GetUtilityforMethod(m.cost) + raeLocals.GetUtility())
+        
         if candidates == []:
             break
 
@@ -1015,7 +917,9 @@ def PlanTask_UCT(task, taskArgs):
 
     taskNode.updateIndex = index
 
-
+    if hasattr(m, "cost"):
+        planLocals.SetUtilRollout(planLocals.GetUtilRollout() + GetUtilityforMethod(m.cost))
+    
     if failed:
         raise Failed_Rollout()
     elif depthLimReached:
@@ -1040,7 +944,10 @@ def PlanMethod(m, task, taskArgs):
         print("Error: retcode should not be Failure inside PlanMethod.\n")
         raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
     elif retcode == 'Success':
-        util = Utility('Success')
+        if hasattr(m, "cost"):
+            util = GetUtilityforMethod(m.cost)
+        else:
+            util = Utility('Success')
         for child in savedNode.children:
             util = util + child.GetUtility()
         savedNode.SetUtility(util)
@@ -1166,6 +1073,7 @@ def DoCommandInRealWorld(cmd, cmdArgs):
         util1 = GetUtility(cmd, cmdArgs)
         eff1 = GetEfficiency(cmd, cmdArgs)
         wait = False
+
         if GLOBALS.GetDomain() == "OF": # to avoid overflow in output files
             if cmd.__name__ == "wait":
                 wait = True
@@ -1180,10 +1088,10 @@ def DoCommandInRealWorld(cmd, cmdArgs):
                     raeLocals.AddToPlanningUtilityList("wait0")
         if wait == False:
             raeLocals.AddToPlanningUtilityList(cmd.__name__)
+
     util2 = raeLocals.GetUtility()
     raeLocals.SetUtility(util1 + util2)
-    eff2 = raeLocals.GetEfficiency()
-    raeLocals.SetEfficiency(AddEfficiency(eff1, eff2))
+    raeLocals.SetEfficiency(AddEfficiency(eff1, raeLocals.GetEfficiency()))
 
     if verbose > 1:
         print_entire_stack(raeLocals.GetStackId(), path)
@@ -1365,6 +1273,12 @@ def GetUtility(cmd, cmdArgs):
         return Utility("Success")
     elif type(cost) == types.FunctionType:
         return Utility(1/cost(*cmdArgs))
+    else:
+        return Utility(1/cost)
+
+def GetUtilityforMethod(cost):
+    if GLOBALS.GetOpt() == "sr":
+        return Utility("Success")
     else:
         return Utility(1/cost)
 

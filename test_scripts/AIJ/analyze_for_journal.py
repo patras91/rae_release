@@ -4,13 +4,21 @@ import csv
 import argparse
 import math
 import matplotlib as mpl
+import numpy as np 
 mpl.rcParams['hatch.linewidth'] = 0.2  # previous pdf hatch linewidth
 #mpl.rcParams['hatch.linewidth'] = 1.0  # previous svg hatch linewidth
 
 figuresFolder = "figures/"
 resultsFolder = "../../../raeResults/AIJ2020/"
 
-ptMax = 247264
+ptMax = 247264 # maximum planning time
+
+errIndex = {
+        'nu': 'nu_error',
+        'successRatio': 'sr_error',
+        'retryRatio': 'rr_error',
+        'totalTime': 'tt_error',
+    }
 
 B_max_depth = {
     "SD": [2,5,8],
@@ -48,11 +56,11 @@ K_max_depth = {
 }
 
 Depth = {
-    'SR': [0, 5, 10, 15, 20],
-    'CR': [0, 5, 10, 15, 20],
-    'OF': [0, 5, 10, 15, 20], # 5
-    'SD': [0, 5, 10, 15, 20],
-    'EE': [0, 5, 10, 15, 20],
+    'SR': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    'CR': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    'OF': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    'SD': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    'EE': [0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60],
 }
 
 #UCT_max_depth = {
@@ -64,16 +72,19 @@ Depth = {
 #}
 
 UCT_max_depth = {
-    'OF': [500, 1000, 1500, 2000],
+    "CR": [0, 50, 100, 250, 500, 1000, 2500, 5000],
+    "SR": [0, 50, 100, 250, 500, 1000, 2500],
+    "SD": [0, 50, 100, 250, 500, 1000, 2500],
+    "EE": [0, 50, 100, 250, 500, 1000, 2500, 5000],
+    'OF': [0, 50, 100, 250, 500, 1000, 2500, 5000],
 }
 
-
 UCT_lim_depth = {
-    'CR': [50],
-    'SR': [50],
-    'OF': [100],
-    'SD': [50],
-    'EE': [50],
+    'CR': [1000],
+    'SR': [1000],
+    'OF': [1000],
+    'SD': [1000],
+    'EE': [1000],
 }
 
 succCases = {
@@ -86,6 +97,23 @@ succCases = {
 }
 
 COLORS = ['ro:', 'bs--', 'm^-.', 'go--', 'c^:', 'rs--', 'ms--', 'gs--']
+
+COLORBAR = ['orange', 'grey', 'yellowgreen', 'turquoise',  'orangered', 'orchid']
+
+def GetFreshDict():
+    return {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            'tt_error': [],
+            }
 
 def GetFullName(domain):
     if domain == "CR":
@@ -171,6 +199,8 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
                     planTime += ptMax
                     if domain == "OF":
                         ignoreThis = True
+                    else:
+                        ignoreThis = False
                 else:
                     ignoreThis = False
 
@@ -497,7 +527,7 @@ def Populate_SLATE_lim_depth(res, domain):
                 PopulateHelper_SLATE_lim_depth(res[b], domain, open(fname), depth, fname)
                 fptr.close()
 
-def Populate_UCT_lim_depth(res, domain, u):  
+def Populate_UCT_lim_depth(res, domain, heuristic):  
     for uct in UCT_lim_depth[domain]:
         for depth in Depth[domain]:
             if depth == 0:
@@ -507,7 +537,14 @@ def Populate_UCT_lim_depth(res, domain, u):
                 PopulateHelper_UCT_lim_depth(res[uct], domain, f_rae, depth, f_rae_name)
                 f_rae.close()
             else:
-                fname = '{}{}_v_journal{}/rae_plan_uct_{}_d_{}.txt'.format(resultsFolder, domain, u, uct, depth)
+                if heuristic == "h0":
+                    h = "_h_h0"
+                elif heuristic == "h1":
+                    h = ""
+
+                fname = '{}{}_v_journal_eff/rae_plan_uct_{}_d_{}'.format(resultsFolder, domain, uct, depth) \
+                        + h + '.txt'.format()
+                
                 fptr = open(fname)
                 print(fname)
                 PopulateHelper_UCT_lim_depth(res[uct], domain, open(fname), depth, fname)
@@ -570,6 +607,7 @@ def GeneratePlots_UCT_max_depth():
                 'nu_error': [],
                 'sr_error': [],
                 'rr_error': [],
+                'tt_error': [],
                 }
             resDict[domain]['_eff'] = {
                 'successRatio': [], 
@@ -582,6 +620,7 @@ def GeneratePlots_UCT_max_depth():
                 'nu_error': [],
                 'sr_error': [],
                 'rr_error': [],
+                'tt_error': [],
                 }
             Populate_UCT_max_depth(resDict[domain]['_sr'], domain, '_sr')
             Populate_UCT_max_depth(resDict[domain]['_eff'], domain, '_eff')
@@ -597,14 +636,15 @@ def GeneratePlots_UCT_max_depth():
                 'nu_error': [],
                 'sr_error': [],
                 'rr_error': [],
+                'tt_error': [],
                 }
             Populate_UCT_max_depth(resDict[domain], domain, '_eff')
 
     plt.clf()
     font = {
         'family' : 'times',
-        'weight' : 'bold',
-        'size'   : 24}
+        'weight' : 'regular',
+        'size'   : 12}
     plt.rc('font', **font)
     
 
@@ -760,12 +800,7 @@ def GeneratePlots_learning():
 
     
     print(resDict)
-    errIndex = {
-        'nu': 'nu_error',
-        'successRatio': 'sr_error',
-        'retryRatio': 'rr_error',
-        'totalTime': 'tt_error',
-    }
+    
     for metric in ['totalTime']: #['nu', 'successRatio', 'retryRatio', 'totalTime']:
         PlotHelper_learning(resDict, metric, errIndex[metric])
 
@@ -812,6 +847,7 @@ def GeneratePlots_SLATE_lim_depth():
                 'nu_error': [],
                 'sr_error': [],
                 'rr_error': [],
+                'tt_error': [],
             }
 
     for d in D:
@@ -834,62 +870,20 @@ def GeneratePlots_SLATE_lim_depth():
 def GeneratePlots_UCT_lim_depth():
     global util
     resDict = {}
-    if util == "_sr":
-        for domain in D:
-            resDict[domain] = {'_sr': {}, '_eff': {}}
-            for uct in UCT_lim_depth[domain]:
-                resDict[domain]['_sr'][uct] = {
-                    'successRatio': [], 
-                    'retryRatio': [],
-                    'planTime': [],
-                    'actTime': [],
-                    'totalTime': [],
-                    'nu': [],
-                    'timeOut': [],
-                    'nu_error': [],
-                    'sr_error': [],
-                    'rr_error': [],
-                }
-                resDict[domain]['_eff'][uct] = {
-                    'successRatio': [], 
-                    'retryRatio': [],
-                    'planTime': [],
-                    'actTime': [],
-                    'totalTime': [],
-                    'nu': [],
-                    'timeOut': [],
-                    'nu_error': [],
-                    'sr_error': [],
-                    'rr_error': [],
-                }
-            Populate_UCT_lim_depth(resDict[domain]['_sr'], domain, '_sr')
-            Populate_UCT_lim_depth(resDict[domain]['_eff'], domain, '_eff')
-
-    else:
-        for domain in D:
-            resDict[domain] = {}
-            for uct in UCT_lim_depth[domain]:
-                resDict[domain][uct] = {
-                    'successRatio': [], 
-                    'retryRatio': [],
-                    'planTime': [],
-                    'actTime': [],
-                    'totalTime': [],
-                    'nu': [],
-                    'timeOut': [],
-                    'nu_error': [],
-                    'sr_error': [],
-                    'rr_error': [],
-                }
-        for d in D:
-            Populate_UCT_lim_depth(resDict[d], d)
-            #CalculateRunningTime(d)
+    assert(util == "_eff")
+    for domain in D:
+        resDict[domain] = {'h0': {}, 'h1': {}}
+        for uct in UCT_lim_depth[domain]:
+            resDict[domain]['h0'][uct] = GetFreshDict()
+            resDict[domain]['h1'][uct] = GetFreshDict()
+        Populate_UCT_lim_depth(resDict[domain]['h0'], domain, 'h0')
+        Populate_UCT_lim_depth(resDict[domain]['h1'], domain, 'h1')
 
     plt.clf()
     font = {
         'family' : 'times',
-        'weight' : 'bold',
-        'size'   : 24}
+        'weight' : 'regular',
+        'size'   : 16}
     plt.rc('font', **font)
     #plt.rcParams.update({'font.size': 22})
 
@@ -951,30 +945,35 @@ def PlotHelper_UCT_max(resDict, utilp):
         fname = '{}{}_{}_UCT_max_depth.png'.format(figuresFolder, domain, utilp)
         
         if util == "_sr":
-            PlotViaMatlab(UCT_max_depth[domain], 
+            fig, ax = plt.subplots()
+            PlotViaMatlabBar(UCT_max_depth[domain], 
                 resDict[domain]['_sr'][index1],
-                COLORS[0],
-                "when optimizing success ratio")
-            PlotViaMatlab(UCT_max_depth[domain], 
+                resDict[domain]['_sr'][errIndex[index1]],
+                COLORBAR[0],
+                "utility = success ratio", -1, ax)
+            PlotViaMatlabBar(UCT_max_depth[domain], 
                 resDict[domain]['_eff'][index1],
-                COLORS[1],
-                "when optimizing efficiency")
+                resDict[domain]['_sr'][errIndex[index1]],
+                COLORBAR[1],
+                "utility = efficiency", 1, ax)
         else:
-            PlotViaMatlab(UCT_max_depth[domain], 
+            fig, ax = plt.subplots()
+            PlotViaMatlabBar(UCT_max_depth[domain], 
                 resDict[domain][index1],
-                COLORS[0],
-                GetYlabel(utilp))
+                resDict[domain][errIndex[index1]],
+                COLORBAR[0],
+                GetYlabel(utilp), 0, ax)
         
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
             
+        ax.set_xticks(np.arange(len(UCT_max_depth[domain])))
+        ax.set_xticklabels([str(item) for item in UCT_max_depth[domain]])
         plt.xlabel('Number of rollouts')
-        plt.xticks(UCT_max_depth[domain],
-           [str(item) for item in UCT_max_depth[domain]])
+        #plt.xticks(UCT_max_depth[domain],
+        #   [str(item) for item in UCT_max_depth[domain]])
         plt.ylabel(GetYlabel(utilp))
 
         plt.savefig(fname, bbox_inches='tight')
-
-import numpy as np 
 
 def PlotHelper_learning(resDict, utilp, errorP):
     index1 = utilp
@@ -1100,31 +1099,26 @@ def PlotHelper_UCT_lim(resDict, utilp):
         fname = '{}{}_{}_UCT_lim_depth.png'.format(figuresFolder, domain, utilp)
         
         i = 0
-        if util == "_sr":
-            for uct in UCT_lim_depth[domain]:
-                PlotViaMatlab(Depth[domain],
-                    resDict[domain]['_sr'][uct][index1],
-                    COLORS[i],
-                    'when optimizing success ratio with {} rollouts'.format(uct))
-                i += 1
-                PlotViaMatlab(Depth[domain],
-                    resDict[domain]['_eff'][uct][index1],
-                    COLORS[i],
-                    'when optimizing efficiency with {} rollouts'.format(uct))
-                i += 1
-        else:
-            for uct in UCT_lim_depth[domain]:
-                PlotViaMatlab(Depth[domain],
-                    resDict[domain][uct][index1],
-                    COLORS[i],
-                    'rollouts={}'.format(uct))
-                i += 1
-        
+        fig, ax = plt.subplots()
+        for uct in UCT_lim_depth[domain]:
+            PlotViaMatlabBar(Depth[domain],
+                resDict[domain]['h0'][uct][index1],
+                resDict[domain]['h0'][uct][errIndex[index1]],
+                COLORBAR[i],
+                'heuristic = h0', -1, ax)
+            i += 1
+            PlotViaMatlabBar(Depth[domain],
+                resDict[domain]['h1'][uct][index1],
+                resDict[domain]['h1'][uct][errIndex[index1]],
+                COLORBAR[i],
+                'heuristic = h1', +1, ax)
+            i += 1
+    
         plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
             
         plt.xlabel('Depth')
-        plt.xticks(Depth[domain],
-           GetString(Depth[domain]))
+        ax.set_xticks(np.arange(len(Depth[domain])))
+        ax.set_xticklabels([str(item) for item in Depth[domain]])
         plt.ylabel(GetYlabel(utilp)) 
         plt.savefig(fname, bbox_inches='tight')
 
@@ -1201,13 +1195,25 @@ def PlotHelper_UCT_max_planning_utilities(resDict):
         plt.ylabel("Error ratio (normalized)") 
         plt.savefig(fname, bbox_inches='tight')
 
-def PlotViaMatlab(x, y, c, l):
+def PlotViaMatlabLine(x, y, c, l):
     line1, = plt.plot(x, y, c, 
         label=l, 
         linewidth=4, 
         MarkerSize=10, 
         markerfacecolor='white')
-
+        
+def PlotViaMatlabBar(x, y, y_error, c, l, f, ax):
+    width = 0.4
+    
+    x = np.arange(len(x))
+    rects = ax.bar(x + f*width/2, y, width,
+            color=c, 
+            #color=['black', 'turquoise', 'grey', 'orange', 'yellowgreen', 'orangered', 'orchid', 'green'],
+            yerr=y_error, 
+            label=l,
+            capsize=3
+            )
+       
 D = None
 heuristic = None
 util = None
@@ -1237,7 +1243,7 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["CR", "EE", "SD", "SR"]
+    D = [ "SD", "CR", "EE", "SR"]
 
     if args.l == "y":
         GeneratePlots_learning()

@@ -113,12 +113,12 @@ k_max_depth = {
 
 # for AIJ2020
 UCT_max_depth = {
-    "CR": [5, 25, 50, 75, 100, 125],
-    "SD": [5, 25, 50, 75, 100, 125],
-    "SR": [5, 25, 50, 75, 100, 125],
-    "EE": [5, 25, 50, 75, 100, 125],
+    "CR": [50, 100, 250, 500, 1000, 2500, 5000],
+    "SD": [50, 100, 250, 500, 1000, 2500],
+    "SR": [50, 100, 250, 500, 1000, 2500],
+    "EE": [50, 100, 250, 500, 1000],
 #    "IP": [],
-    "OF": [500, 1000, 1500, 2000],
+    "OF": [50, 100, 250, 500, 1000, 2500, 5000],
 }
 
 
@@ -152,7 +152,7 @@ DEPTH = {
     "CR": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
     "SD": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
     "SR": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    "EE": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    "EE": [5, 10, 15, 20, 25, 30, 35, 40, 50, 60],
     "OF": [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
 }
 
@@ -259,11 +259,12 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
         if mode == "SLATE":
             file.write("GLOBALS.SetMaxDepth(20)\n")
         else:
-            file.write("GLOBALS.SetMaxDepth(30)\n")
+            #file.write("GLOBALS.SetMaxDepth(30)\n")
+            file.write("GLOBALS.SetMaxDepth(60)\n")
         file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
     else:
         file.write("GLOBALS.SetMaxDepth($d)\n")
-        file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
+        file.write("GLOBALS.SetHeuristicName(\\\"h1\\\")\n")
 
     file.write("GLOBALS.SetLearningMode(None)\n")
     file.write("GLOBALS.SetModelPath(\'../learning/models/\')\n")
@@ -296,7 +297,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
         file.write("            echo \"Time test of $domain $problem $uctCount\" >> $fname\n")
     else:
         file.write("            echo \"uctCount = \" $uctCount \" d = \" $d\n")
-        str2 = "/rae_plan_uct_${uctCount}_d_${d}"
+        str2 = "/rae_plan_uct_${uctCount}_d_${d}_h_h0"
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $uctCount $d\" >> $fname\n")
 
@@ -338,7 +339,7 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in ["CR", "SR", "SD", "EE", "OF"]:
+    for domain in ["CR", "SD", "SR", "EE"]:
         for optz in ["eff", "sr"]:
             for mode in ["UCT"]: #"SLATE"
                 for depth in ["lim"]:

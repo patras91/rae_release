@@ -597,13 +597,13 @@ class SearchTreeNode():
                         bestUtil = child.util
                 self.util = bestUtil
             elif self.type == 'command':
-                sum = 0
+                res = 0
                 total = 0
                 # Take the average of values
                 for child, weight in zip(self.children, self.childWeights):
-                    sum += weight * child.util.GetValue()
+                    res += weight * child.util.GetValue()
                     total += weight
-                self.util = Utility(sum / total)
+                self.util = Utility(res / total)
             elif self.type == 'state':
                 self.util = self.util + self.children[0].util
             else:

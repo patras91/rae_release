@@ -139,6 +139,9 @@ if __name__ == "__main__":
     argparser.add_argument("--useBackupUCT", help="If RAEplanUCT fails, do you want to run UCT with only commands?",
                         type=bool, default=False, required=False)
 
+    argparser.add_argument("--doIterativeDeepening", help="Increment depth in steps of 5?",
+                        type=bool, default=False, required=False)
+
     args = argparser.parse_args()
 
     if args.plan == 'y':
@@ -163,6 +166,7 @@ if __name__ == "__main__":
     GLOBALS.SetLearningMode(None)
     GLOBALS.SetUseTrainedModel(args.useTrainedModel)
     GLOBALS.SetModelPath("../learning/models/")
+    GLOBALS.SetDoIterativeDeepening(args.doIterativeDeepening)
 
     GLOBALS.SetBackupUCT(args.useBackupUCT) # for NRL
     

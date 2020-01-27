@@ -274,8 +274,12 @@ def CallPlanner(pArgs, queue):
     if GLOBALS.GetUCTmode() == True:
         HandleTermination.q = queue
         signal.signal(signal.SIGTERM, HandleTermination)
-        d = 5
+        if GLOBALS.GetDoIterativeDeepening() == True:
+            d = 5
+        else:
+            d = GLOBALS.GetMaxDepth()
         while(d <= GLOBALS.GetMaxDepth()):
+            d = GLOBALS.GetMaxDepth()
             pArgs.SetDepth(d)
             methodUtil, planningTime = RAEplanChoice_UCT(pArgs.GetTask(), pArgs)
             method, util = methodUtil
