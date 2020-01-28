@@ -55,6 +55,7 @@ def testBatch(domain, problem, useRAEplan):
     verbosity(0)
     GLOBALS.SetShowOutputs('off')
     GLOBALS.SetDomain(domain)
+    GLOBALS.SetDoIterativeDeepening(False)
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
     p.join(GLOBALS.GetTimeLimit())

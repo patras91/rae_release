@@ -1,5 +1,5 @@
 __author__ = 'patras'
-from domain_testBackup import *
+from domain_testSSU import *
 from timer import DURATION
 from state import state
 

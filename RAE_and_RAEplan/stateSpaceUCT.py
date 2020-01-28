@@ -2,23 +2,129 @@ __author__="__patras__"
 
 import multiprocessing
 from state import RestoreState, GetState
-import rTree
 import GLOBALS
 from utility import Utility
 from dataStructures import rL_PLAN
 import random
 from timer import DURATION
 import types
+import math
 
 goalChecks = {}
 commands = {}
 planLocals = rL_PLAN()
+
+class ssuNode():
+    def __init__(self, l, t, args):
+        self.label = l
+        self.args = args
+        assert(t == "command" or t == "state")
+        self.type = t
+        self.children = []
+        self.childPtr = 0
+        self.childWeights = []
+        self.util = Utility("UNK")
+        self.parent = None
+        assert(GLOBALS.GetUCTmode() == True)
+        if self.type == 'state':
+            self.N = 0
+            self.n = []
+            self.Q = []
+
+    def GetLabel(self):
+        return self.label
+
+    def GetType(self):
+        return self.type
+
+    def SetUtility(self, u):
+        self.util = u
+
+    def GetUtility(self):
+        return self.util
+
+    def SetParent(self, p):
+        self.parent = p
+
+    def GetParent(self):
+        return self.parent
+
+    def AddChild(self, node):
+        node.parent = self
+        self.children.append(node)
+        self.childWeights.append(1)
+        if self.type == 'state':
+            self.n.append(0)
+            self.Q.append(Utility('Success'))
+
+    def FindAmongChildren(self, s):
+        assert(self.type == 'command')
+        for child in self.children:
+            if child.label.EqualTo(s):
+                return child 
+        return None
+
+    def GetNext(self):
+        if self.childPtr < len(self.children):
+            return self.children[self.childPtr]
+        else:
+            return None
+
+    def GetBestCommand(self):
+        index = None
+        bestQ = Utility('Failure')
+        
+        #l = [q.GetValue() for q in self.Q]
+        for i in range(0, len(self.Q)):
+            if self.Q[i] > bestQ:
+                bestQ = self.Q[i]
+                index = i
+        if index == None:
+            return 'Failure'
+        else:
+            return self.children[index].GetLabel()
+        
+    def IncreaseWeight(self, s):
+        assert(self.type == 'command')
+        for index in range(0, len(self.children)):
+            if self.children[index].GetLabel().EqualTo(s):
+                self.childWeights[index] += 1
+
+    def GetPrettyString(self, elem):
+        if elem.type == 'command':
+            return elem.label.__name__
+        elif elem.type == 'state':
+            return "state"
+        else:
+            return "NONE"
+
+    def PrintUsingGraphviz(self, name='searchTreeWithCommandsOnly'):
+        g = Digraph('G', filename=name, format="png")
+
+        level = {}
+        level[0] = [(self, 0)] # tuple of node and node id
+        level[1] = []
+        curr = 0
+        next = 1
+        newId = 1
+        while(level[curr] != []):
+            for elem, nodeid in level[curr]:
+                elemString = self.GetPrettyString(elem) + "_" + str(nodeid)
+                for child in elem.children:
+                    g.edge(elemString, self.GetPrettyString(child) + "_" + str(newId))
+                    level[next].append((child, newId))
+                    newId += 1
+            curr += 1
+            next += 1
+            level[next] = []
+        g.view()
 
 class PlanM():
     def __init__(self, p):
         self.plan = p
         print("PLAN")
         print(self.plan)
+        s = input("Enter:")
 
     def Call(self):
         for item in self.plan:
@@ -31,13 +137,14 @@ def declare_commands(cmd_list):
 def declare_goalCheck(task, goalCheckMethod):
     goalChecks[task] = goalCheckMethod
 
-def RunUCTwithCommandsOnlyMain(task, taskArgs, initState, queue):
+def StateSpaceUCT(task, taskArgs, initState, queue):
 
-    root = rTree.CommandSearchTreeNode(initState.copy() , 'state', None)
+    root = ssuNode(initState.copy() , 'state', None)
 
     for i in range(GLOBALS.GetUCTRuns()):
         print("rollout ", i)
-        RestoreState(initState)
+        RestoreState(root.GetLabel())
+        print(GetState())
         planLocals.SetSearchTreeNode(root)
         planLocals.SetUtilRollout(Utility("Success"))
         DoOneRollout(task, taskArgs)
@@ -69,11 +176,11 @@ def RunUCTwithCommandsOnlyMain(task, taskArgs, initState, queue):
 
     queue.put(PlanM(plan))
 
-def RunUCTwithCommandsOnly(task, taskArgs):
+def StateSpaceUCTMain(task, taskArgs):
 
     queue = multiprocessing.Queue()
     p = multiprocessing.Process(
-            target=RunUCTwithCommandsOnlyMain,
+            target=StateSpaceUCT,
             args=[task, taskArgs, GetState(), queue])
 
     p.start()
@@ -89,11 +196,13 @@ def RunUCTwithCommandsOnly(task, taskArgs):
 def DoOneRollout(task, taskArgs):
     goalCheck = goalChecks[task]
     if goalCheck(*taskArgs) == True:
+        print("SUCCESS")
         return
+
     curNode = planLocals.GetSearchTreeNode()
     if curNode.children == []:
         for cmd in commands.values():
-            newSearchTreeNode = rTree.CommandSearchTreeNode(cmd, 'command', [])
+            newSearchTreeNode = ssuNode(cmd, 'command', [])
             curNode.AddChild(newSearchTreeNode)
 
     untried = []
@@ -121,7 +230,7 @@ def DoOneRollout(task, taskArgs):
                 index = i
 
     c = cNode.GetLabel()
-
+    print("choosing ", c)
     cmdRet = {'state':'running'}
     RAE1_and_RAEplan.beginCommand(c, cmdRet, [])
     retcode = cmdRet['state']
@@ -129,28 +238,37 @@ def DoOneRollout(task, taskArgs):
     nextState = GetState().copy()
 
     if retcode == 'Failure':
-        nSN = rTree.CommandSearchTreeNode(nextState, 'state', None) # next state node
+        nSN = ssuNode(nextState, 'state', None) # next state node
         nSN.SetUtility(Utility('Failure'))
         cNode.AddChild(nSN)
         planLocals.SetUtilRollout(Utility('Failure'))
-        return 
     else:
         nSN = cNode.FindAmongChildren(nextState) 
         if nSN == None:
-            nSN = rTree.CommandSearchTreeNode(nextState, 'state', None)
+            nSN = ssuNode(nextState, 'state', None)
             cNode.AddChild(nSN)
+        else:
+            cNode.IncreaseWeight(nextState)
         
         util1 = planLocals.GetUtilRollout()
         util2 = RAE1_and_RAEplan.GetUtility(c, []) # cmdArgs
         planLocals.SetUtilRollout(util1 + util2)
+        print((util1+util2).value)
         nSN.SetUtility(RAE1_and_RAEplan.GetUtility(c, [])) # cmdArgs
         planLocals.SetSearchTreeNode(nSN)
+
         DoOneRollout(task, taskArgs)
-        curNode.Q[index] = Utility((curNode.Q[index].GetValue() * \
+
+        utilVal = planLocals.GetUtilRollout().GetValue()
+        if curNode.n[index] > 0:
+            curNode.Q[index] = Utility((curNode.Q[index].GetValue() * \
                                 curNode.n[index] + \
-                                planLocals.GetUtilRollout().GetValue()) / \
+                                utilVal) / \
                             (curNode.n[index] + 1))
-        print(curNode.Q[index].value)
-        curNode.n[index] += 1
+        else:
+            curNode.Q[index] = Utility(utilVal)
+
+    curNode.n[index] += 1
+    curNode.N += 1
 
 import RAE1_and_RAEplan

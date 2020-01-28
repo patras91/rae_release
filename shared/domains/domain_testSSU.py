@@ -1,6 +1,6 @@
 __author__ = 'patras'
 
-'''Test UCT backup strategy'''
+'''Test state space UCT'''
 
 from domain_constants import *
 import importlib
@@ -13,7 +13,7 @@ from timer import globalTimer
 import GLOBALS
 import numpy
 
-import UCTwithCommandsOnly as cOnly 
+import stateSpaceUCT as ssu 
 
 def fail():
     return FAILURE
@@ -37,7 +37,7 @@ def u3():
         return FAILURE
 
 def u4():
-    if state.v[0] == 1:
+    if state.v[0] == 3:
         state.v[0] = 4
         return SUCCESS
     else:
@@ -82,4 +82,5 @@ alg.declare_methods('tbackup', m1_tbackup, m2_tbackup)
 
 alg.declare_commands([u1, u2, u3, u4, u5, u6, u7, fail])
 
-cOnly.declare_goalCheck('tbackup', tbackup_Goal)
+ssu.declare_goalCheck('tbackup', tbackup_Goal)
+ssu.declare_commands([u1, u2, u3, u4, u5, u6, u7])

@@ -64,7 +64,7 @@ def InitializeDomain(domain, problem, startState=None):
     :param problem: id of the problem
     :return:none
     '''
-    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'test', 'testInstantiation', 'SR2', 'testBackup']:
+    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'test', 'testInstantiation', 'SR2', 'testSSU']:
         module = problem + '_' + domain
         global problem_module
         ReinitializeState()    # useful for batch runs to start with the starting state

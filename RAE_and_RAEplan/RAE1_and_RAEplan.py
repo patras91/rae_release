@@ -25,7 +25,7 @@ from APE_stack import print_entire_stack, print_stack_size
 from utility import Utility
 import time
 from sharedData import *
-import UCTwithCommandsOnly as cOnly
+import stateSpaceUCT as ssu
 #from learningData import trainingDataRecords
 #from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
 #import torch
@@ -80,7 +80,6 @@ def declare_commands(cmd_list):
     cmd_list must be a list of functions, not strings.
     """
     commands.update({cmd.__name__:cmd for cmd in cmd_list})
-    cOnly.declare_commands(cmd_list)
     return commands
 
 
@@ -324,9 +323,9 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         print("Starting simulation for stack")
 
     if raeLocals.GetUseBackupUCT() == True:
-        planM = cOnly.RunUCTwithCommandsOnly(task, taskArgs)
+        planM = ssu.StateSpaceUCTMain(task, taskArgs)
         if planM != 'Failure':
-            return (plan, candidates)
+            return (planM, candidates)
         else:
             raise Failed_task('{}{}'.format(task, taskArgs))
 
@@ -367,7 +366,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         #random.shuffle(candidates)
         if GLOBALS.GetBackupUCT() == True:
             raeLocals.SetUseBackupUCT(True)
-            planM = cOnly.RunUCTwithCommandsOnly(task, taskArgs)
+            planM = ssu.StateSpaceUCTMain(task, taskArgs)
             if planM != 'Failure':
                 return (planM, candidates)
             else:
