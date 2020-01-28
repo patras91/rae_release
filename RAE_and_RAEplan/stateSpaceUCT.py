@@ -156,14 +156,14 @@ def StateSpaceUCT(task, taskArgs, initState, queue):
     while(sNode.children != []):
 
         for i in range(0, len(sNode.Q)):
-            print("(")
+            #print("(")
             if sNode.n[i] > 0:
                 print(sNode.Q[i].value)
                 if sNode.Q[i] > bestQ: 
                     bestQ = sNode.Q[i]
                     print(sNode.children[i].GetLabel())
                     bestC = sNode.children[i]
-            print(")")
+            #print(")")
         if bestC == "Failure":
             queue.put("Failure")
             return
@@ -242,6 +242,7 @@ def DoOneRollout(task, taskArgs):
         nSN.SetUtility(Utility('Failure'))
         cNode.AddChild(nSN)
         planLocals.SetUtilRollout(Utility('Failure'))
+        curNode.Q[index] = Utility('Failure')
     else:
         nSN = cNode.FindAmongChildren(nextState) 
         if nSN == None:
