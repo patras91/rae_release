@@ -94,6 +94,7 @@ class MethodInstance():
     def __init__(self, m):
         self.method = m
         self.params = None
+        self.cost = 0
 
     def SetParams(self, p):
         self.params = p
@@ -103,6 +104,9 @@ class MethodInstance():
 
     def GetName(self):
         return self.method.__name__
+
+    def SetCost(self, c):
+        self.cost = c
 
     def __repr__(self):
         return self.method.__name__ + str(self.params) 
@@ -156,10 +160,14 @@ def GetMethodInstances(methods, tArgs):
             for params in paramList:
                 instance = MethodInstance(m)
                 instance.SetParams(tArgs + params)
+                if hasattr(m, "cost"):
+                    instance.SetCost(m.cost)
                 instanceList.append(instance)
         else:
             instance = MethodInstance(m)
             instance.SetParams(tArgs)
+            if hasattr(m, "cost"):
+                instance.SetCost(m.cost)
             instanceList.append(instance)
 
     random.seed(100)
@@ -481,7 +489,7 @@ def DoTaskInRealWorld(task, taskArgs):
         raeLocals.SetCurrentNode(node)
         retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
         
-        if hasattr(m, "cost"):
+        if m.cost > 0:
             raeLocals.SetEfficiency(AddEfficiency(raeLocals.GetEfficiency(), 1/m.cost))
             raeLocals.SetUtility(GetUtilityforMethod(m.cost) + raeLocals.GetUtility())
     
@@ -917,7 +925,7 @@ def PlanTask_UCT(task, taskArgs):
 
     taskNode.updateIndex = index
 
-    if hasattr(m, "cost"):
+    if m.cost > 0:
         planLocals.SetUtilRollout(planLocals.GetUtilRollout() + GetUtilityforMethod(m.cost))
     
     if failed:
@@ -944,7 +952,7 @@ def PlanMethod(m, task, taskArgs):
         print("Error: retcode should not be Failure inside PlanMethod.\n")
         raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
     elif retcode == 'Success':
-        if hasattr(m, "cost"):
+        if m.cost > 0:
             util = GetUtilityforMethod(m.cost)
         else:
             util = Utility('Success')

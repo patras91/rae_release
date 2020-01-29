@@ -122,9 +122,9 @@ class ssuNode():
 class PlanM():
     def __init__(self, p):
         self.plan = p
-        print("PLAN")
+        print("State Space UCT has come up with:")
         print(self.plan)
-        s = input("Enter:")
+        exit(1)
 
     def Call(self):
         for item in self.plan:
@@ -142,9 +142,7 @@ def StateSpaceUCT(task, taskArgs, initState, queue):
     root = ssuNode(initState.copy() , 'state', None)
 
     for i in range(GLOBALS.GetUCTRuns()):
-        print("rollout ", i)
         RestoreState(root.GetLabel())
-        print(GetState())
         planLocals.SetSearchTreeNode(root)
         planLocals.SetUtilRollout(Utility("Success"))
         DoOneRollout(task, taskArgs)
@@ -156,14 +154,10 @@ def StateSpaceUCT(task, taskArgs, initState, queue):
     while(sNode.children != []):
 
         for i in range(0, len(sNode.Q)):
-            #print("(")
             if sNode.n[i] > 0:
-                print(sNode.Q[i].value)
                 if sNode.Q[i] > bestQ: 
                     bestQ = sNode.Q[i]
-                    print(sNode.children[i].GetLabel())
                     bestC = sNode.children[i]
-            #print(")")
         if bestC == "Failure":
             queue.put("Failure")
             return
@@ -196,7 +190,6 @@ def StateSpaceUCTMain(task, taskArgs):
 def DoOneRollout(task, taskArgs):
     goalCheck = goalChecks[task]
     if goalCheck(*taskArgs) == True:
-        print("SUCCESS")
         return
 
     curNode = planLocals.GetSearchTreeNode()
@@ -230,7 +223,6 @@ def DoOneRollout(task, taskArgs):
                 index = i
 
     c = cNode.GetLabel()
-    print("choosing ", c)
     cmdRet = {'state':'running'}
     RAE1_and_RAEplan.beginCommand(c, cmdRet, [])
     retcode = cmdRet['state']
@@ -254,7 +246,6 @@ def DoOneRollout(task, taskArgs):
         util1 = planLocals.GetUtilRollout()
         util2 = RAE1_and_RAEplan.GetUtility(c, []) # cmdArgs
         planLocals.SetUtilRollout(util1 + util2)
-        print((util1+util2).value)
         nSN.SetUtility(RAE1_and_RAEplan.GetUtility(c, [])) # cmdArgs
         planLocals.SetSearchTreeNode(nSN)
 
