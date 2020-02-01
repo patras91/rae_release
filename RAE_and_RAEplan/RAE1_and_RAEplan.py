@@ -1261,7 +1261,8 @@ def GetCost(cmd, cmdArgs):
     else:
         cost = DURATION.COUNTER[cmd.__name__]
     if type(cost) == types.FunctionType:
-        return cost(*cmdArgs)
+        numpy.random.seed(5000)
+        res = cost(*cmdArgs)
     else:
         return cost
 
@@ -1280,7 +1281,9 @@ def GetUtility(cmd, cmdArgs):
     if GLOBALS.GetOpt() == "sr":
         return Utility("Success")
     elif type(cost) == types.FunctionType:
-        return Utility(1/cost(*cmdArgs))
+        numpy.random.seed(5000)
+        res = cost(*cmdArgs)
+        return Utility(1/res)
     else:
         return Utility(1/cost)
 
@@ -1300,7 +1303,9 @@ def GetEfficiency(cmd, cmdArgs):
     else:
         cost = DURATION.COUNTER[cmd.__name__]
     if type(cost) == types.FunctionType:
-        return 1/cost(*cmdArgs)
+        numpy.random.seed(5000)
+        res = cost(*cmdArgs)
+        return 1/res
     else:
         return 1/cost
 

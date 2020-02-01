@@ -75,7 +75,7 @@ UCT_max_depth = {
     "CR": [0, 50, 100, 250, 500, 1000, 2500, 5000],
     "SR": [0, 50, 100, 250, 500, 1000, 2500],
     "SD": [0, 50, 100, 250, 500, 1000, 2500],
-    "EE": [0, 50, 100, 250, 500, 1000, 2500, 5000],
+    "EE": [0, 50, 100, 250, 500, 1000], #, 2500, 5000],
     'OF': [0, 50, 100, 250, 500, 1000, 2500, 5000],
 }
 
@@ -935,7 +935,61 @@ def GetYlabel(util):
     else:
         return "Y"
 
+def Accumulate(res1, res2):
+    if res1 == []:
+        for item in res2[0:6]:
+            res1.append(item)
+        #res1 = [item for item in res2[0:6]]
+
+    else:
+        for i in range(6):
+            res1[i] += res2[i]
+
+def PlotHelper_UCT_max_retryRatio(resDict):
+    index1 = 'retryRatio'
+
+    width = 0.25
+    #K = [0, 1, 2, 3, 4, 8, 16]
+
+    res = {'_sr': GetFreshDict(), '_eff': GetFreshDict()}
+
+    assert(util == "_sr")
+
+    for domain in D:
+        Accumulate(res['_sr'][index1], resDict[domain]['_sr'][index1])
+        Accumulate(res['_sr'][errIndex[index1]], resDict[domain]['_sr'][errIndex[index1]])
+        Accumulate(res['_eff'][index1], resDict[domain]['_eff'][index1])
+        Accumulate(res['_eff'][errIndex[index1]], resDict[domain]['_eff'][errIndex[index1]])
+        
+    plt.clf()
+    fname = '{}{}_UCT_max_depth.png'.format(figuresFolder, 'retryRatio')
+    
+    fig, ax = plt.subplots()
+    PlotViaMatlabBar([0, 50, 100, 250, 500, 1000], 
+        res['_sr'][index1],
+        res['_sr'][errIndex[index1]],
+        COLORBAR[0],
+        "utility = success ratio", -1, ax)
+    PlotViaMatlabBar([0, 50, 100, 250, 500, 1000], 
+        res['_eff'][index1],
+        res['_eff'][errIndex[index1]],
+        COLORBAR[1],
+        "utility = efficiency", 1, ax)
+
+    plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
+        
+    ax.set_xticks(np.arange(6))
+    ax.set_xticklabels([str(item) for item in [0, 50, 100, 250, 500, 1000]])
+    plt.xlabel('Number of rollouts')
+    plt.ylabel(GetYlabel('retryRatio'))
+
+    plt.savefig(fname, bbox_inches='tight')
+
 def PlotHelper_UCT_max(resDict, utilp):
+    if utilp == "retryRatio":
+        PlotHelper_UCT_max_retryRatio(resDict)
+        return
+
     index1 = utilp
     width = 0.25
     #K = [0, 1, 2, 3, 4, 8, 16]
@@ -953,7 +1007,7 @@ def PlotHelper_UCT_max(resDict, utilp):
                 "utility = success ratio", -1, ax)
             PlotViaMatlabBar(UCT_max_depth[domain], 
                 resDict[domain]['_eff'][index1],
-                resDict[domain]['_sr'][errIndex[index1]],
+                resDict[domain]['_eff'][errIndex[index1]],
                 COLORBAR[1],
                 "utility = efficiency", 1, ax)
         else:
@@ -964,7 +1018,7 @@ def PlotHelper_UCT_max(resDict, utilp):
                 COLORBAR[0],
                 GetYlabel(utilp), 0, ax)
         
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
             
         ax.set_xticks(np.arange(len(UCT_max_depth[domain])))
         ax.set_xticklabels([str(item) for item in UCT_max_depth[domain]])
@@ -1205,6 +1259,9 @@ def PlotViaMatlabLine(x, y, c, l):
 def PlotViaMatlabBar(x, y, y_error, c, l, f, ax):
     width = 0.4
     
+    print(x)
+    print(y)
+    print(y_error)
     x = np.arange(len(x))
     rects = ax.bar(x + f*width/2, y, width,
             color=c, 

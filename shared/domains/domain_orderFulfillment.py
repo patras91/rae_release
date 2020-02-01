@@ -63,7 +63,7 @@ def wait():
     #    pass
 
     if GLOBALS.GetPlanningMode() == True:
-        return FAILURE
+        return SUCCESS
     else:
         t1 = time()
         while(time() - t1 < 3):
