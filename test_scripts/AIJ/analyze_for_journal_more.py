@@ -58,11 +58,11 @@ Depth = {
 #}
 
 UCT_max_depth = {
-    "CR": [0, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
-    "SR": [0, 50, 100, 250, 500, 1000, 2500],
-    "SD": [0, 50, 100, 250, 500, 1000, 2500],
-    "EE": [0, 50, 100, 250, 500, 1000, 2500, 5000],
-    'OF': [0, 50, 100, 250, 500, 1000, 2500, 5000],
+    "CR": [0, 50, 100, 250, 500, 1000], #, 2500, 5000, 10000],
+    "SR": [0, 50, 100, 250, 500, 1000], #, 2500],
+    "SD": [0, 50, 100, 250, 500, 1000], #, 2500],
+    "EE": [0, 50, 100, 250, 500, 1000], #, 2500, 5000],
+    'OF': [0, 50, 100, 250, 500, 1000], #, 2500, 5000],
 }
 
 UCT_lim_depth = {
@@ -140,7 +140,8 @@ chars = [str(i) for i in range(0,10)]
 def GetCountAndTime(res, domain, f_rae, param, fileName): # param may be k or d
 
     line = f_rae.readline()
-    
+    lineNo = 1
+
     totalRuns = 0
     totalTime = 0
     passCount = 0
@@ -156,7 +157,10 @@ def GetCountAndTime(res, domain, f_rae, param, fileName): # param may be k or d
         if parts[0] == 'Time':
             totalRuns += 1
             problemName = parts[4]
+            #print("fname = ", fileName, " line = ", lineNo)
             counts = f_rae.readline()
+            lineNo += 1
+
             if counts[0] == "T":
                 passCount += 1
             while(NotTimeLine(counts)):
@@ -172,6 +176,7 @@ def GetCountAndTime(res, domain, f_rae, param, fileName): # param may be k or d
 
                 if version == 2:
                     commLine = f_rae.readline() # list of commands and planning efficiencies
+                    lineNo += 1
                     comms = commLine.split()
                     numberOfCommands = 0
                     for item in comms:
@@ -183,6 +188,7 @@ def GetCountAndTime(res, domain, f_rae, param, fileName): # param may be k or d
                         maxCommCount = numberOfCommands
 
                 counts = f_rae.readline()
+                lineNo += 1
             # time line
             secTimeLine = counts
             #print(secTimeLine)
@@ -199,6 +205,7 @@ def GetCountAndTime(res, domain, f_rae, param, fileName): # param may be k or d
             if t11 == timeLimit[domain]:
                 problems.add(problemName)
         line = f_rae.readline()
+        lineNo += 1
 
     return totalRuns, totalTime/60, passCount, timeOutCount, highestTime, problems, minCommCount, maxCommCount
 
@@ -303,7 +310,7 @@ def Get_UCT_lim_depth_run_counts(res, domain):
     for uct in UCT_lim_depth[domain]:
         for depth in Depth[domain]:
             if depth > 0:
-                fname = '{}{}_v_journal{}/rae_plan_uct_{}_d_{}.txt'.format(resultsFolder, domain, util, uct, depth)
+                fname = '{}{}_v_journal{}/rae_plan_uct_{}_d_{}_h_h0.txt'.format(resultsFolder, domain, util, uct, depth)
                 fptr = open(fname)
                 count_uct, time, passCount, timeOutCount, highestTime, problems, minCommCount, maxCommCount = \
                     GetCountAndTime(res, domain, open(fname), uct, fname)
@@ -500,246 +507,32 @@ def GeneratePlots_UCT_lim_depth():
     for d in D:
         Get_UCT_lim_depth_run_counts(resDict[d], d)
 
-def GetString(depth):
-    s = []
-    for item in depth:
-        s.append(str(item))
-
-    return s
-
-def CheckIn(l, e):
-    for key in l:
-        if e <= key*(1.01) and e >= key*0.99:
-            return (True, key)
-    return (False, None)
-
-def normalize(l):
-    #m = max(l)
-    lret = []
-    for i in range(1, len(l)):
-        if (l[0] - l[i])*100/l[0]/4 > 0:
-            lret.append((l[0] - l[i])*100/l[0])
-        else:
-            lret.append(0)
-    return lret
-
-def GetSum(*l):
-    size = len(l[0])
-    res = []
-    for i in range(0, size):
-        res.append(0)
-        for item in l:
-            res[i] += item[i]
-    return res
-
-def GetYlabel(util):
-    if util == 'nu':
-        return 'Efficiency, $E$'
-    elif util == 'successRatio':
-        return 'Success Ratio'
-    else:
-        return 'Retry Ratio'
-
-def PlotHelper_UCT_max(resDict, utilp):
-    index1 = utilp
-    width = 0.25
-    #K = [0, 1, 2, 3, 4, 8, 16]
-
-    for domain in D:
-        plt.clf()
-        fname = '{}{}_{}_UCT_max_depth{}.png'.format(figuresFolder, domain, utilp, util)
-        PlotViaMatlab(UCT_max_depth[domain], 
-            resDict[domain][index1],
-            COLORS[0],
-            GetYlabel(utilp))
-        
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
-            
-        plt.xlabel('Number of rollouts')
-        plt.xticks(UCT_max_depth[domain],
-           [str(item) for item in UCT_max_depth[domain]])
-        plt.ylabel(GetYlabel(utilp))
-
-        plt.savefig(fname, bbox_inches='tight')
-
-def PlotHelper_UCT_lim(resDict, utilp):
-    index1 = utilp
-    width = 0.25
-
-    for domain in D:
-        plt.clf()
-        fname = '{}{}_{}_UCT_lim_depth{}.png'.format(figuresFolder, domain, utilp, util)
-        
-        i = 0
-        for uct in UCT_lim_depth[domain]:
-            PlotViaMatlab(Depth[domain],
-                resDict[domain][uct][index1],
-                COLORS[i],
-                'rollouts={}'.format(uct))
-            i += 1
-        
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
-            
-        plt.xlabel('Depth')
-        plt.xticks(Depth[domain],
-           GetString(Depth[domain]))
-        plt.ylabel(GetYlabel(utilp)) 
-        plt.savefig(fname, bbox_inches='tight')
-
-def PlotHelper_SLATE_max(resDict, utilp):
-    index1 = utilp
-    width = 0.25
-
-    for domain in D:
-        i = 0
-        plt.clf()
-        for b in B_max_depth[domain]:
-            PlotViaMatlab(K_max_depth[domain], 
-                resDict[domain][b][index1],
-                COLORS[i],
-                'b={}'.format(b)
-            )
-            i += 1
-        
-        fname = '{}{}_{}_SLATE_max_depth{}.png'.format(figuresFolder, domain, index1, util)
-        plt.xlabel('k')
-        plt.xticks(K_max_depth[domain],
-           GetString(K_max_depth[domain]))
-        plt.ylabel(GetYlabel(utilp))
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
-        plt.savefig(fname, bbox_inches='tight')
-
-def PlotHelper_SLATE_lim(resDict, utilp):
-    index1 = utilp
-    width = 0.25
-
-    for domain in D:
-        plt.clf()
-        fname = '{}{}_{}_SLATE_lim_depth{}.png'.format(figuresFolder, domain, utilp, util)
-        i = 0
-        for b in B_lim_depth[domain]:
-            PlotViaMatlab(Depth[domain],
-                resDict[domain][b][index1],
-                COLORS[i],
-                'b={}'.format(b)
-            )
-            i += 1
-     
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=3, borderaxespad=0.)
-            
-        plt.xlabel('Depth')
-        plt.xticks(Depth[domain],GetString(Depth[domain]))
-        plt.ylabel(GetYlabel(utilp)) 
-        plt.savefig(fname, bbox_inches='tight')
-
-def PlotHelper_UCT_max_planning_utilities(resDict):
-    width = 0.25
-
-    for domain in D:
-        plt.clf()
-        fname = '{}{}_UCT_max_depth_planning_utilities{}.png'.format(figuresFolder, domain, util)
-        
-        i = 0
-        for uct in UCT_max_depth[domain][1:]:
-            sortedDict = {}
-            for k in sorted(resDict[domain][uct]):
-                sortedDict[k] = resDict[domain][uct][k]
-            print(sortedDict)
-            PlotViaMatlab(sortedDict.keys(),
-                sortedDict.values(),
-                COLORS[i],
-                'rollouts={}'.format(uct))
-            i += 1
-        
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
-            
-        plt.xlabel('Number of commands executed')
-        plt.xticks(list(sortedDict.keys()),
-           GetString(list(sortedDict.keys())))
-        plt.ylabel("Error ratio (normalized)") 
-        plt.savefig(fname, bbox_inches='tight')
-
-def PlotViaMatlab(x, y, c, l):
-    line1, = plt.plot(x, y, c, label=l, linewidth=4, MarkerSize=10, markerfacecolor='white')
-
 D = None
 heuristic = None
 util = None
 
 if __name__=="__main__":
-    util = '_eff'
-    D = ['SR', 'SD', 'CR', 'EE']
-    depth = "max"
-    s = "UCT"
-    if depth == "max":
-        if s == "SLATE":
-            GeneratePlots_SLATE_max_depth()
-        else:
-            GeneratePlots_UCT_max_depth()
-    elif depth == "lim":
-        if s == "SLATE":
-            GeneratePlots_SLATE_lim_depth()
-        else:
-            GeneratePlots_UCT_lim_depth()
-    else:
-        print("Incorrect value depth: should be 'max' or 'lim'.")
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--domain", help="domain in ['CR', 'SD', 'SR', 'OF', 'EE']",
+                           type=str, required=True)
+    args = argparser.parse_args()
+    D = [args.domain]
+    for depth in ['max', 'lim']:
+        for util in [ '_eff']:
+            s = "UCT"
+            print("---------------- Depth = ", depth, "  Utility function = ", util, "---------------------")
+            if depth == "max":
+                if s == "SLATE":
+                    GeneratePlots_SLATE_max_depth()
+                else:
+                    GeneratePlots_UCT_max_depth()
+            elif depth == "lim":
+                if s == "SLATE":
+                    GeneratePlots_SLATE_lim_depth()
+                else:
+                    GeneratePlots_UCT_lim_depth()
+            else:
+                print("Incorrect value depth: should be 'max' or 'lim'.")
 
-def PopulateHelper1_SLATE_max_depth(domain, f_rae, k):
-
-    line = f_rae.readline()
-    
-    time = 0
-    
-    while(line != ''):
-
-        parts = line.split(' ')
-
-        if parts[0] == 'Time':
-
-            for i in range(0, 1):
-                
-                counts = f_rae.readline()
-
-            secTimeLine = f_rae.readline()
-            parts = secTimeLine.split()
-            t = float(parts[5])
-            unit = parts[6]
-            if unit == "msec":
-                t = t / 1000
-            time += t
-
-        line = f_rae.readline()
-
-    print("running time = ", time)
-
-def PopulateHelper1_SLATE_lim_depth(domain, f_rae, k, depth):
-
-    line = f_rae.readline()
-    
-    time = 0
-    
-    while(line != ''):
-
-        parts = line.split(' ')
-
-        if parts[0] == 'Time':
-
-            for i in range(0, 1):
-                
-
-                counts = f_rae.readline()
-
-
-            secTimeLine = f_rae.readline()
-            parts = secTimeLine.split()
-            t = float(parts[5])
-            unit = parts[6]
-            if unit == "msec":
-                t = t / 1000
-            time += t
-
-        line = f_rae.readline()
-
-    print("running time = ", time)
 
 

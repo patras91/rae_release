@@ -228,6 +228,8 @@ def PickupAndLoad_Method1(orderName, o, m, r):
     ape.do_task('redoer', acquireRobot, r)
 
     # move to object
+    if state.loc[o] in rv.ROBOTS:
+        ape.do_task('redoer', putdown, state.loc[o], o)
     dist = OF_GETDISTANCE_GROUND(state.loc[r], state.loc[o])
     ape.do_task('redoer', moveRobot, r, state.loc[r], state.loc[o], dist)
 

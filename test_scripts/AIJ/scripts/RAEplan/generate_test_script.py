@@ -339,9 +339,9 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in ["CR", "SD", "SR", "EE"]:
+    for domain in ["CR", "EE", "SR", "SD"]: #["CR", "SD", "SR", "EE"]:
         for optz in ["eff", "sr"]:
             for mode in ["UCT"]: #"SLATE"
-                for depth in ["lim"]:
+                for depth in ["lim", "max"]:
                     for part in range(1, 11):
                         GenerateTestScriptRAEplan(mode, domain, depth, part, optz)

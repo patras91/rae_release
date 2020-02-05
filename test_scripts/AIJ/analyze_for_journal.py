@@ -1300,7 +1300,8 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = [ "SD", "CR", "EE", "SR"]
+    #D = ["SD", "CR", "EE", "SR"] # "OF"]
+    D = ["OF"]
 
     if args.l == "y":
         GeneratePlots_learning()

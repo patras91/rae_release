@@ -47,12 +47,12 @@ def GetProblemsEE():
 
 
 timeLimit = {
-    "OF": 300,
-    "CR": 300,
-    "SR": 300,
-    "EE": 300,
-    "IP": 300,
-    "SD": 300,
+    "OF": 1800,
+    "CR": 1800,
+    "SR": 1800,
+    "EE": 1800,
+    "IP": 1800,
+    "SD": 1800,
 }
 
 def writeList(name, l, file):
@@ -95,10 +95,12 @@ def GenerateTestScriptRAE(domain):
     file.write("sys.path.append(\'../../shared/domains/\')\n")
     file.write("sys.path.append(\'../../shared/problems/{}/auto\')\n".format(domain))
     file.write("sys.path.append(\'../../shared/\')\n")
+    file.write("sys.path.append(\'../../learning/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
     file.write("GLOBALS.SetOpt('max')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
-
+    file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
+    file.write("GLOBALS.SetMaxDepth(80)\n")
     file.write("GLOBALS.SetLearningMode(None)\n")
     file.write("GLOBALS.SetModelPath(\'../learning/models\')\n")
     file.write("GLOBALS.SetUseTrainedModel(\'n\')\"\n")
