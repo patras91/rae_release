@@ -113,12 +113,12 @@ k_max_depth = {
 
 # for AIJ2020
 UCT_max_depth = {
-    "CR": [50, 100, 250, 500, 1000, 2500, 5000],
-    "SD": [50, 100, 250, 500, 1000, 2500],
-    "SR": [50, 100, 250, 500, 1000, 2500],
+    "CR": [50, 100, 250, 500, 1000], # 2500, 5000],
+    "SD": [50, 100, 250, 500, 1000], # 2500],
+    "SR": [50, 100, 250, 500, 1000], # 2500],
     "EE": [50, 100, 250, 500, 1000],
 #    "IP": [],
-    "OF": [50, 100, 250, 500, 1000, 2500, 5000],
+    "OF": [50, 100, 250, 500, 1000] # 2500, 5000],
 }
 
 
@@ -187,11 +187,11 @@ def writeProblems(name, file, part, domain):
         l = GetProblemsEE(part)
     writeList(name, l, file)
 
-def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
-    if opt == "eff":
-        fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_eff.bash'.format(domain, domain, mode, depth, part)
-    elif opt == "sr":
-        fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_sr.bash'.format(domain, domain, mode, depth, part)
+def GenerateTestScriptRAEplan(mode, domain, depth, part, opt, heuristic):
+    fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_{}.bash'.format(domain, domain, mode, depth, part, opt)
+    if heuristic == "zero" and depth == "lim":
+        fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_{}_h_h0.bash'.format(domain, domain, mode, depth, part, opt)
+
     file = open(fname,"w") 
     file.write("#!/bin/sh\n")
     file.write("domain=\"{}\"\n".format(domain))
@@ -260,11 +260,14 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
             file.write("GLOBALS.SetMaxDepth(20)\n")
         else:
             #file.write("GLOBALS.SetMaxDepth(30)\n")
-            file.write("GLOBALS.SetMaxDepth(60)\n")
+            file.write("GLOBALS.SetMaxDepth(80)\n")
         file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
     else:
         file.write("GLOBALS.SetMaxDepth($d)\n")
-        file.write("GLOBALS.SetHeuristicName(\\\"h1\\\")\n")
+        if heuristic == "zero":
+            file.write("GLOBALS.SetHeuristicName(\\\"h1\\\")\n")
+        else:
+            file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
 
     file.write("GLOBALS.SetLearningMode(None)\n")
     file.write("GLOBALS.SetModelPath(\'../learning/models/\')\n")
@@ -287,7 +290,10 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
         file.write("            echo \"Time test of $domain $problem $b $k\" >> $fname\n")
     elif mode == "SLATE" and depth == "lim":
         file.write("            echo \"b = \" $b \" k = \" $k \" d = \" $d\n")
-        str2 = "/rae_plan_b_${b}_k_${k}_d_${d}"
+        if heuristic == "zero":
+            str2 = "/rae_plan_b_${b}_k_${k}_d_${d}_h_h0"
+        else:
+            str2 = "/rae_plan_b_${b}_k_${k}_d_${d}"
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $b $k $d\" >> $fname\n")
     elif mode == "UCT" and depth == "max":
@@ -297,7 +303,10 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt):
         file.write("            echo \"Time test of $domain $problem $uctCount\" >> $fname\n")
     else:
         file.write("            echo \"uctCount = \" $uctCount \" d = \" $d\n")
-        str2 = "/rae_plan_uct_${uctCount}_d_${d}_h_h0"
+        if heuristic == "zero":
+            str2 = "/rae_plan_uct_${uctCount}_d_${d}_h_h0"
+        else:
+            str2 = "/rae_plan_uct_${uctCount}_d_${d}"
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $uctCount $d\" >> $fname\n")
 
@@ -327,6 +336,8 @@ if __name__=="__main__":
                            type=int, required=True)
     argparser.add_argument("--utility", help=" efficiency or successRatio? ",
                            type=str, required=True, default="efficiency")
+    argparser.add_argument("--heuristic", help="zero or DS? ",
+                           type=str, required=True, default="zero")
     args = argparser.parse_args()
 
     global runs
@@ -339,9 +350,10 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in ["CR", "EE", "SR", "SD"]: #["CR", "SD", "SR", "EE"]:
-        for optz in ["eff", "sr"]:
+    for domain in ["OF"]: 
+    #for domain in ["CR", "EE", "SR", "SD"]: 
+        for optz in ["sr"]:
             for mode in ["UCT"]: #"SLATE"
-                for depth in ["lim", "max"]:
+                for depth in ["max"]:
                     for part in range(1, 11):
-                        GenerateTestScriptRAEplan(mode, domain, depth, part, optz)
+                        GenerateTestScriptRAEplan(mode, domain, depth, part, optz, args.heuristic)

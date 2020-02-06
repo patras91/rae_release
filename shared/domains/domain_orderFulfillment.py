@@ -93,9 +93,7 @@ def Redoer(command, *args):
         i += 1
 
     if i >= 3:
-        return FAILURE
-
-    return SUCCESS
+        ape.do_command(fail)
 
 # this is a function for narrowing down possibilities for obj lists
 # e.g. reduces combos for problem 4 task 1 from 10 to 4
