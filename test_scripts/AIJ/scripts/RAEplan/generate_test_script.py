@@ -352,7 +352,7 @@ if __name__=="__main__":
 
     for domain in ["OF"]: 
     #for domain in ["CR", "EE", "SR", "SD"]: 
-        for optz in ["sr"]:
+        for optz in ["eff"]:
             for mode in ["UCT"]: #"SLATE"
                 for depth in ["max"]:
                     for part in range(1, 11):

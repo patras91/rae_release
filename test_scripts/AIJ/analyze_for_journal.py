@@ -1225,17 +1225,23 @@ def PlotHelper_SLATE_lim(resDict, utilp):
 def PlotHelper_UCT_max_planning_utilities(resDict):
     width = 0.25
 
-    for domain in D:
+    for domain in ['CR']:
         plt.clf()
-        fname = '{}{}_UCT_max_depth_planning_utilities{}.png'.format(figuresFolder, domain, util)
+        fname = '{}{}_UCT_max_depth_planning_utilities.png'.format(figuresFolder, util)
         
         i = 0
         for uct in UCT_max_depth[domain][1:]:
             sortedDict = {}
             for k in sorted(resDict[domain][uct]):
                 sortedDict[k] = resDict[domain][uct][k]
+                count = 1
+                for x in ['EE', 'SR', 'SD', 'OF']:
+                    if k in resDict[x][uct]:
+                        sortedDict[k] += resDict[x][uct][k]
+                        count += 1
+                sortedDict[k] /= count
             print(sortedDict)
-            PlotViaMatlab(sortedDict.keys(),
+            PlotViaMatlabLine(sortedDict.keys(),
                 sortedDict.values(),
                 COLORS[i],
                 'rollouts={}'.format(uct))
@@ -1300,7 +1306,7 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["SD", "CR", "EE", "SR"] # "OF"]
+    D = ["SD", "CR", "EE", "SR", "OF"]
     #D = ["OF"]
 
     if args.l == "y":

@@ -518,7 +518,7 @@ if __name__=="__main__":
     args = argparser.parse_args()
     D = [args.domain]
     for depth in ['max', 'lim']:
-        for util in [ '_eff']:
+        for util in [ '_eff', '_sr']:
             s = "UCT"
             print("---------------- Depth = ", depth, "  Utility function = ", util, "---------------------")
             if depth == "max":
