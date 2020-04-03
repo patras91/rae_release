@@ -54,6 +54,9 @@ def NotTimeLine(s):
     else:
         return True
 
+def GetRAEfname(domain):
+    return "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+
 def GetUtilities(res, domain, f_rae, param, fileName, problem): # param may be k or d
 
     line = f_rae.readline()
@@ -140,9 +143,8 @@ def GetCountAndTime(res, domain, f, param, fileName): # param may be k or d
                     version = 2
 
                 if version == 2:
-                    commLine = f.readline() # list of commands and planning efficiencies
+                    comms = f.readline().split() # list of commands and planning efficiencies
                     lineNo += 1
-                    comms = commLine.split()
                     numberOfCommands = 0
                     for item in comms:
                         if item[0] not in chars:
@@ -164,8 +166,7 @@ def GetCountAndTime(res, domain, f, param, fileName): # param may be k or d
                 timeOutCount += 1
                 problemsTimedOut.add(problemName)
 
-            if t > highestTime and t < timeLimit[domain]:
-                highestTime = t
+            highestTime = t if t > highestTime and t < timeLimit[domain] else highestTime
                 
         line = f.readline()
         lineNo += 1
@@ -179,15 +180,6 @@ def GetCountAndTime(res, domain, f, param, fileName): # param may be k or d
         minCommCount, \
         maxCommCount 
 
-def PopulateHelper_UCT_max_depth(res, domain, f_rae, uct, fileName):
-    CommonStuff(res, domain, f_rae, uct, fileName)
-
-def PopulateHelper_UCT_max_depth_planning_utilities(res, domain, f_rae, uct, fileName):
-    CommonStuffPlanningUtilities(res, domain, f_rae, uct, fileName)
-
-def PopulateHelper_UCT_lim_depth(res, domain, f_rae, depth, fileName):
-    CommonStuff(res, domain, f_rae, depth, fileName)
-
 def GetProblems(f_rae):
     line = f_rae.readline()
     p = set({})
@@ -199,8 +191,7 @@ def GetProblems(f_rae):
     return p
 
 def Get_UCT_max_depth_discrepencies(res, domain):
-    f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
-    problems = GetProblems(open(f_rae_name))
+    problems = GetProblems(open(GetRAEfname(domain)))
     #print(problems)
     #problems = {"problem1088", "problem1001"}
     res = set({})
@@ -232,18 +223,54 @@ def GetProblemsAndCounts(f_rae):
         line = f_rae.readline()
     return p, count
 
+def Print_Problems_and_Tasks(domain):
+    f_rae = open(GetRAEfname(domain))
+    line = f_rae.readline()
+    p = {}
+    p_count = 0
+    t_count = 0
+    while(line != ''):
+        parts = line.split(' ')
+        if parts[0] == 'Time':
+            pname = parts[4][0:-1]
+            p_count += 1
+            if pname not in p:
+                p[pname] = 0
+        elif parts[0] == 'v2':
+            p[pname] += 1
+            t_count += 1
+        line = f_rae.readline()
+    
+    print(p)
+    print("Problems run Count = ", p_count)
+    print("Tasks Count = ", t_count)
+
+    #p_count = 2500
+    z = p_count/len(p)
+    print([p[pname]/z for pname in p])
+    nTasks = sum([p[pname]/z for pname in p])
+    print("Number of tasks is ", nTasks)
+
+    tasks = {1:[], 2:[], 3:[]}
+    for pname in p:
+        tasks[int(p[pname]/z)].append(pname)
+    print(tasks)
+
 def Get_UCT_max_depth_run_counts(res, domain):
-    f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
-    problems, count = GetProblemsAndCounts(open(f_rae_name))
+    problems, count = GetProblemsAndCounts(open(GetRAEfname(domain)))
     for uct in UCT_max_depth[domain]:
         if uct > 0:
             fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, util, uct)
             fptr = open(fname)
             count_uct, time, passCount, timeOutCount, highestTime, problems, minCommCount, maxCommCount = \
                 GetCountAndTime(res, domain, open(fname), uct, fname)
-            print("Domain ", domain, "uctCount = " , uct, "expected ", 
-                count, "found ", count_uct, " time = ", time, 
-                " passCount = ", passCount, " timeOutCount = ",timeOutCount,
+            print("Domain ", domain, \
+                "uctCount = " , uct, \
+                "expected ", count, \
+                "found ", count_uct, \
+                " time = ", time, \
+                " passCount = ", passCount, \
+                " timeOutCount = ",timeOutCount, \
                 " highest count = ", highestTime)
             print("min Comm = ", minCommCount, " max Comm = ", maxCommCount)
             print(problems)
@@ -252,8 +279,7 @@ def Get_UCT_max_depth_run_counts(res, domain):
     print(len(res))
 
 def Get_UCT_lim_depth_run_counts(res, domain):
-    f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
-    problems, count = GetProblemsAndCounts(open(f_rae_name))
+    problems, count = GetProblemsAndCounts(open(GetRAEfname(domain)))
     for uct in UCT_lim_depth[domain]:
         for depth in Depth[domain]:
             if depth > 0:
@@ -261,9 +287,13 @@ def Get_UCT_lim_depth_run_counts(res, domain):
                 fptr = open(fname)
                 count_uct, time, passCount, timeOutCount, highestTime, problems, minCommCount, maxCommCount = \
                     GetCountAndTime(res, domain, open(fname), uct, fname)
-                print("Domain ", domain, "depth = " , depth, "expected ", 
-                    count, "found ", count_uct, " time = ", time, 
-                    " passCount = ", passCount, " timeOutCount = ",timeOutCount,
+                print("Domain ", domain, \
+                    "depth = " , depth, \
+                    "expected ", count, \
+                    "found ", count_uct, \
+                    " time = ", time, \
+                    " passCount = ", passCount, \
+                    " timeOutCount = ",timeOutCount,\
                     " highest count = ", highestTime)
                 print("min Comm = ", minCommCount, " max Comm = ", maxCommCount)
                 print(problems)
@@ -272,7 +302,7 @@ def Get_UCT_lim_depth_run_counts(res, domain):
 def Populate_UCT_max_depth_planning_utilities(res, domain):
     for uct in UCT_max_depth[domain]:
         if uct == 0:
-            f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+            f_rae_name = GetRAEfname(domain)
             f_rae = open(f_rae_name, "r")
             print(f_rae_name)
             PopulateHelper_UCT_max_depth_planning_utilities(res[uct], domain, f_rae, uct, f_rae_name)
@@ -288,7 +318,7 @@ def Populate_UCT_lim_depth(res, domain):
     for uct in UCT_lim_depth[domain]:
         for depth in Depth[domain]:
             if depth == 0:
-                f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
+                f_rae_name = GetRAEfname(domain)
                 f_rae = open(f_rae_name, "r")
                 print(f_rae_name)
                 PopulateHelper_UCT_lim_depth(res[uct], domain, f_rae, depth, f_rae_name)
@@ -313,7 +343,8 @@ def GetData_UCT_max_depth():
             'timeOut': [],
             }
         #Get_UCT_max_depth_discrepencies(resDict[domain], domain)
-        Get_UCT_max_depth_run_counts(resDict[domain], domain)
+        Print_Problems_and_Tasks(domain)
+        #Get_UCT_max_depth_run_counts(resDict[domain], domain)
 
 def GetData_UCT_lim_depth():
     resDict = {
@@ -349,8 +380,8 @@ if __name__=="__main__":
                            type=str, required=True)
     args = argparser.parse_args()
     D = [args.domain]
-    for depth in ['max', 'lim']:
-        for util in [ '_eff', '_sr']:
+    for depth in ['max']: #, 'lim']:
+        for util in [ '_eff'] : # '_sr']:
             s = "UCT"
             print("---------------- Depth = ", depth, "  Utility function = ", util, "---------------------")
             if depth == "max":
