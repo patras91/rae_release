@@ -76,3 +76,52 @@ UCT_lim_depth = {
     'SD': [1000],
     'EE': [1000],
 }
+
+def GetFullName(domain):
+    if domain == "CR":
+        return "Fetch Objects Domain"
+    elif domain == "SD":
+        return "Navigate Doorways Domain"
+    elif domain == "SR":
+        return "Search and Rescue Domain"
+    elif domain == "OF":
+        return "Order Delivery Domain"
+    elif domain == "EE":
+        return "Explore Environment Domain"
+
+# The set of problems with 1 task, 2 tasks, and 3 tasks in each domain
+problems_with_n_tasks = {
+    'SD': {1: ['problem1119', 'problem1059', 'problem1029', 'problem1103', 'problem1121', 'problem1063', 'problem1057', 'problem1069', 'problem1055', 'problem1083', 'problem1049', 'problem1039', 'problem1125', 'problem1087', 'problem1115', 'problem1033', 'problem1019', 'problem1089', 'problem1053', 'problem1085', 'problem1051', 'problem1107', 'problem1045', 'problem1007', 'problem1003', 'problem1013', 'problem1127', 'problem1027', 'problem1043'], 2: ['problem1014', 'problem1070', 'problem1068', 'problem1106', 'problem1028', 'problem1046', 'problem1100', 'problem1086', 'problem1116', 'problem1124', 'problem1084', 'problem1066', 'problem1010', 'problem1078', 'problem1120', 'problem1110', 'problem1032', 'problem1104', 'problem1036', 'problem1016', 'problem1094'], 3: []},
+    'EE': {1: ['problem187', 'problem91', 'problem159', 'problem131', 'problem7', 'problem35', 'problem3', 'problem31', 'problem103', 'problem75', 'problem123', 'problem143', 'problem163', 'problem43', 'problem183'], 2: ['problem5', 'problem108', 'problem72', 'problem85', 'problem173', 'problem44', 'problem29', 'problem20', 'problem129', 'problem188', 'problem161', 'problem17', 'problem89', 'problem136', 'problem104', 'problem57', 'problem52', 'problem156', 'problem168', 'problem164', 'problem68', 'problem73'], 3: ['problem170', 'problem134', 'problem190', 'problem86', 'problem58', 'problem158', 'problem78', 'problem42', 'problem14', 'problem50', 'problem2', 'problem174', 'problem178']},
+    'CR': {
+        1: ['problem1004', 'problem1002', 'problem1096', 'problem1073', 'problem1012', 'problem1005', 'problem1087', 'problem1069', 'problem1089', 'problem1001', 'problem1008', 'problem1013', 'problem1092', 'problem1079', 'problem1085', 'problem1011', 'problem1076', 'problem1036', 'problem1099', 'problem1038', 'problem1028', 'problem1088', 'problem1007', 'problem1017', 'problem1040', 'problem1074', 'problem1078', 'problem1009', 'problem1045', 'problem1032', 'problem1046', 'problem1027', 'problem1041', 'problem1019'], 
+        2: ['problem1106', 'problem1114', 'problem1053', 'problem1062', 'problem1111', 'problem1110', 'problem1120', 'problem1100', 'problem1118', 'problem1056', 'problem1108', 'problem1061', 'problem1065', 'problem1112', 'problem1067', 'problem1066'], 
+        3: [],
+        },
+    'SR': {1: ['problem43', 'problem32', 'problem102', 'problem96', 'problem73', 'problem105', 'problem27', 'problem85', 'problem35', 'problem36', 'problem38', 'problem24', 'problem89', 'problem75', 'problem76', 'problem106', 'problem108', 'problem78', 'problem88', 'problem39', 'problem95', 'problem72', 'problem46', 'problem107', 'problem92', 'problem21', 'problem110', 'problem71', 'problem30', 'problem113', 'problem60', 'problem64', 'problem42', 'problem84', 'problem23', 'problem97', 'problem111', 'problem90', 'problem65', 'problem54', 'problem56', 'problem112', 'problem98', 'problem109', 'problem55', 'problem81', 'problem100', 'problem50', 'problem104', 'problem74'], 2: [], 3: []},
+    'OF': {
+        1: ['problem55', 'problem109', 'problem72', 'problem53', 'problem45', 'problem73', 'problem89', 'problem51', 'problem74', 'problem11', 'problem39', 'problem68', 'problem56', 'problem95', 'problem77', 'problem66', 'problem97', 'problem42', 'problem64', 'problem61', 'problem13'], 
+        2: ['problem12', 'problem25', 'problem48', 'problem57', 'problem103', 'problem20', 'problem37', 'problem21', 'problem36', 'problem29', 'problem76', 'problem105', 'problem15', 'problem67', 'problem90', 'problem27', 'problem18', 'problem34', 'problem23', 'problem91', 'problem28', 'problem22', 'problem59', 'problem47', 'problem30', 'problem78', 'problem49', 'problem75', 'problem94'], 
+        3: []
+    },
+}
+
+def GetNewDict():
+    return {
+            'successRatio': [], 
+            'retryRatio': [],
+            'planTime': [],
+            'actTime': [],
+            'totalTime': [],
+            'nu': [],
+            'timeOut': [],
+            'nu_error': [],
+            'sr_error': [],
+            'rr_error': [],
+            'tt_error': [],
+            }
+
+COLORS = ['ro:', 'bs--', 'm^-.', 'go--', 'c^:', 'rs--', 'ms--', 'gs--']
+
+COLORBAR = ['orange', 'grey', 'yellowgreen', 'turquoise',  'orangered', 'orchid']
+

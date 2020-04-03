@@ -11,62 +11,8 @@ import numpy as np
 
 from param_values import *
 
-succCases = {
-    'SD': [],
-    'EE': [],
-    'IP': [],
-    'CR': [],
-    'SR': [],
-    'OF': [],
-}
-
-# The set of problems with 1 tasks, 2 tasks, or 3 tasks in each domain
-problems_with_n_tasks = {
-    'SD': {1: ['problem1119', 'problem1059', 'problem1029', 'problem1103', 'problem1121', 'problem1063', 'problem1057', 'problem1069', 'problem1055', 'problem1083', 'problem1049', 'problem1039', 'problem1125', 'problem1087', 'problem1115', 'problem1033', 'problem1019', 'problem1089', 'problem1053', 'problem1085', 'problem1051', 'problem1107', 'problem1045', 'problem1007', 'problem1003', 'problem1013', 'problem1127', 'problem1027', 'problem1043'], 2: ['problem1014', 'problem1070', 'problem1068', 'problem1106', 'problem1028', 'problem1046', 'problem1100', 'problem1086', 'problem1116', 'problem1124', 'problem1084', 'problem1066', 'problem1010', 'problem1078', 'problem1120', 'problem1110', 'problem1032', 'problem1104', 'problem1036', 'problem1016', 'problem1094'], 3: []},
-    'EE': {1: ['problem187', 'problem91', 'problem159', 'problem131', 'problem7', 'problem35', 'problem3', 'problem31', 'problem103', 'problem75', 'problem123', 'problem143', 'problem163', 'problem43', 'problem183'], 2: ['problem5', 'problem108', 'problem72', 'problem85', 'problem173', 'problem44', 'problem29', 'problem20', 'problem129', 'problem188', 'problem161', 'problem17', 'problem89', 'problem136', 'problem104', 'problem57', 'problem52', 'problem156', 'problem168', 'problem164', 'problem68', 'problem73'], 3: ['problem170', 'problem134', 'problem190', 'problem86', 'problem58', 'problem158', 'problem78', 'problem42', 'problem14', 'problem50', 'problem2', 'problem174', 'problem178']},
-    'CR': {
-        1: ['problem1004', 'problem1002', 'problem1096', 'problem1073', 'problem1012', 'problem1005', 'problem1087', 'problem1069', 'problem1089', 'problem1001', 'problem1008', 'problem1013', 'problem1092', 'problem1079', 'problem1085', 'problem1011', 'problem1076', 'problem1036', 'problem1099', 'problem1038', 'problem1028', 'problem1088', 'problem1007', 'problem1017', 'problem1040', 'problem1074', 'problem1078', 'problem1009', 'problem1045', 'problem1032', 'problem1046', 'problem1027', 'problem1041', 'problem1019'], 
-        2: ['problem1106', 'problem1114', 'problem1053', 'problem1062', 'problem1111', 'problem1110', 'problem1120', 'problem1100', 'problem1118', 'problem1056', 'problem1108', 'problem1061', 'problem1065', 'problem1112', 'problem1067', 'problem1066'], 
-        3: [],
-        },
-    'SR': {1: ['problem43', 'problem32', 'problem102', 'problem96', 'problem73', 'problem105', 'problem27', 'problem85', 'problem35', 'problem36', 'problem38', 'problem24', 'problem89', 'problem75', 'problem76', 'problem106', 'problem108', 'problem78', 'problem88', 'problem39', 'problem95', 'problem72', 'problem46', 'problem107', 'problem92', 'problem21', 'problem110', 'problem71', 'problem30', 'problem113', 'problem60', 'problem64', 'problem42', 'problem84', 'problem23', 'problem97', 'problem111', 'problem90', 'problem65', 'problem54', 'problem56', 'problem112', 'problem98', 'problem109', 'problem55', 'problem81', 'problem100', 'problem50', 'problem104', 'problem74'], 2: [], 3: []},
-    'OF': {
-        1: ['problem55', 'problem109', 'problem72', 'problem53', 'problem45', 'problem73', 'problem89', 'problem51', 'problem74', 'problem11', 'problem39', 'problem68', 'problem56', 'problem95', 'problem77', 'problem66', 'problem97', 'problem42', 'problem64', 'problem61', 'problem13'], 
-        2: ['problem12', 'problem25', 'problem48', 'problem57', 'problem103', 'problem20', 'problem37', 'problem21', 'problem36', 'problem29', 'problem76', 'problem105', 'problem15', 'problem67', 'problem90', 'problem27', 'problem18', 'problem34', 'problem23', 'problem91', 'problem28', 'problem22', 'problem59', 'problem47', 'problem30', 'problem78', 'problem49', 'problem75', 'problem94'], 
-        3: []
-    },
-}
-
-COLORS = ['ro:', 'bs--', 'm^-.', 'go--', 'c^:', 'rs--', 'ms--', 'gs--']
-
-COLORBAR = ['orange', 'grey', 'yellowgreen', 'turquoise',  'orangered', 'orchid']
-
-def GetFreshDict():
-    return {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            'tt_error': [],
-            }
-
-def GetFullName(domain):
-    if domain == "CR":
-        return "Fetch Objects Domain"
-    elif domain == "SD":
-        return "Navigate Doorways Domain"
-    elif domain == "SR":
-        return "Search and Rescue Domain"
-    elif domain == "OF":
-        return "Order Delivery Domain"
-    elif domain == "EE":
-        return "Explore Environment Domain"
+# used to keep track of problems that succeeded using purely reactive RAE
+succCases = { 'SD': [], 'EE': [], 'CR': [], 'SR': [], 'OF': []}
 
 def NotTimeLine(s):
     if len(s) < 7:
@@ -84,114 +30,78 @@ def GetMSEError(l, mean, fac):
         variance += (i - mean) * (i - mean)
 
     print("mean = ", mean, "variance = ", variance)
-    return fac*math.sqrt(variance/(len(l)-1)/len(l))
+    return fac * math.sqrt(variance/(len(l)-1)/len(l))
     #return fac*variance/(len(l) - 1)/len(l)
 
-def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
+def CommonStuff(res, domain, f, param, fileName): # param may be n_ro or k or d
     print(fileName)
-    line = f_rae.readline()
-    global ptMax
-    succCount = 0
-    totalTasks = 0
-    
-    retryCount = 0
-    totalCountForRetries = 0
+    line = f.readline()
 
-    planTime = 0
-    actTime = 0
-    time11 = 0
+    nSucc, nTasks, nRetry, totalCountForRetries, nTimeOut, nLine = 0, 0, 0, 0, 0, 0
+    plTime, acTime, ttTime, nu = 0, 0, 0, 0 # sums
 
-    clock = 0
-    nu = 0
-
-    nu_L = []
-    sr_L = []
-    rr_L = []
-    tt_L = []
-
-    timeOutCount = 0
+    nu_L = [] # efficiency list
+    sr_L = [] # success Ratio list
+    rr_L = [] # retry ratio list
+    tt_L = [] # total time list
     
     id = 0
-    lineNumber = 0
+
     while(line != ''):
 
         parts = line.split(' ')
 
         if parts[0] == 'Time':
-
-            succ = 0
-            total = 0
-
             id += 1
-
-            counts = f_rae.readline()
-            if counts[0] == "T":
+            fLine = f.readline()
+            if fLine[0] == "T":
                 print("passing---------------")
-                print(fileName, " line number = ", lineNumber)
-                counts = f_rae.readline()
-                lineNumber += 1
-            lineNumber += 1
+                print(fileName, " line number = ", nLine)
+                fLine = f.readline()
+                nLine += 1
+            nLine += 1
 
-            while(NotTimeLine(counts)):
-                if counts == '':
+            while(NotTimeLine(fLine)):
+                if fLine == '':
                     break
-                if counts == "0 1 0 0 0 0 0 0 0\n":
-                    timeOutCount += 1
-                    planTime += ptMax
-                    if domain == "OF":
-                        ignoreThis = True
-                    else:
-                        ignoreThis = False
-                else:
-                    ignoreThis = False
+                if fLine == "0 1 0 0 0 0 0 0 0\n":
+                    nTimeOut += 1
+                    plTime += ptMax
 
-                parts2 = counts.split(' ')
+                parts2 = fLine.split(' ')
 
                 if parts2[0] != "v2":
-                    version = 1
-                    s = int(parts2[0])
-                    t = int(parts2[1])
-                    r = int(parts2[2])
-                    if ignoreThis == False:
-                        planTime += float(parts2[3])
-                        #if ptMax < float(parts2[3]):
-                        #    ptMax = float(parts2[3])
-                        actTime += float(parts2[4])
-                        tt_L.append(float(parts2[4]) + float(parts2[3]))
+                    version, s, t, r = 1, int(parts2[0]), int(parts2[1]), int(parts2[2])
+                    planTime += float(parts2[3])
+                    actTime += float(parts2[4])
+                    tt_L.append(float(parts2[4]) + float(parts2[3]))
                     taskEff = float(parts2[5])
                 else:
-                    version = 2
-                    s = int(parts2[1])
-                    t = int(parts2[2])
-                    r = int(parts2[3])
-                    if ignoreThis == False:
-                        planTime += float(parts2[4])
-                        #if ptMax < float(parts2[4]):
-                        #    ptMax = float(parts2[4])
-                        actTime += float(parts2[5])
-                        tt_L.append(float(parts2[4]) + float(parts2[5]))
+                    version, s, t, r = 2, int(parts2[1]), int(parts2[2]), int(parts2[3])
+                    planTime += float(parts2[4])
+                    actTime += float(parts2[5])
+                    tt_L.append(float(parts2[4]) + float(parts2[5]))
                     taskEff = float(parts2[6])
 
                 if taskEff == float("inf"):
                     print("Infinite efficiency! Normalizing.\n")
                     taskEff = 1/10
-                if ignoreThis == False:
-                    nu += taskEff
-                    nu_L.append(taskEff)
-                    succCount += s
-                    sr_L.append(s)
-                    totalTasks += t
+                
+                nu += taskEff
+                nu_L.append(taskEff)
+                nSucc += s
+                sr_L.append(s)
+                nTasks += t
 
                 # for retry ratio
                 if s == t:
                     if ((id in succCases[domain]) and param > 0): #or (domain in ['CR', 'EE', 'SD', 'IP']):
-                        if ignoreThis == False:
-                            retryCount += r
-                            rr_L.append(r)
-                            totalCountForRetries += t
-                    elif param == 0 and ignoreThis == False:
+                        nRetry += r
+                        rr_L.append(r)
+                        totalCountForRetries += t
+                    elif param == 0:
                         succCases[domain].append(id)
-                        retryCount += r
+                        nRetry += r
                         rr_L.append(r)
                         totalCountForRetries += t
                     else:
@@ -200,66 +110,37 @@ def CommonStuff(res, domain, f_rae, param, fileName): # param may be k or d
                     pass
 
                 if version == 2:
-                    f_rae.readline() # list of commands and planning efficiencies
-                    lineNumber += 1
+                    f.readline() # list of commands and planning efficiencies
+                    nLine += 1
 
-                counts = f_rae.readline()
-                lineNumber += 1
+                fLine = f.readline()
+                nLine += 1
             
-            secTimeLine = counts
-            parts11 = secTimeLine.split()
-            if ignoreThis == False:
-                t11 = float(parts11[5])
-                unit11 = parts11[6]
-                if unit11 == "msec":
-                    t11 = t11 / 1000
-                time11 += t11
-                tt_L.append(t11)
+            timeParts = fLine.split()
+            t = float(timeParts[5])/1000 if timeParts[6] == "msec" else float(timeParts[5])
+            ttTime += t
+            tt_L.append(t)
 
-        line = f_rae.readline()
-        lineNumber += 1
+        line = f.readline()
+        nLine += 1
 
-    scalar = {
-        "CR": {
-            "nu": 1,
-            "sr": 1,
-        },
-        "SR": {
-            "nu": 1,
-            "sr": 1,
-        },
-        "SD": {
-            "nu": 1,
-            "sr": 1,
-        },
-        "EE": {
-            "nu": 1,
-            "sr": 1,
-        },
-        "OF": {
-            "nu": 1,
-            "sr": 1,
-        }
-    }
-
-    res['successRatio'].append(succCount/totalTasks)
-    res['sr_error'].append(GetMSEError(sr_L, succCount/totalTasks, scalar[domain]['sr']))
+    res['successRatio'].append(nSucc/nTasks)
+    res['sr_error'].append(GetMSEError(sr_L, nSucc/nTasks, 1))
     if totalCountForRetries != 0:
-        res['retryRatio'].append(retryCount/totalCountForRetries)
-        res['rr_error'].append(GetMSEError(rr_L, retryCount/totalCountForRetries, 10))
+        res['retryRatio'].append(nRetry/totalCountForRetries)
+        res['rr_error'].append(GetMSEError(rr_L, nRetry/totalCountForRetries, 10))
     else:
         res['retryRatio'].append(0)
         res['rr_error'].append(0)
-    res['planTime'].append(planTime/totalTasks)
 
-    res['actTime'].append(actTime/totalTasks)
-    
-    res['totalTime'].append(time11/totalTasks)
-    res['tt_error'].append(GetMSEError(tt_L, time11/totalTasks, 0.000000))
+    res['planTime'].append(plTime/nTasks)
+    res['actTime'].append(acTime/nTasks)
+    res['totalTime'].append(ttTime/nTasks)
+    res['tt_error'].append(GetMSEError(tt_L, ttTime/nTasks, 0.000000))
 
-    res['nu'].append(nu / totalTasks)
-    res['nu_error'].append(GetMSEError(nu_L, nu/totalTasks, scalar[domain]['nu']))
-    res['timeOut'].append(timeOutCount)
+    res['nu'].append(nu / nTasks)
+    res['nu_error'].append(GetMSEError(nu_L, nu/nTasks, 1))
+    res['timeOut'].append(nTimeOut)
 
 def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
 
@@ -504,18 +385,7 @@ def GeneratePlots_SLATE_max_depth():
     for domain in resDict:
         resDict[domain] = {}
         for b in B_max_depth[domain]:
-            resDict[domain][b] = {
-                'successRatio': [], 
-                'retryRatio': [],
-                'planTime': [],
-                'actTime': [],
-                'totalTime': [],
-                'nu': [],
-                'timeOut': [],
-                'nu_error': [],
-                'sr_error': [],
-                'rr_error': [],
-            }
+            resDict[domain][b] = GetNewDict()
     for d in D:
         Populate_SLATE_max_depth(resDict[d], d)
         #CalculateRunningTime(d)
@@ -537,48 +407,12 @@ def GeneratePlots_UCT_max_depth():
     for domain in D:
         if util == "_sr":
             resDict[domain] = {}
-            resDict[domain]['_sr'] = {
-                'successRatio': [], 
-                'retryRatio': [],
-                'planTime': [],
-                'actTime': [],
-                'totalTime': [],
-                'nu': [],
-                'timeOut': [],
-                'nu_error': [],
-                'sr_error': [],
-                'rr_error': [],
-                'tt_error': [],
-                }
-            resDict[domain]['_eff'] = {
-                'successRatio': [], 
-                'retryRatio': [],
-                'planTime': [],
-                'actTime': [],
-                'totalTime': [],
-                'nu': [],
-                'timeOut': [],
-                'nu_error': [],
-                'sr_error': [],
-                'rr_error': [],
-                'tt_error': [],
-                }
+            resDict[domain]['_sr'] = GetNewDict()
+            resDict[domain]['_eff'] = GetNewDict()
             Populate_UCT_max_depth(resDict[domain]['_sr'], domain, '_sr')
             Populate_UCT_max_depth(resDict[domain]['_eff'], domain, '_eff')
         else:
-            resDict[domain] = {
-                'successRatio': [], 
-                'retryRatio': [],
-                'planTime': [],
-                'actTime': [],
-                'totalTime': [],
-                'nu': [],
-                'timeOut': [],
-                'nu_error': [],
-                'sr_error': [],
-                'rr_error': [],
-                'tt_error': [],
-                }
+            resDict[domain] = GetNewDict()
             Populate_UCT_max_depth(resDict[domain], domain, '_eff')
 
     plt.clf()
@@ -597,84 +431,12 @@ def GeneratePlots_learning():
     resDict = {}
     for domain in D:
         resDict[domain] = {}
-        resDict[domain]['reactive'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            'tt_error': [],
-            }
-        resDict[domain]['SLATE'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            'tt_error': [],
-            }
-        resDict[domain]['learning_from_actor'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            'tt_error': [],
-            }
-        resDict[domain]['learning_from_planner'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            'tt_error': [],
-            }
-        resDict[domain]['heuristic_10_3'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            'tt_error': [],
-            }
-        resDict[domain]['UCT'] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            'nu_error': [],
-            'sr_error': [],
-            'rr_error': [],
-            'tt_error': [],
-            }
+        resDict[domain]['reactive'] = GetNewDict()
+        resDict[domain]['SLATE'] = GetNewDict()
+        resDict[domain]['learning_from_actor'] = GetNewDict()
+        resDict[domain]['learning_from_planner'] = GetNewDict()
+        resDict[domain]['heuristic_10_3'] = GetNewDict()
+        resDict[domain]['UCT'] = GetNewDict()
 
 
         Populate_learning(resDict[domain]['UCT'], domain, 'UCT')
@@ -682,54 +444,10 @@ def GeneratePlots_learning():
         Populate_learning(resDict[domain]['reactive'], domain, 'reactive')
         
 
-        # resDict[domain]['heuristic'] = {
-        #     'successRatio': [], 
-        #     'retryRatio': [],
-        #     'planTime': [],
-        #     'actTime': [],
-        #     'totalTime': [],
-        #     'nu': [],
-        #     'timeOut': [],
-        #     'nu_error': [],
-        #     'sr_error': [],
-        #     'rr_error': [],
-        #     }
-        # resDict[domain]['heuristic5'] = {
-        #     'successRatio': [], 
-        #     'retryRatio': [],
-        #     'planTime': [],
-        #     'actTime': [],
-        #     'totalTime': [],
-        #     'nu': [],
-        #     'timeOut': [],
-        #     'nu_error': [],
-        #     'sr_error': [],
-        #     'rr_error': [],
-        #     }
-        # resDict[domain]['heuristic0'] = {
-        #     'successRatio': [], 
-        #     'retryRatio': [],
-        #     'planTime': [],
-        #     'actTime': [],
-        #     'totalTime': [],
-        #     'nu': [],
-        #     'timeOut': [],
-        #     'nu_error': [],
-        #     'sr_error': [],
-        #     'rr_error': [],
-        #     }
-        # resDict[domain]['heuristic0_10_3'] = {
-        #     'successRatio': [], 
-        #     'retryRatio': [],
-        #     'planTime': [],
-        #     'actTime': [],
-        #     'totalTime': [],
-        #     'nu': [],
-        #     'timeOut': [],
-        #     'nu_error': [],
-        #     'sr_error': [],
-        #     'rr_error': [],
-        #     }
+        # resDict[domain]['heuristic'] = GetNewDict()    
+        # resDict[domain]['heuristic5'] = GetNewDict()
+        # resDict[domain]['heuristic0'] = GetNewDict()
+        # resDict[domain]['heuristic0_10_3'] = GetNewDict()
 
         Populate_learning(resDict[domain]['learning_from_actor'], domain, 'actor')
         Populate_learning(resDict[domain]['learning_from_planner'], domain, 'planner')
@@ -777,19 +495,7 @@ def GeneratePlots_SLATE_lim_depth():
     for domain in resDict:
         resDict[domain] = {}
         for b in B_lim_depth[domain]:
-            resDict[domain][b] = {
-                'successRatio': [], 
-                'retryRatio': [],
-                'planTime': [],
-                'actTime': [],
-                'totalTime': [],
-                'nu': [],
-                'timeOut': [],
-                'nu_error': [],
-                'sr_error': [],
-                'rr_error': [],
-                'tt_error': [],
-            }
+            resDict[domain][b] = GetNewDict()
 
     for d in D:
         Populate_SLATE_lim_depth(resDict[d], d)
@@ -815,8 +521,8 @@ def GeneratePlots_UCT_lim_depth():
     for domain in D:
         resDict[domain] = {'h0': {}, 'h1': {}}
         for uct in UCT_lim_depth[domain]:
-            resDict[domain]['h0'][uct] = GetFreshDict()
-            resDict[domain]['h1'][uct] = GetFreshDict()
+            resDict[domain]['h0'][uct] = GetNewDict()
+            resDict[domain]['h1'][uct] = GetNewDict()
         Populate_UCT_lim_depth(resDict[domain]['h0'], domain, 'h0')
         Populate_UCT_lim_depth(resDict[domain]['h1'], domain, 'h1')
 
@@ -892,7 +598,7 @@ def PlotHelper_UCT_max_retryRatio(resDict):
     width = 0.25
     #K = [0, 1, 2, 3, 4, 8, 16]
 
-    res = {'_sr': GetFreshDict(), '_eff': GetFreshDict()}
+    res = {'_sr': GetNewDict(), '_eff': GetNewDict()}
 
     assert(util == "_sr")
 
