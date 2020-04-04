@@ -6,13 +6,12 @@ import math
 import matplotlib as mpl
 mpl.rcParams['hatch.linewidth'] = 0.2  # previous pdf hatch linewidth
 #mpl.rcParams['hatch.linewidth'] = 1.0  # previous svg hatch linewidth
-
 import numpy as np 
 
 from param_values import *
 
 # used to keep track of problems that succeeded using purely reactive RAE
-succCases = { 'SD': [], 'EE': [], 'CR': [], 'SR': [], 'OF': []}
+succCases = { 'SD': set({}), 'EE': set({}), 'CR': set({}), 'SR': set({}), 'OF': set({})}
 
 def NotTimeLine(s):
     if len(s) < 7:
@@ -33,81 +32,82 @@ def GetMSEError(l, mean, fac):
     return fac * math.sqrt(variance/(len(l)-1)/len(l))
     #return fac*variance/(len(l) - 1)/len(l)
 
-def CommonStuff(res, domain, f, param, fileName): # param may be n_ro or k or d
+def Include(pname, domain, num_tasks_per_problem):
+    print(pname, problems_with_n_tasks[domain][num_tasks_per_problem])
+    v = num_tasks_per_problem == 0 or pname in problems_with_n_tasks[domain][num_tasks_per_problem]
+    print(v)
+    return v
+
+def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # param may be n_ro or k or d
     print(fileName)
     line = f.readline()
 
     nSucc, nTasks, nRetry, totalCountForRetries, nTimeOut, nLine = 0, 0, 0, 0, 0, 0
     plTime, acTime, ttTime, nu = 0, 0, 0, 0 # sums
 
-    nu_L = [] # efficiency list
-    sr_L = [] # success Ratio list
-    rr_L = [] # retry ratio list
-    tt_L = [] # total time list
-    
-    id = 0
+    nu_L, sr_L, rr_L, tt_L = [], [], [], [] # lists of efficiency, success Ratio, retry ratio, total time 
 
     while(line != ''):
 
         parts = line.split(' ')
 
         if parts[0] == 'Time':
-            id += 1
+            pName = parts[4][0:-1] if parts[4][-1] == '\n' else parts[4]
+
             fLine = f.readline()
             if fLine[0] == "T":
-                print("passing---------------")
+                print("passing ---------------")
                 print(fileName, " line number = ", nLine)
                 fLine = f.readline()
                 nLine += 1
             nLine += 1
 
             while(NotTimeLine(fLine)):
-                if fLine == '':
-                    break
-                if fLine == "0 1 0 0 0 0 0 0 0\n":
-                    nTimeOut += 1
-                    plTime += ptMax
+                if fLine == '': break
 
                 parts2 = fLine.split(' ')
+                version = 2 if parts2[0] == "v2" else 1
 
-                if parts2[0] != "v2":
-                    version, s, t, r = 1, int(parts2[0]), int(parts2[1]), int(parts2[2])
-                    planTime += float(parts2[3])
-                    actTime += float(parts2[4])
-                    tt_L.append(float(parts2[4]) + float(parts2[3]))
-                    taskEff = float(parts2[5])
-                else:
-                    version, s, t, r = 2, int(parts2[1]), int(parts2[2]), int(parts2[3])
-                    planTime += float(parts2[4])
-                    actTime += float(parts2[5])
-                    tt_L.append(float(parts2[4]) + float(parts2[5]))
-                    taskEff = float(parts2[6])
+                if Include(pName, domain, num_tasks_per_problem):
+                    if fLine == "0 1 0 0 0 0 0 0 0\n":
+                        nTimeOut += 1
+                        plTime += ptMax
 
-                if taskEff == float("inf"):
-                    print("Infinite efficiency! Normalizing.\n")
-                    taskEff = 1/10
-                
-                nu += taskEff
-                nu_L.append(taskEff)
-                nSucc += s
-                sr_L.append(s)
-                nTasks += t
-
-                # for retry ratio
-                if s == t:
-                    if ((id in succCases[domain]) and param > 0): #or (domain in ['CR', 'EE', 'SD', 'IP']):
-                        nRetry += r
-                        rr_L.append(r)
-                        totalCountForRetries += t
-                    elif param == 0:
-                        succCases[domain].append(id)
-                        nRetry += r
-                        rr_L.append(r)
-                        totalCountForRetries += t
+                    if parts2[0] != "v2":
+                        s, t, r = int(parts2[0]), int(parts2[1]), int(parts2[2])
+                        plTime += float(parts2[3])
+                        acTime += float(parts2[4])
+                        tt_L.append(float(parts2[4]) + float(parts2[3]))
+                        taskEff = float(parts2[5])
                     else:
-                        pass
-                else:
-                    pass
+                        s, t, r = int(parts2[1]), int(parts2[2]), int(parts2[3])
+                        plTime += float(parts2[4])
+                        acTime += float(parts2[5])
+                        tt_L.append(float(parts2[4]) + float(parts2[5]))
+                        taskEff = float(parts2[6])
+
+                    if taskEff == float("inf"):
+                        print("Infinite efficiency! Normalizing.\n")
+                        taskEff = 1/5
+                    
+                    nu += taskEff
+                    nu_L.append(taskEff)
+                    nSucc += s
+                    sr_L.append(s)
+                    nTasks += t
+                    
+                    if s == t: # for retry ratio
+                        if ((pName in succCases[domain]) and param > 0): 
+                            nRetry += r
+                            rr_L.append(r)
+                            totalCountForRetries += t
+                        elif param == 0:
+                            succCases[domain].add(pName)
+                            nRetry += r
+                            rr_L.append(r)
+                            totalCountForRetries += t
+                        else pass
+                    else pass
 
                 if version == 2:
                     f.readline() # list of commands and planning efficiencies
@@ -116,10 +116,11 @@ def CommonStuff(res, domain, f, param, fileName): # param may be n_ro or k or d
                 fLine = f.readline()
                 nLine += 1
             
-            timeParts = fLine.split()
-            t = float(timeParts[5])/1000 if timeParts[6] == "msec" else float(timeParts[5])
-            ttTime += t
-            tt_L.append(t)
+            if Include(pName, domain, num_tasks_per_problem):
+                timeParts = fLine.split()
+                t = float(timeParts[5])/1000 if timeParts[6] == "msec" else float(timeParts[5])
+                ttTime += t
+                tt_L.append(t)
 
         line = f.readline()
         nLine += 1
@@ -140,6 +141,7 @@ def CommonStuff(res, domain, f, param, fileName): # param may be n_ro or k or d
 
     res['nu'].append(nu / nTasks)
     res['nu_error'].append(GetMSEError(nu_L, nu/nTasks, 1))
+    
     res['timeOut'].append(nTimeOut)
 
 def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
@@ -214,20 +216,8 @@ def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param m
     for commCount in res:
         res[commCount] /= total
 
-def PopulateHelper_SLATE_max_depth(res, domain, f_rae, k, fileName):
-    CommonStuff(res, domain, f_rae, k, fileName)
-
-def PopulateHelper_UCT_max_depth(res, domain, f_rae, uct, fileName):
-    CommonStuff(res, domain, f_rae, uct, fileName)
-
 def PopulateHelper_UCT_max_depth_planning_utilities(res, domain, f_rae, uct, fileName):
     CommonStuffPlanningUtilities(res, domain, f_rae, uct, fileName)
-
-def PopulateHelper_SLATE_lim_depth(res, domain, f_rae, depth, fileName):
-    CommonStuff(res, domain, f_rae, depth, fileName)
-
-def PopulateHelper_UCT_lim_depth(res, domain, f_rae, depth, fileName):
-    CommonStuff(res, domain, f_rae, depth, fileName)
 
 def Populate_SLATE_max_depth(res, domain):
     for b in B_max_depth[domain]:
@@ -236,29 +226,25 @@ def Populate_SLATE_max_depth(res, domain):
                 f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
                 f_rae = open(f_rae_name, "r")
                 print(f_rae_name)
-                PopulateHelper_SLATE_max_depth(res[b], domain, f_rae, k, f_rae_name)
+                PopulateHelper(res[b], domain, f_rae, k, f_rae_name)
                 f_rae.close()
             else:
                 fname = '{}{}_v_journal{}/rae_plan_b_{}_k_{}.txt'.format(resultsFolder, domain, util, b, k)
                 fptr = open(fname)
                 print(fname)
-                PopulateHelper_SLATE_max_depth(res[b], domain, open(fname), k, fname)
+                PopulateHelper(res[b], domain, open(fname), k, fname)
                 fptr.close()
 
-def Populate_UCT_max_depth(res, domain, u):
-    for uct in UCT_max_depth[domain]:
-        if uct == 0:
-            f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
-            f_rae = open(f_rae_name, "r")
-            print(f_rae_name)
-            PopulateHelper_UCT_max_depth(res, domain, f_rae, uct, f_rae_name)
-            f_rae.close()
+def Populate_UCT_max_depth(res, domain, utilF, num_tasks_per_problem):
+    for n_ro in UCT_max_depth[domain]:
+        if n_ro == 0:
+            fname = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
         else:
-            fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, u, uct)
-            fptr = open(fname)
-            print(fname)
-            PopulateHelper_UCT_max_depth(res, domain, open(fname), uct, fname)
-            fptr.close()
+            fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, utilF, n_ro)
+        fptr = open(fname, "r")
+        print(fname)
+        PopulateHelper(res, domain, open(fname), n_ro, fname, num_tasks_per_problem)
+        fptr.close()
 
 def Populate_learning(res, domain, model):
     if model == "UCT":
@@ -314,7 +300,7 @@ def Populate_learning(res, domain, model):
     #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0.txt".format(resultsFolder, domain)
    
     f1_p = open(f1, "r")
-    PopulateHelper_UCT_max_depth(res, domain, f1_p, 0, f1)
+    PopulateHelper(res, domain, f1_p, 0, f1)
     f1_p.close()
 
 def Populate_UCT_max_depth_planning_utilities(res, domain):
@@ -340,13 +326,13 @@ def Populate_SLATE_lim_depth(res, domain):
                 f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
                 f_rae = open(f_rae_name, "r")
                 print(f_rae_name)
-                PopulateHelper_SLATE_lim_depth(res[b], domain, f_rae, depth, f_rae_name)
+                PopulateHelper(res[b], domain, f_rae, depth, f_rae_name)
                 f_rae.close()
             else:
                 fname = '{}{}_v_journal{}/rae_plan_b_{}_k_{}_d_{}.txt'.format(resultsFolder, domain, util, b, k, depth)
                 fptr = open(fname)
                 print(fname)
-                PopulateHelper_SLATE_lim_depth(res[b], domain, open(fname), depth, fname)
+                PopulateHelper(res[b], domain, open(fname), depth, fname)
                 fptr.close()
 
 def Populate_UCT_lim_depth(res, domain, heuristic):  
@@ -356,7 +342,8 @@ def Populate_UCT_lim_depth(res, domain, heuristic):
                 f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
                 f_rae = open(f_rae_name, "r")
                 print(f_rae_name)
-                PopulateHelper_UCT_lim_depth(res[uct], domain, f_rae, depth, f_rae_name)
+                CommonStuff(res[uct], domain, f_rae, depth, fileName)
+
                 f_rae.close()
             else:
                 if heuristic == "h0":
@@ -369,7 +356,7 @@ def Populate_UCT_lim_depth(res, domain, heuristic):
                 
                 fptr = open(fname)
                 print(fname)
-                PopulateHelper_UCT_lim_depth(res[uct], domain, open(fname), depth, fname)
+                PopulateHelper(res[uct], domain, open(fname), depth, fname)
                 fptr.close()
 
 def GeneratePlots_SLATE_max_depth():
@@ -402,18 +389,18 @@ def GeneratePlots_SLATE_max_depth():
     for util in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_SLATE_max(resDict, util)
 
-def GeneratePlots_UCT_max_depth():
+def GeneratePlots_UCT_max_depth(num_tasks_per_problem):
     resDict = {}
     for domain in D:
         if util == "_sr":
             resDict[domain] = {}
             resDict[domain]['_sr'] = GetNewDict()
             resDict[domain]['_eff'] = GetNewDict()
-            Populate_UCT_max_depth(resDict[domain]['_sr'], domain, '_sr')
-            Populate_UCT_max_depth(resDict[domain]['_eff'], domain, '_eff')
+            Populate_UCT_max_depth(resDict[domain]['_sr'], domain, '_sr', num_tasks_per_problem)
+            Populate_UCT_max_depth(resDict[domain]['_eff'], domain, '_eff', num_tasks_per_problem)
         else:
             resDict[domain] = GetNewDict()
-            Populate_UCT_max_depth(resDict[domain], domain, '_eff')
+            Populate_UCT_max_depth(resDict[domain], domain, '_eff', num_tasks_per_problem)
 
     plt.clf()
     font = {
@@ -422,7 +409,6 @@ def GeneratePlots_UCT_max_depth():
         'size'   : 12}
     plt.rc('font', **font)
     
-
     print(resDict)
     for metric in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_UCT_max(resDict, metric)
@@ -953,8 +939,8 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["SD", "CR", "EE", "SR", "OF"]
-    #D = ["OF"]
+    #D = ["SD", "CR", "EE", "SR", "OF"]
+    D = ["CR"]
 
     if args.l == "y":
         GeneratePlots_learning()
@@ -963,7 +949,7 @@ if __name__=="__main__":
             GeneratePlots_SLATE_max_depth()
         else:
             if args.planning == "n":
-                GeneratePlots_UCT_max_depth()
+                GeneratePlots_UCT_max_depth(1)
             else:
                 GeneratePlots_UCT_max_depth_planning_utilities()
     elif args.depth == "lim":

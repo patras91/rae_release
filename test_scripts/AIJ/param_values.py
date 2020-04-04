@@ -77,6 +77,15 @@ UCT_lim_depth = {
     'EE': [1000],
 }
 
+timeLimit = {
+    "OF": 1800,
+    "CR": 1800,
+    "SR": 1800,
+    "EE": 1800,
+    "SD": 1800,
+}
+
+
 def GetFullName(domain):
     if domain == "CR":
         return "Fetch Objects Domain"
@@ -120,6 +129,9 @@ def GetNewDict():
             'rr_error': [],
             'tt_error': [],
             }
+
+def GetRAEfname(domain):
+    return "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
 
 COLORS = ['ro:', 'bs--', 'm^-.', 'go--', 'c^:', 'rs--', 'ms--', 'gs--']
 

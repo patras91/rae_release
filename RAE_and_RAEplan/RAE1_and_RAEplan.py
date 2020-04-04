@@ -82,7 +82,6 @@ def declare_commands(cmd_list):
     commands.update({cmd.__name__:cmd for cmd in cmd_list})
     return commands
 
-
 def GetCommand(cmd):
     """
         Get the actual operational model of the command 
@@ -320,8 +319,6 @@ def InitializeStackLocals(task, raeArgs):
     if GLOBALS.GetDomain() == "SDN":
         cmdStatusStack[raeArgs.stack] = None
     
-
-
 def GetCandidateByPlanning(candidates, task, taskArgs):
     """
     RAE calls this functions when it wants suggestions from RAEplan
@@ -392,8 +389,6 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
                 )
         candidates.pop(candidates.index(methodInstance))
         return (methodInstance, candidates)
-
-
 
 def GetCandidateFromLearnedModel(fname, task, candidates):
     device = "cpu"

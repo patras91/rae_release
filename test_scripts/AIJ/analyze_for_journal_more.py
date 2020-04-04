@@ -2,49 +2,7 @@ __author__ = 'patras'
 import matplotlib.pyplot as plt
 import csv
 import argparse
-
-figuresFolder = "figures/"
-resultsFolder = "../../../raeResults/AIJ2020/"
-
-Depth = {
-    'SR': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    'CR': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    'OF': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    'SD': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    'EE': [0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60],
-}
-
-UCT_max_depth = {
-    "CR": [0, 50, 100, 250, 500, 1000], #, 2500, 5000, 10000],
-    "SR": [0, 50, 100, 250, 500, 1000], #, 2500],
-    "SD": [0, 50, 100, 250, 500, 1000], #, 2500],
-    "EE": [0, 50, 100, 250, 500, 1000], #, 2500, 5000],
-    'OF': [0, 50, 100, 250, 500, 1000], #, 2500, 5000],
-}
-
-UCT_lim_depth = {
-    'CR': [1000],
-    'SR': [1000],
-    'OF': [1000],
-    'SD': [1000],
-    'EE': [1000],
-}
-
-succCases = {
-    'SD': [],
-    'EE': [],
-    'CR': [],
-    'SR': [],
-    'OF': [],
-}
-
-timeLimit = {
-    "OF": 1800,
-    "CR": 1800,
-    "SR": 1800,
-    "EE": 1800,
-    "SD": 1800,
-}
+from param_values import resultsFolder, Depth, UCT_max_depth, UCT_lim_depth, timeLimit, GetRAEfname, GetNewDict
 
 def NotTimeLine(s):
     if len(s) < 7:
@@ -53,9 +11,6 @@ def NotTimeLine(s):
         return False
     else:
         return True
-
-def GetRAEfname(domain):
-    return "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
 
 def GetUtilities(res, domain, f_rae, param, fileName, problem): # param may be k or d
 
@@ -104,13 +59,13 @@ def UpdateCommCount(a, l, h):
 def GetCountAndTime(res, domain, f, param, fileName): # param may be k or d
 
     line = f.readline()
-    lineNo = 1
+    nLine = 1
 
     totalRuns = 0
     totalTime = 0
 
-    passCount = 0
-    timeOutCount = 0
+    nPass = 0
+    nTimeOut = 0
 
     highestTime = 0
     problemsTimedOut = set({})
@@ -125,26 +80,22 @@ def GetCountAndTime(res, domain, f, param, fileName): # param may be k or d
         if parts[0] == 'Time':
             totalRuns += 1
             problemName = parts[4]
-            #print("fname = ", fileName, " line = ", lineNo)
+            #print("fname = ", fileName, " line = ", nLine)
             counts = f.readline()
-            lineNo += 1
+            nLine += 1
 
             if counts[0] == "T":
-                passCount += 1
+                nPass += 1
             while(NotTimeLine(counts)):
                 if counts == '':
                     break
 
                 parts2 = counts.split(' ')
-
-                if parts2[0] != "v2":
-                    version = 1
-                else:
-                    version = 2
+                version = 2 if parts2[0] == "v2" else 1
 
                 if version == 2:
                     comms = f.readline().split() # list of commands and planning efficiencies
-                    lineNo += 1
+                    nLine += 1
                     numberOfCommands = 0
                     for item in comms:
                         if item[0] not in chars:
@@ -153,7 +104,7 @@ def GetCountAndTime(res, domain, f, param, fileName): # param may be k or d
                     
 
                 counts = f.readline()
-                lineNo += 1
+                nLine += 1
             # time line
             secTimeLine = counts
             #print(secTimeLine)
@@ -163,18 +114,18 @@ def GetCountAndTime(res, domain, f, param, fileName): # param may be k or d
             totalTime += t
 
             if t == timeLimit[domain]:
-                timeOutCount += 1
+                nTimeOut += 1
                 problemsTimedOut.add(problemName)
 
             highestTime = t if t > highestTime and t < timeLimit[domain] else highestTime
                 
         line = f.readline()
-        lineNo += 1
+        nLine += 1
 
     return totalRuns, \
         totalTime/60, \
-        passCount, \
-        timeOutCount, \
+        nPass, \
+        nTimeOut, \
         highestTime, \
         problemsTimedOut, \
         minCommCount, \
@@ -245,8 +196,7 @@ def Print_Problems_and_Tasks(domain):
     print("Problems run Count = ", p_count)
     print("Tasks Count = ", t_count)
 
-    #p_count = 2500
-    z = p_count/len(p)
+    z = round(p_count/len(p))
     print([p[pname]/z for pname in p])
     nTasks = sum([p[pname]/z for pname in p])
     print("Number of tasks is ", nTasks)
@@ -333,18 +283,9 @@ def Populate_UCT_lim_depth(res, domain):
 def GetData_UCT_max_depth():
     resDict = {}
     for domain in D:
-        resDict[domain] = {
-            'successRatio': [], 
-            'retryRatio': [],
-            'planTime': [],
-            'actTime': [],
-            'totalTime': [],
-            'nu': [],
-            'timeOut': [],
-            }
+        resDict[domain] = GetNewDict()
         #Get_UCT_max_depth_discrepencies(resDict[domain], domain)
-        Print_Problems_and_Tasks(domain)
-        #Get_UCT_max_depth_run_counts(resDict[domain], domain)
+        Get_UCT_max_depth_run_counts(resDict[domain], domain)
 
 def GetData_UCT_lim_depth():
     resDict = {
@@ -358,15 +299,7 @@ def GetData_UCT_lim_depth():
     for domain in D:
         resDict[domain] = {}
         for uct in UCT_lim_depth[domain]:
-            resDict[domain][uct] = {
-                'successRatio': [], 
-                'retryRatio': [],
-                'planTime': [],
-                'actTime': [],
-                'totalTime': [],
-                'nu': [],
-                'timeOut': [],
-            }
+            resDict[domain][uct] = GetNewDict()
     for d in D:
         Get_UCT_lim_depth_run_counts(resDict[d], d)
 
@@ -380,8 +313,9 @@ if __name__=="__main__":
                            type=str, required=True)
     args = argparser.parse_args()
     D = [args.domain]
+    Print_Problems_and_Tasks(D[0])
     for depth in ['max']: #, 'lim']:
-        for util in [ '_eff'] : # '_sr']:
+        for util in [ '_eff', '_sr']:
             s = "UCT"
             print("---------------- Depth = ", depth, "  Utility function = ", util, "---------------------")
             if depth == "max":
