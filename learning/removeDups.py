@@ -7,8 +7,8 @@ if __name__=="__main__":
 
 	args = argparser.parse_args()
 	domain = args.domain
-	f = open("../../raeResults/learning/{}/{}_data_eff_planner.txt".format(domain, domain), "r")
-	fw = open("../../raeResults/learning/{}/{}_data_eff_planner_without_dup.txt".format(domain, domain), "w")
+	f = open("../../raeResults/AIJ2020/learning/{}/{}_data_eff_planner.txt".format(domain, domain), "r")
+	fw = open("../../raeResults/AIJ2020/learning/{}/{}_data_eff_planner_without_dup.txt".format(domain, domain), "w")
 
 	line = f.readline()
 	records = []
@@ -20,12 +20,12 @@ if __name__=="__main__":
 		"SD": 9,
 		"EE": 9,
 	}
-	lineN = 0
+	nLine = 0
 	while(line != ""):
 		s = line
 		for i in range(lim[domain] - 1):
 			s += f.readline()
-			lineN += 1
+			nLine += 1
 		e = f.readline()
 		if e == "UNK\n":
 			unk = True
@@ -33,7 +33,7 @@ if __name__=="__main__":
 			unk = False
 			e = float(e)
 			s += str(e) + "\n"
-		lineN += 1
+		nLine += 1
 		#print(s)
 		#count += 1
 		#if count > 5:
@@ -48,7 +48,7 @@ if __name__=="__main__":
 			if count % 1000 == 0:
 				print("dup = ", count)
 		line = f.readline()
-		lineN += 1
+		nLine += 1
 
 	f.close()
 	fw.close()

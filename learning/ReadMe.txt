@@ -6,6 +6,7 @@ Data files should be in:
 <your_folder>/raeResults/AIJ2020/learning/SD
 <your_folder>/raeResults/AIJ2020/learning/EE
 <your_folder>/raeResults/AIJ2020/learning/CR
+<your_folder>/raeResults/AIJ2020/learning/OF
 
 Code files should be in:
 <your_folder>/rae/learning/
@@ -22,3 +23,5 @@ convertDataFormat.py: After playing with the above, if you want to make changes 
 learnH.py: To make changes to the neural network and training params.
 
 You can set --dataFrom and --modelFrom to be p while running the above three files.
+
+Please send an email to patras@cs.umd.edu for any doubts.
