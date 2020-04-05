@@ -1,7 +1,7 @@
 #!/bin/sh
 # from planner
 domain="CR"
-runs=10
+runs=1
 P=(
 "problem1000"
 "problem1001"
@@ -129,7 +129,7 @@ P=(
 "problem1123"
 )
 UCT=(
-100 #"5000" 
+250 #"5000" 
 )
 for problem in ${P[@]}
 do
@@ -137,27 +137,25 @@ do
     do
 setup="
 import sys
-sys.path.append('../RAE_and_RAEplan/')
-sys.path.append('../shared/domains/')
-sys.path.append('../shared/problems/CR/training')
-sys.path.append('../shared/')
+sys.path.append('../../RAE_and_RAEplan/')
+sys.path.append('../../shared/domains/')
+sys.path.append('../../shared/problems/CR/training')
+sys.path.append('../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
-GLOBALS.SetTimeLimit(300)
+GLOBALS.SetTimeLimit(1800)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
 GLOBALS.SetHeuristicName('h2')
 GLOBALS.SetLearningMode('genDataPlanner')
 GLOBALS.SetUseTrainedModel('n')
-GLOBALS.SetSearchDepth(30)"
+GLOBALS.SetMaxDepth(50)"
 counter=1
 while [ $counter -le $runs ]
 do
             echo $domain $problem " Run " $counter/$runs
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"
-            echo "uctCount = " $uctCount
-            #fname="../../raeResults/${domain}_v_journal_eff/training_data1_rae_plan_uct_${uctCount}.txt"
-            echo "Time test of $domain $problem $uctCount"
+            echo "Time test of $domain $problem nro = $uctCount"
             python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" 
 ((counter++))
 done

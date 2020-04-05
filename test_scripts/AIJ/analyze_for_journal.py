@@ -106,8 +106,8 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
                             nRetry += r
                             rr_L.append(r)
                             totalCountForRetries += t
-                        else pass
-                    else pass
+                        else: pass
+                    else: pass
 
                 if version == 2:
                     f.readline() # list of commands and planning efficiencies
@@ -141,7 +141,7 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
 
     res['nu'].append(nu / nTasks)
     res['nu_error'].append(GetMSEError(nu_L, nu/nTasks, 1))
-    
+
     res['timeOut'].append(nTimeOut)
 
 def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
@@ -940,7 +940,7 @@ if __name__=="__main__":
     else:
         util = "_sr"
     #D = ["SD", "CR", "EE", "SR", "OF"]
-    D = ["CR"]
+    D = ["OF"]
 
     if args.l == "y":
         GeneratePlots_learning()

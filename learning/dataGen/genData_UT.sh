@@ -13,17 +13,19 @@ do
     do
 setup="
 import sys
-sys.path.append('../RAE_and_RAEplan/')
-sys.path.append('../shared/domains/')
-sys.path.append('../shared/problems/unitTests')
-sys.path.append('../shared/')
+sys.path.append('../../RAE_and_RAEplan/')
+sys.path.append('../../shared/domains/')
+sys.path.append('../../shared/problems/unitTests')
+sys.path.append('../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
-GLOBALS.SetTimeLimit(300)
+GLOBALS.SetTimeLimit(1800)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
+GLOBALS.SetHeuristicName('h2')
 GLOBALS.SetLearningMode('genEffDataPlanner')
-GLOBALS.SetSearchDepth(float(\"inf\"))"
+GLOBALS.SetUseTrainedModel('n')
+GLOBALS.SetMaxDepth(float(\"inf\"))"
 counter=1
 while [ $counter -le $runs ]
 do

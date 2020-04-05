@@ -166,7 +166,7 @@ if __name__ == "__main__":
     GLOBALS.SetTimeLimit(args.timeLim)
     GLOBALS.SetLearningMode(None)
     GLOBALS.SetUseTrainedModel(args.useTrainedModel)
-    GLOBALS.SetModelPath("../learning/models/")
+    GLOBALS.SetModelPath("../learning/models/AIJ2020/")
     GLOBALS.SetDoIterativeDeepening(args.doIterativeDeepening)
 
     GLOBALS.SetBackupUCT(args.useBackupUCT) # for NRL

@@ -26,7 +26,7 @@ from utility import Utility
 import time
 from sharedData import *
 import stateSpaceUCT as ssu
-#from learningData import trainingDataRecords
+from learningData import trainingDataRecords
 #from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
 #import torch
 #import torch.nn as nn
@@ -97,6 +97,9 @@ class MethodInstance():
 
     def SetParams(self, p):
         self.params = p
+
+    def GetParams(self):
+        return self.params
 
     def Call(self):
         self.method(*self.params)
@@ -385,7 +388,9 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
                     methodInstance, 
                     raeLocals.GetEfficiency(),
                     task,
+                    taskArgs,
                     raeLocals.GetMainTask(),
+                    raeLocals.GetMainTaskArgs()
                 )
         candidates.pop(candidates.index(methodInstance))
         return (methodInstance, candidates)
@@ -508,7 +513,9 @@ def DoTaskInRealWorld(task, taskArgs):
                 m, 
                 raeLocals.GetEfficiency(),
                 task,
+                taskArgs,
                 raeLocals.GetMainTask(),
+                raeLocals.GetMainTaskArgs(),
             )
         return retcode
     else:

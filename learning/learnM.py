@@ -292,22 +292,22 @@ if __name__ == "__main__":
 
     
     print("------------------- training losses ")
-    PrintList(tr_losses, "../../raeResults/learning/{}/TLoss.txt".format(domain))
+    PrintList(tr_losses, "../../raeResults/learning/{}/{}/TLoss.txt".format(resultsFolder, domain))
 
     print("------------------- validation losses")
-    PrintList(val_losses, "../../raeResults/learning/{}/VLoss.txt".format(domain))
+    PrintList(val_losses, "../../raeResults/learning/{}/{}/VLoss.txt".format(resultsFolder, domain))
     #printList(val_losses)
     #CreatePlot(tr_losses, val_losses)
     #print(" mean training loss " , np.mean(tr_losses))
     #print(" mean validation loss ", np.mean(val_losses))
 
     print("------------------- Training accuracy")
-    PrintList(tr_accuracy, "../../raeResults/learning/{}/TAcc.txt".format(domain))
+    PrintList(tr_accuracy, "../../raeResults/learning/{}/{}/TAcc.txt".format(resultsFolder, domain))
 
     print("------------------- Validation accuracy")
-    PrintList(val_accuracy, "../../raeResults/learning/{}/Vacc.txt".format(domain))
+    PrintList(val_accuracy, "../../raeResults/learning/{}/{}/Vacc.txt".format(resultsFolder, domain))
 
-    torch.save(model.state_dict(), "models/model_to_choose_{}_{}".format(domain, modelFrom))
+    torch.save(model.state_dict(), "models/{}/model_to_choose_{}_{}".format(resultsFolder, domain, modelFrom))
     
 
 

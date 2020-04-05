@@ -113,27 +113,25 @@ do
     do
 setup="
 import sys
-sys.path.append('../RAE_and_RAEplan/')
-sys.path.append('../shared/domains/')
-sys.path.append('../shared/problems/OF/auto')
-sys.path.append('../shared/')
+sys.path.append('../../RAE_and_RAEplan/')
+sys.path.append('../../shared/domains/')
+sys.path.append('../../shared/problems/OF/auto')
+sys.path.append('../../shared/')
 from testRAEandRAEplan import GLOBALS, testBatch
-GLOBALS.SetTimeLimit(300)
+GLOBALS.SetTimeLimit(1800)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
 GLOBALS.SetHeuristicName('h2')
 GLOBALS.SetLearningMode('genDataActor')
 GLOBALS.SetUseTrainedModel('n')
-GLOBALS.SetSearchDepth(30)"
+GLOBALS.SetMaxDepth(50)"
 counter=1
 while [ $counter -le $runs ]
 do
             echo $domain $problem " Run " $counter/$runs
             time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=True)"
-            echo "uctCount = " $uctCount
-        
-            echo "Time test of $domain $problem $uctCount" 
+            echo "Time test of $domain $problem nro = $uctCount" 
             python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" 
 ((counter++))
 done
