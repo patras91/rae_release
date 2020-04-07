@@ -940,7 +940,7 @@ if __name__=="__main__":
     else:
         util = "_sr"
     #D = ["SD", "CR", "EE", "SR", "OF"]
-    D = ["OF"]
+    D = ["CR", "OF"]
 
     if args.l == "y":
         GeneratePlots_learning()

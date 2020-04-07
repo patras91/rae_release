@@ -429,6 +429,8 @@ def ReadTaskAndArgs(taskAndArgs, domain):
 		return ReadTaskAndArgs_SD(taskAndArgs)
 	elif domain == "EE":
 		return ReadTaskAndArgs_EE(taskAndArgs)
+	elif domain == "OF":
+		return ReadTaskAndArgs_OF(taskAndArgs)
 
 if __name__ == "__main__":
 
@@ -444,18 +446,12 @@ if __name__ == "__main__":
 	argparser.add_argument("--howMany", help="how many training data records to read?",
 						   type=int, required=True)
 	args = argparser.parse_args()
-	domain = args.domain
-	taskBased = args.taskBased
-	if args.dataFrom == 'a':
-		suffix = 'actor'
-	elif args.dataFrom == 'p':
-		suffix = 'planner'
-	else:
-		print("Invalid value for --dataFrom")
-		exit()
+	
+	domain, taskBased, learnWhat = args.domain, args.taskBased, args.learnWhat
+	
+	assert(args.dataFrom == 'a' or args.dataFrom=="p")
+	suffix = 'actor' if args.dataFrom == 'a' else 'planner'
 
-
-	learnWhat = args.learnWhat
 	if learnWhat == "m":
 		assert(args.taskBased == "n")
 		fname = "../../raeResults/learning/{}/{}_data_{}.txt".format(domain, domain, suffix)
@@ -518,6 +514,7 @@ if __name__ == "__main__":
 			if eff == "inf":
 				eff = 1
 			record.append(str(eff))
+
 		if taskBased == "y":
 			AddToRecordsTaskBased(recordL, record, task)
 		else:
@@ -538,17 +535,14 @@ if __name__ == "__main__":
 		if taskBased == "y":
 			for task in recordL:
 				for item in recordL[task]:
-					pass
 					fwrite[task].write(" ".join([str(i) for i in item]) + "\n")
 		else:
 			recordN = DivideIntoIntervals(recordL, domain)
 			for item in recordN:
-				pass
 				fwrite.write(" ".join([str(i) for i in item]) + "\n")
 		print(len(recordN[0]))
 	else:
 		for item in recordL:
-			pass
 			fwrite.write(" ".join(item) + "\n")
 		print(len(recordL[0]))
 	
