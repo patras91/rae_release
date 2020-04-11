@@ -1,5 +1,5 @@
 import ast
-from convertData import ConvertToOneHot, ConvertToOneHotHelper
+from convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
 
 def ConvertToInt(a):
 	x = a.split(" ")
@@ -123,7 +123,10 @@ def GetLocs(v):
 
 	return " ".join(res)
 	
-def ReadStateVars_CR(line, f):
+def ReadOnlyTaskArgs_OF(taskAndArgs):
+	return 
+
+def ReadStateVars_OF(line, f):
 	a1 = line[8:-1]
 	a1 = GetObjsString(a1).split(' ')
 	a1H = ConvertToOneHot(a1, 'OBJECTS', 'OF')
@@ -154,7 +157,7 @@ def ReadStateVars_CR(line, f):
 	return a1Hs + a2Hs + a3Hs + a4Hs + a5Hs
 
 
-def EncodeState_CR(state):
+def EncodeState_OF(state):
 	a = state.split("\n")
 
 	a1 = a[0][8:]
@@ -173,3 +176,9 @@ def EncodeState_CR(state):
 	a5H = ConvertToOneHot(ConvertToInt(GetObjsString(a5)), 'busy', 'OF')
 
 	return a1H + a2H + a3H + a4H + a5H
+
+def GetOneHotParamValue_OF(p, mLine, mName):
+	return [0]
+
+def GetOneHotInstantiatedParamValue_OF(mLine, mName):
+	return []

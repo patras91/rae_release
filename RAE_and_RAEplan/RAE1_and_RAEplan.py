@@ -27,7 +27,7 @@ import time
 from sharedData import *
 import stateSpaceUCT as ssu
 from learningData import trainingDataRecords
-#from convertData import Encode, Decode, EncodeForHeuristic, DecodeForHeuristic
+#from convertData import Encode_LearnM, Decode_LearnM, Encode_LearnH, Decode_LearnH
 #import torch
 #import torch.nn as nn
 ############################################################
@@ -426,11 +426,11 @@ def GetCandidateFromLearnedModel(fname, task, candidates):
     model.load_state_dict(torch.load(fname))
     model.eval()
 
-    x = Encode(GLOBALS.GetDomain(), GetState().GetFeatureString(), task, raeLocals.GetMainTask())
+    x = Encode_LearnM(GLOBALS.GetDomain(), GetState().GetFeatureString(), task, raeLocals.GetMainTask())
     np_x = numpy.array(x)
     x_tensor = torch.from_numpy(np_x).float()
     y = model(x_tensor)
-    m = Decode(GLOBALS.GetDomain(), y)
+    m = Decode_LearnM(GLOBALS.GetDomain(), y)
 
     for i in range(len(candidates)):
         if m == candidates[i].GetName():
@@ -791,7 +791,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
         cand, prevState, flag = GetCandidates(task, tArgs)
         effMax = 0
         for m in cand:
-            x = EncodeForHeuristic(
+            x = Encode_LearnH(
                 domain, 
                 prevState.GetFeatureString(),
                 m.GetName(),
@@ -800,7 +800,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
             np_x = numpy.array(x)
             x_tensor = torch.from_numpy(np_x).float()
             y = model(x_tensor)
-            eff = DecodeForHeuristic(GLOBALS.GetDomain(), y)
+            eff = Decode_LearnH(GLOBALS.GetDomain(), y)
             if eff > effMax:
                 effMax = eff
         return effMax
@@ -1290,10 +1290,7 @@ def GetUtility(cmd, cmdArgs):
         return Utility(1/cost)
 
 def GetUtilityforMethod(cost):
-    if GLOBALS.GetOpt() == "sr":
-        return Utility("Success")
-    else:
-        return Utility(1/cost)
+    return Utility("Success") if GLOBALS.GetOpt() == "sr" else Utility(1/cost)
 
 def GetFailureEfficiency(cmd, cmdArgs):
     return 1/20

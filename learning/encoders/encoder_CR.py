@@ -1,5 +1,5 @@
 import ast
-from convertData import ConvertToOneHot, ConvertToOneHotHelper
+from convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
 
 def ConvertToInt(a):
 	x = a.split(" ")
@@ -22,8 +22,6 @@ def GetNums(s):
 	if len(nums) == 1:
 		nums.append('0')
 	return " ".join(nums)
-import ast
-from convertData import ConvertToOneHot
 
 def GetLoadString(s):
 	d = ast.literal_eval(s)

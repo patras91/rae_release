@@ -7,26 +7,17 @@ nFeatures = {
     }
 
 params = {
-    'CR': {
-        'fetch_M1': {
-        'r': 3,
-        'o': 4
-        },
-        'search_m1': {
-        'r': 5,
-        'o': 2,
-        }
-    },
-    'SR': {
-        
-    },
     'SD': {
-       
-    },
-    'EE': {
-        
+       'MoveThroughDoorway_Method2': 
+            {'r2': {'nOutputs': 4, 'nInputs': 150}},
+       'Recover_Method1': 
+            {'r2': {'nOutputs': 4, 'nInputs': 128}},
     },
     'OF': {
-        
+        'Order_Method1': ['m', 'objList'],
+        'Order_Method2': ['m', 'objList', 'p'],
+        'PickupAndLoad_Method1': ['r'],
+        'UnloadAndDeliver_Method1': ['r'],
+        'MoveToPallet_Method1': ['r'], 
     },
 }

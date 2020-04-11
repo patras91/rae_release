@@ -1,9 +1,17 @@
 import ast
-from convertData import ConvertToOneHot, ConvertToOneHotHelper
+from convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
 
 def ConvertToInt(a):
 	x = a.split(" ")
 	return [float(i) for i in x]
+
+def GetDoor_OneHot(d):
+	return {
+		None: [0, 0, 0],
+		"d1": [1, 0, 0],
+		"d2": [0, 1, 0],
+		"d3": [0, 0, 1],
+	}[d]
 
 def GetLoadString_SD(s):
 	d = ast.literal_eval(s)
@@ -116,7 +124,6 @@ def GetPosStr_SD(s):
 		pos.append('0')
 	return " ".join(pos)
 
-
 def ReadTaskAndArgs_SD(taskAndArgs):
 	params = taskAndArgs.split(' ')
 	task = params[0]
@@ -132,6 +139,7 @@ def ReadTaskAndArgs_SD(taskAndArgs):
 	elif robot == "r4":
 		res = [0, 0, 0, 1]
 	
+	# the location
 	if task == "moveTo":
 		#print(" l = ", int(params[2][0:1]))
 		res += ConvertToOneHotHelper(int(params[2][0:1]), 8)
@@ -150,19 +158,28 @@ def ReadTaskAndArgs_SD(taskAndArgs):
 		door = params[2][1:3]
 	else:
 		door = None
+	res += GetDoor_OneHot(door)
 
-	#print("door = ", door)
-	if door == None:
-		res += [0, 0, 0]
-	elif door == "d1":
-		res += [1, 0, 0]
-	elif door == "d2":
-		res += [0, 1, 0]
-	else:
-		res += [0, 0, 1]
+	return res
 
-	#print(task)
-	#print(res)
+def ReadOnlyTaskArgs_SD(taskAndArgs):
+	params = taskAndArgs.split(' ')
+	task = params[0]
+	robot = params[1]
+
+	res = {
+		"r1": [1, 0, 0, 0],
+		"r2": [0, 1, 0, 0],
+		"r3": [0, 0, 1, 0],
+		"r4": [0, 0, 0, 1],
+	}[robot]
+	
+	if task == "moveThroughDoorway":
+		#print(" l = ",int(params[3][0:1]))
+		res += ConvertToOneHotHelper(int(params[3][0:1]), 8)
+		door = params[2]
+		res += GetDoor_OneHot(door)
+
 	return res
 
 def ReadStateVars_SD(line, f):
@@ -213,8 +230,8 @@ def ReadStateVars_SD(line, f):
 		if i < 5:
 			line = f.readline()
 
-	return a1Hs + a2Hs + a3Hs + a4Hs + a5Hs + a6Hs
-
+	a = a1Hs + a2Hs + a3Hs + a4Hs + a5Hs + a6Hs
+	return a
 
 def EncodeState_SD(state):
 	a = state.split("\n")
@@ -243,3 +260,32 @@ def EncodeState_SD(state):
 	a6H = ConvertToOneHot(ConvertToInt(GetDoorTypeStr_SD(a6)), "doorType", "SD")
 
 	return a1H + a2H + a3H + a4H + a5H + a6H
+
+def GetOneHotParamValue_SD(p, mLine, mName): # uninstantiated params
+	mParts = mLine.split(' ')
+	if mName == 'MoveThroughDoorway_Method2':
+		robot = mParts[4]
+	elif mName == 'Recover_Method1':
+		robot = mParts[2]
+	return {
+		'r1': [0],
+		'r2': [1],
+		'r3': [2],
+		'r4': [3],
+	}[robot]
+
+def GetOneHotInstantiatedParamValue_SD(mLine, mName): # instantiated params
+	mParts = mLine.split(' ')
+	robot = mParts[1]
+	res = {
+		"r1": [1, 0, 0, 0],
+		"r2": [0, 1, 0, 0],
+		"r3": [0, 0, 1, 0],
+		"r4": [0, 0, 0, 1],
+	}[robot]
+	
+	if mName == "MoveThroughDoorway_Method2":
+		res += GetDoor_OneHot(mParts[2])
+		res += ConvertToOneHotHelper(int(mParts[3]), 8)
+
+	return res

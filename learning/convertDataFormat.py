@@ -2,29 +2,20 @@ import torch
 import math
 import ast
 import numpy as np
+import pdb
+folderPrefix = "../../raeResults/AIJ2020/learning/"
+from paramInfo import *
+
+import sys
+sys.path.append("encoders/")
 
 def ConvertToOneHotHelper(label, upper):
 	onehot = np.zeros(upper)
-	onehot[int(label)]=1
+	onehot[int(label)] = 1
 	return list(onehot)
 
 def ConvertToOneHot(a_int, varName, domain):
-	aH = []
-	for i in a_int:
-		aH += ConvertToOneHotHelper(i, UpperLimits[domain][varName])
-	return aH
-
-from encoder_CR import *
-from encoder_SR import *
-from encoder_SD import *
-from encoder_EE import *
-#from encoder_OF import *
-
-def GetLabel(yhat):
-    r, predicted = torch.max(yhat, 0)
-    return predicted.long()
-
-UpperLimits = {
+	nRange_SV = { # size of the range of state variables, used in the one hot encoding
 	"CR": {
 		"loc": 11,
 		"charge": 5,
@@ -64,7 +55,22 @@ UpperLimits = {
 		"loc": 15,
 		"busy": 2,
 	}
-}
+	}
+
+	aH = []
+	for i in a_int:
+		aH += ConvertToOneHotHelper(i, nRange_SV[domain][varName])
+	return aH
+
+from encoder_CR import *
+from encoder_SR import *
+from encoder_SD import *
+from encoder_EE import *
+from encoder_OF import *
+
+def GetLabel(yhat):
+    r, predicted = torch.max(yhat, 0)
+    return predicted.long()
 
 intervals = {
 	# CR 100
@@ -162,7 +168,9 @@ numTasks = {
 	'SR': 8,
 	'SD': 6,
 	'EE': 9,
+	'OF': 6,
 }
+
 taskCodes = {
 	"CR": {
 	'search': 1,
@@ -204,51 +212,49 @@ taskCodes = {
 	'pickupAndLoad': 3,
 	'unloadAndDeliver': 4,
 	'moveToPallet': 5,
+	'redoer': 6,
 	}
 }
 
 domain = None
 
-def AddToRecordsAllTogether(l, new):
+def AddToRecordsAllTogether_LearnH(l, new):
 	if len(l) % 100 == 0:
 		print(len(l))
 	for i in range(len(l)):
 		item = l[i]
 		if new[0:-1] == item[0:-1]:
-			n = AddToRecordsAllTogether.Counts[i]
+			n = AddToRecordsAllTogether_LearnH.Counts[i]
 			eff = (float(new[-1]) + n * float(item[-1]))/(n+1)
 			item[-1] = str(eff)
 			#print("Updated ", i)
-			AddToRecordsAllTogether.Counts[i] += 1
+			AddToRecordsAllTogether_LearnH.Counts[i] += 1
 			return
 	l.append(new)
-	AddToRecordsAllTogether.Counts.append(1)
-AddToRecordsAllTogether.Counts = []
+	AddToRecordsAllTogether_LearnH.Counts.append(1)
+AddToRecordsAllTogether_LearnH.Counts = []
 
-def AddToRecordsAllTogetherLearnM(l, new):
+def AddToRecordsAllTogether_LearnM(l, new):
 	if len(l) % 100 == 0:
 		print(len(l))
-	for i in range(len(l)):
-		item = l[i]
-		if new == item:
-			return
-	l.append(new)
+	if new not in l: 
+		l.append(new)
 
-def AddToRecordsTaskBased(l, new, task):
-	if task not in l:
-		l[task] = []
-		AddToRecordsTaskBased.Counts[task] = []
-	for i in range(len(l[task])):
-		item = l[task][i]
-		if item[0:-1] == new[0:-1]:
-			n = AddToRecordsTaskBased.Counts[task][i]
-			item[-1] = str((float(new[-1]) + n * float(item[-1]))/(n+1))
-			print(" item found in records for ", task)
-			AddToRecordsTaskBased.Counts[task][i] += 1
-			return
-	l[task].append(new)
-	AddToRecordsTaskBased.Counts[task].append(1)
-AddToRecordsTaskBased.Counts = {}
+def AddToRecords_MethodParamBased_LearnMI(domain, l, r1, m, methodLine): # m is the name of the method
+	instantiatedParams = {
+			"SD": GetOneHotInstantiatedParamValue_SD,
+			"OF": GetOneHotInstantiatedParamValue_OF,
+		}[domain](methodLine, m)
+
+	for p in params[domain][m]:
+		r2 = r1 + instantiatedParams + {
+			"SD": GetOneHotParamValue_SD,
+			"OF": GetOneHotParamValue_OF,
+		}[domain](p, methodLine, m)
+		
+		if r2 not in l[m][p]:
+			l[m][p].append(r2)
+			print(r2)
 
 import argparse
 
@@ -256,52 +262,42 @@ def ConvertToInt(a):
 	x = a.split(" ")
 	return [float(i) for i in x]
 
-def Encode(domain, state, task, mainTask):
-	if domain == "CR":
-		x = EncodeState_CR(state)
+def Encode_LearnM(domain, state, task, mainTask):
+	return {
+		"CR": EncodeState_CR,
+		"SD": EncodeState_SD,
+		"SR": EncodeState_SR,
+		"EE": EncodeState_EE,
+		"OF": EncodeState_OF,
+	}[domain](state) + ConvertToOneHotHelper(taskCodes[domain][task], numTasks[domain])
+
+def Encode_LearnH(domain, state, method, taskAndArgs):
+	p1 = {
+		"CR": EncodeState_CR,
+		"SD": EncodeState_SD,
+		"SR": EncodeState_SR,
+		"EE": EncodeState_EE,
+		"OF": EncodeState_OF,
+	}[domain](state)
+
+	if domain == "SD":
+		p1 += ReadTaskAndArgs_SD(taskAndArgs)
 	elif domain == "SR":
-		x = EncodeState_SR(state)
-	elif domain == "SD":
-		x = EncodeState_SD(state)
+		p1 += ReadTaskAndArgs_SR(taskAndArgs)
 	elif domain == "EE":
-		x = EncodeState_EE(state)
-	elif domain == "OF":
-		x = EncodeState_OF(state)
+		p1 += ReadTaskAndArgs_EE(taskAndArgs)
 
-	taskCode = taskCodes[domain][task]
-	taskCode = ConvertToOneHotHelper(taskCode, numTasks[domain])
-	x += taskCode
-	#mainTaskCode = taskCodes[domain][mainTask]
-	#x.append(mainTaskCode)
-	return x
+	p1 += ConvertToOneHotHelper(methodCodes[domain][method], numMethods[domain])
+	return p1
 
-def EncodeForHeuristic(domain, state, method, taskAndArgs):
-	if domain == "CR":
-		x = EncodeState_CR(state)
-	elif domain == "SR":
-		x = EncodeState_SR(state)
-		x += ReadTaskAndArgs_SR(taskAndArgs)
-	elif domain == "SD":
-		x = EncodeState_SD(state)
-		x += ReadTaskAndArgs_SD(taskAndArgs)
-	elif domain == "EE":
-		x = EncodeState_EE(state)
-		x += ReadTaskAndArgs_EE(taskAndArgs)
-	elif domain == "OF":
-		x = EncodeState_OF(state)
-
-	methodCode = ConvertToOneHotHelper(methodCodes[domain][method], numMethods[domain])
-	x += methodCode
-	return x
-
-def DecodeForHeuristic(domain, interval):
+def Decode_LearnH(domain, interval):
 	num = GetLabel(interval)
 	return (intervals[domain][num] + intervals[domain][num + 1])/2
 
 	#num = GetLabel(interval)
 	#return (num +0.5)*0.0010419 
 
-def Decode(domain, yhat):
+def Decode_LearnM(domain, yhat):
 	label = GetLabel(yhat)
 	for m in methodCodes[domain]:
 		if methodCodes[domain][m] == label:
@@ -343,18 +339,6 @@ def normalize(l):
 				item[i] = (item[i] - means[i])/sigmas[i]
 
 	return l2
-
-eL = []
-maxE = 0
-def AddToeL(e):
-	e1 = float(e) * 10000
-	e2 = round(e1)/10000
-	if e2 not in eL:
-		global maxE
-		if e2 > maxE:
-			print(e2)
-			maxE = e2
-		eL.append(e2)
 
 def DivideIntoIntervalsEqual(l):
 	maxE = 0
@@ -420,17 +404,22 @@ def DivideIntoIntervals(l, domain):
 				break
 	return l
 
-def ReadTaskAndArgs(taskAndArgs, domain):
+def ReadTaskAndArgs_LearnH(taskAndArgs, domain):
 	if domain == "CR":
 		return []
-	elif domain == "SR":
-		return ReadTaskAndArgs_SR(taskAndArgs)
-	elif domain == "SD":
-		return ReadTaskAndArgs_SD(taskAndArgs)
-	elif domain == "EE":
-		return ReadTaskAndArgs_EE(taskAndArgs)
-	elif domain == "OF":
-		return ReadTaskAndArgs_OF(taskAndArgs)
+	else:
+		return {
+			"SR": ReadTaskAndArgs_SR,
+			"SD": ReadTaskAndArgs_SD,
+			"EE": ReadTaskAndArgs_EE,
+			"OF": ReadTaskAndArgs_OF,
+		}[domain](taskAndArgs)
+
+def ReadOnlyTaskArgs_LearnMI(taskAndArgs, domain):
+	return {
+		"SD": ReadOnlyTaskArgs_SD,
+		"OF": ReadOnlyTaskArgs_OF,
+	}[domain](taskAndArgs)
 
 if __name__ == "__main__":
 
@@ -441,109 +430,120 @@ if __name__ == "__main__":
                            type=str, required=True)
 	argparser.add_argument("--learnWhat", help="method (m) or efficiency(e)",
 						   type=str, required=True)
-	argparser.add_argument("--taskBased", help="divide based on tasks (y) or not(n)?",
-						   type=str, required=True)
 	argparser.add_argument("--howMany", help="how many training data records to read?",
 						   type=int, required=True)
 	args = argparser.parse_args()
 	
-	domain, taskBased, learnWhat = args.domain, args.taskBased, args.learnWhat
+	domain, learnWhat = args.domain, args.learnWhat
 	
+	assert(learnWhat == 'm' or learnWhat == "e" or learnWhat == "mi")
 	assert(args.dataFrom == 'a' or args.dataFrom=="p")
 	suffix = 'actor' if args.dataFrom == 'a' else 'planner'
 
 	if learnWhat == "m":
-		assert(args.taskBased == "n")
-		fname = "../../raeResults/learning/{}/{}_data_{}.txt".format(domain, domain, suffix)
-		fwrite = open("../../raeResults/learning/{}/numericData_{}_{}.txt".format(domain, domain, suffix), "w")
+		fname = folderPrefix + "{}/{}_data_{}.txt".format(domain, domain, suffix)
+		fwrite = open(folderPrefix + "{}/numericData_{}_{}.txt".format(domain, domain, suffix), "w")
 		recordL = []
+
 	elif learnWhat == "e":
 		if domain != "CR":
-			fname = "../../raeResults/learning/{}/{}_data_eff_{}_without_dup.txt".format(domain, domain, suffix)
+			fname = folderPrefix + "{}/{}_data_eff_{}_without_dup.txt".format(domain, domain, suffix)
 		else:
-			fname = "../../raeResults/learning/{}/{}_data_eff_{}.txt".format(domain, domain, suffix)
-		if taskBased == 'n':
-			fwrite = open("../../raeResults/learning/{}/numericData_eff_{}_{}.txt".format(domain, domain, suffix), "w")
-			recordL = []
-		else:
-			fwrite = {}
-			recordL = {}
-			for task in taskCodes[domain]:
-				pass
-				fwrite[task] = open("../../raeResults/learning/{}/numericData1eff_{}_{}_task_{}.txt".format(domain, domain, suffix, task), "w")
+			fname = folderPrefix + "{}/{}_data_eff_{}.txt".format(domain, domain, suffix)
+		fwrite = open(folderPrefix + "{}/numericData_eff_{}_{}.txt".format(domain, domain, suffix), "w")
+		recordL = []
+
+	elif learnWhat == "mi":
+		fname = folderPrefix + "{}/{}_data_{}_mi_without_dups.txt".format(domain, domain, suffix)
+		fwrite = {}
+		recordL = {}
+		for method in params[domain]:
+			fwrite[method] = {}
+			recordL[method] = {}
+			for p in params[domain][method]:
+				recordL[method][p] = []
+				fwrite[method][p] = open(folderPrefix + "{}/numericData_mi_{}_{}_{}.txt".format(domain, domain, suffix, method, p), "w")
+
 	f = open(fname)
 	
 	line = f.readline()
 	while(line != ""):
-		if domain == "CR":
-			record = ReadStateVars_CR(line, f)
-		elif domain == "SR":
-			record = ReadStateVars_SR(line, f)
-		elif domain == "SD":
-			record = ReadStateVars_SD(line, f)
-		elif domain == "EE":
-			record = ReadStateVars_EE(line, f)
+		record = {
+			"CR": ReadStateVars_CR,
+			"SD": ReadStateVars_SD,
+			"SR": ReadStateVars_SR,
+			"EE": ReadStateVars_EE,
+			"OF": ReadStateVars_OF,
+		}[domain](line, f)
 
 		taskAndArgs = f.readline()[0:-1]
 		mainTask = f.readline()[0:-1]
 		method = f.readline()[0:-1]
 
 		#taskCode = taskCodes[domain][taskAndArgs]
-		mainTaskCode = taskCodes[domain][mainTask]
 		
 		eff = f.readline()[0:-1]
 
 		if learnWhat == "m":
-
+			mainTaskCode = taskCodes[domain][mainTask]
 			#record.append(str(mainTaskCode))
 			params = taskAndArgs.split(' ')
+			
 			taskCode = taskCodes[domain][params[0]]
 			taskCode = ConvertToOneHotHelper(taskCode, numTasks[domain])
 			taskCode = [str(i) for i in taskCode]
 			record += taskCode
 
 			record.append(str(methodCodes[domain][method]))
-		else:
-			record += ReadTaskAndArgs(taskAndArgs, domain)
-			methodCode = methodCodes[domain][method]
-		
-			methodCode = ConvertToOneHotHelper(methodCode, numMethods[domain])
 
+		elif learnWhat == "e":
+			mainTaskCode = taskCodes[domain][mainTask]
+			record += ReadTaskAndArgs_LearnH(taskAndArgs, domain)
+			
+			methodCode = methodCodes[domain][method]
+			methodCode = ConvertToOneHotHelper(methodCode, numMethods[domain])
 			methodCode = [str(i) for i in methodCode]
 			record += methodCode
+
 			if eff == "inf":
 				eff = 1
 			record.append(str(eff))
 
-		if taskBased == "y":
-			AddToRecordsTaskBased(recordL, record, task)
-		else:
-			if learnWhat == "e":
-				AddToRecordsAllTogether(recordL, record)
-			else:
-				AddToRecordsAllTogetherLearnM(recordL, record)
+		else: # learnWhat == "mi"
+			record += ReadOnlyTaskArgs_LearnMI(taskAndArgs, domain)
+			methodParts = method.split(' ')
+			methodName = methodParts[0]
 
-			if len(recordL) % 100 == 0:
-				print(len(recordL))
-			if len(recordL) > args.howMany:
-				break
+		if learnWhat == "e":
+			AddToRecordsAllTogether_LearnH(recordL, record)
+		elif learnWhat == "m":
+			AddToRecordsAllTogether_LearnM(recordL, record)
+		elif learnWhat == "mi":
+			AddToRecords_MethodParamBased_LearnMI(domain, recordL, record, methodName, method)
+
+		if len(recordL) % 100 == 0:
+			print(len(recordL))
+		if len(recordL) > args.howMany:
+			break
 
 		line = f.readline()
 	f.close()
 
 	if learnWhat == "e":
-		if taskBased == "y":
-			for task in recordL:
-				for item in recordL[task]:
-					fwrite[task].write(" ".join([str(i) for i in item]) + "\n")
-		else:
-			recordN = DivideIntoIntervals(recordL, domain)
-			for item in recordN:
-				fwrite.write(" ".join([str(i) for i in item]) + "\n")
-		print(len(recordN[0]))
-	else:
+		record_LearnH = DivideIntoIntervals(recordL, domain)
+		for item in record_LearnH:
+			fwrite.write(" ".join([str(i) for i in item]) + "\n")
+		print(len(record_LearnH[0]))
+
+	elif learnWhat == "m":
 		for item in recordL:
 			fwrite.write(" ".join(item) + "\n")
 		print(len(recordL[0]))
-	
+
+	elif learnWhat == "mi":
+		for methodName in params[domain]:
+			for p in params[domain][methodName]:
+				print(methodName, p, len(recordL[methodName][p][0]))
+				for item in recordL[methodName][p]:
+					fwrite[methodName][p].write(" ".join([str(i) for i in item]) + "\n")
 
