@@ -254,7 +254,7 @@ def AddToRecords_MethodParamBased_LearnMI(domain, l, r1, m, methodLine): # m is 
 		
 		if r2 not in l[m][p]:
 			l[m][p].append(r2)
-			print(r2)
+			#print(r2)
 
 import argparse
 
