@@ -261,7 +261,7 @@ def EncodeState_SD(state):
 
 	return a1H + a2H + a3H + a4H + a5H + a6H
 
-def GetOneHotParamValue_SD(p, mLine, mName): # uninstantiated params
+def GetIntParamValue_SD(p, mLine, mName): # uninstantiated params
 	mParts = mLine.split(' ')
 	if mName == 'MoveThroughDoorway_Method2':
 		robot = mParts[4]

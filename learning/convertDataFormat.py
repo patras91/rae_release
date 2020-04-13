@@ -54,6 +54,9 @@ def ConvertToOneHot(a_int, varName, domain):
 		"OBJ_CLASS": 5,
 		"loc": 15,
 		"busy": 2,
+		"nObjects": 12,
+		'nPallets': 3,
+		'nMachines': 5,
 	}
 	}
 
@@ -248,8 +251,8 @@ def AddToRecords_MethodParamBased_LearnMI(domain, l, r1, m, methodLine): # m is 
 
 	for p in params[domain][m]:
 		r2 = r1 + instantiatedParams + {
-			"SD": GetOneHotParamValue_SD,
-			"OF": GetOneHotParamValue_OF,
+			"SD": GetIntParamValue_SD,
+			"OF": GetIntParamValue_OF,
 		}[domain](p, methodLine, m)
 		
 		if r2 not in l[m][p]:

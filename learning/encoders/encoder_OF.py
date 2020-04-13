@@ -25,7 +25,6 @@ def GetObjWeights(s):
 
 def GetObjsString(v):
 	v = v.replace("frozenset", "")
-	print(v)
 	d = ast.literal_eval(v)
 	res = []
 	for key in d:
@@ -47,7 +46,6 @@ def GetObjsString(v):
 			res.append('0')
 
 	return " ".join(res)
-
 
 def GetObjClassString(v):
 	d = ast.literal_eval(v)
@@ -102,7 +100,27 @@ def GetLocs(v):
 	return " ".join(res)
 	
 def ReadOnlyTaskArgs_OF(taskAndArgs):
-	return [0]
+	tParts = taskAndArgs.split(' ')
+	t = tParts[0]
+	res = []
+	if t == 'order':
+		res += ConvertToOneHot([int(tParts[1][6])], 'OBJ_CLASS', 'OF')
+	elif t == 'pickupAndLoad':
+		o = ConvertToOneHot([int(tParts[3][1:])], 'nObjects', 'OF')
+		m = ConvertToOneHot([int(tParts[4][1:])], 'nMachines', 'OF')
+		res += o + m 
+	elif t == 'unloadAndDeliver':
+		m = ConvertToOneHot([int(tParts[1][1:])], 'nMachines', 'OF')
+		if tParts[3][2] == 'o':
+			o = ConvertToOneHot([int(tParts[3][3])], 'nObjects', 'OF')
+		else:
+			o = ConvertToOneHot([int(tParts[2][19])], 'nObjects', 'OF')
+		res += m + o
+	elif t == 'moveToPallet':
+		o = ConvertToOneHot([int(tParts[1][1:])], 'nObjects', 'OF')
+		p = ConvertToOneHot([int(tParts[2][1:])], 'nPallets', 'OF')
+		res += o + p
+	return res
 
 def ReadStateVars_OF(line, f):
 	a1 = line[8:-1]
@@ -138,7 +156,6 @@ def ReadStateVars_OF(line, f):
 
 	return a1Hs + a2Hs + a3Hs + a4Hs + a5Hs
 
-
 def EncodeState_OF(state):
 	a = state.split("\n")
 
@@ -159,8 +176,50 @@ def EncodeState_OF(state):
 
 	return a1H + a2H + a3H + a4H + a5H
 
-def GetOneHotParamValue_OF(p, mLine, mName):
-	return [0]
+def GetIntParamValue_OF(p, mLine, mName):
+	mParts = mLine.split(' ')
+	if mName == 'Order_Method1':
+		if p == 'm':
+			return [int(mParts[2][1])]
+		elif p == 'objList':
+			assert(len(mParts[3]) == 7)
+			return [int(mParts[3][3])]
+	elif mName == 'Order_Method2':
+		if p == 'm':
+			return [int(mParts[2][1])]
+		elif p == 'objList':
+			assert(len(mParts[3]) == 7)
+			return [int(mParts[3][3])]
+		elif p == "p":
+			return [int(mParts[4][1])]
+	elif mName == 'UnloadAndDeliver_Method1':
+		return [int(mParts[-1][1])]
+	elif mName == 'MoveToPallet_Method1':
+		return [int(mParts[-1][1])]
+	elif mName == 'PickupAndLoad_Method1':
+		return [int(mParts[-1][1])]
+	else:
+		print("Incorrect method in OF")
+		exit()
 
 def GetOneHotInstantiatedParamValue_OF(mLine, mName):
-	return []
+	tParts = mLine.split(' ')
+	res = []
+	if mName[0:5] == 'Order':
+		res += ConvertToOneHot([int(tParts[1][6])], 'OBJ_CLASS', 'OF')
+	elif mName == 'PickupAndLoad_Method1':
+		o = ConvertToOneHot([int(tParts[3][1:])], 'nObjects', 'OF')
+		m = ConvertToOneHot([int(tParts[4][1:])], 'nMachines', 'OF')
+		res += o + m 
+	elif mName == 'UnloadAndDeliver_Method1':
+		m = ConvertToOneHot([int(tParts[1][1:])], 'nMachines', 'OF')
+		if tParts[3][2] == 'o':
+			o = ConvertToOneHot([int(tParts[3][3])], 'nObjects', 'OF')
+		else:
+			o = ConvertToOneHot([int(tParts[2][19])], 'nObjects', 'OF')
+		res += m
+	elif mName == 'MoveToPallet_Method1':
+		o = ConvertToOneHot([int(tParts[1][1:])], 'nObjects', 'OF')
+		p = ConvertToOneHot([int(tParts[2][1:])], 'nPallets', 'OF')
+		res += o + p
+	return res

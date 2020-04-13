@@ -14,10 +14,20 @@ params = {
             {'r2': {'nOutputs': 4, 'nInputs': 128}},
     },
     'OF': {
-        'Order_Method1': ['m', 'objList'],
-        'Order_Method2': ['m', 'objList', 'p'],
-        'PickupAndLoad_Method1': ['r'],
-        'UnloadAndDeliver_Method1': ['r'],
-        'MoveToPallet_Method1': ['r'], 
+        'Order_Method1':  {
+            'm': {'nOutputs': 5, 'nInputs': 613}, 
+            'objList': {'nOutputs': 10, 'nInputs': 613},
+            },
+        'Order_Method2': {
+            'm': {'nOutputs': 5, 'nInputs': 613}, 
+            'objList': {'nOutputs': 10, 'nInputs': 613}, 
+            'p': {'nOutputs': 4, 'nInputs': 613},
+            },
+        'PickupAndLoad_Method1': 
+            {'r': {'nOutputs': 7, 'nInputs': 637}},
+        'UnloadAndDeliver_Method1': 
+            {'r': {'nOutputs': 7, 'nInputs': 625}},
+        'MoveToPallet_Method1': 
+            {'r': {'nOutputs': 7, 'nInputs': 633}}, 
     },
 }
