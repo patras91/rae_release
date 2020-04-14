@@ -1,0 +1,84 @@
+#!/bin/sh
+domain="OF"
+runs=1
+P=(
+"problem55" 
+"problem109" 
+"problem72" 
+"problem12" 
+"problem25" 
+"problem48" 
+"problem53" 
+"problem45" 
+"problem57" 
+"problem73" 
+"problem103" 
+"problem89" 
+"problem20" 
+"problem51" 
+"problem74" 
+"problem37" 
+"problem11" 
+"problem21" 
+"problem36" 
+"problem29" 
+"problem76" 
+"problem39" 
+"problem105" 
+"problem15" 
+"problem68" 
+"problem67" 
+"problem90" 
+"problem27" 
+"problem56" 
+"problem95" 
+"problem77" 
+"problem18" 
+"problem34" 
+"problem66" 
+"problem23" 
+"problem91" 
+"problem28" 
+"problem22" 
+"problem59" 
+"problem97" 
+"problem47" 
+"problem30" 
+"problem78" 
+"problem42" 
+"problem64" 
+"problem49" 
+"problem75" 
+"problem94" 
+"problem61" 
+"problem13" 
+)
+for problem in ${P[@]}
+do
+setup="
+import sys
+sys.path.append('../../../../RAE_and_RAEplan/')
+sys.path.append('../../../../shared/domains/')
+sys.path.append('../../../../shared/problems/OF/auto')
+sys.path.append('../../../../shared/')
+sys.path.append('../../../../learning/')
+sys.path.append('../../../../learning/encoders/')
+from testRAEandRAEplan import GLOBALS, testBatch
+GLOBALS.SetOpt('max')
+GLOBALS.SetUseTrainedModel('mi')
+GLOBALS.SetLearningMode(None)
+GLOBALS.SetUCTRuns(10)
+GLOBALS.SetMaxDepth(3)
+GLOBALS.SetModelPath('../../../../learning/models/AIJ2020/')
+GLOBALS.SetTimeLimit(300)"
+counter=1
+while [ $counter -le $runs ]
+do
+            echo $domain $problem " Run " $counter/$runs
+            time_test="testBatch(domain='$domain', problem='$problem', useRAEplan=False)"
+            fname="../../../../../raeResults/AIJ2020/${domain}_v_journal/RAE_with_learnMI_p.txt"
+            echo "Time test of $domain $problem" >> $fname
+            python3 -m timeit -n 1 -r 1 -s "$setup" "$time_test" >> $fname
+((counter++))
+done
+done

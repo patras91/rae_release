@@ -27,9 +27,10 @@ import time
 from sharedData import *
 import stateSpaceUCT as ssu
 from learningData import trainingDataRecords
-#from convertData import Encode_LearnM, Decode_LearnM, Encode_LearnH, Decode_LearnH
-#import torch
-#import torch.nn as nn
+from paramInfo import *
+from convertDataFormat import Encode_LearnM, Decode_LearnM, Encode_LearnH, Decode_LearnH, Encode_LearnMI, Decode_LearnMI
+import torch
+import torch.nn as nn
 ############################################################
 
 ### for debugging
@@ -395,7 +396,8 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         candidates.pop(candidates.index(methodInstance))
         return (methodInstance, candidates)
 
-def GetCandidateFromLearnedModel(fname, task, candidates):
+def GetCandidateFromLearnedModel(fname, task, candidates, taskArgs):
+    domain = GLOBALS.GetDomain()
     device = "cpu"
 
     # features = {
@@ -421,19 +423,53 @@ def GetCandidateFromLearnedModel(fname, task, candidates):
         "CR": 10,
     }
 
-    #model = nn.Sequential(nn.Linear(features[GLOBALS.GetDomain()], 1)).to(device) 
-    model = nn.Sequential(nn.Linear(features[GLOBALS.GetDomain()], 512), nn.ReLU(inplace=True), nn.Linear(512, outClasses[GLOBALS.GetDomain()]))
-    model.load_state_dict(torch.load(fname))
-    model.eval()
+    if domain != "OF":
+        #model = nn.Sequential(nn.Linear(features[GLOBALS.GetDomain()], 1)).to(device) 
+        model = nn.Sequential(nn.Linear(features[domain], 512), 
+            nn.ReLU(inplace=True), 
+            nn.Linear(512, outClasses[domain]))
+        model.load_state_dict(torch.load(fname))
+        model.eval()
 
-    x = Encode_LearnM(GLOBALS.GetDomain(), GetState().GetFeatureString(), task, raeLocals.GetMainTask())
-    np_x = numpy.array(x)
-    x_tensor = torch.from_numpy(np_x).float()
-    y = model(x_tensor)
-    m = Decode_LearnM(GLOBALS.GetDomain(), y)
+        x = Encode_LearnM(domain, GetState().GetFeatureString(), task, raeLocals.GetMainTask())
+        np_x = numpy.array(x)
+        x_tensor = torch.from_numpy(np_x).float()
+        y = model(x_tensor)
+        m_chosen = Decode_LearnM(domain, y)
+    else:
+        m_chosen = candidates[0].GetName()
 
+    if GLOBALS.GetUseTrainedModel() == "mi" and m_chosen in params[domain]:
+        pList = []
+        for p in params[domain][m_chosen]:
+            
+            fname_mi = GLOBALS.GetModelPath() + "learnMI_{}_planner_{}_{}".format(domain, m_chosen, p)
+            model = nn.Sequential(nn.Linear(params[domain][m_chosen][p]['nInputs'], 128), 
+                nn.ReLU(inplace=True), 
+                nn.Linear(128, params[domain][m_chosen][p]['nOutputs']))
+            model.load_state_dict(torch.load(fname_mi))
+            model.eval()
+            
+            x = Encode_LearnMI(domain, GetState().GetFeatureString(), m_chosen, task+" "+ " ".join([str(j) for j in taskArgs]))
+            np_x = numpy.array(x)
+            x_tensor = torch.from_numpy(np_x).float()
+            y = model(x_tensor)
+            pList.append(Decode_LearnMI(GLOBALS.GetDomain(), m_chosen, p, y))
+
+        for i in range(len(candidates)):
+            if m_chosen == candidates[i].GetName():
+                candP = candidates[i].GetParams()
+                flag = True
+                for p in params[domain][m_chosen]:
+                    if candP[params[domain][m_chosen][p]['pos']] != pList[params[domain][m_chosen][p]['pos']]:
+                        flag = False
+                if flag:
+                    res = candidates[i]
+                    candidates.pop(i)
+                    return res, candidates
+    
     for i in range(len(candidates)):
-        if m == candidates[i].GetName():
+        if m_chosen == candidates[i].GetName():
             res = candidates[i]
             candidates.pop(i)
             return res, candidates
@@ -446,10 +482,10 @@ def choose_candidate(candidates, task, taskArgs):
         return(candidates[0], candidates[1:])
     elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "a":
         fname = GLOBALS.GetModelPath() + "model_to_choose_{}_actor".format(GLOBALS.GetDomain())
-        return GetCandidateFromLearnedModel(fname, task, candidates)
-    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "p":
+        return GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
+    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "p" or GLOBALS.GetUseTrainedModel() == "mi":
         fname = GLOBALS.GetModelPath() + "model_to_choose_{}_planner".format(GLOBALS.GetDomain())
-        return GetCandidateFromLearnedModel(fname, task, candidates)
+        return GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
     else:
         return GetCandidateByPlanning(candidates, task, taskArgs)
 
@@ -808,10 +844,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
     elif GLOBALS.GetOpt() == "sr":
         mtask, args = planLocals.GetHeuristicArgs()
         res = heuristic[mtask](args)
-        if res > 0:
-            return 1
-        else:
-            return 0
+        return 1 if res > 0 else 0
     else:
         mtask, args = planLocals.GetHeuristicArgs()
         res = heuristic[mtask](args)

@@ -90,10 +90,12 @@ def GetFullName(domain):
     if domain == "CR":
         return "Fetch Objects Domain"
     elif domain == "SD":
+        return "Nav Domain"
         return "Navigate Doorways Domain"
     elif domain == "SR":
         return "Search and Rescue Domain"
     elif domain == "OF":
+        return "Delivery Domain"
         return "Order Delivery Domain"
     elif domain == "EE":
         return "Explore Environment Domain"

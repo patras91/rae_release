@@ -293,6 +293,27 @@ def Encode_LearnH(domain, state, method, taskAndArgs):
 	p1 += ConvertToOneHotHelper(methodCodes[domain][method], numMethods[domain])
 	return p1
 
+def Encode_LearnMI(domain, state, method, taskAndArgs):
+	p1 = {
+		"SD": EncodeState_SD,
+		"OF": EncodeState_OF,
+	}[domain](state)
+
+	mLine = method + ' ' + ' '.join(taskAndArgs.split(' ')[1:])
+
+	if domain == "SD":
+		p1 += ReadOnlyTaskArgs_SD(taskAndArgs)
+		p1 += GetOneHotInstantiatedParamValue_SD(mLine, method)
+	elif domain == "OF":
+		p1 += ReadOnlyTaskArgs_OF(taskAndArgs)
+		p1 += GetOneHotInstantiatedParamValue_OF(mLine, method)
+
+	return p1
+
+def Decode_LearnMI(domain, method, p, yhat):
+	label = GetLabel(yhat)
+	return params[domain][method][p]['decoder'](int(label))
+
 def Decode_LearnH(domain, interval):
 	num = GetLabel(interval)
 	return (intervals[domain][num] + intervals[domain][num + 1])/2

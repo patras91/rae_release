@@ -119,6 +119,10 @@ if __name__ == "__main__":
                            type=str, required=True)
     argparser.add_argument("--modelFrom", help="actor (a) or planner (p) ?",
                            type=str, required=True)
+    argparser.add_argument("--method", help="Name of the method?",
+                           type=str, required=True)
+    argparser.add_argument("--param", help="Name of the parameter?",
+                           type=str, required=True)
     argparser.add_argument("--nepochs", help="how many epochs (>=1) ?",
                            type=int, required=False, default = 1)
     
@@ -127,9 +131,9 @@ if __name__ == "__main__":
     n_epochs = args.nepochs
     modelFrom = "actor" if args.modelFrom == 'a' else "planner"
 
-    for m in params[domain]:
+    for m in [args.method]: #params[domain]:
         models = GetParamLearningNetworks(domain, m)
-        for p in models:
+        for p in [args.param]: # models:
             print("Training for ", m, p)
             fileIn = open("../../raeResults/{}/learning/{}/numericData_mi_{}_{}_{}_{}.txt".format(resultsFolder, domain, domain, modelFrom, m, p))
             
@@ -173,8 +177,8 @@ if __name__ == "__main__":
                 }
             else:
                 lrD = {
-                    "SD": 1e-2, #1e-3,
-                    "OF": 1e-3,
+                    "SD": 1e-1, #1e-3,
+                    "OF": 1e-1,
                 }
             lr = lrD[domain]
 

@@ -33,7 +33,7 @@ def GetMSEError(l, mean, fac):
     #return fac*variance/(len(l) - 1)/len(l)
 
 def Include(pname, domain, num_tasks_per_problem):
-    print(pname, problems_with_n_tasks[domain][num_tasks_per_problem])
+    #print(pname, problems_with_n_tasks[domain][num_tasks_per_problem])
     v = num_tasks_per_problem == 0 or pname in problems_with_n_tasks[domain][num_tasks_per_problem]
     print(v)
     return v
@@ -290,17 +290,34 @@ def Populate_learning(res, domain, model):
         #    f1 = "{}{}_v_journal/RAE_with_learnM_p_training.txt".format(resultsFolder, domain)
         #else:
         f1 = "{}{}_v_journal/RAE_with_learnM_p.txt".format(resultsFolder, domain)
-    #elif model == "heuristic0_10_3" or domain == "SR" or domain == "EE":
-    #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0_10_3.txt".format(resultsFolder, domain)
-    #elif model == "heuristic":
-    #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic.txt".format(resultsFolder, domain)
-    #elif model == "heuristic5":
-    #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_5.txt".format(resultsFolder, domain)
-    #elif model == "heuristic0":
-    #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0.txt".format(resultsFolder, domain)
-   
+        #elif model == "heuristic0_10_3" or domain == "SR" or domain == "EE":
+        #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0_10_3.txt".format(resultsFolder, domain)
+        #elif model == "heuristic":
+        #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic.txt".format(resultsFolder, domain)
+        #elif model == "heuristic5":
+        #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_5.txt".format(resultsFolder, domain)
+        #elif model == "heuristic0":
+        #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0.txt".format(resultsFolder, domain)
     f1_p = open(f1, "r")
     PopulateHelper(res, domain, f1_p, 0, f1)
+    f1_p.close()
+
+def Populate_learning_mi(res, domain, model, nTasks):
+    if model == "UCT":
+        f1 = "{}{}_v_journal_eff/rae_plan_uct_250.txt".format(resultsFolder, domain)
+    elif model == "learnMI":
+        f1 = "{}{}_v_journal/RAE_with_learnMI_p.txt".format(resultsFolder, domain)    
+    elif model == "reactive" or domain == "OF":
+        f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+    elif model == "actor":
+        f1 = "{}{}_v_journal/RAE_with_learnM_a.txt".format(resultsFolder, domain)        
+    elif model == "planner":
+        f1 = "{}{}_v_journal/RAE_with_learnM_p.txt".format(resultsFolder, domain)
+
+    f1_p = open(f1, "r")
+    if domain != 'OF':
+        nTasks = 0
+    PopulateHelper(res, domain, f1_p, 0, f1, nTasks)
     f1_p.close()
 
 def Populate_UCT_max_depth_planning_utilities(res, domain):
@@ -412,6 +429,27 @@ def GeneratePlots_UCT_max_depth(num_tasks_per_problem):
     print(resDict)
     for metric in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_UCT_max(resDict, metric)
+
+def GeneratePlots_LearnMI(num_tasks):
+    resDict = {}
+    for domain in D:
+        resDict[domain] = {}
+        resDict[domain]['reactive'] = GetNewDict()
+        resDict[domain]['learning_from_actor'] = GetNewDict()
+        resDict[domain]['learning_from_planner'] = GetNewDict()
+        resDict[domain]['learnMI'] = GetNewDict()
+        resDict[domain]['UCT'] = GetNewDict()
+
+        Populate_learning_mi(resDict[domain]['UCT'], domain, 'UCT', num_tasks)
+        Populate_learning_mi(resDict[domain]['reactive'], domain, 'reactive', num_tasks)
+        Populate_learning_mi(resDict[domain]['learning_from_actor'], domain, 'actor', num_tasks)
+        Populate_learning_mi(resDict[domain]['learning_from_planner'], domain, 'planner', num_tasks)
+        Populate_learning_mi(resDict[domain]['learnMI'], domain, 'learnMI', num_tasks)
+    
+    print(resDict)
+    
+    for metric in ['nu', 'successRatio', 'retryRatio']:
+        PlotHelper_LearnMI(resDict, metric, errIndex[metric])
 
 def GeneratePlots_learning():
     resDict = {}
@@ -662,9 +700,89 @@ def PlotHelper_UCT_max(resDict, utilp):
 
         plt.savefig(fname, bbox_inches='tight')
 
+def PlotHelper_LearnMI(resDict, utilp, errorP):
+    index1 = utilp
+
+    fname = '{}{}_learning_mi.png'.format(figuresFolder, utilp)
+
+    plt.clf()
+    ax = {}
+    ax['SD'] = plt.subplot2grid((1,2), (0,0), colspan=1)
+    ax['OF'] = plt.subplot2grid((1,2), (0,1), colspan=1)
+
+    lowerLim = {
+        "SD":
+        {
+            "nu":0.01,
+            "retryRatio": 0,
+            "successRatio":0.7,
+            'totalTime': 0,
+        },
+        "OF":
+        {
+            "nu": 0.01,
+            "retryRatio": 0,
+            "successRatio":0.6,
+            'totalTime': 0,
+        }
+    }
+    toPlot = {}
+
+    for domain in D:
+        toPlot = {'val': {}, 'err': {}}
+        toPlot['val']['RAE\n(no planning)'] = resDict[domain]['reactive'][index1][0]
+        toPlot['val']['LearnM-1'] = resDict[domain]['learning_from_actor'][index1][0]
+        toPlot['val']['LearnM-2'] = resDict[domain]['learning_from_planner'][index1][0]
+        toPlot['val']['LearnMI'] = resDict[domain]['learnMI'][index1][0]
+        toPlot['val']['UPOM'] = resDict[domain]['UCT'][index1][0]
+
+        # the errors
+        toPlot['err']['RAE (no planning)'] = resDict[domain]['reactive'][errorP][0]
+        toPlot['err']['LearnM-1'] = resDict[domain]['learning_from_actor'][errorP][0]
+        toPlot['err']['LearnM-2'] = resDict[domain]['learning_from_planner'][errorP][0]
+        toPlot['err']['LearnMI'] = resDict[domain]['learnMI'][errorP][0]
+        toPlot['err']['UPOM'] = resDict[domain]['UCT'][errorP][0]
+
+        width = 0.85  # 0.003 the width of the bars
+    
+
+        labels = list(toPlot['val'].keys())
+        x = np.arange(len(labels))
+
+        print(domain)
+        print(list(toPlot['val'].values()))
+
+        rects = ax[domain].bar(x, list(toPlot['val'].values()), width, 
+            color=['turquoise', 'grey', 'orange', 'yellowgreen', 'orangered', 'orchid'],
+            yerr=list(toPlot['err'].values()), capsize=3)
+       
+        patterns = ('\\', '\\\\', '/', '+', 'x', '\\\\\\\\')
+        for bar, pattern in zip(rects, patterns):
+            bar.set_hatch(pattern)
+
+        ax[domain].set_ylim(bottom=lowerLim[domain][index1])
+        #elif index1 == "successRatio":
+        #    ax.set_ylim(bottom=0.1)
+
+        # Add some text for labels, title and custom x-axis tick labels, etc.
+        ax[domain].set_ylabel(GetYlabel(utilp))
+        ax[domain].yaxis.grid(True)
+        ax[domain].set_xlabel(domain)
+        ax[domain].get_xaxis().set_visible(False)
+        ax[domain].set_title(GetFullName(domain))
+        ax[domain].set_xticks(x)
+        ax[domain].set_xticklabels(labels, rotation=45)
+        ax[domain].legend()
+
+    plt.tight_layout()
+    #plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=1, ncol=0, borderaxespad=0.)
+     
+    plt.savefig(fname, bbox_inches='tight')
+    print("saved")
+
 def PlotHelper_learning(resDict, utilp, errorP):
     index1 = utilp
-    index1 = 'actTime'
+    #index1 = 'actTime'
     #K = [0, 1, 2, 3, 4, 8, 16]
 
     fname = '{}{}_learning.png'.format(figuresFolder, utilp)
@@ -748,7 +866,7 @@ def PlotHelper_learning(resDict, utilp, errorP):
         print(domain)
         print(ptMax)
         print(list(toPlot['val'].values()))
-        continue
+
         rects = ax[domain].bar(x, list(toPlot['val'].values()), width, 
             color=['turquoise', 'grey', 'orange', 'yellowgreen', 'orangered', 'orchid'],
             yerr=list(toPlot['err'].values()), capsize=3)
@@ -929,7 +1047,7 @@ if __name__=="__main__":
                             type=str, required=False)
     argparser.add_argument("--utility", help="efficiency or successRatio?",
                             type=str, required=True)
-    argparser.add_argument("--l", help="Compare with learning? ('y' or 'n')?",
+    argparser.add_argument("--l", help="Compare with learning? ('y' or 'mi' or 'n')?",
                             type=str, default='n', required=True)
     args = argparser.parse_args()
 
@@ -940,10 +1058,12 @@ if __name__=="__main__":
     else:
         util = "_sr"
     #D = ["SD", "CR", "EE", "SR", "OF"]
-    D = ["CR", "OF"]
+    D = ["SD", "OF"]
 
     if args.l == "y":
         GeneratePlots_learning()
+    elif args.l == "mi":
+        GeneratePlots_LearnMI(0)
     elif args.depth == "max":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()

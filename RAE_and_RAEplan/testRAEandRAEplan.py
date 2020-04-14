@@ -20,6 +20,7 @@ sys.path.append('../shared/problems/SR/auto')
 sys.path.append('../shared/problems/SDN')
 sys.path.append('../shared/problems/unitTests')
 sys.path.append('../learning/')
+sys.path.append('../learning/encoders/')
 
 import argparse
 import gui
