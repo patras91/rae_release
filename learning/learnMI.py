@@ -20,9 +20,9 @@ from paramInfo import *
 def GetParamLearningNetworks(domain, method):
     models = {}
     for p in params[domain][method]:
-        model = nn.Sequential(nn.Linear(nFeatures[domain], 128), 
+        model = nn.Sequential(nn.Linear(params[domain][method][p]['nInputs'], 128), 
             nn.ReLU(inplace=True), 
-            nn.Linear(128, params[domain][method][p]))
+            nn.Linear(128, params[domain][method][p]['nOutputs']))
         models[p] = model
     return models
     
@@ -85,9 +85,7 @@ def CreatePlot(training, validation):
 
     gap = {
         "SD": 50,
-        "EE": 50,
-        "SR": 10,
-        "CR": 10,
+        "OF": 50,
     }
     x = list(range(0, trainingSetSize[domain]))
 
@@ -100,7 +98,7 @@ def CreatePlot(training, validation):
                 COLORS[1],
                 'Validation Loss in {} domain'.format(domain))
 
-    fname = 'plots/AIJ2020/Loss_{}_{}.png'.format(domain, modelFrom)
+    fname = 'plots/{}/Loss_{}_{}.png'.format(resultsFolder, domain, modelFrom)
     plt.xlabel('Training steps')
     plt.xticks(np.arange(min(x), max(x)+10, gap[domain]))
     plt.ylabel("Loss")
@@ -132,8 +130,8 @@ if __name__ == "__main__":
     for m in params[domain]:
         models = GetParamLearningNetworks(domain, m)
         for p in models:
-            print("Training for ", m, ,p)
-            fileIn = open("../../raeResults/{}/learning/{}/numericData_{}_{}_{}_{}.txt".format(resultsFolder, domain, domain, modelFrom, m, param, models[p]))
+            print("Training for ", m, p)
+            fileIn = open("../../raeResults/{}/learning/{}/numericData_mi_{}_{}_{}_{}.txt".format(resultsFolder, domain, domain, modelFrom, m, p))
             
             x, y = [], []
             line = fileIn.readline()
@@ -147,18 +145,12 @@ if __name__ == "__main__":
             fileIn.close()
 
             trainingSetSize = {
-                "EE": round(0.8*len(x)),
                 "SD": round(0.8*len(x)),
-                "SR": round(0.8*len(x)),
-                "CR": round(0.8*len(x)),
                 "OF": round(0.8*len(x)),
             }
 
             validationSetSize = {
-                "EE": len(x) - trainingSetSize["EE"],
                 "SD": len(x) - trainingSetSize["SD"],
-                "SR": len(x) - trainingSetSize["SR"],
-                "CR": len(x) - trainingSetSize["CR"],
                 "OF": len(x) - trainingSetSize["OF"],
             }
 
@@ -176,31 +168,25 @@ if __name__ == "__main__":
             # Sets hyper-parameters
             if modelFrom == "actor":
                 lrD = {
-                    "EE": 1e-2, #1e-3,
                     "SD": 1e-2, #1e-3,
-                    "SR": 1e-1,
-                    "CR": 1e-2,
                     "OF": 1e-3,
                 }
             else:
                 lrD = {
-                    "EE": 1e-2, #1e-3,
                     "SD": 1e-2, #1e-3,
-                    "SR": 1e-2,
-                    "CR": 1e-1, #1e-1,
                     "OF": 1e-3,
                 }
             lr = lrD[domain]
 
-            optimizer = optim.SGD(model.parameters(), lr=lr)
+            optimizer = optim.SGD(models[p].parameters(), lr=lr)
 
             # Creates function to perform train step from model, loss and optimizer
-            train_step = make_train_step(model, loss_fn, optimizer)
+            train_step = make_train_step(models[p], loss_fn, optimizer)
 
             # Training loop
             for epoch in range(n_epochs):
 
-                vLoss1, tLoss1, vAcc1, tAcc1 = []
+                vLoss1, tLoss1, vAcc1, tAcc1 = [], [], [], []
                 # Uses loader to fetch one mini-batch for training
                 
                 for x_batch, y_batch in train_loader:
@@ -221,9 +207,9 @@ if __name__ == "__main__":
                         x_val, y_val = x_val.to(device), y_val.to(device)
                         
                         # What is that?!
-                        model.eval()
+                        models[p].eval()
                         # Makes predictions
-                        yhat = model(x_val)
+                        yhat = models[p](x_val)
                         #print(yhat)
 
                         # Computes validation loss and accuracy
@@ -258,7 +244,7 @@ if __name__ == "__main__":
             print("------------------- Validation accuracy")
             PrintList(val_accuracy, "../../raeResults/{}/learning/{}/Vacc.txt".format(resultsFolder, domain))
 
-            torch.save(model.state_dict(), "models/{}/model_to_choose_{}_{}".format(resultsFolder, domain, modelFrom))
+            torch.save(models[p].state_dict(), "models/{}/learnMI_{}_{}_{}_{}".format(resultsFolder, domain, modelFrom, m, p))
             
 
 

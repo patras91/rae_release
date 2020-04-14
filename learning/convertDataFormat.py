@@ -465,7 +465,7 @@ if __name__ == "__main__":
 			recordL[method] = {}
 			for p in params[domain][method]:
 				recordL[method][p] = []
-				fwrite[method][p] = open(folderPrefix + "{}/numericData_mi_{}_{}_{}.txt".format(domain, domain, suffix, method, p), "w")
+				fwrite[method][p] = open(folderPrefix + "{}/numericData_mi_{}_{}_{}_{}.txt".format(domain, domain, suffix, method, p), "w")
 
 	f = open(fname)
 	
