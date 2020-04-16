@@ -5,6 +5,7 @@ import sys
 
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
+sys.path.append('../shared/domains/UnitTests/')
 sys.path.append('../shared/problems/SD/auto')
 sys.path.append('../shared/problems/SD/manual')
 sys.path.append('../shared/problems/CR/auto')
@@ -76,6 +77,7 @@ def InitializeSecurityDomain(v, state):
     GLOBALS.SetDataGenerationMode(None)
     GLOBALS.SetUCTRuns(50) # to decide later accordingly
     GLOBALS.SetTimeLimit(300)
+    GLOBALS.SetDoIterativeDeepening(False)
     '''
     :param domain: the code of the domain
     :param problem: the problem id
