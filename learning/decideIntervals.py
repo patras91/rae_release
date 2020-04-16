@@ -50,7 +50,6 @@ def normalize(l):
 	return l2
 
 def PrintEffIntervals(eMax, l):
-	
 	widths = []
 	sum = 0
 
@@ -59,6 +58,7 @@ def PrintEffIntervals(eMax, l):
 		"SR": 10,
 		"SD": 75,
 		"EE": 200,
+		"OF": 150,
 	}
 
 	factor = {
@@ -66,10 +66,14 @@ def PrintEffIntervals(eMax, l):
 		"SR": 1.75,
 		"SD": 1.12,
 		"EE": 1.05,
+		"OF": 1.1,
 	}
 
 	for i in range(numIntervals[domain]):
-		x = pow(factor[domain], i)
+		if domain == "OF":
+			x = pow(factor[domain], -abs(numIntervals[domain] - i)/3)
+		else:
+			x = pow(factor[domain], i)
 		widths.append(x)
 		sum += x
 
@@ -117,7 +121,7 @@ if __name__ == "__main__":
 		print("Invalid value for --dataFrom")
 		exit()
 
-	fname = "../../raeResults/learning/{}/{}_data_eff_{}_without_dup.txt".format(domain, domain, suffix)
+	fname = "../../raeResults/AIJ2020/learning/{}/{}_data_eff_{}_without_dup.txt".format(domain, domain, suffix)
 	recordL = []
 	countL = []
 
@@ -135,6 +139,8 @@ if __name__ == "__main__":
 			ReadStateVars(line, f, 5)
 		elif domain == "EE":
 			ReadStateVars(line, f, 5)
+		elif domain == "OF":
+			ReadStateVars(line, f, 8)
 
 		task = f.readline()[0:-1]
 		mainTask = f.readline()[0:-1]

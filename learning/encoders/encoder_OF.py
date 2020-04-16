@@ -122,6 +122,29 @@ def ReadOnlyTaskArgs_OF(taskAndArgs):
 		res += o + p
 	return res
 
+def ReadTaskAndArgs_OF(taskAndArgs):
+	tParts = taskAndArgs.split(' ')
+	t = tParts[0]
+	res = []
+	if t == 'order':
+		res += ConvertToOneHot([int(tParts[1][6])], 'OBJ_CLASS', 'OF')
+	elif t == 'pickupAndLoad':
+		o = ConvertToOneHot([int(tParts[3][1:])], 'nObjects', 'OF')
+		m = ConvertToOneHot([int(tParts[4][1:])], 'nMachines', 'OF')
+		res += o + m 
+	elif t == 'unloadAndDeliver':
+		m = ConvertToOneHot([int(tParts[1][1:])], 'nMachines', 'OF')
+		if tParts[3][2] == 'o':
+			o = ConvertToOneHot([int(tParts[3][3])], 'nObjects', 'OF')
+		else:
+			o = ConvertToOneHot([int(tParts[2][19])], 'nObjects', 'OF')
+		res += m + o
+	elif t == 'moveToPallet':
+		o = ConvertToOneHot([int(tParts[1][1:])], 'nObjects', 'OF')
+		p = ConvertToOneHot([int(tParts[2][1:])], 'nPallets', 'OF')
+		res += o + p
+	return res
+
 def ReadStateVars_OF(line, f):
 	a1 = line[8:-1]
 	a1 = GetObjsString(a1).split(' ')

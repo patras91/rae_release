@@ -103,13 +103,15 @@ def SetTimeLimit(t):
 def GetTimeLimit():
     return g.timeLimit
 
-def SetLearningMode(m):
-    g.learningMode = m
+def SetDataGenerationMode(a):
+    g.dataGenMode = a
 
-def GetLearningMode():
-    return g.learningMode
+def GetDataGenerationMode():
+    return g.dataGenMode
 
 def SetUseTrainedModel(t):
+    if t == 'None':
+        t = None
     g.useTrainedModel = t
 
 def GetUseTrainedModel():

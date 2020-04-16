@@ -73,7 +73,7 @@ def InitializeSecurityDomain(v, state):
     GLOBALS.SetUCTmode('UCT')
     #GLOBALS.Setb(3)
     #GLOBALS.Setk(5)
-    GLOBALS.SetLearningMode(None)
+    GLOBALS.SetDataGenerationMode(None)
     GLOBALS.SetUCTRuns(50) # to decide later accordingly
     GLOBALS.SetTimeLimit(300)
     '''
@@ -84,7 +84,7 @@ def InitializeSecurityDomain(v, state):
     GLOBALS.SetDomain('SDN')
     GLOBALS.SetOpt('max') # maximizing the efficiency to start with
     GLOBALS.SetDoPlanning(True)
-    GLOBALS.SetUseTrainedModel('n')
+    GLOBALS.SetUseTrainedModel(None)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
@@ -135,8 +135,8 @@ if __name__ == "__main__":
                            type=str, default="efficiency", required=False)
     
     #use learned models?
-    argparser.add_argument("--useTrainedModel", help="use Model Trained with Actor (a) / use Model Trained with Planner (p) / use learned heuristic (hp) / None (n)?", 
-                        type=str, default="n", required=False)
+    argparser.add_argument("--useTrainedModel", help="learnM1 or learnM2 or learnH or learnMI or None?", 
+                        type=str, default=None, required=False)
     
     argparser.add_argument("--useBackupUCT", help="If RAEplanUCT fails, do you want to run UCT with only commands?",
                         type=bool, default=False, required=False)
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     if args.plan == 'y':
         s = True
-        assert(args.useTrainedModel == 'n' or args.useTrainedModel == 'hp')
+        assert(args.useTrainedModel == None or args.useTrainedModel == 'None' or args.useTrainedModel == 'learnH')
     else:
         s = False
 
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     GLOBALS.SetUCTRuns(args.uctCount)
     GLOBALS.SetDomain(args.domain)
     GLOBALS.SetTimeLimit(args.timeLim)
-    GLOBALS.SetLearningMode(None)
+    GLOBALS.SetDataGenerationMode(None)
     GLOBALS.SetUseTrainedModel(args.useTrainedModel)
     GLOBALS.SetModelPath("../learning/models/AIJ2020/")
     GLOBALS.SetDoIterativeDeepening(args.doIterativeDeepening)

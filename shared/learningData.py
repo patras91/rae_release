@@ -51,10 +51,10 @@ class TrainingData():
 trainingDataRecords = TrainingData()
 
 def WriteTrainingData():
-	if GLOBALS.GetLearningMode() == "genDataActor":
+	if GLOBALS.GetDataGenerationMode() == "learnM1":
 		trainingDataRecords.PrintInFile("actor")
-	elif GLOBALS.GetLearningMode() == "genDataPlanner":
+	elif GLOBALS.GetDataGenerationMode() == "learnM2":
 		trainingDataRecords.PrintInFile("planner")
-	elif GLOBALS.GetLearningMode() == "genEffDataPlanner":
+	elif GLOBALS.GetDataGenerationMode() == "learnH":
 		trainingDataRecords.PrintInFile("eff_planner")
 	

@@ -105,7 +105,7 @@ P=(
 "problem111"
 )
 UCT=(
-"1000" 
+"250" 
 )
 for problem in ${P[@]}
 do
@@ -117,14 +117,16 @@ sys.path.append('../../RAE_and_RAEplan/')
 sys.path.append('../../shared/domains/')
 sys.path.append('../../shared/problems/OF/auto')
 sys.path.append('../../shared/')
+sys.path.append('../../learning/')
+sys.path.append('../../learning/encoders/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetTimeLimit(1800)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
 GLOBALS.SetHeuristicName('h2')
-GLOBALS.SetLearningMode('genEffDataPlanner')
-GLOBALS.SetUseTrainedModel('n')
+GLOBALS.SetDataGenerationMode('learnH')
+GLOBALS.SetUseTrainedModel(None)
 GLOBALS.SetMaxDepth(50)"
 counter=1
 while [ $counter -le $runs ]

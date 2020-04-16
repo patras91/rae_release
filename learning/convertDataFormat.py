@@ -155,6 +155,7 @@ methodCodes = {
 	"PickupAndLoad_Method1": 3,
 	"UnloadAndDeliver_Method1": 4,
 	"MoveToPallet_Method1": 5,
+	"Redoer": 6,
 	}
 }
 
@@ -163,7 +164,7 @@ numMethods = {
 	"SR": 16,
 	"EE": 17,	
 	"SD": 9,
-	"OF": 6,
+	"OF": 7,
 }
 
 numTasks = {
@@ -210,7 +211,7 @@ taskCodes = {
 	'handleEmergency': 8,
 	},
 	"OF": {
-	'orderStart': 1,
+	'orderStart ': 1,
 	'order': 2,
 	'pickupAndLoad': 3,
 	'unloadAndDeliver': 4,
@@ -283,12 +284,13 @@ def Encode_LearnH(domain, state, method, taskAndArgs):
 		"OF": EncodeState_OF,
 	}[domain](state)
 
-	if domain == "SD":
-		p1 += ReadTaskAndArgs_SD(taskAndArgs)
-	elif domain == "SR":
-		p1 += ReadTaskAndArgs_SR(taskAndArgs)
-	elif domain == "EE":
-		p1 += ReadTaskAndArgs_EE(taskAndArgs)
+	if domain != "CR":
+		p1 += {
+			"SD": ReadTaskAndArgs_SD,
+			"SR": ReadTaskAndArgs_SR,
+			"EE": ReadTaskAndArgs_EE,
+			"OF": ReadTaskAndArgs_OF,
+		}[domain](taskAndArgs)
 
 	p1 += ConvertToOneHotHelper(methodCodes[domain][method], numMethods[domain])
 	return p1
@@ -448,11 +450,11 @@ def ReadOnlyTaskArgs_LearnMI(taskAndArgs, domain):
 if __name__ == "__main__":
 
 	argparser = argparse.ArgumentParser()
-	argparser.add_argument("--domain", help="domain in ['CR', 'SD', SR', EE']",
+	argparser.add_argument("--domain", help="domain in ['CR', 'SD', SR', EE', 'OF']",
                            type=str, required=True)
 	argparser.add_argument("--dataFrom", help="actor (a) or planner (p) ?",
                            type=str, required=True)
-	argparser.add_argument("--learnWhat", help="method (m) or efficiency(e)",
+	argparser.add_argument("--learnWhat", help="learnM, learnMI or learnH",
 						   type=str, required=True)
 	argparser.add_argument("--howMany", help="how many training data records to read?",
 						   type=int, required=True)
@@ -460,16 +462,16 @@ if __name__ == "__main__":
 	
 	domain, learnWhat = args.domain, args.learnWhat
 	
-	assert(learnWhat == 'm' or learnWhat == "e" or learnWhat == "mi")
+	assert(learnWhat == 'learnM' or learnWhat == "learnH" or learnWhat == "learnMI")
 	assert(args.dataFrom == 'a' or args.dataFrom=="p")
 	suffix = 'actor' if args.dataFrom == 'a' else 'planner'
 
-	if learnWhat == "m":
+	if learnWhat == "learnM":
 		fname = folderPrefix + "{}/{}_data_{}.txt".format(domain, domain, suffix)
 		fwrite = open(folderPrefix + "{}/numericData_{}_{}.txt".format(domain, domain, suffix), "w")
 		recordL = []
 
-	elif learnWhat == "e":
+	elif learnWhat == "learnH":
 		if domain != "CR":
 			fname = folderPrefix + "{}/{}_data_eff_{}_without_dup.txt".format(domain, domain, suffix)
 		else:
@@ -477,7 +479,7 @@ if __name__ == "__main__":
 		fwrite = open(folderPrefix + "{}/numericData_eff_{}_{}.txt".format(domain, domain, suffix), "w")
 		recordL = []
 
-	elif learnWhat == "mi":
+	elif learnWhat == "learnMI":
 		fname = folderPrefix + "{}/{}_data_{}_mi_without_dups.txt".format(domain, domain, suffix)
 		fwrite = {}
 		recordL = {}
@@ -502,13 +504,13 @@ if __name__ == "__main__":
 
 		taskAndArgs = f.readline()[0:-1]
 		mainTask = f.readline()[0:-1]
-		method = f.readline()[0:-1]
+		method = f.readline()[0:-1].split(' ')[0]
 
 		#taskCode = taskCodes[domain][taskAndArgs]
 		
 		eff = f.readline()[0:-1]
 
-		if learnWhat == "m":
+		if learnWhat == "learnM":
 			mainTaskCode = taskCodes[domain][mainTask]
 			#record.append(str(mainTaskCode))
 			params = taskAndArgs.split(' ')
@@ -520,7 +522,7 @@ if __name__ == "__main__":
 
 			record.append(str(methodCodes[domain][method]))
 
-		elif learnWhat == "e":
+		elif learnWhat == "learnH":
 			mainTaskCode = taskCodes[domain][mainTask]
 			record += ReadTaskAndArgs_LearnH(taskAndArgs, domain)
 			
@@ -533,16 +535,16 @@ if __name__ == "__main__":
 				eff = 1
 			record.append(str(eff))
 
-		else: # learnWhat == "mi"
+		else: # learnWhat == "learnMI"
 			record += ReadOnlyTaskArgs_LearnMI(taskAndArgs, domain)
 			methodParts = method.split(' ')
 			methodName = methodParts[0]
 
-		if learnWhat == "e":
+		if learnWhat == "learnH":
 			AddToRecordsAllTogether_LearnH(recordL, record)
-		elif learnWhat == "m":
+		elif learnWhat == "learnM":
 			AddToRecordsAllTogether_LearnM(recordL, record)
-		elif learnWhat == "mi":
+		elif learnWhat == "learnMI":
 			AddToRecords_MethodParamBased_LearnMI(domain, recordL, record, methodName, method)
 
 		if len(recordL) % 100 == 0:
@@ -553,18 +555,18 @@ if __name__ == "__main__":
 		line = f.readline()
 	f.close()
 
-	if learnWhat == "e":
+	if learnWhat == "learnH":
 		record_LearnH = DivideIntoIntervals(recordL, domain)
 		for item in record_LearnH:
 			fwrite.write(" ".join([str(i) for i in item]) + "\n")
 		print(len(record_LearnH[0]))
 
-	elif learnWhat == "m":
+	elif learnWhat == "learnM":
 		for item in recordL:
 			fwrite.write(" ".join(item) + "\n")
 		print(len(recordL[0]))
 
-	elif learnWhat == "mi":
+	elif learnWhat == "learnMI":
 		for methodName in params[domain]:
 			for p in params[domain][methodName]:
 				print(methodName, p, len(recordL[methodName][p][0]))

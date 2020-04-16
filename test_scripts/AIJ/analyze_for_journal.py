@@ -760,6 +760,15 @@ def PlotHelper_LearnMI(resDict, utilp, errorP):
         for bar, pattern in zip(rects, patterns):
             bar.set_hatch(pattern)
 
+        text = {
+            0: 'Purely reactive',
+            1: 'LearnM-1',
+            2: 'LearnM-2',
+            3: 'LearnMI',
+            4: 'RAE + UPOM'
+        }
+        for i, v in enumerate(x):
+            ax[domain].text(i, list(toPlot['val'].values())[i] + 0.001, text[i], rotation=90)
         ax[domain].set_ylim(bottom=lowerLim[domain][index1])
         #elif index1 == "successRatio":
         #    ax.set_ylim(bottom=0.1)

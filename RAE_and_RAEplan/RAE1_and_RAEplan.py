@@ -383,7 +383,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         else:
             return (candidates[0], candidates[1:])
     else:
-        if GLOBALS.GetLearningMode() == "genDataPlanner":
+        if GLOBALS.GetDataGenerationMode() == "learnM2":
             trainingDataRecords.Add(
                     GetState(), 
                     methodInstance, 
@@ -439,7 +439,7 @@ def GetCandidateFromLearnedModel(fname, task, candidates, taskArgs):
     else:
         m_chosen = candidates[0].GetName()
 
-    if GLOBALS.GetUseTrainedModel() == "mi" and m_chosen in params[domain]:
+    if GLOBALS.GetUseTrainedModel() == "learnMI" and m_chosen in params[domain]:
         pList = []
         for p in params[domain][m_chosen]:
             
@@ -477,13 +477,13 @@ def GetCandidateFromLearnedModel(fname, task, candidates, taskArgs):
     return (candidates[0], candidates[1:])
 
 def choose_candidate(candidates, task, taskArgs):
-    if len(candidates) == 1 or (GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "n"):
+    if len(candidates) == 1 or (GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == None):
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
-    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "a":
+    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "learnM1":
         fname = GLOBALS.GetModelPath() + "model_to_choose_{}_actor".format(GLOBALS.GetDomain())
         return GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
-    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "p" or GLOBALS.GetUseTrainedModel() == "mi":
+    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "learnM2" or GLOBALS.GetUseTrainedModel() == "learnMI":
         fname = GLOBALS.GetModelPath() + "model_to_choose_{}_planner".format(GLOBALS.GetDomain())
         return GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
     else:
@@ -543,7 +543,7 @@ def DoTaskInRealWorld(task, taskArgs):
     if retcode == 'Failure':
         raise Failed_task('{}{}'.format(task, taskArgs))
     elif retcode == 'Success':
-        if GLOBALS.GetLearningMode() == "genDataActor" or GLOBALS.GetLearningMode() == "genDataPlanner":
+        if GLOBALS.GetDataGenerationMode() == "learnM1" or GLOBALS.GetDataGenerationMode() == "learnM2":
             trainingDataRecords.Add(
                 GetState(), 
                 m, 
@@ -669,7 +669,7 @@ def RAEplanChoice(task, planArgs):
         PrintState()
 
     taskToRefine = planLocals.GetTaskToRefine()
-    if GLOBALS.GetLearningMode() == "genEffDataPlanner":
+    if GLOBALS.GetDataGenerationMode() == "learnH":
         taskToRefine.GetTrainingItems_SLATE(
             trainingDataRecords, 
             planArgs.GetCurUtil(), 
@@ -743,7 +743,7 @@ def RAEplanChoice_UCT(task, planArgs):
         PrintState()
 
     taskToRefine = planLocals.GetTaskToRefine()
-    if GLOBALS.GetLearningMode() == "genEffDataPlanner":
+    if GLOBALS.GetDataGenerationMode() == "learnH":
         taskToRefine.UpdateAllUtilities()
         taskToRefine.GetTrainingItems(
             trainingDataRecords, 
@@ -786,7 +786,7 @@ def FollowSearchTree_task(task, taskArgs, node):
         return tree
 
 def GetHeuristicEstimate(task=None, tArgs=None):
-    if GLOBALS.GetUseTrainedModel() == "hp" and GLOBALS.GetOpt() == "max":
+    if GLOBALS.GetUseTrainedModel() == "learnH" and GLOBALS.GetOpt() == "max":
         domain = GLOBALS.GetDomain()
         features = {
             "EE": 204, #23 - 2,

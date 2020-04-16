@@ -62,12 +62,13 @@ sys.path.append('../../../../shared/domains/')
 sys.path.append('../../../../shared/problems/SR/training')
 sys.path.append('../../../../shared/')
 sys.path.append('../../../../learning/')
+sys.path.append('../../../../learning/encoders/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetOpt('max')
-GLOBALS.SetUseTrainedModel('hp')
-GLOBALS.SetLearningMode(None)
+GLOBALS.SetUseTrainedModel('learnH')
+GLOBALS.SetDataGenerationMode(None)
 GLOBALS.SetUCTRuns(5)
-GLOBALS.SetSearchDepth(2)
+GLOBALS.SetMaxhDepth(2)
 GLOBALS.SetModelPath('../../../../learning/models/')
 GLOBALS.SetTimeLimit(300)"
 counter=1

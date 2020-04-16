@@ -743,8 +743,12 @@ class SearchTreeNode():
                 else:
                     if self.children[i].GetLabel() != "heuristic":
                         l.Add(self.children[i].prevState, 
-                            self.children[i].GetLabel(), self.children[i].util, 
-                            self.label + " " + str(self.args), mainTask, None) 
+                            self.children[i].GetLabel(), 
+                            self.children[i].util, 
+                            self.label,
+                            self.args, 
+                            mainTask, 
+                            []) 
                         self.children[i].GetTrainingItems(l, util, mainTask)
         elif self.type == "method" or self.type == "state":
             if len(self.children) > 0:

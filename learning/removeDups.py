@@ -2,8 +2,8 @@ import argparse
 from paramInfo import params
 
 def Process_LearnH(domain):
-	f = open("../../raeResults/learning/{}/{}_data_eff_planner.txt".format(domain, domain), "r")
-	fw = open("../../raeResults/learning/{}/{}_data_eff_planner_without_dup.txt".format(domain, domain), "w")
+	f = open("../../raeResults/AIJ2020/learning/{}/{}_data_eff_planner.txt".format(domain, domain), "r")
+	fw = open("../../raeResults/AIJ2020/learning/{}/{}_data_eff_planner_without_dup.txt".format(domain, domain), "w")
 
 	line = f.readline()
 	records = []

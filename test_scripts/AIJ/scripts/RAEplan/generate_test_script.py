@@ -236,6 +236,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt, heuristic):
     file.write("sys.path.append(\'../../../../shared/problems/{}/auto\')\n".format(domain))
     file.write("sys.path.append(\'../../../../shared/\')\n")
     file.write("sys.path.append(\'../../../../learning/\')\n")
+    file.write("sys.path.append(\'../../../../learning/encoders/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
     #file.write("GLOBALS.SetOpt('max')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
@@ -269,9 +270,9 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt, heuristic):
         else:
             file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
 
-    file.write("GLOBALS.SetLearningMode(None)\n")
+    file.write("GLOBALS.SetDataGenerationMode(None)\n")
     file.write("GLOBALS.SetModelPath(\'../learning/models/\')\n")
-    file.write("GLOBALS.SetUseTrainedModel(\'n\')\"\n")
+    file.write("GLOBALS.SetUseTrainedModel(None)\"\n")
 
     file.write("counter=1\n")
     file.write("while [ $counter -le $runs ]\n")

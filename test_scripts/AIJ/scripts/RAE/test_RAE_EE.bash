@@ -62,10 +62,12 @@ sys.path.append('../../../../shared/domains/')
 sys.path.append('../../../../shared/problems/EE/auto')
 sys.path.append('../../../../shared/')
 sys.path.append('../../../../learning/')
+sys.path.append('../../../../learning/encoders/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetOpt('max')
-GLOBALS.SetUseTrainedModel('n')
-GLOBALS.SetLearningMode(None)
+GLOBALS.SetUseTrainedModel(None)
+GLOBALS.SetDataGenerationMode(None)
+GLOBALS.SetModelPath('../../../../learning/models/')
 GLOBALS.SetTimeLimit(300)"
 counter=1
 while [ $counter -le $runs ]

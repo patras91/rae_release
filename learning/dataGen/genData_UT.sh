@@ -17,13 +17,15 @@ sys.path.append('../../RAE_and_RAEplan/')
 sys.path.append('../../shared/domains/')
 sys.path.append('../../shared/problems/unitTests')
 sys.path.append('../../shared/')
+sys.path.append('../../learning/')
+sys.path.append('../../learning/encoders/')
 from testRAEandRAEplan import GLOBALS, testBatch
 GLOBALS.SetTimeLimit(1800)
 GLOBALS.SetUCTRuns($uctCount)
 GLOBALS.SetUCTmode('UCT')
 GLOBALS.SetOpt('max')
 GLOBALS.SetHeuristicName('h2')
-GLOBALS.SetLearningMode('genEffDataPlanner')
+GLOBALS.SetDataGenerationMode('learnH')
 GLOBALS.SetUseTrainedModel('n')
 GLOBALS.SetMaxDepth(float(\"inf\"))"
 counter=1
