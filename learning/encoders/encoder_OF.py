@@ -125,6 +125,7 @@ def ReadOnlyTaskArgs_OF(taskAndArgs):
 def ReadTaskAndArgs_OF(taskAndArgs):
 	tParts = taskAndArgs.split(' ')
 	t = tParts[0]
+
 	res = []
 	if t == 'order':
 		res += ConvertToOneHot([int(tParts[1][6])], 'OBJ_CLASS', 'OF')

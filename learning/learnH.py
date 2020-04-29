@@ -12,6 +12,7 @@ from torch.optim.lr_scheduler import MultiStepLR
 device = 'cpu' #if torch.cuda.is_available() else 'cpu'
 domain = None
 modelFrom = None
+folderPrefix = "../../raeResults/AIJ2020/learning/"
 
 torch.manual_seed(100)
 np.random.seed(200)
@@ -49,7 +50,7 @@ features = {
     "EE": 204, #23 - 2,
     "SD": 144, #25 - 2,
     "SR": 401, #24 - 2,
-    "OF": 0,
+    "OF": 627,
     "CR": 100, #23 - 2,
 }
 
@@ -57,7 +58,7 @@ outClasses = {
     "EE": 200,
     "SD": 75,
     "SR": 10,
-    "OF": 1,
+    "OF": 10, #150,
     "CR": 100, #1
 }
 
@@ -126,6 +127,7 @@ def CreatePlot(training, validation):
         "EE": 50,
         "SR": 10,
         "CR": 10,
+        "OF": 10,
     }
     x = list(range(0, len(training)))
 
@@ -165,18 +167,21 @@ if __name__ == "__main__":
                            type=int, required=False, default = 1)
     argparser.add_argument("--task", help="which task? ('all' for all together)",
                            type=str, required=True)
+
     args = argparser.parse_args()
     domain = args.domain
     n_epochs = args.nepochs
+
     if args.modelFrom == 'a':
         modelFrom = "actor"
     else:
         modelFrom = "planner"
 
     if args.task == "all":
-        fileIn = open("../../raeResults/learning/{}/numericData_eff_{}_{}.txt".format(domain, domain, modelFrom))
+        fileIn = open("{}{}/numericData_eff_{}_{}.txt".format(folderPrefix, domain, domain, modelFrom))
     else:
-        fileIn = open("../../raeResults/learning/{}/numericData_eff_{}_{}_task_{}.txt".format(domain, domain, modelFrom, args.task))
+        fileIn = open("{}{}/numericData_eff_{}_{}_task_{}.txt".format(folderPrefix, domain, domain, modelFrom, args.task))
+    
     x = []
     y = []
     line = fileIn.readline()
@@ -187,11 +192,13 @@ if __name__ == "__main__":
         if r < 2:
             items = nums.split(" ")
             x_row = [float(i) for i in items[0:-1]]
+            while(len(x_row) < features[domain]):
+                x_row.append(0)
             x.append(x_row)
             
-            y_row = int(items[-1])
-            if y_row > 90:
-                print(y_row)
+            y_row = int(items[-1]) + 1
+            #if y_row > 90:
+            #    print(y_row)
             y.append(y_row)
         r = np.random.rand()
         line = fileIn.readline()
@@ -219,7 +226,7 @@ if __name__ == "__main__":
     #x = np.random.rand(10, 3, 1)
     #print(" x is ", x)
     #y = 1 + .1 * np.random.randn(10, 1)
-
+    print(x.dtype)
     x_tensor = torch.from_numpy(x).float()
     y_tensor = torch.from_numpy(y).long()
 
@@ -232,8 +239,8 @@ if __name__ == "__main__":
     val_loader = DataLoader(dataset=val_dataset, batch_size=128)
 
     #model = nn.Sequential(nn.Linear(features[domain], 1)).to(device) 
-    if domain == "EE" or domain == "SR" or domain == "SD" or domain == "CR":
-        model = nn.Sequential(nn.Linear(features[domain], 1024), 
+    if domain == "EE" or domain == "SR" or domain == "SD" or domain == "CR" or domain == "OF":
+        model = nn.Sequential(nn.Linear(features[domain], 512), 
             nn.ReLU(inplace=True),
             #nn.Linear(1024, 1024), 
             #nn.ReLU(inplace=True),
@@ -246,7 +253,7 @@ if __name__ == "__main__":
             #nn.Sigmoid(),
             #nn.Linear(512, 512), 
             #nn.ReLU(inplace=True), 
-            nn.Linear(1024, outClasses[domain]))
+            nn.Linear(512, outClasses[domain]))
             #nn.Sigmoid()))
     elif domain == "CR":
         model = nn.Sequential(nn.Linear(features[domain], 512), 
@@ -273,7 +280,7 @@ if __name__ == "__main__":
             "SD": 1e-1,
             "SR": 1e-1,
             "CR": 1e-1,
-            "OF": 1e-3,
+            "OF": 1e-2,
         }
     lr = lrD[domain]
 
@@ -362,22 +369,22 @@ if __name__ == "__main__":
                 " VAcc = ", num3)
         
     print("------------------- training losses ")
-    PrintList(tr_losses, "../../raeResults/learning/{}/TLoss_eff.txt".format(domain))
+    PrintList(tr_losses, "{}{}/TLoss_eff.txt".format(folderPrefix, domain))
 
     print("------------------- validation losses")
-    PrintList(val_losses, "../../raeResults/learning/{}/VLoss_eff.txt".format(domain))
+    PrintList(val_losses, "{}{}/VLoss_eff.txt".format(folderPrefix, domain))
 
     #CreatePlot(tr_losses, val_losses)
     #print(" mean training loss " , np.mean(tr_losses))
     #print(" mean validation loss ", np.mean(val_losses))
 
     print("------------------- Training accuracy")
-    PrintList(tr_accuracy, "../../raeResults/learning/{}/TAcc_eff.txt".format(domain))
+    PrintList(tr_accuracy, "{}{}/TAcc_eff.txt".format(folderPrefix, domain))
 
     print("------------------- Validation accuracy")
-    PrintList(val_accuracy, "../../raeResults/learning/{}/Vacc_eff.txt".format(domain))
+    PrintList(val_accuracy, "{}{}/Vacc_eff.txt".format(folderPrefix, domain))
 
-    torch.save(model.state_dict(), "models/model_for_eff_{}_{}_task_{}".format(domain, modelFrom, args.task))
+    torch.save(model.state_dict(), "models/AIJ2020/model_for_eff_{}_{}_task_{}".format(domain, modelFrom, args.task))
     
 
 

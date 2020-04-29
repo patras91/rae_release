@@ -12,7 +12,6 @@ domain = None
 
 import argparse
 
-
 def normalize(l):
 	l2 = []
 	for item in l:
@@ -49,6 +48,60 @@ def normalize(l):
 
 	return l2
 
+def Sort(l):
+	for i in range(1, len(l)): 
+		key = l[i] 
+		# Move elements of arr[0..i-1], that are 
+		# greater than key, to one position ahead 
+		# of their current position 
+		j = i-1
+		while j >=0 and key < l[j] : 
+				l[j+1] = l[j] 
+				j -= 1
+		l[j+1] = key 
+	print(l)
+
+
+def PrintEffIntervalsByCounting(eMax, l):
+	widths = []
+	sum = 0
+
+	numIntervals = {
+		"CR": 100,
+		"SR": 10,
+		"SD": 75,
+		"EE": 200,
+		#"OF": 150,
+		#"OF": 75,
+		#"OF": 50,
+		"OF": 10,
+	}
+
+	Sort(l)
+
+	intervalLimits = []
+
+	for i in range(numIntervals[domain]-1):
+		intervalLimits.append(l[int((i+1)*len(l)/numIntervals[domain])])
+
+	intervalLimits.append(1)
+
+	#print([int(100*x) for x in intervalLimits])
+	print(intervalLimits)
+
+	counts = [0]*numIntervals[domain]
+
+	for item in l:
+		for i in range(numIntervals[domain]):
+			if item < intervalLimits[i]:
+				counts[i-1] += 1
+				break
+
+	sanitySum = 0
+	for i in counts:
+		sanitySum += i
+	print(counts, sanitySum)
+
 def PrintEffIntervals(eMax, l):
 	widths = []
 	sum = 0
@@ -58,7 +111,10 @@ def PrintEffIntervals(eMax, l):
 		"SR": 10,
 		"SD": 75,
 		"EE": 200,
-		"OF": 150,
+		#"OF": 150,
+		#"OF": 75,
+		#"OF": 50,
+		"OF": 10,
 	}
 
 	factor = {
@@ -66,12 +122,18 @@ def PrintEffIntervals(eMax, l):
 		"SR": 1.75,
 		"SD": 1.12,
 		"EE": 1.05,
-		"OF": 1.1,
+		#"OF": 1.101,
+		#"OF": 1.12,
+		#"OF": 1.12,
+		"OF": 1.5,
 	}
 
 	for i in range(numIntervals[domain]):
 		if domain == "OF":
-			x = pow(factor[domain], -abs(numIntervals[domain] - i)/3)
+			#x = pow(factor[domain], abs(numIntervals[domain]/2.8 - i))
+			#x = pow(factor[domain], abs(numIntervals[domain]/3.8 - i))
+			#x = pow(factor[domain], abs(numIntervals[domain]/6 - i))
+			x = pow(factor[domain], abs(numIntervals[domain]/10 - i))
 		else:
 			x = pow(factor[domain], i)
 		widths.append(x)
@@ -84,6 +146,7 @@ def PrintEffIntervals(eMax, l):
 		widths[i] *= eMax/sum
 		num += widths[i]
 
+	#print([int(100*x) for x in intervalLimits])
 	print(intervalLimits)
 
 	counts = [0]*numIntervals[domain]
@@ -103,11 +166,11 @@ if __name__ == "__main__":
 
 	argparser = argparse.ArgumentParser()
 	argparser.add_argument("--domain", help="domain in ['CR', 'SD', SR', EE']",
-                           type=str, required=True)
+						   type=str, required=True)
 	argparser.add_argument("--dataFrom", help="actor (a) or planner (p) ?",
-                           type=str, required=True)
+						   type=str, required=True)
 	argparser.add_argument("--howMany", help="Number of training data items to read?",
-                           type=int, required=True)
+						   type=int, required=True)
 
 	args = argparser.parse_args()
 	domain = args.domain
@@ -172,4 +235,4 @@ if __name__ == "__main__":
 		line = f.readline()
 	f.close()
 
-	PrintEffIntervals(eMax, recordL)
+	PrintEffIntervalsByCounting(eMax, recordL)

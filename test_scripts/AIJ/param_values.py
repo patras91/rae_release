@@ -46,11 +46,11 @@ K_max_depth = {
 }
 
 Depth = {
-    'SR': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    'CR': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    'OF': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    'SD': [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
-    'EE': [0, 5, 10, 15, 20, 25, 30, 35, 40, 50, 60],
+    'SR': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
+    'CR': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
+    'OF': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
+    'SD': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
+    'EE': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], #35, 40, 50, 60],
 }
 
 #UCT_max_depth = {
@@ -62,20 +62,42 @@ Depth = {
 #}
 
 UCT_max_depth = {
-    "CR": [0, 50, 100, 250, 500, 1000], # 2500, 5000],
-    "SR": [0, 50, 100, 250, 500, 1000], # 2500],
-    "SD": [0, 50, 100, 250, 500, 1000], #, 2500],
-    "EE": [0, 50, 100, 250, 500, 1000], #, 2500, 5000],
-    'OF': [0, 50, 100, 250, 500, 1000], #, 2500, 5000],
+    "CR": [0, 5, 10, 25, 50, 100, 250], #, 500, 1000], # 2500, 5000],
+    "SR": [0, 5, 10, 25, 50, 100, 250], # 2500],
+    "SD": [0, 5, 10, 25, 50, 100, 250], #, 2500],
+    "EE": [0, 5, 10, 25, 50, 100, 250], #, 2500, 5000],
+    'OF': [0, 5, 10, 25, 50, 100, 250], #, 2500, 5000],
 }
 
 UCT_lim_depth = {
+    "h0": {
     'CR': [1000],
     'SR': [1000],
     'OF': [1000],
     'SD': [1000],
     'EE': [1000],
+    },
+    "h1": {
+    'CR': [1000],
+    'SR': [1000],
+    'OF': [1000],
+    'SD': [1000],
+    'EE': [1000],
+    },
+    "learnH": {
+    'CR': [250],
+    'SR': [250],
+    'OF': [250],
+    'SD': [250],
+    'EE': [250],
+    }
 }
+
+def Get_nro_in_lim_depth(h, d):
+    if d <= 4 or h == "learnH":
+        return 250
+    else:
+        return 1000
 
 timeLimit = {
     "OF": 1800,
@@ -88,16 +110,18 @@ timeLimit = {
 
 def GetFullName(domain):
     if domain == "CR":
-        return "Fetch Objects Domain"
+        return "Fetch Domain"
     elif domain == "SD":
         return "Nav Domain"
         return "Navigate Doorways Domain"
     elif domain == "SR":
+        return "S & R domain"
         return "Search and Rescue Domain"
     elif domain == "OF":
         return "Delivery Domain"
         return "Order Delivery Domain"
     elif domain == "EE":
+        return "Explore Domain"
         return "Explore Environment Domain"
 
 # The set of problems with 1 task, 2 tasks, and 3 tasks in each domain

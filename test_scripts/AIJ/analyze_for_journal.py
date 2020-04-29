@@ -7,6 +7,7 @@ import matplotlib as mpl
 mpl.rcParams['hatch.linewidth'] = 0.2  # previous pdf hatch linewidth
 #mpl.rcParams['hatch.linewidth'] = 1.0  # previous svg hatch linewidth
 import numpy as np 
+from pylab import rcParams
 
 from param_values import *
 
@@ -35,7 +36,6 @@ def GetMSEError(l, mean, fac):
 def Include(pname, domain, num_tasks_per_problem):
     #print(pname, problems_with_n_tasks[domain][num_tasks_per_problem])
     v = num_tasks_per_problem == 0 or pname in problems_with_n_tasks[domain][num_tasks_per_problem]
-    print(v)
     return v
 
 def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # param may be n_ro or k or d
@@ -246,23 +246,17 @@ def Populate_UCT_max_depth(res, domain, utilF, num_tasks_per_problem):
         PopulateHelper(res, domain, open(fname), n_ro, fname, num_tasks_per_problem)
         fptr.close()
 
-def Populate_learning(res, domain, model):
+def Populate_learning(res, domain, model, num_tasks_per_problem):
     if model == "UCT":
         if domain == "CR":
             f1 = "{}{}_v_journal/rae_plan_uct_5000.txt".format(resultsFolder, domain)
         else:
-            f1 = "{}{}_v_journal/rae_plan_uct_1000.txt".format(resultsFolder, domain)
+            f1 = "{}{}_v_journal_eff/rae_plan_uct_250.txt".format(resultsFolder, domain)
+        print("reading from ", f1)
         #if domain == "CR" or domain == "EE":
             #f1 = "{}{}_v_journal/RAE_with_planning.txt".format(resultsFolder, domain)
         #else:
         #    f1 = "{}{}_v_journal_eff/rae_plan_uct_100.txt".format(resultsFolder, domain)
-    elif model == "SLATE":
-        f1 = "{}{}_v_journal/rae_plan_b_2_k_2.txt".format(resultsFolder, domain)
-    elif model == "reactive" or domain == "OF":
-        #if domain == "CR" or domain == "SR":
-        #    f1 = "{}{}_v_journal/RAE_training.txt".format(resultsFolder, domain)
-        #else:
-        f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
     elif model == "heuristic_10_3":
         #if domain == "EE":
         #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_40_6.txt".format(resultsFolder, domain)
@@ -273,6 +267,15 @@ def Populate_learning(res, domain, model):
         #else:
         #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_10_3.txt".format(resultsFolder, domain)
     
+    
+    elif model == "reactive" or domain == "OF":
+        #if domain == "CR" or domain == "SR":
+        #    f1 = "{}{}_v_journal/RAE_training.txt".format(resultsFolder, domain)
+        #else:
+        f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+    
+    elif model == "SLATE":
+        f1 = "{}{}_v_journal/rae_plan_b_2_k_2.txt".format(resultsFolder, domain)
     elif model == "actor":
         #if domain not in  ["SR"]:
         #    f1 = "{}{}_v_journal/RAE_with_trained_model_actor.txt".format(resultsFolder, domain)
@@ -299,7 +302,7 @@ def Populate_learning(res, domain, model):
         #elif model == "heuristic0":
         #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0.txt".format(resultsFolder, domain)
     f1_p = open(f1, "r")
-    PopulateHelper(res, domain, f1_p, 0, f1)
+    PopulateHelper(res, domain, f1_p, 0, f1, num_tasks_per_problem)
     f1_p.close()
 
 def Populate_learning_mi(res, domain, model, nTasks):
@@ -352,29 +355,31 @@ def Populate_SLATE_lim_depth(res, domain):
                 PopulateHelper(res[b], domain, open(fname), depth, fname)
                 fptr.close()
 
-def Populate_UCT_lim_depth(res, domain, heuristic):  
-    for uct in UCT_lim_depth[domain]:
-        for depth in Depth[domain]:
-            if depth == 0:
-                f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
-                f_rae = open(f_rae_name, "r")
-                print(f_rae_name)
-                CommonStuff(res[uct], domain, f_rae, depth, fileName)
+def Populate_UCT_lim_depth(res, domain, heuristic, num_tasks_per_problem):  
+    for depth in Depth[domain]:
+        n_ro = Get_nro_in_lim_depth(heuristic, depth)
+        if depth == 0:
+            f_rae_name = "{}/{}_v_journal/RAE.txt".format(resultsFolder, domain)
+            f_rae = open(f_rae_name, "r")
+            print(f_rae_name)
+            PopulateHelper(res, domain, f_rae, depth, f_rae_name, num_tasks_per_problem)
 
-                f_rae.close()
-            else:
-                if heuristic == "h0":
-                    h = "_h_h0"
-                elif heuristic == "h1":
-                    h = ""
+            f_rae.close()
+        else:
+            if heuristic == "h0":
+                h = "_h_h0"
+            elif heuristic == "h1":
+                h = ""
+            elif heuristic == "learnH":
+                h = "_h_learnH"
 
-                fname = '{}{}_v_journal_eff/rae_plan_uct_{}_d_{}'.format(resultsFolder, domain, uct, depth) \
-                        + h + '.txt'.format()
-                
-                fptr = open(fname)
-                print(fname)
-                PopulateHelper(res[uct], domain, open(fname), depth, fname)
-                fptr.close()
+            fname = '{}{}_v_journal_eff/rae_plan_uct_{}_d_{}'.format(resultsFolder, domain, n_ro, depth) \
+                    + h + '.txt'.format()
+            
+            fptr = open(fname)
+            print(fname)
+            PopulateHelper(res, domain, open(fname), depth, fname, num_tasks_per_problem)
+            fptr.close()
 
 def GeneratePlots_SLATE_max_depth():
     resDict = {
@@ -451,7 +456,7 @@ def GeneratePlots_LearnMI(num_tasks):
     for metric in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_LearnMI(resDict, metric, errIndex[metric])
 
-def GeneratePlots_learning():
+def GeneratePlots_learning(num_tasks_per_problem):
     resDict = {}
     for domain in D:
         resDict[domain] = {}
@@ -463,9 +468,9 @@ def GeneratePlots_learning():
         resDict[domain]['UCT'] = GetNewDict()
 
 
-        Populate_learning(resDict[domain]['UCT'], domain, 'UCT')
-        Populate_learning(resDict[domain]['SLATE'], domain, 'SLATE')
-        Populate_learning(resDict[domain]['reactive'], domain, 'reactive')
+        Populate_learning(resDict[domain]['UCT'], domain, 'UCT', num_tasks_per_problem)
+        Populate_learning(resDict[domain]['SLATE'], domain, 'SLATE', num_tasks_per_problem)
+        Populate_learning(resDict[domain]['reactive'], domain, 'reactive', num_tasks_per_problem)
         
 
         # resDict[domain]['heuristic'] = GetNewDict()    
@@ -473,18 +478,18 @@ def GeneratePlots_learning():
         # resDict[domain]['heuristic0'] = GetNewDict()
         # resDict[domain]['heuristic0_10_3'] = GetNewDict()
 
-        Populate_learning(resDict[domain]['learning_from_actor'], domain, 'actor')
-        Populate_learning(resDict[domain]['learning_from_planner'], domain, 'planner')
+        Populate_learning(resDict[domain]['learning_from_actor'], domain, 'actor', num_tasks_per_problem)
+        Populate_learning(resDict[domain]['learning_from_planner'], domain, 'planner', num_tasks_per_problem)
         #Populate_learning(resDict[domain]['heuristic5'], domain, 'heuristic5')
         #Populate_learning(resDict[domain]['heuristic'], domain, 'heuristic')
         #Populate_learning(resDict[domain]['heuristic0'], domain, 'heuristic0')
         #Populate_learning(resDict[domain]['heuristic0_10_3'], domain, 'heuristic0_10_3')
-        Populate_learning(resDict[domain]['heuristic_10_3'], domain, 'heuristic_10_3')
+        Populate_learning(resDict[domain]['heuristic_10_3'], domain, 'heuristic_10_3', num_tasks_per_problem)
 
     
     print(resDict)
     
-    for metric in ['totalTime']: #['nu', 'successRatio', 'retryRatio', 'totalTime']:
+    for metric in ['nu', 'successRatio', 'retryRatio'] : #, 'totalTime']:
         PlotHelper_learning(resDict, metric, errIndex[metric])
 
 def GeneratePlots_UCT_max_depth_planning_utilities():
@@ -538,17 +543,15 @@ def GeneratePlots_SLATE_lim_depth():
     for util in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_SLATE_lim(resDict, util)
 
-def GeneratePlots_UCT_lim_depth():
+def GeneratePlots_UCT_lim_depth(num_tasks_per_problem):
     global util
     resDict = {}
     assert(util == "_eff")
     for domain in D:
-        resDict[domain] = {'h0': {}, 'h1': {}}
-        for uct in UCT_lim_depth[domain]:
-            resDict[domain]['h0'][uct] = GetNewDict()
-            resDict[domain]['h1'][uct] = GetNewDict()
-        Populate_UCT_lim_depth(resDict[domain]['h0'], domain, 'h0')
-        Populate_UCT_lim_depth(resDict[domain]['h1'], domain, 'h1')
+        resDict[domain] = {'h0': {}, 'h1': {}, 'learnH': {}}
+        for h in resDict[domain]:
+            resDict[domain][h] = GetNewDict()
+            Populate_UCT_lim_depth(resDict[domain][h], domain, h, num_tasks_per_problem)
 
     plt.clf()
     font = {
@@ -647,16 +650,21 @@ def PlotHelper_UCT_max_retryRatio(resDict):
         COLORBAR[1],
         "utility = efficiency", 1, ax)
 
-    plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(0.2, 0.5), loc=3, ncol=1, borderaxespad=0.)
         
     ax.set_xticks(np.arange(6))
-    ax.set_xticklabels([str(item) for item in [0, 50, 100, 250, 500, 1000]])
+    ax.set_xticklabels([str(item) for item in [0, 50, 100, 250, 500, "1K"]])
     plt.xlabel('Number of rollouts')
     plt.ylabel(GetYlabel('retryRatio'))
 
     plt.savefig(fname, bbox_inches='tight')
 
 def PlotHelper_UCT_max(resDict, utilp):
+    font = {
+        'family' : 'times',
+        'weight' : 'bold',
+        'size'   : 20}
+    plt.rc('font', **font)
     if utilp == "retryRatio":
         PlotHelper_UCT_max_retryRatio(resDict)
         return
@@ -667,6 +675,7 @@ def PlotHelper_UCT_max(resDict, utilp):
 
     for domain in D:
         plt.clf()
+        #fname = '{}{}_{}_UCT_max_depth_one_task.png'.format(figuresFolder, domain, utilp)
         fname = '{}{}_{}_UCT_max_depth.png'.format(figuresFolder, domain, utilp)
         
         if util == "_sr":
@@ -689,11 +698,12 @@ def PlotHelper_UCT_max(resDict, utilp):
                 COLORBAR[0],
                 GetYlabel(utilp), 0, ax)
         
-        plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
+        #plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
             
         ax.set_xticks(np.arange(len(UCT_max_depth[domain])))
-        ax.set_xticklabels([str(item) for item in UCT_max_depth[domain]])
+        ax.set_xticklabels([str(item) if item != 1000 else "1K" for item in UCT_max_depth[domain]])
         plt.xlabel('Number of rollouts')
+        ax.set_title(GetFullName(domain))
         #plt.xticks(UCT_max_depth[domain],
         #   [str(item) for item in UCT_max_depth[domain]])
         plt.ylabel(GetYlabel(utilp))
@@ -793,7 +803,7 @@ def PlotHelper_learning(resDict, utilp, errorP):
     index1 = utilp
     #index1 = 'actTime'
     #K = [0, 1, 2, 3, 4, 8, 16]
-
+    rcParams['figure.figsize'] = 6, 7
     fname = '{}{}_learning.png'.format(figuresFolder, utilp)
 
     plt.clf()
@@ -804,11 +814,11 @@ def PlotHelper_learning(resDict, utilp, errorP):
     #plt.rc('font', **font)
     
     ax = {}
-    ax['CR'] = plt.subplot2grid(shape=(2,4), loc=(0,0), colspan=2)
-    ax['SD'] = plt.subplot2grid((2,4), (0,2), colspan=2)
-    ax['EE'] = plt.subplot2grid((2,4), (1,0), colspan=2)
-    ax['SR'] = plt.subplot2grid((2,4), (1,2), colspan=2)
-    #ax['OF'] = plt.subplot2grid((2,4), (2,0), colspan=2)
+    ax['CR'] = plt.subplot2grid(shape=(3,4), loc=(0,0), colspan=2)
+    ax['SD'] = plt.subplot2grid((3,4), (0,2), colspan=2)
+    ax['EE'] = plt.subplot2grid((3,4), (1,0), colspan=2)
+    ax['SR'] = plt.subplot2grid((3,4), (1,2), colspan=2)
+    ax['OF'] = plt.subplot2grid((3,4), (2,0), colspan=2)
 
     lowerLim = {
         "CR":
@@ -859,12 +869,12 @@ def PlotHelper_learning(resDict, utilp, errorP):
         toPlot['val']['UPOM'] = resDict[domain]['UCT'][index1][0]
 
         # the errors
-        #toPlot['err']['RAE (no planning)'] = resDict[domain]['reactive'][errorP][0]
-        #toPlot['err']['RAEplan'] = resDict[domain]['SLATE'][errorP][0]
-        #toPlot['err']['LearnM-1'] = resDict[domain]['learning_from_actor'][errorP][0]
-        #toPlot['err']['LearnM-2'] = resDict[domain]['learning_from_planner'][errorP][0]
-        #toPlot['err']['LearnH'] = resDict[domain]['heuristic_10_3'][errorP][0]
-        #toPlot['err']['UPOM'] = resDict[domain]['UCT'][errorP][0]
+        toPlot['err']['RAE (no planning)'] = resDict[domain]['reactive'][errorP][0]
+        toPlot['err']['RAEplan'] = resDict[domain]['SLATE'][errorP][0]
+        toPlot['err']['LearnM-1'] = resDict[domain]['learning_from_actor'][errorP][0]
+        toPlot['err']['LearnM-2'] = resDict[domain]['learning_from_planner'][errorP][0]
+        toPlot['err']['LearnH'] = resDict[domain]['heuristic_10_3'][errorP][0]
+        toPlot['err']['UPOM'] = resDict[domain]['UCT'][errorP][0]
 
         width = 0.85  # 0.003 the width of the bars
     
@@ -898,15 +908,14 @@ def PlotHelper_learning(resDict, utilp, errorP):
         #ax[domain].set_xticklabels(labels, rotation=45)
         #ax[domain].legend()
     plt.tight_layout()
-    #plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
             
 
-    #plt.savefig(fname, bbox_inches='tight')
+    plt.savefig(fname, bbox_inches='tight')
     print("saved")
 
 def PlotHelper_UCT_lim(resDict, utilp):
     index1 = utilp
-    width = 0.25
 
     for domain in D:
         plt.clf()
@@ -914,26 +923,32 @@ def PlotHelper_UCT_lim(resDict, utilp):
         
         i = 0
         fig, ax = plt.subplots()
-        for uct in UCT_lim_depth[domain]:
-            PlotViaMatlabBar(Depth[domain],
-                resDict[domain]['h0'][uct][index1],
-                resDict[domain]['h0'][uct][errIndex[index1]],
-                COLORBAR[i],
-                'heuristic = h0', -1, ax)
-            i += 1
-            PlotViaMatlabBar(Depth[domain],
-                resDict[domain]['h1'][uct][index1],
-                resDict[domain]['h1'][uct][errIndex[index1]],
-                COLORBAR[i],
-                'heuristic = h1', +1, ax)
-            i += 1
+        PlotViaMatlabBar(Depth[domain],
+            resDict[domain]['h0'][index1],
+            resDict[domain]['h0'][errIndex[index1]],
+            COLORBAR[i],
+            'heuristic = h0', -2, ax)
+        i += 1
+        PlotViaMatlabBar(Depth[domain],
+            resDict[domain]['h1'][index1],
+            resDict[domain]['h1'][errIndex[index1]],
+            COLORBAR[i],
+            'heuristic = hD', 0, ax)
+        i += 1
+        PlotViaMatlabBar(Depth[domain],
+            resDict[domain]['learnH'][index1],
+            resDict[domain]['learnH'][errIndex[index1]],
+            COLORBAR[i],
+            'heuristic = hLearnH', +2, ax)
+        i += 1
     
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
+        #plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
             
-        plt.xlabel('Depth')
+        #plt.xlabel('Depth')
         ax.set_xticks(np.arange(len(Depth[domain])))
         ax.set_xticklabels([str(item) for item in Depth[domain]])
-        plt.ylabel(GetYlabel(utilp)) 
+        ax.set_title(GetFullName(domain))
+        #plt.ylabel(GetYlabel(utilp)) 
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotHelper_SLATE_max(resDict, utilp):
@@ -1023,8 +1038,8 @@ def PlotViaMatlabLine(x, y, c, l):
         markerfacecolor='white')
         
 def PlotViaMatlabBar(x, y, y_error, c, l, f, ax):
-    width = 0.4
-    
+    #width = 0.4
+    width = 0.25
     print(x)
     print(y)
     print(y_error)
@@ -1038,7 +1053,6 @@ def PlotViaMatlabBar(x, y, y_error, c, l, f, ax):
             )
        
 D = None
-heuristic = None
 util = None
 l = None
 
@@ -1048,8 +1062,6 @@ if __name__=="__main__":
                            type=str, required=True)
     argparser.add_argument("--depth", help="depth = 'max' or 'lim'",
                            type=str, required=True)
-    argparser.add_argument("--heuristic", help="Heuristic function name",
-                           type=str, required=False, default='h2')
     argparser.add_argument("--s", help="SamplingStrategy ",
                            type=str, required=False, default="UCT")
     argparser.add_argument("--planning", help="PlanningUtilities", default='n',
@@ -1060,17 +1072,17 @@ if __name__=="__main__":
                             type=str, default='n', required=True)
     args = argparser.parse_args()
 
-    heuristic = args.heuristic
     learning = args.l
     if args.utility == "efficiency":
         util = "_eff"
     else:
         util = "_sr"
-    #D = ["SD", "CR", "EE", "SR", "OF"]
-    D = ["SD", "OF"]
+    D = ["SD", "CR", "EE", "SR", "OF"]
+    #D = ["CR", "OF"]
+    #D = ["SD", "EE"]
 
     if args.l == "y":
-        GeneratePlots_learning()
+        GeneratePlots_learning(0)
     elif args.l == "mi":
         GeneratePlots_LearnMI(0)
     elif args.depth == "max":
@@ -1086,7 +1098,7 @@ if __name__=="__main__":
             GeneratePlots_SLATE_lim_depth()
         else:
             if args.planning == "n":
-                GeneratePlots_UCT_lim_depth()
+                GeneratePlots_UCT_lim_depth(1)
             else:
                 GeneratePlots_UCT_lim_depth_planning_utilities()
     else:

@@ -744,6 +744,9 @@ def Heuristic2(args):
     for act in actList:
         l2 = act[1]
         dist += EE_GETDISTANCE(l1, l2)
+
+    if dist == 0: 
+        return float("inf")
     return 1/dist
 
 def Heuristic2_e(args):
@@ -751,6 +754,8 @@ def Heuristic2_e(args):
     l1 = state.loc[r]
     l2 = args[1]
     dist = EE_GETDISTANCE(l1, l2)
+    if dist == 0: 
+        return float("inf")
     return 1/dist
 
 

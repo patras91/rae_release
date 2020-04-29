@@ -202,9 +202,14 @@ def Print_Problems_and_Tasks(domain):
     print("Number of tasks is ", nTasks)
 
     tasks = {1:[], 2:[], 3:[]}
+    nTasks = {1:[], 2:[], 3:[]}
     for pname in p:
         tasks[int(p[pname]/z)].append(pname)
+
+    for t in tasks:
+        nTasks[t] = len(tasks[t])
     print(tasks)
+    print(nTasks)
 
 def Get_UCT_max_depth_run_counts(res, domain):
     problems, count = GetProblemsAndCounts(open(GetRAEfname(domain)))

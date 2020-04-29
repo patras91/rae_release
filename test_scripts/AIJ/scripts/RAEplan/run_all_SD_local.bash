@@ -12,9 +12,9 @@ do
             for p in ${Parts[@]}
             do
                 fname1="../../../../autoGen_scripts/SD/test_RAEplan_${domain}_${m}_${d}_part_${p}_eff.bash"
-                sbatch -n 1 -N 1 --share -t 2:00:00 ./$fname1
+                ./$fname1
             	fname2="../../../../autoGen_scripts/SD/test_RAEplan_${domain}_${m}_${d}_part_${p}_sr.bash"
-            	sbatch -n 1 -N 1 --share -t 2:00:00 ./$fname2                
+            	./$fname2                
             done
         done
     done

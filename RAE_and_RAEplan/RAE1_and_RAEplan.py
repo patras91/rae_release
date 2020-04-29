@@ -789,36 +789,29 @@ def GetHeuristicEstimate(task=None, tArgs=None):
     if GLOBALS.GetUseTrainedModel() == "learnH" and GLOBALS.GetOpt() == "max":
         domain = GLOBALS.GetDomain()
         features = {
-            "EE": 204, #23 - 2,
+            "EE": 204, 
             "SD": 144,
             "SR": 401,
-            "OF": 0,
-            "CR": 100 #98, #23 - 2,
+            "OF": 627,
+            "CR": 100,
         }
 
         outClasses = {
             "EE": 200,
             "SD": 75,
             "SR": 10,
-            "OF": 1,
-            "CR": 100, #1
+            "OF": 10,
+            "CR": 100,
         }
-        #model = nn.Sequential(nn.Linear(features[domain], 512), 
-        #nn.ReLU(inplace=True),
-        #nn.Linear(512, outClasses[domain]))
-
-        # if domain == "CR1":
-        #     model = nn.Sequential(nn.Linear(features[domain], 512), 
-        #     nn.ReLU(inplace=True),
-        #     nn.Linear(512, 512), 
-        #     nn.Dropout(p=0.1),
-        #     nn.Linear(512, 512), 
-        #     nn.ReLU(inplace=True), 
-        #     nn.Linear(512, outClasses[domain]))
         if domain == "SR" or domain == "SD" or domain == "EE" or domain == "CR":
             model = nn.Sequential(nn.Linear(features[domain], 1024), 
             nn.ReLU(inplace=True),
             nn.Linear(1024, outClasses[domain]))
+        elif domain == "OF":
+            model = nn.Sequential(nn.Linear(features[domain], 512), 
+            nn.ReLU(inplace=True),
+            nn.Linear(512, outClasses[domain]))
+
 
         fname = GLOBALS.GetModelPath() + "model_for_eff_{}_planner_task_all".format(GLOBALS.GetDomain())
         model.load_state_dict(torch.load(fname))
@@ -827,11 +820,15 @@ def GetHeuristicEstimate(task=None, tArgs=None):
         cand, prevState, flag = GetCandidates(task, tArgs)
         effMax = 0
         for m in cand:
+            if domain != "OF":
+                taskAndArgs = task+" "+str(tArgs)
+            else:
+                taskAndArgs = task + " " +  " ".join(str(item) for item in tArgs)
             x = Encode_LearnH(
                 domain, 
                 prevState.GetFeatureString(),
                 m.GetName(),
-                task+" "+str(tArgs))
+                taskAndArgs)
 
             np_x = numpy.array(x)
             x_tensor = torch.from_numpy(np_x).float()
