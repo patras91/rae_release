@@ -5,6 +5,7 @@ import sys
 
 sys.path.append('../shared/')
 sys.path.append('../shared/domains/')
+sys.path.append('../shared/domains/UnitTests/')
 sys.path.append('../shared/problems/SD/auto')
 sys.path.append('../shared/problems/SD/manual')
 sys.path.append('../shared/problems/CR/auto')
@@ -20,6 +21,7 @@ sys.path.append('../shared/problems/SR/auto')
 sys.path.append('../shared/problems/SDN')
 sys.path.append('../shared/problems/unitTests')
 sys.path.append('../learning/')
+sys.path.append('../learning/encoders/')
 
 import argparse
 import gui
@@ -55,6 +57,7 @@ def testBatch(domain, problem, useRAEplan):
     verbosity(0)
     GLOBALS.SetShowOutputs('off')
     GLOBALS.SetDomain(domain)
+    GLOBALS.SetDoIterativeDeepening(False)
     p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
     p.start()
     p.join(GLOBALS.GetTimeLimit())
@@ -64,16 +67,17 @@ def testBatch(domain, problem, useRAEplan):
     
 # Specifically set parameters for the SDN domain
 def InitializeSecurityDomain(v, state):
-    GLOBALS.SetSearchDepth(float("inf"))
+    GLOBALS.SetMaxDepth(float("inf"))
     verbosity(v)
     SetMode('Counter')
     GLOBALS.SetShowOutputs('on')
     GLOBALS.SetUCTmode('UCT')
     #GLOBALS.Setb(3)
     #GLOBALS.Setk(5)
-    GLOBALS.SetLearningMode(None)
+    GLOBALS.SetDataGenerationMode(None)
     GLOBALS.SetUCTRuns(50) # to decide later accordingly
     GLOBALS.SetTimeLimit(300)
+    GLOBALS.SetDoIterativeDeepening(False)
     '''
     :param domain: the code of the domain
     :param problem: the problem id
@@ -82,7 +86,7 @@ def InitializeSecurityDomain(v, state):
     GLOBALS.SetDomain('SDN')
     GLOBALS.SetOpt('max') # maximizing the efficiency to start with
     GLOBALS.SetDoPlanning(True)
-    GLOBALS.SetUseTrainedModel('n')
+    GLOBALS.SetUseTrainedModel(None)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
@@ -116,7 +120,7 @@ if __name__ == "__main__":
                            type=int, default=1, required=False)
 
     argparser.add_argument("--depth", help="Search Depth",
-                           type=int, default=float("inf"), required=False)
+                           type=int, default=50, required=False)
     argparser.add_argument("--heuristic", help="Name of the heuristic function",
                            type=str, default='h2', required=False)
     argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
@@ -126,30 +130,34 @@ if __name__ == "__main__":
                            type=int, default=300, required=False)
     # parameter for UCT
     argparser.add_argument("--uctCount", help="Number of rollouts in UCT?",
-                           type=int, default=100, required=False)
+                           type=int, default=500, required=False)
 
-    # these two may be used in future
-    argparser.add_argument("--lazy", help="Whether to do lazy lookahead? ('y' or 'n') (not implemented yet)",
-                           type=str, default='n', required=False)
-    argparser.add_argument("--concurrent", help="Whether to do concurrent lookahead? ('y' or 'n') (not implemented yet)",
-                           type=str, default='n', required=False)
+    #what to optimize?
     argparser.add_argument("--utility", help="efficiency or successRatio?",
                            type=str, default="efficiency", required=False)
-    argparser.add_argument("--useTrainedModel", help="use Model Trained with Actor (a) / use Model Trained with Planner (p) / None (n)?", 
-                        type=str, default="n", required=False)
+    
+    #use learned models?
+    argparser.add_argument("--useTrainedModel", help="learnM1 or learnM2 or learnH or learnMI or None?", 
+                        type=str, default=None, required=False)
+    
+    argparser.add_argument("--useBackupUCT", help="If RAEplanUCT fails, do you want to run UCT with only commands?",
+                        type=bool, default=False, required=False)
+
+    argparser.add_argument("--doIterativeDeepening", help="Increment depth in steps of 5?",
+                        type=bool, default=False, required=False)
 
     args = argparser.parse_args()
 
     if args.plan == 'y':
         s = True
-        assert(args.useTrainedModel == 'n')
+        assert(args.useTrainedModel == None or args.useTrainedModel == 'None' or args.useTrainedModel == 'learnH')
     else:
         s = False
 
     GLOBALS.Setb(args.b)
     GLOBALS.Setk(args.k)
     assert(args.depth >= 1)
-    GLOBALS.SetSearchDepth(args.depth)
+    GLOBALS.SetMaxDepth(args.depth)
     GLOBALS.SetHeuristicName(args.heuristic)
     verbosity(args.v)
     SetMode(args.clockMode)
@@ -159,9 +167,13 @@ if __name__ == "__main__":
     GLOBALS.SetUCTRuns(args.uctCount)
     GLOBALS.SetDomain(args.domain)
     GLOBALS.SetTimeLimit(args.timeLim)
-    GLOBALS.SetLearningMode(None)
+    GLOBALS.SetDataGenerationMode(None)
     GLOBALS.SetUseTrainedModel(args.useTrainedModel)
-    GLOBALS.SetModelPath("../learning/")
+    GLOBALS.SetModelPath("../learning/models/AIJ2020/")
+    GLOBALS.SetDoIterativeDeepening(args.doIterativeDeepening)
+
+    GLOBALS.SetBackupUCT(args.useBackupUCT) # for NRL
+    
     if args.utility == "efficiency":
         GLOBALS.SetOpt("max")
     elif args.utility == "successRatio":

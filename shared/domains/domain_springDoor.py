@@ -269,8 +269,12 @@ def MoveThroughDoorway_Method2(r, d, l, r2):
             state.status.ReleaseLock(r2)
             alg.do_command(fail)
     
-        if state.load[r2] != NIL:
-            alg.do_command(put, r2, state.load[r2])
+        obj = state.load[r2]
+        if obj != NIL:
+            if obj != 'H':
+                alg.do_command(put, r2, state.load[r2])
+            else:
+                alg.do_command(fail)
         alg.do_task('moveTo', r2, state.loc[r])
         alg.do_task('unlatch', r2, d)
         alg.do_command(holdDoor, r2, d)
@@ -429,7 +433,10 @@ def Heuristic2(args):
     l1 = state.loc[r]
     l2 = args[2]
     dist = len(SD_GETPATH(l1, l2))
-    return 1/dist
+    if dist == 0:
+        return float("inf")
+    else:
+        return 1/dist
 
 def collision_Heuristic2(args):
     freeRobots = [r for r in rv.ROBOTS if state.status[r] == 'free']

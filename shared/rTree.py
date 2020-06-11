@@ -6,7 +6,10 @@ from timer import DURATION
 import types
 from utility import Utility
 import GLOBALS
+from learningData import TrainingDataItem
+import pdb
 
+rollOuts = 0
 class PlanningTree():
     def __init__(self, n, args, type1):
         self.label = n # name of the method or task corresponding to this node
@@ -371,13 +374,13 @@ class ActingTree():
         for item in l1:
             t = item.GetType()
             if t == "method":
-                node = SearchTreeNode('task', 'task')
-                child = SearchTreeNode(item.GetLabel(), 'method')
+                node = SearchTreeNode('task', 'task', None)
+                child = SearchTreeNode(item.GetLabel(), 'method', None)
                 child.SetPrevState(item.GetPrevState())
                 node.AddChild(child)
             elif t == "command":
-                node = SearchTreeNode(item.GetLabel(), 'command')
-                child = SearchTreeNode(item.GetNextState(), 'state')
+                node = SearchTreeNode(item.GetLabel(), 'command', None)
+                child = SearchTreeNode(item.GetNextState(), 'state', None)
                 child.SetPrevState(item.GetPrevState())
                 node.AddChild(child)
             else:
@@ -406,6 +409,16 @@ class ActingTree():
     def GetMetaData(self):
         h, t, c =  self.root.GetMetaData()
         return h - 1, t - 1, c
+
+    def GetLastFiveItems(self):
+        preOrder = self.root.GetPreorderTraversal()
+        five = [0]*5
+        i = 0
+        preOrder.reverse()
+        for item in preOrder[0:5]:
+            five[i] = item.GetPrettyString(item)
+            i += 1
+        return five
 
 class GuideNode():
     def __init__(self, m, s1, s2, c):
@@ -506,8 +519,9 @@ class GuideList():
     #        return 1/cost
 
 class SearchTreeNode():
-    def __init__(self, l, t):
+    def __init__(self, l, t, args):
         self.label = l
+        self.args = args
         assert(t == "task" or t == "method" or t == "command" or t == "state" or t == "heuristic")
         self.type = t
         self.children = []
@@ -583,13 +597,13 @@ class SearchTreeNode():
                         bestUtil = child.util
                 self.util = bestUtil
             elif self.type == 'command':
-                sum = 0
+                res = 0
                 total = 0
                 # Take the average of values
                 for child, weight in zip(self.children, self.childWeights):
-                    sum += weight * child.util.GetValue()
+                    res += weight * child.util.GetValue()
                     total += weight
-                self.util = Utility(sum / weight)
+                self.util = Utility(res / total)
             elif self.type == 'state':
                 self.util = self.util + self.children[0].util
             else:
@@ -599,8 +613,36 @@ class SearchTreeNode():
             if self.parent != None:
                 self.parent.IncrementPointerAndSetUtility()
 
+    def UpdateAllUtilities(self): # for generating training data in UCT
+        if self.children == []:
+            return self.util  # state nodes at the roots
+        elif self.type == "command":
+            val = 0
+            total = 0
+            # Take the average of values
+            for child, weight in zip(self.children, self.childWeights):
+                val += weight * child.UpdateAllUtilities().GetValue()
+                total += weight
+            self.util = Utility(val / total)
+        elif self.type == "task":
+            bestUtil = Utility('Failure')
+            for child in self.children:
+                cUtil = child.UpdateAllUtilities()
+                if cUtil > bestUtil:
+                    bestUtil = cUtil
+            self.util = bestUtil
+        elif self.type == 'state':
+            self.util = self.util + self.children[0].UpdateAllUtilities()
+        else:
+            self.util = self.children[0].UpdateAllUtilities()
+        
+        return self.util
+
     def UpdateChildPointers(self): # for SLATE
         if self.children == []:
+            global rollOuts
+            rollOuts += 1
+            #print("Rollout ", rollOuts )
             # reached the bottom of the tree, start moving up now
             self.parent.IncrementPointerAndSetUtility()
         else:
@@ -690,3 +732,44 @@ class SearchTreeNode():
             next += 1
             level[next] = []
         g.view()
+
+    def GetTrainingItems(self, l, util, mainTask):
+        if self.type == "task":
+            #for each child get q and labels and add to l
+            for i in range(0, len(self.Q)):
+                if self.n[i] == 0:
+                    pass
+                    #print("Found an unexplored path")
+                else:
+                    if self.children[i].GetLabel() != "heuristic":
+                        l.Add(self.children[i].prevState, 
+                            self.children[i].GetLabel(), 
+                            self.children[i].util, 
+                            self.label,
+                            self.args, 
+                            mainTask, 
+                            []) 
+                        self.children[i].GetTrainingItems(l, util, mainTask)
+        elif self.type == "method" or self.type == "state":
+            if len(self.children) > 0:
+                self.children[0].GetTrainingItems(l, util, mainTask)
+        elif self.type == "command":
+            for child in self.children:
+                child.GetTrainingItems(l, util, mainTask)
+
+    def GetTrainingItems_SLATE(self, l, util, mainTask):
+        if self.type == "task":
+            #for each child get q and labels and add to l
+            for i in range(0, len(self.children)):
+                if self.children[i].label != "heuristic":
+                    l.Add(self.children[i].prevState, 
+                        self.children[i].GetLabel(), self.children[i].util, 
+                        self.label, mainTask, None) 
+                    self.children[i].GetTrainingItems_SLATE(l, util, mainTask)
+        elif self.type == "method" or self.type == "state":
+            if len(self.children) > 0:
+                self.children[0].GetTrainingItems_SLATE(l, util, mainTask)
+        elif self.type == "command":
+            for child in self.children:
+                child.GetTrainingItems_SLATE(l, util, mainTask)
+

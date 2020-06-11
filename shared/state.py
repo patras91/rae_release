@@ -41,9 +41,12 @@ class State():
         return s
 
     def restore(self, s):
-        self.__dict__ = {}
+        oldKeys = list(self.__dict__.keys())
         for (key, val) in vars(s).items():
             self.__setattr__(key, copy.deepcopy(val.GetVal()))
+            oldKeys.remove(key)
+        for k in oldKeys:
+            del self.__dict__[k]
         return s
 
     def ReleaseLocks(self):

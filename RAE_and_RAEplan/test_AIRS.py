@@ -15,7 +15,6 @@ def beginCommand(cmd, cmdRet, args):
 def exec_cmds(exec_queue, status_queue):
     """TODO: add documentation.
     """
-
     while True:
         if not exec_queue.empty():
             (id, cmd, args) = exec_queue.get()
@@ -27,7 +26,6 @@ def exec_cmds(exec_queue, status_queue):
             t.join()
             print('Done executing cmd: ' + str(cmd.__name__))
             status_queue.put([id, cmdRet['state'], state.copy()])
-
 
 if __name__ == '__main__':
 

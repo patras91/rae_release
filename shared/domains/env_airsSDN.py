@@ -1,3 +1,5 @@
+__author__ = "alex"
+
 import numpy
 from domain_constants import *
 from state import state, rv

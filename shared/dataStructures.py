@@ -62,9 +62,6 @@ class rL_APE(rL):
         l = self.rL.aT.GetGuideList()
         return l
 
-    def GetSearchTree(self):
-        return self.rL.aT.GetSearchTree()
-
     def SetUtility(self, e):
         self.rL.util = e
 
@@ -82,6 +79,12 @@ class rL_APE(rL):
 
     def GetEfficiency(self):
         return self.rL.eff
+
+    def SetUseBackupUCT(self, u):
+        self.rL.backupUCT = u
+
+    def GetUseBackupUCT(self):
+        return self.rL.backupUCT
 
 class rL_PLAN(rL):
 
@@ -163,6 +166,12 @@ class rL_PLAN(rL):
     def GetRefDepth(self):
         return self.rL.refDepth
 
+    def SetRolloutDepth(self, d):
+        self.rL.rolloutDepth = d
+
+    def GetRolloutDepth(self):
+        return self.rL.rolloutDepth
+
     def SetHeuristicArgs(self, t, args):
         self.rL.heuristicTaskName = t
         self.rL.heuristicTaskArgs = args
@@ -175,6 +184,7 @@ class rL_PLAN(rL):
 
     def GetUtilRollout(self):
         return self.rL.util
+
 
 class PlanArgs():
     def __init__(self):
@@ -216,8 +226,20 @@ class PlanArgs():
     def GetState(self):
         return self.state
 
-    def SetSearchTree(self, t):
-        self.searchTree = t
+    def SetActingTree(self, t):
+        self.actingTree = t
 
     def GetSearchTree(self):
-        return self.searchTree
+        return self.actingTree.GetSearchTree()
+
+    def SetCurUtil(self, u):
+        self.util = u
+
+    def GetCurUtil(self):
+        return self.util
+
+    def SetDepth(self, d):
+        self.d = d
+
+    def GetDepth(self):
+        return self.d

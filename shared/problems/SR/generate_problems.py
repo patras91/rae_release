@@ -59,7 +59,7 @@ def generateProblems():
 
 def writeProblem(num, w1_locx, w1_locy, p_locx, p_locy, w2_locx, w2_locy, 
                             obstacle, medicine, emergency, weather, a1_locx, a1_locy):
-    fname = 'problem{}_SR.py'.format(num)
+    fname = 'training/problem{}_SR.py'.format(num)
     file = open(fname,"w") 
     writeHeader(file)
     file.write("rv.OBSTACLES = { ")

@@ -61,8 +61,13 @@ sys.path.append('../../../../RAE_and_RAEplan/')
 sys.path.append('../../../../shared/domains/')
 sys.path.append('../../../../shared/problems/SD/auto')
 sys.path.append('../../../../shared/')
+sys.path.append('../../../../learning/')
+sys.path.append('../../../../learning/encoders/')
 from testRAEandRAEplan import GLOBALS, testBatch
+GLOBALS.SetUseTrainedModel(None)
+GLOBALS.SetDataGenerationMode(None)
 GLOBALS.SetOpt('max')
+GLOBALS.SetModelPath('../../../../learning/models/AIJ2020/')
 GLOBALS.SetTimeLimit(300)"
 counter=1
 while [ $counter -le $runs ]

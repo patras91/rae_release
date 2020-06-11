@@ -3,9 +3,6 @@
 *.out
 misc.xml
 *.xml
-*.
-*.
-AddedCommand
 archives/test_scripts/aaai2019/latex
 archives/test_scripts/IJCAI2018
 archives/test_scripts/aaai2019
@@ -14,6 +11,7 @@ RAE_and_RAEplan/visuals
 RAE_and_RAEplan/config.dox
 RAE_and_RAEplan/html
 RAE_and_RAEplan/latex
+
 docs/
 .idea/
 test_scripts/AIJ/results/CR/
@@ -40,3 +38,15 @@ test_scripts/AIJ/analyze_repeat.py
 test_scripts/AIJ/compare_APEplan_RAEplan.py
 test_scripts/AIJ/results/CR_v_journal_3/
 test_scripts/AIJ/results/SR_v_journal_1/
+
+autoGen_scripts/
+
+RAE_and_RAEplan/actingTree
+RAE_and_RAEplan/actingTree.png
+RAE_and_RAEplan/searchTree
+RAE_and_RAEplan/searchTree.png
+
+learning/plots
+learning/models
+
+test_scripts/AIJ/figures/

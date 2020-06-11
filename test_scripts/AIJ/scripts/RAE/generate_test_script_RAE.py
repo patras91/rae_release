@@ -3,6 +3,8 @@ import random
 import os
 import argparse
 
+resultFolder="AIJ2020"
+
 def GetProblemsCR():
     l = list(range(1000, 1124))
     random.seed(100)
@@ -43,85 +45,14 @@ def GetProblemsEE():
     names = ["problem{}".format(item) for item in p1]
     return names
 
-#problems = {
-#    "CR": GetProblemsCR(),
-#    "SD": [],
-#    "SR": [],
-#    "EE": [],
-#    "IP": [],
-#    "OF": [],
-#}
-
-b_max_depth = {
-    "CR": [1,2,3],
-    "SD": [2,5,8],
-    "SR": [2,3,4],
-    "EE": [1,2,3],
-    "IP": [1,2,3],
-    "OF": [3,6,9],
-}
-
-k_max_depth = {
-    "CR": [1,3,5],
-    "SD": [1,3,5],
-    "SR": [1,3,5],
-    "EE": [],
-    "IP": [],
-    "OF": [1,3,5],
-}
-
-UCT_max_depth = {
-    "CR": [5, 25, 50, 75],
-    "SD": [5, 25, 50, 75],
-    "SR": [5, 25, 50, 75],
-    "EE": [],
-    "IP": [],
-    "OF": [5, 25, 50, 75],
-}
-
-b_lim_depth = {
-    "CR": [1,2],
-    "SD": [2,5,8],
-    "SR": [2,3,4],
-    "EE": [1,2,3],
-    "IP": [1,2,3],
-    "OF": [3,6,9],
-}
-
-k_lim_depth = {
-    "CR": [3],
-    "SD": [3],
-    "SR": [3],
-    "EE": [],
-    "IP": [],
-    "OF": [3],
-}
-
-UCT_lim_depth = {
-    "CR": [5, 25, 50],
-    "SD": [5, 25, 50],
-    "SR": [5, 25, 50],
-    "EE": [],
-    "IP": [],
-    "OF": [5, 25, 50],
-}
-
-DEPTH = {
-    "CR": [5, 10, 15],
-    "SD": [5, 10, 15],
-    "SR": [5, 10, 15],
-    "EE": [5, 10, 15],
-    "IP": [5, 10, 15],
-    "OF": [5, 10, 15],
-}
 
 timeLimit = {
-    "OF": 300,
-    "CR": 300,
-    "SR": 300,
-    "EE": 300,
-    "IP": 300,
-    "SD": 300,
+    "OF": 1800,
+    "CR": 1800,
+    "SR": 1800,
+    "EE": 1800,
+    "IP": 1800,
+    "SD": 1800,
 }
 
 def writeList(name, l, file):
@@ -146,7 +77,7 @@ def writeProblems(name, file, domain):
     writeList(name, l, file)
 
 def GenerateTestScriptRAE(domain):
-    fname = 'test_RAE_{}.bash'.format(domain)
+    fname = '../../../../autoGen_scripts/{}/test_RAE_{}.bash'.format(domain, domain)
     
     file = open(fname,"w") 
     file.write("#!/bin/sh\n")
@@ -160,13 +91,20 @@ def GenerateTestScriptRAE(domain):
 
     file.write("setup=\"\n")
     file.write("import sys\n")
-    file.write("sys.path.append(\'../../../../RAE_and_RAEplan/\')\n")
-    file.write("sys.path.append(\'../../../../shared/domains/\')\n")
-    file.write("sys.path.append(\'../../../../shared/problems/{}/auto\')\n".format(domain))
-    file.write("sys.path.append(\'../../../../shared/\')\n")
+    file.write("sys.path.append(\'../../RAE_and_RAEplan/\')\n")
+    file.write("sys.path.append(\'../../shared/domains/\')\n")
+    file.write("sys.path.append(\'../../shared/problems/{}/auto\')\n".format(domain))
+    file.write("sys.path.append(\'../../shared/\')\n")
+    file.write("sys.path.append(\'../../learning/\')\n")
+    file.write("sys.path.append(\'../../learning/encoders/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
     file.write("GLOBALS.SetOpt('max')\n")
-    file.write("GLOBALS.SetTimeLimit({})\"\n".format(timeLimit[domain]))
+    file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
+    file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
+    file.write("GLOBALS.SetMaxDepth(80)\n")
+    file.write("GLOBALS.SetDataGenerationMode(None)\n")
+    file.write("GLOBALS.SetModelPath(\'../learning/models\')\n")
+    file.write("GLOBALS.SetUseTrainedModel(None)\"\n")
 
     file.write("counter=1\n")
     file.write("while [ $counter -le $runs ]\n")
@@ -175,7 +113,7 @@ def GenerateTestScriptRAE(domain):
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
     file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', useRAEplan=False)\"\n")
     
-    str1 = "            fname=\"../../../../../raeResults/${domain}_v_journal/RAE.txt\"\n"
+    str1 = "            fname=\"../../../raeResults/" + resultFolder + "/${domain}_v_journal/RAE.txt\"\n"
     file.write(str1)
     file.write("            echo \"Time test of $domain $problem\" >> $fname\n")
 

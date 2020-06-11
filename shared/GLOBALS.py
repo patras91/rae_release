@@ -13,6 +13,7 @@ g.doPlanning = False
 g.planningMode = False
 g.heuristic = None
 g.mode = True
+g.backupUCT = False
 
 def SetDoPlanning(s):
 	g.doPlanning = s
@@ -44,10 +45,10 @@ def Getk(): # number of outputs of commands to look at
 def Setk(k):
     g.k = k
 
-def SetSearchDepth(d):
+def SetMaxDepth(d):
     g.depth = d
 
-def GetSearchDepth():
+def GetMaxDepth():
     return g.depth
 
 def SetHeuristicName(name):
@@ -102,13 +103,15 @@ def SetTimeLimit(t):
 def GetTimeLimit():
     return g.timeLimit
 
-def SetLearningMode(m):
-    g.learningMode = m
+def SetDataGenerationMode(a):
+    g.dataGenMode = a
 
-def GetLearningMode():
-    return g.learningMode
+def GetDataGenerationMode():
+    return g.dataGenMode
 
 def SetUseTrainedModel(t):
+    if t == 'None':
+        t = None
     g.useTrainedModel = t
 
 def GetUseTrainedModel():
@@ -119,3 +122,15 @@ def SetModelPath(p):
 
 def GetModelPath():
     return g.modelPath
+
+def SetBackupUCT(b):
+    g.backupUCT = b
+
+def GetBackupUCT():
+    return g.backupUCT
+
+def SetDoIterativeDeepening(s):
+    g.iterativeDeepening = s
+
+def GetDoIterativeDeepening():
+    return g.iterativeDeepening
