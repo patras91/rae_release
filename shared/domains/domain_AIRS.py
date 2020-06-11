@@ -3,6 +3,7 @@
 
 This file defines the tasks, methods, and commands for the AIRS SDN domain.
 """
+__author__ = 'alex'
 
 from domain_constants import SUCCESS, FAILURE
 from state import state
@@ -13,6 +14,31 @@ import RAE1_and_RAEplan as rae
 #
 # Helper functions
 #
+
+def log(level, header, msg):
+    """Print a log message, if enabled by RAE's current verbosity level."""
+
+    if rae.verbose >= level:
+        print(header + ': ' + msg)
+
+
+def log_err(msg):
+    """Print an error message, if RAE's current verbosity level is at least 1."""
+
+    log(1, 'error', msg)
+
+
+def log_info(msg):
+    """Print an info message, if RAE's current verbosity level is at least 2."""
+
+    log(2, 'info', msg)
+
+
+def log_trace(msg):
+    """Print a trace message, if RAE's current verbosity level is at least 3."""
+
+    log(3, 'trace', msg)
+
 
 def is_component_type(component_id, comp_type):
     """Check whether given component is of the given type (e.g., ``CTRL`` or ``SWITCH``)."""
@@ -46,7 +72,7 @@ def get_component_stat(component_id, stat_key):
 #
 
 def restart_vm(component_id):
-    """Restart the SDN controller virtual machine."""
+    """Restart a component virtual machine."""
 
     # Restarting takes some time, but can fix some problems, so increase health
     # TODO: how to choose best new health value ???
@@ -68,6 +94,26 @@ def restart_vm(component_id):
 
     # Done
     return SUCCESS
+
+
+def kill_top_proc(component_id):
+    """Kill top CPU-consuming process in a component virtual machine."""
+
+    # CPU utilization should decrease if CPU-hungry process is stopped
+    # TODO: how best to predict new CPU stat value ???
+    cpu_stat = get_component_stat(component_id, 'cpu_perc_ewma')
+    if cpu_stat is not None:
+        cur_cpu = cpu_stat['value']
+        new_cpu = max(0.0, (cur_cpu - 50.0) / 2)
+        cpu_stat['value'] = new_cpu
+
+    # Health should increase after CPU-hungry process is stopped
+    # TODO: how to choose best new health value ???
+    health_stat = get_component_stat(component_id, 'health')
+    if health_stat is not None:
+        cur_health = health_stat['value']
+        new_health = min(1.0, (cur_health + 0.1) * 2)
+        health_stat['value'] = new_health
 
 
 def clear_ctrl_state_besteffort(component_id):
@@ -124,11 +170,26 @@ def clear_switch_state_fallback(component_id):
     return SUCCESS
 
 
-def disconnect_switch_port(component_id, port_idx):
-    """Disconnect the switch port with the most transmitted traffic."""
+def disconnect_reconnect_switch_port(component_id):
+    """Disconnect and then reconnect switch port with most transmitted traffic."""
 
-    # TODO: implement
-    return FAILURE
+    cpu_stat = get_component_stat(component_id, 'cpu_perc_ewma')
+    if cpu_stat is not None:
+        cur_cpu = cpu_stat['value']
+        new_cpu = max(0.0, (cur_cpu - 50.0) / 2)
+        cpu_stat['value'] = new_cpu
+    return SUCCESS
+
+
+def disconnect_switch_port(component_id):
+    """Disconnect switch port with most transmitted traffic."""
+
+    cpu_stat = get_component_stat(component_id, 'cpu_perc_ewma')
+    if cpu_stat is not None:
+        cur_cpu = cpu_stat['value']
+        new_cpu = max(0.0, (cur_cpu - 50.0) / 2)
+        cpu_stat['value'] = new_cpu
+    return SUCCESS
 
 
 def succeed():
@@ -152,12 +213,14 @@ def fail():
 # Declare commands in RAE engine
 rae.declare_commands([
     restart_vm,
+    kill_top_proc,
     clear_ctrl_state_besteffort,
     clear_ctrl_state_fallback,
     reinstall_ctrl_besteffort,
     reinstall_ctrl_fallback,
     clear_switch_state_besteffort,
     clear_switch_state_fallback,
+    disconnect_reconnect_switch_port,
     disconnect_switch_port,
     succeed,
     unsure,
@@ -166,13 +229,15 @@ rae.declare_commands([
 
 DURATION.TIME = {
     'restart_vm': 60,
+    'kill_top_proc': 5,
     'clear_ctrl_state_besteffort': 10,
     'clear_ctrl_state_fallback': 20,
     'reinstall_ctrl_besteffort': 30,
     'reinstall_ctrl_fallback': 60,
     'clear_switch_state_besteffort': 10,
     'clear_switch_state_fallback': 20,
-    'disconnect_switch_port': 5,
+    'disconnect_reconnect_switch_port': 5,
+    'disconnect_switch_port': 10,
     'succeed': 1,
     'unsure': 5,
     'fail': 1
@@ -180,13 +245,15 @@ DURATION.TIME = {
 
 DURATION.COUNTER = {
     'restart_vm': 60,
+    'kill_top_proc': 5,
     'clear_ctrl_state_besteffort': 10,
     'clear_ctrl_state_fallback': 20,
     'reinstall_ctrl_besteffort': 30,
     'reinstall_ctrl_fallback': 60,
     'clear_switch_state_besteffort': 10,
     'clear_switch_state_fallback': 20,
-    'disconnect_switch_port': 5,
+    'disconnect_reconnect_switch_port': 5,
+    'disconnect_switch_port': 10,
     'succeed': 1,
     'unsure': 5,
     'fail': 1
@@ -205,27 +272,27 @@ def fix_sdn(config):
     """
 
     if not isinstance(config, dict) or 'health_critical_thresh' not in config:
-        print('error: could not find "health_critical_thresh" in config')
+        log_err('could not find "health_critical_thresh" in config')
         rae.do_command(fail)
     else:
-        print('info: will check health for ' + str(len(state.components.keys())) + ' components')
+        log_info('will check health for ' + str(len(state.components.keys())) + ' components')
         for component_id in state.components:
             if component_id not in state.stats or 'health' not in state.stats[component_id]:
-                print('error: could not find "health" in state.stats["' + component_id + '"]')
+                log_err('could not find "health" in state.stats["' + component_id + '"]')
                 rae.do_command(fail)
             else:
                 health_obj = state.stats[component_id]['health']
                 if 'value' not in health_obj or 'thresh_exceeded_fn' not in health_obj:
-                    print('error: could not find "value" or "thresh_exceeded_fn" in state.stats["'
-                          + component_id + '"]["health"]')
+                    log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                            + component_id + '"]["health"]')
                     rae.do_command(fail)
                 else:
                     # Check for low health
                     value = health_obj['value']
                     thresh_exceeded_fn = health_obj['thresh_exceeded_fn']
                     if thresh_exceeded_fn(value):
-                        print('info: threshold exceeded for stat "health": ' + component_id)
-                        print('info: adding new task "fix_component" for "' + component_id + '"')
+                        log_info('threshold exceeded for stat "health": ' + component_id)
+                        log_info('adding new task "fix_component" for "' + component_id + '"')
                         rae.do_task('fix_component', component_id, config)
 
 
@@ -233,62 +300,78 @@ def fix_ctrl(component_id, config):
     """Method to fix symptoms for a controller."""
 
     if not is_component_type(component_id, 'CTRL'):
-        print('error: component "' + component_id + '" is not a controller')
+        log_err('component "' + component_id + '" is not a controller')
         rae.do_command(fail)
     elif component_id not in state.stats:
-        print('error: could not find "' + component_id + '" in state.stats')
+        log_err('could not find "' + component_id + '" in state.stats')
         rae.do_command(fail)
     else:
         # Check stats and determine what needs to be fixed
         stat_obj = state.stats[component_id]
-        do_restore_health = False
         do_shrink_hosttable = False
-        if 'health' in stat_obj:
-            if ('value' not in stat_obj['health']
-                    or 'thresh_exceeded_fn' not in stat_obj['health']):
-                print('error: could not find "value" or "thresh_exceeded_fn" in state.stats["'
-                      + component_id + '"]["health"]')
-                rae.do_command(fail)
-            else:
-                # Check for low health
-                value = stat_obj['health']['value']
-                thresh_exceeded_fn = stat_obj['health']['thresh_exceeded_fn']
-                if thresh_exceeded_fn(value):
-                    print('info: threshold exceeded for stat "health": ' + component_id)
-                    do_restore_health = True
+        do_alleviate_cpu = False
+        do_restore_health = False
         if 'host_table_size' in stat_obj:
+            # TODO: if missing from state, can be populated lazily (here), via a probing action ???
             if ('value' not in stat_obj['host_table_size']
                     or 'thresh_exceeded_fn' not in stat_obj['host_table_size']):
-                print('error: could not find "value" or "thresh_exceeded_fn" in state.stats["'
-                      + component_id + '"]["host_table_size"]')
+                log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                        + component_id + '"]["host_table_size"]')
                 rae.do_command(fail)
             else:
                 # Check for inflated host table
                 value = stat_obj['host_table_size']['value']
                 thresh_exceeded_fn = stat_obj['host_table_size']['thresh_exceeded_fn']
                 if thresh_exceeded_fn(value):
-                    print('info: threshold exceeded for stat "host_table_size"')
+                    log_info('threshold exceeded for stat "host_table_size"')
                     do_shrink_hosttable = True
-        else:
-            # TODO: probe for missing data ???
-            pass
+        if 'cpu_perc_ewma' in stat_obj:
+            if ('value' not in stat_obj['cpu_perc_ewma']
+                    or 'thresh_exceeded_fn' not in stat_obj['cpu_perc_ewma']):
+                log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                        + component_id + '"]["cpu_perc_ewma"]')
+                rae.do_command(fail)
+            else:
+                # Check for elevated CPU stat
+                value = stat_obj['cpu_perc_ewma']['value']
+                thresh_exceeded_fn = stat_obj['cpu_perc_ewma']['thresh_exceeded_fn']
+                if thresh_exceeded_fn(value):
+                    log_info('threshold exceeded for stat "cpu_perc_ewma": ' + component_id)
+                    do_alleviate_cpu = True
+        if 'health' in stat_obj:
+            if ('value' not in stat_obj['health']
+                    or 'thresh_exceeded_fn' not in stat_obj['health']):
+                log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                        + component_id + '"]["health"]')
+                rae.do_command(fail)
+            else:
+                # Check for low health
+                value = stat_obj['health']['value']
+                thresh_exceeded_fn = stat_obj['health']['thresh_exceeded_fn']
+                if thresh_exceeded_fn(value):
+                    log_info('threshold exceeded for stat "health": ' + component_id)
+                    do_restore_health = True
 
-        # TODO: consider history when choosing an action here ???
-        if do_restore_health:
-            # Restore low health (often also fixes CPU over-utilization)
-            print('info: adding new task "restore_ctrl_health" for "' + component_id + '"')
-            rae.do_task('restore_ctrl_health', component_id)
-        elif do_shrink_hosttable:
+        # TODO: consider history when choosing an action here ??? or maintain in env_AIRS.py ???
+        if do_shrink_hosttable:
             # Fix problem with inflated host table
-            print('info: adding new task "shrink_ctrl_hosttable" for "' + component_id + '"')
+            log_info('adding new task "shrink_ctrl_hosttable" for "' + component_id + '"')
             rae.do_task('shrink_ctrl_hosttable', component_id)
+        elif do_alleviate_cpu:
+            # Alleviate elevated CPU stat
+            log_info('adding new task "alleviate_ctrl_cpu" for "' + component_id + '"')
+            rae.do_task('alleviate_ctrl_cpu', component_id)
+        elif do_restore_health:
+            # Restore low health (often also fixes CPU over-utilization)
+            log_info('adding new task "restore_ctrl_health" for "' + component_id + '"')
+            rae.do_task('restore_ctrl_health', component_id)
         else:
             # No problem could be identified from stats
-            print('info: no task to add for "' + component_id + '"')
+            log_info('no task to add for "' + component_id + '"')
             # TODO: probe further ???
             # For now, fail
             # TODO: OR... succeed, because nothing was found to be wrong ???
-            # print('error: could not figure out how to fix controller "' + component_id + '"')
+            # log_err('could not figure out how to fix controller "' + component_id + '"')
             # rae.do_command(fail)
 
         # TODO: loop and continue checking stats until symptoms are gone ???
@@ -298,61 +381,77 @@ def fix_switch(component_id, config):
     """Method to fix symptoms for a switch."""
 
     if not is_component_type(component_id, 'SWITCH'):
-        print('error: component "' + component_id + '" is not a switch')
+        log_err('component "' + component_id + '" is not a switch')
         rae.do_command(fail)
     elif component_id not in state.stats:
-        print('error: could not find "' + component_id + '" in state.stats')
+        log_err('could not find "' + component_id + '" in state.stats')
         rae.do_command(fail)
     else:
         # Check stats and determine what needs to be fixed
         stat_obj = state.stats[component_id]
-        do_restore_health = False
         do_shrink_flowtable = False
-        if 'health' in stat_obj:
-            if ('value' not in stat_obj['health']
-                    or 'thresh_exceeded_fn' not in stat_obj['health']):
-                print('error: could not find "value" or "thresh_exceeded_fn" in '
-                      + 'state.stats["' + component_id + '"]["health"]')
-                rae.do_command(fail)
-            else:
-                # Check for low health
-                value = stat_obj['health']['value']
-                thresh_exceeded_fn = stat_obj['health']['thresh_exceeded_fn']
-                if thresh_exceeded_fn(value):
-                    print('info: threshold exceeded for stat "health"')
-                    do_restore_health = True
+        do_alleviate_cpu = False
+        do_restore_health = False
         if 'flow_table_size' in stat_obj:
+            # TODO: if missing from state, can be populated lazily (here), via a probing action ???
             if ('value' not in stat_obj['flow_table_size']
                     or 'thresh_exceeded_fn' not in stat_obj['flow_table_size']):
-                print('error: could not find "value" or "thresh_exceeded_fn" in '
-                      + 'state.stats["' + component_id + '"]["flow_table_size"]')
+                log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                        + component_id + '"]["flow_table_size"]')
                 rae.do_command(fail)
             else:
                 # Check for inflated flow table
                 value = stat_obj['flow_table_size']['value']
                 thresh_exceeded_fn = stat_obj['flow_table_size']['thresh_exceeded_fn']
                 if thresh_exceeded_fn(value):
-                    print('info: threshold exceeded for stat "flow_table_size"')
+                    log_info('threshold exceeded for stat "flow_table_size"')
                     do_shrink_flowtable = True
-        else:
-            # TODO: probe for missing data ???
-            pass
+        if 'cpu_perc_ewma' in stat_obj:
+            if ('value' not in stat_obj['cpu_perc_ewma']
+                    or 'thresh_exceeded_fn' not in stat_obj['cpu_perc_ewma']):
+                log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                        + component_id + '"]["cpu_perc_ewma"]')
+                rae.do_command(fail)
+            else:
+                # Check for elevated CPU stat
+                value = stat_obj['cpu_perc_ewma']['value']
+                thresh_exceeded_fn = stat_obj['cpu_perc_ewma']['thresh_exceeded_fn']
+                if thresh_exceeded_fn(value):
+                    log_info('threshold exceeded for stat "cpu_perc_ewma": ' + component_id)
+                    do_alleviate_cpu = True
+        if 'health' in stat_obj:
+            if ('value' not in stat_obj['health']
+                    or 'thresh_exceeded_fn' not in stat_obj['health']):
+                log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                        + component_id + '"]["health"]')
+                rae.do_command(fail)
+            else:
+                # Check for low health
+                value = stat_obj['health']['value']
+                thresh_exceeded_fn = stat_obj['health']['thresh_exceeded_fn']
+                if thresh_exceeded_fn(value):
+                    log_info('threshold exceeded for stat "health"')
+                    do_restore_health = True
 
-        # TODO: consider history when choosing an action here ???
-        if do_restore_health:
-            # Restore low health (often also fixes CPU over-utilization)
-            print('info: adding new task "restore_switch_health" for "' + component_id + '"')
-            rae.do_task('restore_switch_health', component_id)
-        elif do_shrink_flowtable:
+        # TODO: consider history when choosing an action here ??? or maintain in env_AIRS.py ???
+        if do_shrink_flowtable:
             # Fix problem with inflated flow table
-            print('info: adding new task "shrink_switch_flowtable" for "' + component_id + '"')
+            log_info('adding new task "shrink_switch_flowtable" for "' + component_id + '"')
             rae.do_task('shrink_switch_flowtable', component_id)
+        elif do_alleviate_cpu:
+            # Alleviate elevated CPU stat
+            log_info('adding new task "alleviate_switch_cpu" for "' + component_id + '"')
+            rae.do_task('alleviate_switch_cpu', component_id)
+        elif do_restore_health:
+            # Restore low health (often also fixes CPU over-utilization)
+            log_info('adding new task "restore_switch_health" for "' + component_id + '"')
+            rae.do_task('restore_switch_health', component_id)
         else:
             # No problem could be identified from stats
             # TODO: probe further ???
             # For now, fail
             # TODO: OR... succeed, because nothing was found to be wrong ???
-            print('error: could not figure out how to fix switch "' + component_id + '"')
+            log_err('could not figure out how to fix switch "' + component_id + '"')
             rae.do_command(fail)
 
         # TODO: loop and continue checking stats until symptoms are gone ???
@@ -363,7 +462,7 @@ def handle_event(event, config):
 
     # Handle event types based on their source
     if 'source' not in event:
-        print('error: could not find "source" in event')
+        log_err('could not find "source" in event')
         rae.do_command(fail)
     else:
         if event['source'] == 'sysmon':
@@ -380,7 +479,7 @@ def handle_event(event, config):
 
                     # Check each monitored stat
                     if component not in state.stats:
-                        print('error: could not find "' + component + '" in state.stats')
+                        log_err('could not find "' + component + '" in state.stats')
                         rae.do_command(fail)
                     else:
                         for stat in state.stats[component]:
@@ -388,22 +487,19 @@ def handle_event(event, config):
                             value = stat_obj['value']
                             thresh_exceeded_fn = stat_obj['thresh_exceeded_fn']
                             if thresh_exceeded_fn(value):
-                                print(
-                                    'trace: stat "' + stat
-                                    + '" for component "' + component
-                                    + '" is exceeded'
-                                )
+                                log_trace('stat "' + stat + '" for component "' + component
+                                          + '" is exceeded')
                                 low_resource_components.append(component)
                                 break
 
             # Address symptoms of each affected component
             for component in low_resource_components:
-                print('info: adding new task "fix_component" for "' + component + '"')
+                log_info('adding new task "fix_component" for "' + component + '"')
                 rae.do_task('fix_component', component, config)
 
         # Unhandled event source
         else:
-            print('error: unhandled event source "' + event['source'] + '"')
+            log_err('unhandled event source "' + event['source'] + '"')
             rae.do_command(fail)
 
 
@@ -411,7 +507,7 @@ def ctrl_clearstate_besteffort(component_id):
     """Method to clear controller state (best effort)."""
 
     if not is_component_type(component_id, 'CTRL'):
-        print('error: component "' + component_id + '" is not a controller')
+        log_err('component "' + component_id + '" is not a controller')
         rae.do_command(fail)
     else:
         rae.do_command(clear_ctrl_state_besteffort, component_id)
@@ -421,7 +517,7 @@ def ctrl_clearstate_fallback(component_id):
     """Method to clear controller state (fallback)."""
 
     if not is_component_type(component_id, 'CTRL'):
-        print('error: component "' + component_id + '" is not a controller')
+        log_err('component "' + component_id + '" is not a controller')
         rae.do_command(fail)
     else:
         rae.do_command(clear_ctrl_state_fallback, component_id)
@@ -431,7 +527,7 @@ def ctrl_reinstall_besteffort(component_id):
     """Method to reinstall controller software (best effort)."""
 
     if not is_component_type(component_id, 'CTRL'):
-        print('error: component "' + component_id + '" is not a controller')
+        log_err('component "' + component_id + '" is not a controller')
         rae.do_command(fail)
     else:
         rae.do_command(reinstall_ctrl_besteffort, component_id)
@@ -441,7 +537,7 @@ def ctrl_reinstall_fallback(component_id):
     """Method to reinstall controller software (fallback)."""
 
     if not is_component_type(component_id, 'CTRL'):
-        print('error: component "' + component_id + '" is not a controller')
+        log_err('component "' + component_id + '" is not a controller')
         rae.do_command(fail)
     else:
         rae.do_command(reinstall_ctrl_fallback, component_id)
@@ -453,11 +549,17 @@ def component_restartvm(component_id):
     rae.do_command(restart_vm, component_id)
 
 
+def component_kill_top_proc(component_id):
+    """Method to kill the top CPU-consuming process in a component virtual machine."""
+
+    rae.do_command(kill_top_proc, component_id)
+
+
 def switch_clearstate_besteffort(component_id):
     """Method to clear switch state (best effort)."""
 
     if not is_component_type(component_id, 'SWITCH'):
-        print('error: component "' + component_id + '" is not a switch')
+        log_err('component "' + component_id + '" is not a switch')
         rae.do_command(fail)
     else:
         rae.do_command(clear_switch_state_besteffort, component_id)
@@ -467,10 +569,30 @@ def switch_clearstate_fallback(component_id):
     """Method to clear switch state (fallback)."""
 
     if not is_component_type(component_id, 'SWITCH'):
-        print('error: component "' + component_id + '" is not a switch')
+        log_err('component "' + component_id + '" is not a switch')
         rae.do_command(fail)
     else:
         rae.do_command(clear_switch_state_fallback, component_id)
+
+
+def switch_discon_recon_txport(component_id):
+    """Method to disconnect and then reconnect switch port with most transmitted traffic."""
+
+    if not is_component_type(component_id, 'SWITCH'):
+        log_err('component "' + component_id + '" is not a switch')
+        rae.do_command(fail)
+    else:
+        rae.do_command(disconnect_reconnect_switch_port, component_id)
+
+
+def switch_disconnect_txport(component_id):
+    """Method to disconnect switch port with most transmitted traffic."""
+
+    if not is_component_type(component_id, 'SWITCH'):
+        log_err('component "' + component_id + '" is not a switch')
+        rae.do_command(fail)
+    else:
+        rae.do_command(disconnect_switch_port, component_id)
 
 
 #
@@ -485,10 +607,13 @@ rae.declare_task('fix_switch', 'component_id', 'config')
 
 rae.declare_task('handle_event', 'event', 'config')
 
-rae.declare_task('restore_ctrl_health', 'component_id')
 rae.declare_task('shrink_ctrl_hosttable', 'component_id')
-rae.declare_task('restore_switch_health', 'component_id')
+rae.declare_task('alleviate_ctrl_cpu', 'component_id')
+rae.declare_task('restore_ctrl_health', 'component_id')
+
 rae.declare_task('shrink_switch_flowtable', 'component_id')
+rae.declare_task('alleviate_switch_cpu', 'component_id')
+rae.declare_task('restore_switch_health', 'component_id')
 
 rae.declare_methods(
     'fix_sdn',
@@ -500,12 +625,10 @@ rae.declare_methods(
     fix_ctrl,
     fix_switch
 )
-
 rae.declare_methods(
     'fix_ctrl',
     fix_ctrl
 )
-
 rae.declare_methods(
     'fix_switch',
     fix_switch
@@ -517,25 +640,23 @@ rae.declare_methods(
 )
 
 rae.declare_methods(
-    'restore_ctrl_health',
-    ctrl_clearstate_besteffort,
-    ctrl_clearstate_fallback,
-    ctrl_reinstall_besteffort,
-    ctrl_reinstall_fallback,
-    component_restartvm
-)
-rae.declare_methods(
     'shrink_ctrl_hosttable',
     ctrl_clearstate_besteffort,
     ctrl_clearstate_fallback,
     ctrl_reinstall_besteffort,
     ctrl_reinstall_fallback
 )
-
 rae.declare_methods(
-    'restore_switch_health',
-    switch_clearstate_besteffort,
-    switch_clearstate_fallback,
+    'alleviate_ctrl_cpu',
+    component_kill_top_proc,
+    ctrl_reinstall_besteffort,
+    ctrl_reinstall_fallback,
+    component_restartvm
+)
+rae.declare_methods(
+    'restore_ctrl_health',
+    ctrl_reinstall_besteffort,
+    ctrl_reinstall_fallback,
     component_restartvm
 )
 
@@ -543,4 +664,19 @@ rae.declare_methods(
     'shrink_switch_flowtable',
     switch_clearstate_besteffort,
     switch_clearstate_fallback
+)
+rae.declare_methods(
+    'alleviate_switch_cpu',
+    switch_discon_recon_txport,
+    component_kill_top_proc,
+    switch_clearstate_besteffort,
+    switch_clearstate_fallback,
+    switch_disconnect_txport
+)
+rae.declare_methods(
+    'restore_switch_health',
+    switch_discon_recon_txport,
+    switch_clearstate_besteffort,
+    switch_clearstate_fallback,
+    switch_disconnect_txport
 )

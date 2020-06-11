@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 __author__ = 'alex'
-# Imports
+
 import functools
 import operator
 import threading
@@ -9,12 +9,15 @@ from testRAEandRAEplan import InitializeSecurityDomain
 from state import state
 from domain_AIRS import *
 
+
 def beginCommand(cmd, cmdRet, args):
     cmdRet['state'] = cmd(*args)
+
 
 def exec_cmds(exec_queue, status_queue):
     """TODO: add documentation.
     """
+
     while True:
         if not exec_queue.empty():
             (id, cmd, args) = exec_queue.get()
@@ -26,6 +29,14 @@ def exec_cmds(exec_queue, status_queue):
             t.join()
             print('Done executing cmd: ' + str(cmd.__name__))
             status_queue.put([id, cmdRet['state'], state.copy()])
+
+
+def initialize_state():
+    """TODO: add documentation.
+    """
+
+    pass
+
 
 if __name__ == '__main__':
 
@@ -59,23 +70,58 @@ if __name__ == '__main__':
     state.components = {
         'ctrl1': {
             'id': 'ctrl1',
-            'type': 'CTRL'
+            'type': 'CTRL',
+            'critical': True
         },
         'switch1': {
             'id': 'switch1',
-            'type': 'SWITCH'
+            'type': 'SWITCH',
+            'critical': True
         },
         'switch2': {
             'id': 'switch2',
-            'type': 'SWITCH'
+            'type': 'SWITCH',
+            'critical': False
         },
         'switch3': {
             'id': 'switch3',
-            'type': 'SWITCH'
+            'type': 'SWITCH',
+            'critical': False
         },
         'switch4': {
             'id': 'switch4',
-            'type': 'SWITCH'
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch5': {
+            'id': 'switch5',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch6': {
+            'id': 'switch6',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch7': {
+            'id': 'switch7',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch8': {
+            'id': 'switch8',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch9': {
+            'id': 'switch9',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch10': {
+            'id': 'switch10',
+            'type': 'SWITCH',
+            'critical': True
         }
     }
     state.stats = {
