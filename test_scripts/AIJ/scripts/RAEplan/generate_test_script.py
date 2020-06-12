@@ -364,12 +364,12 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    #for domain in ["SD", "EE"]: 
+    for domain in ["OF"]: 
     #for domain in [args.domain]:
-    for domain in ["CR", "EE", "SR", "SD", "OF"]: 
+    #for domain in ["CR", "EE", "SR", "SD", "OF"]: 
         for optz in ["eff"]: # "sr"
-            for mode in ["UCT"]: #"SLATE"
-                for depth in ["lim"]:
-                    for heuristic in ['zero', 'DS', 'learnH']:
+            for mode in ["SLATE"]: #"SLATE"
+                for depth in ["max"]:
+                    for heuristic in ["DS"]: #['zero', 'DS', 'learnH']:
                         for part in range(1, 11):
                             GenerateTestScriptRAEplan(mode, domain, depth, part, optz, heuristic)

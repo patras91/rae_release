@@ -144,13 +144,36 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
 
     res['timeOut'].append(nTimeOut)
 
-def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param may be k or d
+def GetStandardDev(l):
+    m = sum(l)/len(l)
+    r = 0
+    for i in l:
+        r += (i-m)*(i-m)
+    return math.sqrt(r/(len(l)-1))
+
+def NormalizeValues(r):
+    for v in ['nu', 'successRatio', 'retryRatio']: # 'nu_error', 'sr_error', 'rr_error']:
+        print("before", r[v])
+        val = r[v][0]
+        if val != 0:
+            r[v] = [item/val for item in r[v]]
+            key_error = {
+                'nu': 'nu_error',
+                'successRatio': 'sr_error',
+                'retryRatio': 'rr_error',
+            }[v]
+            r[key_error] = [item/val for item in r[key_error]]
+
+        print("after", r[v])
+
+def CommonStuffErrorRatio(res, domain, f_rae, param, fileName): # param may be k or d
 
     line = f_rae.readline()
     
     id = 0
     lineNumber = 0
-    total = 0
+    total = {}
+    sumEff = 0
     while(line != ''):
 
         parts = line.split(' ')
@@ -160,8 +183,13 @@ def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param m
             id += 1
 
             counts = f_rae.readline()
+            if counts[0] == "T":
+                print("passing ---------------")
+                print(fileName, " line number = ", lineNumber)
+                counts = f_rae.readline()
+                lineNumber += 1
             lineNumber += 1
-            print(fileName, " line number = ", lineNumber)
+            #print(fileName, " line number = ", lineNumber)
             while(NotTimeLine(counts)):
                 if counts == '':
                     break
@@ -169,7 +197,7 @@ def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param m
                     pass
 
                 parts2 = counts.split(' ')
-
+                #print(parts2)
                 if parts2[0] != "v2":
                     version = 1
                     taskEff = float(parts2[5])
@@ -184,28 +212,33 @@ def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param m
                 if version == 2:
                     planningUtils = f_rae.readline() # list of commands and planning efficiencies
                     lineNumber += 1
-                    total += 1
                     # update the planning utility error ratios
-                    subs = planningUtils.split(' ')
-                    commCount = 0
-                    itr = 0
-                    for item in subs:
-                        chars = [str(i) for i in range(0,10)]
-                        if item[0] in chars or item == "inf":
+                    #if taskEff > 0:
+                    if True:
+                        subs = planningUtils.split(' ')
+                        commCount = 0
+                        itr = 0
+                        for item in subs:
+                            chars = [str(i) for i in range(0,10)]
+                            if item[0] in chars or item == "inf":
 
-                            errorRatio = abs(taskEff - float(item))/(1 + taskEff)
-                            if itr == 2:
-                                if commCount in res:
-                                    res[commCount] += errorRatio
-                                else:
-                                    res[commCount] = errorRatio
-                            itr += 1
-                            if itr == 3:
-                                itr = 0
-                        else:
-                            commCount += 1
-                            if commCount > 10:
-                                break
+                                if item == "inf":
+                                    item = 0.1
+                                errorRatio = abs(taskEff - float(item))
+
+                                if itr == 2:
+                                    if commCount in res:
+                                        res[commCount].append(errorRatio)
+                                        #print(errorRatio)
+                                        total[commCount] += 1
+                                        sumEff += taskEff
+                                    else:
+                                        res[commCount] = [errorRatio]
+                                        total[commCount] = 1
+                                    commCount += 1
+                                    if commCount > 10:
+                                        break
+                                itr = (itr + 1)%3
 
                 counts = f_rae.readline()
                 lineNumber += 1
@@ -214,10 +247,13 @@ def CommonStuffPlanningUtilities(res, domain, f_rae, param, fileName): # param m
         lineNumber += 1
 
     for commCount in res:
-        res[commCount] /= total
+        #res[commCount] = GetStandardDev(res[commCount])
+        res[commCount] = sum(res[commCount])/total[commCount]
 
-def PopulateHelper_UCT_max_depth_planning_utilities(res, domain, f_rae, uct, fileName):
-    CommonStuffPlanningUtilities(res, domain, f_rae, uct, fileName)
+    print(res)
+
+def PopulateHelper_UCT_max_depth_error_ratio(res, domain, f_rae, uct, fileName):
+    CommonStuffErrorRatio(res, domain, f_rae, uct, fileName)
 
 def Populate_SLATE_max_depth(res, domain):
     for b in B_max_depth[domain]:
@@ -245,13 +281,14 @@ def Populate_UCT_max_depth(res, domain, utilF, num_tasks_per_problem):
         print(fname)
         PopulateHelper(res, domain, open(fname), n_ro, fname, num_tasks_per_problem)
         fptr.close()
+    NormalizeValues(res)
 
 def Populate_learning(res, domain, model, num_tasks_per_problem):
     if model == "UCT":
-        if domain == "CR":
-            f1 = "{}{}_v_journal/rae_plan_uct_5000.txt".format(resultsFolder, domain)
-        else:
-            f1 = "{}{}_v_journal_eff/rae_plan_uct_250.txt".format(resultsFolder, domain)
+        #if domain == "CR":
+        #    f1 = "{}{}_v_journal/rae_plan_uct_5000.txt".format(resultsFolder, domain)
+        #else:
+        f1 = "{}{}_v_journal_eff/rae_plan_uct_250.txt".format(resultsFolder, domain)
         print("reading from ", f1)
         #if domain == "CR" or domain == "EE":
             #f1 = "{}{}_v_journal/RAE_with_planning.txt".format(resultsFolder, domain)
@@ -267,6 +304,8 @@ def Populate_learning(res, domain, model, num_tasks_per_problem):
         #else:
         #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_10_3.txt".format(resultsFolder, domain)
     
+    elif model == "SLATE":
+        f1 = "{}{}_v_journal/rae_plan_b_2_k_2.txt".format(resultsFolder, domain)
     
     elif model == "reactive" or domain == "OF":
         #if domain == "CR" or domain == "SR":
@@ -274,8 +313,7 @@ def Populate_learning(res, domain, model, num_tasks_per_problem):
         #else:
         f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
     
-    elif model == "SLATE":
-        f1 = "{}{}_v_journal/rae_plan_b_2_k_2.txt".format(resultsFolder, domain)
+
     elif model == "actor":
         #if domain not in  ["SR"]:
         #    f1 = "{}{}_v_journal/RAE_with_trained_model_actor.txt".format(resultsFolder, domain)
@@ -303,6 +341,7 @@ def Populate_learning(res, domain, model, num_tasks_per_problem):
         #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_0.txt".format(resultsFolder, domain)
     f1_p = open(f1, "r")
     PopulateHelper(res, domain, f1_p, 0, f1, num_tasks_per_problem)
+
     f1_p.close()
 
 def Populate_learning_mi(res, domain, model, nTasks):
@@ -310,10 +349,20 @@ def Populate_learning_mi(res, domain, model, nTasks):
         f1 = "{}{}_v_journal_eff/rae_plan_uct_250.txt".format(resultsFolder, domain)
     elif model == "learnMI":
         f1 = "{}{}_v_journal/RAE_with_learnMI_p.txt".format(resultsFolder, domain)    
+    elif model == "learnH":
+        #if domain == "EE":
+        #    f1 = "{}{}_v_journal/RAE_with_trained_heuristic_40_6.txt".format(resultsFolder, domain)
+        #if domain == "CR" or domain == "SR":
+        #    f1 = "{}{}_v_journal/RAE_with_learnH_training.txt".format(resultsFolder, domain)
+        #else:
+        f1 = "{}{}_v_journal/RAE_with_learnH.txt".format(resultsFolder, domain)
+    elif model == "SLATE":
+        f1 = "{}{}_v_journal/rae_plan_b_2_k_2.txt".format(resultsFolder, domain)  
     elif model == "reactive" or domain == "OF":
         f1 = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
     elif model == "actor":
-        f1 = "{}{}_v_journal/RAE_with_learnM_a.txt".format(resultsFolder, domain)        
+        f1 = "{}{}_v_journal/RAE_with_learnM_a.txt".format(resultsFolder, domain)
+      
     elif model == "planner":
         f1 = "{}{}_v_journal/RAE_with_learnM_p.txt".format(resultsFolder, domain)
 
@@ -323,19 +372,19 @@ def Populate_learning_mi(res, domain, model, nTasks):
     PopulateHelper(res, domain, f1_p, 0, f1, nTasks)
     f1_p.close()
 
-def Populate_UCT_max_depth_planning_utilities(res, domain):
+def Populate_UCT_max_depth_error_ratio(res, domain):
     for uct in UCT_max_depth[domain]:
         if uct == 0:
             f_rae_name = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
             f_rae = open(f_rae_name, "r")
             print(f_rae_name)
-            PopulateHelper_UCT_max_depth_planning_utilities(res[uct], domain, f_rae, uct, f_rae_name)
+            PopulateHelper_UCT_max_depth_error_ratio(res[uct], domain, f_rae, uct, f_rae_name)
             f_rae.close()
         else:
             fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, util, uct)
             fptr = open(fname)
             print(fname)
-            PopulateHelper_UCT_max_depth_planning_utilities(res[uct], domain, open(fname), uct, fname)
+            PopulateHelper_UCT_max_depth_error_ratio(res[uct], domain, open(fname), uct, fname)
             fptr.close()
 
 def Populate_SLATE_lim_depth(res, domain):  
@@ -380,6 +429,8 @@ def Populate_UCT_lim_depth(res, domain, heuristic, num_tasks_per_problem):
             print(fname)
             PopulateHelper(res, domain, open(fname), depth, fname, num_tasks_per_problem)
             fptr.close()
+
+    NormalizeValues(res)
 
 def GeneratePlots_SLATE_max_depth():
     resDict = {
@@ -440,16 +491,21 @@ def GeneratePlots_LearnMI(num_tasks):
     for domain in D:
         resDict[domain] = {}
         resDict[domain]['reactive'] = GetNewDict()
+        resDict[domain]['SLATE'] = GetNewDict()
         resDict[domain]['learning_from_actor'] = GetNewDict()
         resDict[domain]['learning_from_planner'] = GetNewDict()
         resDict[domain]['learnMI'] = GetNewDict()
+        resDict[domain]['learnH'] = GetNewDict()
         resDict[domain]['UCT'] = GetNewDict()
 
         Populate_learning_mi(resDict[domain]['UCT'], domain, 'UCT', num_tasks)
+        Populate_learning_mi(resDict[domain]['SLATE'], domain, 'SLATE', num_tasks)
+        
         Populate_learning_mi(resDict[domain]['reactive'], domain, 'reactive', num_tasks)
         Populate_learning_mi(resDict[domain]['learning_from_actor'], domain, 'actor', num_tasks)
         Populate_learning_mi(resDict[domain]['learning_from_planner'], domain, 'planner', num_tasks)
         Populate_learning_mi(resDict[domain]['learnMI'], domain, 'learnMI', num_tasks)
+        Populate_learning_mi(resDict[domain]['learnH'], domain, 'learnH', num_tasks)
     
     print(resDict)
     
@@ -459,6 +515,10 @@ def GeneratePlots_LearnMI(num_tasks):
 def GeneratePlots_learning(num_tasks_per_problem):
     resDict = {}
     for domain in D:
+        if domain == "CR":
+            n_UCT = 1
+        else:
+            n_UCT = 0
         resDict[domain] = {}
         resDict[domain]['reactive'] = GetNewDict()
         resDict[domain]['SLATE'] = GetNewDict()
@@ -492,7 +552,7 @@ def GeneratePlots_learning(num_tasks_per_problem):
     for metric in ['nu', 'successRatio', 'retryRatio'] : #, 'totalTime']:
         PlotHelper_learning(resDict, metric, errIndex[metric])
 
-def GeneratePlots_UCT_max_depth_planning_utilities():
+def GeneratePlots_UCT_max_depth_error_ratio():
     resDict = {}
     for domain in D:
         resDict[domain] = {}
@@ -500,7 +560,7 @@ def GeneratePlots_UCT_max_depth_planning_utilities():
             resDict[domain][uct] = {}
 
     for domain in D:
-        Populate_UCT_max_depth_planning_utilities(resDict[domain], domain)
+        Populate_UCT_max_depth_error_ratio(resDict[domain], domain)
 
     plt.clf()
     font = {
@@ -510,7 +570,7 @@ def GeneratePlots_UCT_max_depth_planning_utilities():
     plt.rc('font', **font)
     
     print(resDict)
-    PlotHelper_UCT_max_planning_utilities(resDict)
+    PlotHelper_UCT_max_error_ratio(resDict)
 
 def GeneratePlots_SLATE_lim_depth():
     resDict = {
@@ -611,16 +671,15 @@ def GetYlabel(util):
 
 def Accumulate(res1, res2):
     if res1 == []:
-        for item in res2[0:6]:
-            res1.append(item)
+        for item in res2[0:7]:
+            res1.append(item/5)
         #res1 = [item for item in res2[0:6]]
 
     else:
-        for i in range(6):
-            res1[i] += res2[i]
+        for i in range(7):
+            res1[i] += res2[i]/5
 
-def PlotHelper_UCT_max_retryRatio(resDict):
-    index1 = 'retryRatio'
+def PlotHelper_UCT_max_Acc(resDict, index1):
 
     width = 0.25
     #K = [0, 1, 2, 3, 4, 8, 16]
@@ -636,26 +695,27 @@ def PlotHelper_UCT_max_retryRatio(resDict):
         Accumulate(res['_eff'][errIndex[index1]], resDict[domain]['_eff'][errIndex[index1]])
         
     plt.clf()
-    fname = '{}{}_UCT_max_depth.png'.format(figuresFolder, 'retryRatio')
+    fname = '{}{}_UCT_max_depth.png'.format(figuresFolder, index1)
     
     fig, ax = plt.subplots()
-    PlotViaMatlabBar([0, 50, 100, 250, 500, 1000], 
+    PlotViaMatlabBar([0, 5, 10, 25, 50, 100, 250], 
         res['_sr'][index1],
         res['_sr'][errIndex[index1]],
         COLORBAR[0],
         "utility = success ratio", -1, ax)
-    PlotViaMatlabBar([0, 50, 100, 250, 500, 1000], 
+    PlotViaMatlabBar([0, 5, 10, 25, 50, 100, 250], 
         res['_eff'][index1],
         res['_eff'][errIndex[index1]],
         COLORBAR[1],
         "utility = efficiency", 1, ax)
 
-    plt.legend(bbox_to_anchor=(0.2, 0.5), loc=3, ncol=1, borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(0.05, 1.01), loc=3, ncol=2, borderaxespad=0.)
         
-    ax.set_xticks(np.arange(6))
-    ax.set_xticklabels([str(item) for item in [0, 50, 100, 250, 500, "1K"]])
+    ax.set_xticks(np.arange(7))
+    ax.set_xticklabels([str(item) for item in [0, 5, 10, 25, 50, 100, 250]])
+    ax.set_ylim(bottom=0.2)
     plt.xlabel('Number of rollouts')
-    plt.ylabel(GetYlabel('retryRatio'))
+    plt.ylabel(GetYlabel(index1))
 
     plt.savefig(fname, bbox_inches='tight')
 
@@ -665,12 +725,11 @@ def PlotHelper_UCT_max(resDict, utilp):
         'weight' : 'bold',
         'size'   : 20}
     plt.rc('font', **font)
-    if utilp == "retryRatio":
-        PlotHelper_UCT_max_retryRatio(resDict)
-        return
+    #PlotHelper_UCT_max_Acc(resDict, utilp)
+    #return
 
     index1 = utilp
-    width = 0.25
+    width = 0.8
     #K = [0, 1, 2, 3, 4, 8, 16]
 
     for domain in D:
@@ -680,23 +739,25 @@ def PlotHelper_UCT_max(resDict, utilp):
         
         if util == "_sr":
             fig, ax = plt.subplots()
-            PlotViaMatlabBar(UCT_max_depth[domain], 
-                resDict[domain]['_sr'][index1],
-                resDict[domain]['_sr'][errIndex[index1]],
-                COLORBAR[0],
-                "utility = success ratio", -1, ax)
-            PlotViaMatlabBar(UCT_max_depth[domain], 
-                resDict[domain]['_eff'][index1],
-                resDict[domain]['_eff'][errIndex[index1]],
-                COLORBAR[1],
-                "utility = efficiency", 1, ax)
+            if utilp == "successRatio":
+                PlotViaMatlabBar(UCT_max_depth[domain], 
+                    resDict[domain]['_sr'][index1],
+                    resDict[domain]['_sr'][errIndex[index1]],
+                    COLORBAR[0],
+                    "utility = success ratio", 0, ax, width)
+            else:
+                PlotViaMatlabBar(UCT_max_depth[domain], 
+                    resDict[domain]['_eff'][index1],
+                    resDict[domain]['_eff'][errIndex[index1]],
+                    COLORBAR[1],
+                    "utility = efficiency", 0, ax, width)
         else:
             fig, ax = plt.subplots()
             PlotViaMatlabBar(UCT_max_depth[domain], 
                 resDict[domain][index1],
                 resDict[domain][errIndex[index1]],
                 COLORBAR[0],
-                GetYlabel(utilp), 0, ax)
+                GetYlabel(utilp), 0, ax, width)
         
         #plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
             
@@ -704,6 +765,7 @@ def PlotHelper_UCT_max(resDict, utilp):
         ax.set_xticklabels([str(item) if item != 1000 else "1K" for item in UCT_max_depth[domain]])
         plt.xlabel('Number of rollouts')
         ax.set_title(GetFullName(domain))
+        ax.set_ylim(bottom=GetLowerLim(domain))
         #plt.xticks(UCT_max_depth[domain],
         #   [str(item) for item in UCT_max_depth[domain]])
         plt.ylabel(GetYlabel(utilp))
@@ -715,47 +777,36 @@ def PlotHelper_LearnMI(resDict, utilp, errorP):
 
     fname = '{}{}_learning_mi.png'.format(figuresFolder, utilp)
 
+    rcParams['figure.figsize'] = 6, 3
     plt.clf()
     ax = {}
     ax['SD'] = plt.subplot2grid((1,2), (0,0), colspan=1)
     ax['OF'] = plt.subplot2grid((1,2), (0,1), colspan=1)
 
-    lowerLim = {
-        "SD":
-        {
-            "nu":0.01,
-            "retryRatio": 0,
-            "successRatio":0.7,
-            'totalTime': 0,
-        },
-        "OF":
-        {
-            "nu": 0.01,
-            "retryRatio": 0,
-            "successRatio":0.6,
-            'totalTime': 0,
-        }
-    }
     toPlot = {}
-
+    
     for domain in D:
+        normalizer = resDict[domain]['reactive'][index1][0]
         toPlot = {'val': {}, 'err': {}}
-        toPlot['val']['RAE\n(no planning)'] = resDict[domain]['reactive'][index1][0]
-        toPlot['val']['LearnM-1'] = resDict[domain]['learning_from_actor'][index1][0]
-        toPlot['val']['LearnM-2'] = resDict[domain]['learning_from_planner'][index1][0]
-        toPlot['val']['LearnMI'] = resDict[domain]['learnMI'][index1][0]
-        toPlot['val']['UPOM'] = resDict[domain]['UCT'][index1][0]
+        toPlot['val']['RAE\n(no planning)'] = resDict[domain]['reactive'][index1][0]/normalizer
+        toPlot['val']['LearnM-1'] = resDict[domain]['learning_from_actor'][index1][0]/normalizer
+        toPlot['val']['LearnM-2'] = resDict[domain]['learning_from_planner'][index1][0]/normalizer
+        toPlot['val']['LearnMI'] = resDict[domain]['learnMI'][index1][0]/normalizer
+        toPlot['val']['LearnH'] = resDict[domain]['learnH'][index1][0]/normalizer
+        #toPlot['val']['RAEplan'] = resDict[domain]['SLATE'][index1][0]/normalizer
+        toPlot['val']['UPOM'] = resDict[domain]['UCT'][index1][0]/normalizer
 
         # the errors
-        toPlot['err']['RAE (no planning)'] = resDict[domain]['reactive'][errorP][0]
-        toPlot['err']['LearnM-1'] = resDict[domain]['learning_from_actor'][errorP][0]
-        toPlot['err']['LearnM-2'] = resDict[domain]['learning_from_planner'][errorP][0]
-        toPlot['err']['LearnMI'] = resDict[domain]['learnMI'][errorP][0]
-        toPlot['err']['UPOM'] = resDict[domain]['UCT'][errorP][0]
+        toPlot['err']['RAE (no planning)'] = resDict[domain]['reactive'][errorP][0]/normalizer
+        toPlot['err']['LearnM-1'] = resDict[domain]['learning_from_actor'][errorP][0]/normalizer
+        toPlot['err']['LearnM-2'] = resDict[domain]['learning_from_planner'][errorP][0]/normalizer
+        toPlot['err']['LearnMI'] = resDict[domain]['learnMI'][errorP][0]/normalizer
+        toPlot['err']['LearnH'] = resDict[domain]['learnH'][errorP][0]/normalizer
+        #toPlot['err']['RAEplan'] = resDict[domain]['SLATE'][errorP][0]/normalizer
+        toPlot['err']['UPOM'] = resDict[domain]['UCT'][errorP][0]/normalizer
 
         width = 0.85  # 0.003 the width of the bars
     
-
         labels = list(toPlot['val'].keys())
         x = np.arange(len(labels))
 
@@ -763,7 +814,7 @@ def PlotHelper_LearnMI(resDict, utilp, errorP):
         print(list(toPlot['val'].values()))
 
         rects = ax[domain].bar(x, list(toPlot['val'].values()), width, 
-            color=['turquoise', 'grey', 'orange', 'yellowgreen', 'orangered', 'orchid'],
+            color=['turquoise', 'grey', 'orange', 'yellowgreen', 'blue',  'orchid'],
             yerr=list(toPlot['err'].values()), capsize=3)
        
         patterns = ('\\', '\\\\', '/', '+', 'x', '\\\\\\\\')
@@ -775,11 +826,14 @@ def PlotHelper_LearnMI(resDict, utilp, errorP):
             1: 'LearnM-1',
             2: 'LearnM-2',
             3: 'LearnMI',
-            4: 'RAE + UPOM'
+            4: 'LearnH',
+            5: 'RAE + UPOM',
         }
         for i, v in enumerate(x):
-            ax[domain].text(i, list(toPlot['val'].values())[i] + 0.001, text[i], rotation=90)
-        ax[domain].set_ylim(bottom=lowerLim[domain][index1])
+            pass
+            #ax[domain].text(i, list(toPlot['val'].values())[i] + 0.001, text[i], rotation=90)
+        #ax[domain].set_ylim(bottom=lowerLim[domain][index1])
+        ax[domain].set_ylim(bottom=0.9)
         #elif index1 == "successRatio":
         #    ax.set_ylim(bottom=0.1)
 
@@ -789,8 +843,8 @@ def PlotHelper_LearnMI(resDict, utilp, errorP):
         ax[domain].set_xlabel(domain)
         ax[domain].get_xaxis().set_visible(False)
         ax[domain].set_title(GetFullName(domain))
-        ax[domain].set_xticks(x)
-        ax[domain].set_xticklabels(labels, rotation=45)
+        #ax[domain].set_xticks(x)
+        #ax[domain].set_xticklabels(labels, rotation=45)
         ax[domain].legend()
 
     plt.tight_layout()
@@ -803,7 +857,7 @@ def PlotHelper_learning(resDict, utilp, errorP):
     index1 = utilp
     #index1 = 'actTime'
     #K = [0, 1, 2, 3, 4, 8, 16]
-    rcParams['figure.figsize'] = 6, 7
+    rcParams['figure.figsize'] = 9, 6
     fname = '{}{}_learning.png'.format(figuresFolder, utilp)
 
     plt.clf()
@@ -814,67 +868,31 @@ def PlotHelper_learning(resDict, utilp, errorP):
     #plt.rc('font', **font)
     
     ax = {}
-    ax['CR'] = plt.subplot2grid(shape=(3,4), loc=(0,0), colspan=2)
-    ax['SD'] = plt.subplot2grid((3,4), (0,2), colspan=2)
-    ax['EE'] = plt.subplot2grid((3,4), (1,0), colspan=2)
-    ax['SR'] = plt.subplot2grid((3,4), (1,2), colspan=2)
-    ax['OF'] = plt.subplot2grid((3,4), (2,0), colspan=2)
+    ax['SR'] = plt.subplot2grid(shape=(2,3), loc=(0,0), colspan=1)
+    ax['SD'] = plt.subplot2grid((2,3), (0,1), colspan=1)
+    ax['EE'] = plt.subplot2grid((2,3), (0,2), colspan=1)
+    ax['CR'] = plt.subplot2grid((2,3), (1,0), colspan=1)
+    ax['OF'] = plt.subplot2grid((2,3), (1,1), colspan=1)
 
-    lowerLim = {
-        "CR":
-        {
-            "nu": 0.065,
-            "retryRatio": 0,
-            "successRatio":0.68,
-            'totalTime': 0,
-        },
-        "SR":
-        {
-            "nu":0,
-            "retryRatio": 0,
-            "successRatio":0.1,
-            'totalTime': 0,
-        },
-        "EE":
-        {
-            "nu": 0,
-            "retryRatio": 0,
-            "successRatio":0.20,
-            'totalTime': 0,
-        },
-        "SD":
-        {
-            "nu":0.018,
-            "retryRatio": 0,
-            "successRatio":0.7,
-            'totalTime': 0,
-        },
-        "OF":
-        {
-            "nu": 0.01,
-            "retryRatio": 0,
-            "successRatio":0.6,
-            'totalTime': 0,
-        }
-    }
     toPlot = {}
 
     for domain in D:
+        normalizer = resDict[domain]['reactive'][index1][0]
         toPlot = {'val': {}, 'err': {}}
-        toPlot['val']['RAE\n(no planning)'] = resDict[domain]['reactive'][index1][0]
-        toPlot['val']['RAEplan'] = resDict[domain]['SLATE'][index1][0]
-        toPlot['val']['LearnM-1'] = resDict[domain]['learning_from_actor'][index1][0]
-        toPlot['val']['LearnM-2'] = resDict[domain]['learning_from_planner'][index1][0]
-        toPlot['val']['LearnH'] = resDict[domain]['heuristic_10_3'][index1][0]
-        toPlot['val']['UPOM'] = resDict[domain]['UCT'][index1][0]
+        toPlot['val']['RAE\n(no planning)'] = resDict[domain]['reactive'][index1][0]/normalizer
+        toPlot['val']['LearnM-1'] = resDict[domain]['learning_from_actor'][index1][0]/normalizer
+        toPlot['val']['LearnM-2'] = resDict[domain]['learning_from_planner'][index1][0]/normalizer
+        toPlot['val']['LearnH'] = resDict[domain]['heuristic_10_3'][index1][0]/normalizer
+        toPlot['val']['RAEplan'] = resDict[domain]['SLATE'][index1][0]/normalizer
+        toPlot['val']['UPOM'] = resDict[domain]['UCT'][index1][0]/normalizer
 
         # the errors
-        toPlot['err']['RAE (no planning)'] = resDict[domain]['reactive'][errorP][0]
-        toPlot['err']['RAEplan'] = resDict[domain]['SLATE'][errorP][0]
-        toPlot['err']['LearnM-1'] = resDict[domain]['learning_from_actor'][errorP][0]
-        toPlot['err']['LearnM-2'] = resDict[domain]['learning_from_planner'][errorP][0]
-        toPlot['err']['LearnH'] = resDict[domain]['heuristic_10_3'][errorP][0]
-        toPlot['err']['UPOM'] = resDict[domain]['UCT'][errorP][0]
+        toPlot['err']['RAE (no planning)'] = resDict[domain]['reactive'][errorP][0]/normalizer
+        toPlot['err']['LearnM-1'] = resDict[domain]['learning_from_actor'][errorP][0]/normalizer
+        toPlot['err']['LearnM-2'] = resDict[domain]['learning_from_planner'][errorP][0]/normalizer
+        toPlot['err']['LearnH'] = resDict[domain]['heuristic_10_3'][errorP][0]/normalizer
+        toPlot['err']['RAEplan'] = resDict[domain]['SLATE'][errorP][0]/normalizer
+        toPlot['err']['UPOM'] = resDict[domain]['UCT'][errorP][0]/normalizer
 
         width = 0.85  # 0.003 the width of the bars
     
@@ -894,7 +912,8 @@ def PlotHelper_learning(resDict, utilp, errorP):
         for bar, pattern in zip(rects, patterns):
             bar.set_hatch(pattern)
 
-        ax[domain].set_ylim(bottom=lowerLim[domain][index1])
+        #ax[domain].set_ylim(bottom=lowerLim[domain][index1])
+        ax[domain].set_ylim(bottom=0.8)
         #elif index1 == "successRatio":
         #    ax.set_ylim(bottom=0.1)
 
@@ -916,39 +935,40 @@ def PlotHelper_learning(resDict, utilp, errorP):
 
 def PlotHelper_UCT_lim(resDict, utilp):
     index1 = utilp
-
+    width=0.25
     for domain in D:
         plt.clf()
         fname = '{}{}_{}_UCT_lim_depth.png'.format(figuresFolder, domain, utilp)
         
-        i = 0
+        i = 2
         fig, ax = plt.subplots()
         PlotViaMatlabBar(Depth[domain],
             resDict[domain]['h0'][index1],
             resDict[domain]['h0'][errIndex[index1]],
             COLORBAR[i],
-            'heuristic = h0', -2, ax)
+            'heuristic = h0', -2, ax, width)
         i += 1
         PlotViaMatlabBar(Depth[domain],
             resDict[domain]['h1'][index1],
             resDict[domain]['h1'][errIndex[index1]],
             COLORBAR[i],
-            'heuristic = hD', 0, ax)
+            'heuristic = hD', 0, ax, width)
         i += 1
         PlotViaMatlabBar(Depth[domain],
             resDict[domain]['learnH'][index1],
             resDict[domain]['learnH'][errIndex[index1]],
             COLORBAR[i],
-            'heuristic = hLearnH', +2, ax)
+            'heuristic = hLearnH', +2, ax, width)
         i += 1
     
         #plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=1, borderaxespad=0.)
             
-        #plt.xlabel('Depth')
+        plt.xlabel('Depth')
         ax.set_xticks(np.arange(len(Depth[domain])))
         ax.set_xticklabels([str(item) for item in Depth[domain]])
         ax.set_title(GetFullName(domain))
-        #plt.ylabel(GetYlabel(utilp)) 
+        ax.set_ylim(bottom=0.8)
+        plt.ylabel(GetYlabel(utilp)) 
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotHelper_SLATE_max(resDict, utilp):
@@ -997,37 +1017,42 @@ def PlotHelper_SLATE_lim(resDict, utilp):
         plt.ylabel(GetYlabel(utilp)) 
         plt.savefig(fname, bbox_inches='tight')
 
-def PlotHelper_UCT_max_planning_utilities(resDict):
+def PlotHelper_UCT_max_error_ratio(resDict):
     width = 0.25
 
-    for domain in ['CR']:
+    for domain in ['EE']:
         plt.clf()
-        fname = '{}{}_UCT_max_depth_planning_utilities.png'.format(figuresFolder, util)
+        fname = '{}{}_UCT_max_depth_error_ratio.png'.format(figuresFolder, util)
         
         i = 0
-        for uct in UCT_max_depth[domain][1:]:
+        val = None
+        for uct in [5, 10, 25, 50, 100, 250]:# UCT_max_depth[domain][1:]:
             sortedDict = {}
             for k in sorted(resDict[domain][uct]):
                 sortedDict[k] = resDict[domain][uct][k]
                 count = 1
-                for x in ['EE', 'SR', 'SD', 'OF']:
+                for x in ['CR', 'SR', 'SD', 'OF']:
                     if k in resDict[x][uct]:
                         sortedDict[k] += resDict[x][uct][k]
                         count += 1
                 sortedDict[k] /= count
             print(sortedDict)
+            if val == None:
+                val = sortedDict[0]
+            for k in sortedDict:
+                sortedDict[k] = sortedDict[k]/val
             PlotViaMatlabLine(sortedDict.keys(),
                 sortedDict.values(),
                 COLORS[i],
                 'rollouts={}'.format(uct))
             i += 1
         
-        plt.legend(bbox_to_anchor=(-0.2, 1.05), loc=3, ncol=2, borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(1.02, 0.02), loc=3, ncol=1, borderaxespad=0.)
             
-        plt.xlabel('Number of commands executed')
+        plt.xlabel('Refinement Deepness')
         plt.xticks(list(sortedDict.keys()),
            GetString(list(sortedDict.keys())))
-        plt.ylabel("Error ratio (normalized)") 
+        plt.ylabel("Difference in \n Expected Efficiency") 
         plt.savefig(fname, bbox_inches='tight')
 
 def PlotViaMatlabLine(x, y, c, l):
@@ -1037,9 +1062,7 @@ def PlotViaMatlabLine(x, y, c, l):
         MarkerSize=10, 
         markerfacecolor='white')
         
-def PlotViaMatlabBar(x, y, y_error, c, l, f, ax):
-    #width = 0.4
-    width = 0.25
+def PlotViaMatlabBar(x, y, y_error, c, l, f, ax, width=0.4):
     print(x)
     print(y)
     print(y_error)
@@ -1064,7 +1087,7 @@ if __name__=="__main__":
                            type=str, required=True)
     argparser.add_argument("--s", help="SamplingStrategy ",
                            type=str, required=False, default="UCT")
-    argparser.add_argument("--planning", help="PlanningUtilities", default='n',
+    argparser.add_argument("--er", help="plot error ratio", default='n',
                             type=str, required=False)
     argparser.add_argument("--utility", help="efficiency or successRatio?",
                             type=str, required=True)
@@ -1077,9 +1100,10 @@ if __name__=="__main__":
         util = "_eff"
     else:
         util = "_sr"
-    D = ["SD", "CR", "EE", "SR", "OF"]
+
+    D = ["SD", "SR", "EE", "CR", "OF"]
     #D = ["CR", "OF"]
-    #D = ["SD", "EE"]
+    #D = ["SD", "OF"]
 
     if args.l == "y":
         GeneratePlots_learning(0)
@@ -1089,17 +1113,17 @@ if __name__=="__main__":
         if args.s == "SLATE":
             GeneratePlots_SLATE_max_depth()
         else:
-            if args.planning == "n":
-                GeneratePlots_UCT_max_depth(1)
+            if args.er == "n":
+                GeneratePlots_UCT_max_depth(0)
             else:
-                GeneratePlots_UCT_max_depth_planning_utilities()
+                GeneratePlots_UCT_max_depth_error_ratio()
     elif args.depth == "lim":
         if args.s == "SLATE":
             GeneratePlots_SLATE_lim_depth()
         else:
-            if args.planning == "n":
-                GeneratePlots_UCT_lim_depth(1)
+            if args.er == "n":
+                GeneratePlots_UCT_lim_depth(0)
             else:
-                GeneratePlots_UCT_lim_depth_planning_utilities()
+                GeneratePlots_UCT_lim_depth_error_ratio()
     else:
         print("Incorrect value depth: should be 'max' or 'lim'.")

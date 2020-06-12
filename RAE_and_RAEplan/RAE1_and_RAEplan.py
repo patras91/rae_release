@@ -750,6 +750,7 @@ def RAEplanChoice_UCT(task, planArgs):
             planArgs.GetCurUtil(), 
             planArgs.GetTask())
 
+    #taskToRefine.PrintMethodsAndUtilities()
     return GetBestTillNow()
 
 def GetCandidates(task, tArgs):

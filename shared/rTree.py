@@ -712,6 +712,10 @@ class SearchTreeNode():
         else:
             return "NONE"
 
+    def PrintMethodsAndUtilities(self):
+        for i in range(0, len(self.Q)):
+            print((self.children[i].GetLabel(), self.Q[i].value))
+            
     def PrintUsingGraphviz(self, name='searchTree'):
         g = Digraph('G', filename=name, format="png")
 

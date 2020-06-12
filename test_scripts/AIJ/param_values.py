@@ -46,11 +46,11 @@ K_max_depth = {
 }
 
 Depth = {
-    'SR': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
-    'CR': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
-    'OF': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
-    'SD': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
-    'EE': [0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30], #35, 40, 50, 60],
+    'SR': [0, 1, 2, 5, 10, 15, 20], #25, 30], # 35, 40, 45, 50],
+    'CR': [0, 1, 2, 5, 10, 15, 20], #25, 30], # 35, 40, 45, 50],
+    'OF': [0, 1, 2, 5, 10, 15, 20], # 35, 40, 45, 50],
+    'SD': [0, 1, 2, 5, 10, 15, 20], #25, 30], # 35, 40, 45, 50],
+    'EE': [0, 1, 2, 5, 10, 15, 20], #25, 30], #35, 40, 50, 60],
 }
 
 #UCT_max_depth = {
@@ -118,7 +118,7 @@ def GetFullName(domain):
         return "S & R domain"
         return "Search and Rescue Domain"
     elif domain == "OF":
-        return "Delivery Domain"
+        return "Deliver Domain"
         return "Order Delivery Domain"
     elif domain == "EE":
         return "Explore Domain"
@@ -159,7 +159,13 @@ def GetNewDict():
 def GetRAEfname(domain):
     return "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
 
+def GetLowerLim(domain):
+    if domain == "SR":
+        return 0.8
+    else:
+        return 0.9
+
 COLORS = ['ro:', 'bs--', 'm^-.', 'go--', 'c^:', 'rs--', 'ms--', 'gs--']
 
-COLORBAR = ['orange', 'grey', 'yellowgreen', 'turquoise',  'orangered', 'orchid']
+COLORBAR = ['orange', 'grey', 'black',  'turquoise', 'orchid', 'orangered', 'yellowgreen', ]
 
