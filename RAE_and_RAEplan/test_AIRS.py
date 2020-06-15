@@ -40,7 +40,7 @@ def initialize_state():
 
 if __name__ == '__main__':
 
-    verbosity = 0
+    verbosity = 1
     secmgr_config = {
         'health_warning_thresh': 0.6,
         'health_critical_thresh': 0.5,
@@ -67,6 +67,8 @@ if __name__ == '__main__':
         operator.le,
         secmgr_config['flow_table_critical_thresh']
     )
+
+    #set the state variables for RAE
     state.components = {
         'ctrl1': {
             'id': 'ctrl1',

@@ -7,15 +7,19 @@ Sunandita Patra <patras@cs.umd.edu>
 """
 
 import threading
-from state import GetState, PrintState, RestoreState, EvaluateParameters
 import multiprocessing
 import numpy
 import math
 import random
-from helper_functions import *
 import types
 import sys, pprint
 import os
+import time
+import torch
+import torch.nn as nn
+
+from state import GetState, PrintState, RestoreState, EvaluateParameters
+from helper_functions import *
 import GLOBALS
 import rTree
 #import colorama
@@ -23,14 +27,14 @@ from timer import globalTimer, DURATION
 from dataStructures import rL_APE, rL_PLAN
 from APE_stack import print_entire_stack, print_stack_size
 from utility import Utility
-import time
 from sharedData import *
 import stateSpaceUCT as ssu
+
+#learning stuff
 from learningData import trainingDataRecords
 from paramInfo import *
 from convertDataFormat import Encode_LearnM, Decode_LearnM, Encode_LearnH, Decode_LearnH, Encode_LearnMI, Decode_LearnMI
-import torch
-import torch.nn as nn
+
 ############################################################
 
 ### for debugging
@@ -238,7 +242,6 @@ def EndCriticalRegion():
 ############################################################
 # The actual acting engine    
 
-#SLATE sampling strategy
 def RAE1(task, raeArgs):
     """
     RAE1 is the actor with a single execution stack. The first argument is the name (which
@@ -291,7 +294,7 @@ def RAE1(task, raeArgs):
         raeLocals.SetUtility(Utility('Failure'))
         raeLocals.SetEfficiency(0)
 
-    if GLOBALS.GetOpt() == "max":
+    if GLOBALS.GetUtility() == "efficiency":
         if GLOBALS.GetDomain() != "OF":
             assert(numpy.isclose(raeLocals.GetEfficiency(), raeLocals.GetUtility().GetValue()))
 
@@ -360,6 +363,8 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     else:
         methodInstance, expUtil, simTime = queue.get()
         curUtil = raeLocals.GetUtility()
+
+        # save some metadata
         raeLocals.AddToPlanningUtilityList(curUtil)
         raeLocals.AddToPlanningUtilityList(expUtil)
         raeLocals.AddToPlanningUtilityList(expUtil + curUtil)
@@ -368,11 +373,10 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     #retcode = plannedTree.GetRetcode()
 
     if verbose > 0:
-        #print("Done with simulation. Result = {} \n".format(methodInstance), colorama.Style.RESET_ALL)
-        print("Done with simulation. Result = {} \n".format(methodInstance))
+        #print("Done with planning. Result = {} \n".format(methodInstance), colorama.Style.RESET_ALL)
+        print("Done with planning. Result = {} \n".format(methodInstance))
 
     if methodInstance == 'Failure':
-        #random.shuffle(candidates)
         if GLOBALS.GetBackupUCT() == True:
             raeLocals.SetUseBackupUCT(True)
             planM = ssu.StateSpaceUCTMain(task, taskArgs)
@@ -477,19 +481,19 @@ def GetCandidateFromLearnedModel(fname, task, candidates, taskArgs):
     return (candidates[0], candidates[1:])
 
 def choose_candidate(candidates, task, taskArgs):
-    if len(candidates) == 1 or (GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == None):
+    if len(candidates) == 1 or (GLOBALS.GetPlanner() == None and GLOBALS.GetUseTrainedModel() == None):
         #random.shuffle(candidates)
         return(candidates[0], candidates[1:])
-    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "learnM1":
+    elif GLOBALS.GetPlanner() == None and GLOBALS.GetUseTrainedModel() == "learnM1":
         fname = GLOBALS.GetModelPath() + "model_to_choose_{}_actor".format(GLOBALS.GetDomain())
         return GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
-    elif GLOBALS.GetDoPlanning() == False and GLOBALS.GetUseTrainedModel() == "learnM2" or GLOBALS.GetUseTrainedModel() == "learnMI":
+    elif GLOBALS.GetPlanner() == None and GLOBALS.GetUseTrainedModel() == "learnM2" or GLOBALS.GetUseTrainedModel() == "learnMI":
         fname = GLOBALS.GetModelPath() + "model_to_choose_{}_planner".format(GLOBALS.GetDomain())
         return GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
     else:
         return GetCandidateByPlanning(candidates, task, taskArgs)
 
-def DoTaskInRealWorld(task, taskArgs):
+def DoTask_Acting(task, taskArgs):
     """
     Function to do the task in real world
     """
@@ -507,10 +511,11 @@ def DoTaskInRealWorld(task, taskArgs):
     while (retcode != 'Success'):
         node.Clear() # Clear it on every iteration for a fresh start
         node.SetPrevState(GetState().copy())
-        if GLOBALS.GetOpt() == "sr": # there may be a better way to do this
+        if GLOBALS.GetUtility() == "successRatio": # there may be a better way to do this
             raeLocals.SetUtility(Utility("Success"))
 
         (m,candidates) = choose_candidate(candidates, task, taskArgs)
+        
         # if candidates == "usingBackupUCT":
         #     plan = m
         #     retcode = "Success"
@@ -521,6 +526,7 @@ def DoTaskInRealWorld(task, taskArgs):
         #             retcode = "Failure"
         #             break
         # else:
+        
         node.SetLabelAndType(m, 'method')
         raeLocals.SetCurrentNode(node)
         retcode = CallMethod_OperationalModel(raeLocals.GetStackId(), m, taskArgs)
@@ -598,26 +604,26 @@ def CallMethod_OperationalModel(stackid, m, taskArgs):
 def do_task(task, *taskArgs):
     if GLOBALS.GetPlanningMode() == True:
         planLocals.IncreaseDepthBy1()
-        if GLOBALS.GetUCTmode() == True:
-            PlanTask_UCT(task, taskArgs)
+        if GLOBALS.GetPlanner() == "UPOM":
+            DoTask_UPOM(task, taskArgs)
         else:
             nextNode = planLocals.GetSearchTreeNode().GetNext()
             if nextNode != None:
                 assert(nextNode.GetType() == "task" or nextNode.GetType() == "heuristic")
                 return FollowSearchTree_task(task, taskArgs, nextNode)
             else:
-                return PlanTask(task, taskArgs)
+                return DoTask_RAEPlan(task, taskArgs)
     else:
-        return DoTaskInRealWorld(task, taskArgs)
+        return DoTask_Acting(task, taskArgs)
 
 def InitializePlanningTree():
     root = rTree.PlanningTree('root', 'root', 'root') # initialize the root of the refinement tree being built
     planLocals.SetCurrentNode(root)
     planLocals.SetPlanningTree(root)
 
-def RAEplanChoice(task, planArgs):
+def RAEplan_Choice(task, planArgs):
     """
-    RAEplanChoice is the main routine of the planner used by RAE which plans using the available operational models
+    RAEplan_Choice is the main routine of the planner used by RAE which plans using the available operational models
     """
 
     #planLocals is the set of variables local to this call to RAEplanChoice but used throughout
@@ -679,9 +685,9 @@ def RAEplanChoice(task, planArgs):
     
 def GetBestTillNow():
     taskToRefine = planLocals.GetTaskToRefine()
-    return (taskToRefine.GetBestMethodAndUtility_UCT(), globalTimer.GetSimulationCounter())
+    return (taskToRefine.GetBestMethodAndUtility_UPOM(), globalTimer.GetSimulationCounter())
 
-def RAEplanChoice_UCT(task, planArgs):
+def UPOM_Choice(task, planArgs):
     """
     RAEplanChoice is the main routine of the planner used by RAE which plans using the available operational models
     """
@@ -713,7 +719,7 @@ def RAEplanChoice_UCT(task, planArgs):
         PrintState()
 
     i = 1
-    while (i <= GLOBALS.GetUCTRuns()): # all rollouts not explored
+    while (i <= GLOBALS.Get_nRO()): # all rollouts not explored
         try:
             planLocals.SetDepth(0)
             planLocals.SetRefDepth(float("inf"))
@@ -754,7 +760,7 @@ def RAEplanChoice_UCT(task, planArgs):
     return GetBestTillNow()
 
 def GetCandidates(task, tArgs):
-    """ Called from PlanTask """
+    """ Called from DoTask_RAEPlan """
     if planLocals.GetCandidates() != None:
         # when candidates is a subset of the applicable methods, it is available from planLocals
         candidates = planLocals.GetCandidates()[:]
@@ -768,7 +774,7 @@ def GetCandidates(task, tArgs):
         flag = 0
         
     # b = max(1, GLOBALS.Getb() - int(planLocals.GetDepth() / 4))
-    if GLOBALS.GetUCTmode() == True:
+    if GLOBALS.GetPlanner() == "UPOM":
         cand = candidates
     else:
         b = GLOBALS.Getb()
@@ -783,11 +789,11 @@ def FollowSearchTree_task(task, taskArgs, node):
     else:
         RestoreState(nextNode.GetPrevState())
         planLocals.SetSearchTreeNode(nextNode)
-        tree = PlanMethod(m, task, taskArgs)
+        tree = DoMethod(m, task, taskArgs)
         return tree
 
 def GetHeuristicEstimate(task=None, tArgs=None):
-    if GLOBALS.GetUseTrainedModel() == "learnH" and GLOBALS.GetOpt() == "max":
+    if GLOBALS.GetUseTrainedModel() == "learnH" and GLOBALS.GetUtility() == "efficiency":
         domain = GLOBALS.GetDomain()
         features = {
             "EE": 204, 
@@ -839,7 +845,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
                 effMax = eff
         return effMax
 
-    elif GLOBALS.GetOpt() == "sr":
+    elif GLOBALS.GetUtility() == "successRatio":
         mtask, args = planLocals.GetHeuristicArgs()
         res = heuristic[mtask](args)
         return 1 if res > 0 else 0
@@ -848,7 +854,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
         res = heuristic[mtask](args)
     return res
     
-def PlanTask(task, taskArgs):
+def DoTask_RAEPlan(task, taskArgs):
     # Need to look through several candidates for this task
     cand, state, flag = GetCandidates(task, taskArgs)
 
@@ -874,7 +880,7 @@ def PlanTask(task, taskArgs):
         taskNode.AddChild(newSearchTreeNode)
     raise Expanded_Search_Tree_Node()
 
-def PlanTask_UCT(task, taskArgs):
+def DoTask_UPOM(task, taskArgs):
     searchTreeNode = planLocals.GetSearchTreeNode()
     
     if searchTreeNode.children == []:
@@ -950,7 +956,7 @@ def PlanTask_UCT(task, taskArgs):
     failed = False
     depthLimReached = False
     try:
-        PlanMethod(m, task, taskArgs)
+        DoMethod(m, task, taskArgs)
     except Failed_Rollout as e:
         failed = True
     except DepthLimitReached as e:
@@ -966,7 +972,7 @@ def PlanTask_UCT(task, taskArgs):
     elif depthLimReached:
         raise DepthLimitReached()
 
-def PlanMethod(m, task, taskArgs):
+def DoMethod(m, task, taskArgs):
     global path
     #path[planLocals.GetStackId()].append([task, taskArgs])
     savedNode = planLocals.GetCurrentNode()
@@ -982,7 +988,7 @@ def PlanMethod(m, task, taskArgs):
         print_entire_stack(planLocals.GetStackId(), path)
 
     if retcode == 'Failure':
-        print("Error: retcode should not be Failure inside PlanMethod.\n")
+        print("Error: retcode should not be Failure inside DoMethod.\n")
         raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
     elif retcode == 'Success':
         if m.cost > 0:
@@ -1008,17 +1014,17 @@ def do_command(cmd, *cmdArgs):
     """
     if GLOBALS.GetPlanningMode() == True:
         planLocals.IncreaseDepthBy1()
-        if GLOBALS.GetUCTmode() == True:
-            PlanCommand_UCT(cmd, cmdArgs)
+        if GLOBALS.GetPlanner() == "UPOM":
+            DoCommand_UPOM(cmd, cmdArgs)
         else:
             nextNode = planLocals.GetSearchTreeNode().GetNext()
             if nextNode == None:
-                return PlanCommand(cmd, cmdArgs)
+                return DoCommand_RAEPlan(cmd, cmdArgs)
             else:
                 assert(nextNode.GetType() == "command")
                 return FollowSearchTree_command(cmd, cmdArgs, nextNode)
     else:
-        return DoCommandInRealWorld(cmd, cmdArgs)
+        return DoCommand_Acting(cmd, cmdArgs)
 
 def GetNewId():
     GetNewId.num += 1
@@ -1037,7 +1043,7 @@ def AddEfficiency(e1, e2):
         res = e1 * e2 / (e1 + e2)
     return res
 
-def DoCommandInRealWorld(cmd, cmdArgs):
+def DoCommand_Acting(cmd, cmdArgs):
     global path
     path[raeLocals.GetStackId()].append([cmd, cmdArgs])
 
@@ -1201,7 +1207,7 @@ def CallCommand_OperationalModel(cmd, cmdArgs):
     return retcode
 
 def IndexOf(s, l):
-    """ Helper function of PlanCommand """
+    """ Helper function of PlanCommand_RAEPlan """
     i = 0
     for item in l:
         if item.EqualTo(s):
@@ -1209,7 +1215,7 @@ def IndexOf(s, l):
         i += 1 
     return -1
 
-def PlanCommand(cmd, cmdArgs):
+def DoCommand_RAEPlan(cmd, cmdArgs):
     #outcomeStates = []
 
     searchTreeNode = planLocals.GetSearchTreeNode()
@@ -1246,7 +1252,7 @@ def PlanCommand(cmd, cmdArgs):
                 
     raise Expanded_Search_Tree_Node
 
-def PlanCommand_UCT(cmd, cmdArgs):
+def DoCommand_UPOM(cmd, cmdArgs):
 
     searchTreeNode = planLocals.GetSearchTreeNode()
     #planLocals.GetSearchTreeRoot().PrintUsingGraphviz()
@@ -1300,7 +1306,7 @@ def GetCost(cmd, cmdArgs):
         return cost
 
 def GetFailureUtility(cmd, cmdArgs):
-    if GLOBALS.GetOpt() != "sr":
+    if GLOBALS.GetUtility() != "successRatio":
         return Utility(1/20)
     else:
         return Utility("Failure")
@@ -1311,7 +1317,7 @@ def GetUtility(cmd, cmdArgs):
         cost = 7
     else:
         cost = DURATION.COUNTER[cmd.__name__]
-    if GLOBALS.GetOpt() == "sr":
+    if GLOBALS.GetUtility() == "successRatio":
         return Utility("Success")
     elif type(cost) == types.FunctionType:
         numpy.random.seed(5000)
@@ -1321,7 +1327,7 @@ def GetUtility(cmd, cmdArgs):
         return Utility(1/cost)
 
 def GetUtilityforMethod(cost):
-    return Utility("Success") if GLOBALS.GetOpt() == "sr" else Utility(1/cost)
+    return Utility("Success") if GLOBALS.GetUtility() == "successRatio" else Utility(1/cost)
 
 def GetFailureEfficiency(cmd, cmdArgs):
     return 1/20

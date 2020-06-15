@@ -3,21 +3,21 @@ import GLOBALS
 
 class Utility():
     def __init__(self, val):
-        if GLOBALS.GetOpt() == 'min':
+        if GLOBALS.GetUtility() == 'min':
             if val == 'Success':
                 self.value = 0
             elif val == 'Failure':
                 self.value = float("inf")
             else:
                 self.value = val    
-        elif GLOBALS.GetOpt() == 'max':
+        elif GLOBALS.GetUtility() == 'efficiency':
             if val == 'Failure':
                 self.value = 0
             elif val == 'Success':
                 self.value = float("inf")
             else:
                 self.value = val
-        elif GLOBALS.GetOpt() == "sr":
+        elif GLOBALS.GetUtility() == "successRatio":
             if val == "Failure":
                 self.value = 0
             elif val == "Success":
@@ -63,7 +63,7 @@ class Utility():
         return str(self.value)
 
     def __add__(self, other):
-        if GLOBALS.GetOpt() == "max":
+        if GLOBALS.GetUtility() == "efficiency":
             e1 = self.value
             e2 = other.value
             if e1 == float("inf"):
@@ -75,7 +75,7 @@ class Utility():
             else:
                 res = e1 * e2 / (e1 + e2)
             return Utility(res)
-        elif GLOBALS.GetOpt() == "sr":
+        elif GLOBALS.GetUtility() == "successRatio":
             sr1 = self.value
             sr2 = other.value
             return Utility(sr1 * sr2)

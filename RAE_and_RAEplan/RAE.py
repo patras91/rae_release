@@ -1,5 +1,5 @@
 from __future__ import print_function
-from RAE1_and_RAEplan import ipcArgs, envArgs, RAE1, RAEplanChoice, RAEplanChoice_UCT, GetBestTillNow
+from RAE1_and_RAEplan import ipcArgs, envArgs, RAE1, RAEplan_Choice, UPOM_Choice, GetBestTillNow
 from dataStructures import PlanArgs
 from timer import globalTimer, SetMode
 from state import ReinitializeState, RemoveLocksFromState, RestoreState
@@ -54,7 +54,7 @@ def GetNewTasks():
             return []
     else:
         tasks = []
-        while(taskQueue.empty() == False):
+        while not taskQueue.empty():
             tasks.append(taskQueue.get())
         return tasks
 
@@ -271,44 +271,54 @@ HandleTermination.q = None
 
 def CallPlanner(pArgs, queue):
     """ Calls the planner according to what the user decided."""
-    if GLOBALS.GetUCTmode() == True:
+    if GLOBALS.GetPlanner() == "UPOM":
+
         HandleTermination.q = queue
         signal.signal(signal.SIGTERM, HandleTermination)
+        
         if GLOBALS.GetDoIterativeDeepening() == True:
             d = 5
         else:
             d = GLOBALS.GetMaxDepth()
+
         while(d <= GLOBALS.GetMaxDepth()):
-            d = GLOBALS.GetMaxDepth()
             pArgs.SetDepth(d)
-            methodUtil, planningTime = RAEplanChoice_UCT(pArgs.GetTask(), pArgs)
+            methodUtil, planningTime = UPOM_Choice(pArgs.GetTask(), pArgs)
             method, util = methodUtil
             d += 5
-    else:
+
+    elif GLOBALS.GetPlanner() == "RAEPlan":
+
         pArgs.SetDepth(GLOBALS.GetMaxDepth())
-        methodUtil, planningTime = RAEplanChoice(pArgs.GetTask(), pArgs)
+        methodUtil, planningTime = RAEplan_Choice(pArgs.GetTask(), pArgs)
         method, util = methodUtil
+
+    else:
+        print("Invalid planner")
+
 
     queue.put((method, util, planningTime))
 
 def PlannerMain(task, taskArgs, queue, candidateMethods, state, aTree, curUtil):
-    # Simulating one stack now
-    # TODO: Simulate multiple stacks in future
 
     SetMode('Counter') #Counter mode in simulation
     GLOBALS.SetPlanningMode(True)
     #RemoveLocksFromState()
 
     pArgs = PlanArgs()
-    pArgs.SetTaskArgs(taskArgs)
-    pArgs.SetStackId(1)
+
+    pArgs.SetStackId(1) # Simulating one stack now
+    # TODO: Simulate multiple stacks in future
+    
     pArgs.SetTask(task)
+    pArgs.SetTaskArgs(taskArgs)
     pArgs.SetCandidates(candidateMethods)
+
     pArgs.SetState(state)
     pArgs.SetActingTree(aTree)
     pArgs.SetCurUtil(curUtil)
 
     CallPlanner(pArgs, queue)
 
-    WriteTrainingData()
+    WriteTrainingData() # data to be used for learning
     

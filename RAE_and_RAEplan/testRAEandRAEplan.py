@@ -33,32 +33,32 @@ import multiprocessing
 import os
 from sharedData import *
 
-def testRAEandRAEplan(domain, problem, useRAEplan):
+def testRAEandPlanner(domain, problem, usePlanner):
     '''
     :param domain: the code of the domain
     :param problem: the problem id
-    :param useRAEplan: bool value indicating whether to do planning or not before executing the tasks and events
+    :param usePlanner: bool value indicating whether to do planning or not before executing the tasks and events
     :return:
     '''
     domain_module = InitializeDomain(domain, problem)
-    GLOBALS.SetDoPlanning(useRAEplan)
+    GLOBALS.SetPlanner(usePlanner)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
-                                   # because some code is shared by both RAE and RAEplan
+                                   # because some code is shared between RAE, RAEplan and UPOM
     try:
         rM = threading.Thread(target=raeMult)
         rM.start()
         gui.start(domain, domain_module.rv) # graphical user interface to show action executions
         rM.join()
     except Exception as e:
-        print('Failed RAE and RAEplan {}'.format(e))
+        print('Failed RAE and {} {}'.format(usePlanner, e))
 
-def testBatch(domain, problem, useRAEplan):
+def testBatch(domain, problem, usePlanner):
     SetMode('Counter')
     verbosity(0)
     GLOBALS.SetShowOutputs('off')
     GLOBALS.SetDomain(domain)
     GLOBALS.SetDoIterativeDeepening(False)
-    p = multiprocessing.Process(target=testRAEandRAEplan, args=(domain, problem, useRAEplan))
+    p = multiprocessing.Process(target=testRAEandPlanner, args=(domain, problem, usePlanner))
     p.start()
     p.join(GLOBALS.GetTimeLimit())
     if p.is_alive() == True:
@@ -71,22 +71,20 @@ def InitializeSecurityDomain(v, state):
     verbosity(v)
     SetMode('Counter')
     GLOBALS.SetShowOutputs('on')
-    GLOBALS.SetUCTmode('UCT')
-    #GLOBALS.Setb(3)
-    #GLOBALS.Setk(5)
-    GLOBALS.SetDataGenerationMode(None)
-    GLOBALS.SetUCTRuns(50) # to decide later accordingly
-    GLOBALS.SetTimeLimit(300)
+    GLOBALS.SetPlanner('UPOM')
+    GLOBALS.SetDataGenerationMode(None) # for learning
+    GLOBALS.Set_nRO(50) # to decide accordingly
+    GLOBALS.SetTimeLimit(300) # in secs
     GLOBALS.SetDoIterativeDeepening(False)
     '''
     :param domain: the code of the domain
     :param problem: the problem id
     '''
-    InitializeDomain('SDN', None, state) # no concept of problem in SDN
+    InitializeDomain('SDN', None, state) # no concept of separate problem in SDN, so the second argument is None
     GLOBALS.SetDomain('SDN')
-    GLOBALS.SetOpt('max') # maximizing the efficiency to start with
-    GLOBALS.SetDoPlanning(True)
-    GLOBALS.SetUseTrainedModel(None)
+    GLOBALS.SetUtility('efficiency') # maximizing the efficiency to start with
+    GLOBALS.SetPlanner('UPOM')
+    GLOBALS.SetUseTrainedModel(None) # for learning, in case you have models
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
@@ -104,10 +102,8 @@ if __name__ == "__main__":
                            type=str, default='CR', required=False)
     argparser.add_argument("--problem", help="identifier for the problem eg. 'problem1', 'problem2', etc",
                            type=str, default="problem11", required=False)
-    argparser.add_argument("--plan", help="Do you want to use RAEplan or not? ('y' or 'n')",
-                           type=str, default='y', required=False)
-    argparser.add_argument("--samplingMode", help="SLATE or UCT?",
-                           type=str, default="UCT", required=False)
+    argparser.add_argument("--planner", help="Which planner? ('RAEPlan' or 'UPOM' or 'None')",
+                           type=str, default='UPOM', required=False)
     argparser.add_argument("--clockMode", help="Mode of the clock ('Counter' or 'Clock')",
                            type=str, default='Counter', required=False)
     argparser.add_argument("--showOutputs", help="Whether to display the outputs of commands or not? (set 'on' for more clarity and 'off' for batch runs)",
@@ -123,13 +119,11 @@ if __name__ == "__main__":
                            type=int, default=50, required=False)
     argparser.add_argument("--heuristic", help="Name of the heuristic function",
                            type=str, default='h2', required=False)
-    argparser.add_argument("--SDN", help="Is it the SDN domain ? ",
-                           type=str, default='no', required=False)
 
     argparser.add_argument("--timeLim", help="What is the time limit? ",
                            type=int, default=300, required=False)
-    # parameter for UCT
-    argparser.add_argument("--uctCount", help="Number of rollouts in UCT?",
+    # parameter for UPOM
+    argparser.add_argument("--n_RO", help="Number of rollouts in UPOM?",
                            type=int, default=500, required=False)
 
     #what to optimize?
@@ -140,7 +134,7 @@ if __name__ == "__main__":
     argparser.add_argument("--useTrainedModel", help="learnM1 or learnM2 or learnH or learnMI or None?", 
                         type=str, default=None, required=False)
     
-    argparser.add_argument("--useBackupUCT", help="If RAEplanUCT fails, do you want to run UCT with only commands?",
+    argparser.add_argument("--useBackupUCT", help="If planners fails, do you want to run UCT with only commands?",
                         type=bool, default=False, required=False)
 
     argparser.add_argument("--doIterativeDeepening", help="Increment depth in steps of 5?",
@@ -148,23 +142,26 @@ if __name__ == "__main__":
 
     args = argparser.parse_args()
 
-    if args.plan == 'y':
+    if args.planner == 'UPOM' or args.planner == "RAEPlan":
         s = True
         assert(args.useTrainedModel == None or args.useTrainedModel == 'None' or args.useTrainedModel == 'learnH')
     else:
         s = False
 
+    # params for RAEplan: b and k
     GLOBALS.Setb(args.b)
     GLOBALS.Setk(args.k)
+
     assert(args.depth >= 1)
     GLOBALS.SetMaxDepth(args.depth)
     GLOBALS.SetHeuristicName(args.heuristic)
+
     verbosity(args.v)
     SetMode(args.clockMode)
+
     GLOBALS.SetShowOutputs(args.showOutputs)
-    GLOBALS.SetSDN(args.SDN)
-    GLOBALS.SetUCTmode(args.samplingMode)
-    GLOBALS.SetUCTRuns(args.uctCount)
+
+    GLOBALS.Set_nRO(args.n_RO)
     GLOBALS.SetDomain(args.domain)
     GLOBALS.SetTimeLimit(args.timeLim)
     GLOBALS.SetDataGenerationMode(None)
@@ -172,14 +169,9 @@ if __name__ == "__main__":
     GLOBALS.SetModelPath("../learning/models/AIJ2020/")
     GLOBALS.SetDoIterativeDeepening(args.doIterativeDeepening)
 
-    GLOBALS.SetBackupUCT(args.useBackupUCT) # for NRL
-    
-    if args.utility == "efficiency":
-        GLOBALS.SetOpt("max")
-    elif args.utility == "successRatio":
-        GLOBALS.SetOpt("sr")
-    else:
-        print("Invalid --utility. Please lookup help (-h)")
-        exit(1)
-    testRAEandRAEplan(args.domain, args.problem, s)
+    GLOBALS.SetBackupUCT(args.useBackupUCT) # for SDN
+
+    assert(args.utility == "efficiency" or args.utility == "successRatio")
+    GLOBALS.SetUtility(args.utility)
+    testRAEandPlanner(args.domain, args.problem, s)
     
