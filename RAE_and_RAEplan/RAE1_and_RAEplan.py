@@ -1313,7 +1313,8 @@ def GetFailureUtility(cmd, cmdArgs):
 
 def GetUtility(cmd, cmdArgs):
     assert(cmd.__name__ != "fail")
-    if GLOBALS.GetDomain() == "SD" and cmd.__name__ == "helpRobot": # kluge because I forgot to add this cost in the auto-gen problems
+    if GLOBALS.GetDomain() == "SD" and cmd.__name__ == "helpRobot": 
+        # kluge because I forgot to add this cost in the auto-gen problems
         cost = 7
     else:
         cost = DURATION.COUNTER[cmd.__name__]
