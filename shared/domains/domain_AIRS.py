@@ -5,6 +5,7 @@ This file defines the tasks, methods, and commands for the AIRS SDN domain.
 """
 __author__ = 'alex'
 
+from env_AIRS import Sense
 from domain_constants import SUCCESS, FAILURE
 from state import state
 from timer import DURATION
@@ -74,6 +75,12 @@ def get_component_stat(component_id, stat_key):
 def restart_vm(component_id):
     """Restart a component virtual machine."""
 
+    # Sense success vs. failure
+    res = Sense('restart_vm')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "restart_vm"')
+        return FAILURE
+
     # Restarting takes some time, but can fix some problems, so increase health
     # TODO: how to choose best new health value ???
     health_stat = get_component_stat(component_id, 'health')
@@ -99,6 +106,12 @@ def restart_vm(component_id):
 def kill_top_proc(component_id):
     """Kill top CPU-consuming process in a component virtual machine."""
 
+    # Sense success vs. failure
+    res = Sense('kill_top_proc')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "kill_top_proc"')
+        return FAILURE
+
     # CPU utilization should decrease if CPU-hungry process is stopped
     # TODO: how best to predict new CPU stat value ???
     cpu_stat = get_component_stat(component_id, 'cpu_perc_ewma')
@@ -119,6 +132,12 @@ def kill_top_proc(component_id):
 def clear_ctrl_state_besteffort(component_id):
     """Clear the SDN controller state (including host table), if possible."""
 
+    # Sense success vs. failure
+    res = Sense('clear_ctrl_state_besteffort')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "clear_ctrl_state_besteffort"')
+        return FAILURE
+
     stat = get_component_stat(component_id, 'host_table_size')
     if stat is not None:
         stat['value'] = 0
@@ -127,6 +146,12 @@ def clear_ctrl_state_besteffort(component_id):
 
 def clear_ctrl_state_fallback(component_id):
     """Clear the SDN controller state (including host table) in a more robust way."""
+
+    # Sense success vs. failure
+    res = Sense('clear_ctrl_state_fallback')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "clear_ctrl_state_fallback"')
+        return FAILURE
 
     stat = get_component_stat(component_id, 'host_table_size')
     if stat is not None:
@@ -137,6 +162,12 @@ def clear_ctrl_state_fallback(component_id):
 def reinstall_ctrl_besteffort(component_id):
     """Reinstall the SDN controller software, if possible."""
 
+    # Sense success vs. failure
+    res = Sense('reinstall_ctrl_besteffort')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "reinstall_ctrl_besteffort"')
+        return FAILURE
+
     stat = get_component_stat(component_id, 'host_table_size')
     if stat is not None:
         stat['value'] = 0
@@ -145,6 +176,12 @@ def reinstall_ctrl_besteffort(component_id):
 
 def reinstall_ctrl_fallback(component_id):
     """Reinstall the SDN controller software in a more robust way."""
+
+    # Sense success vs. failure
+    res = Sense('reinstall_ctrl_fallback')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "reinstall_ctrl_fallback"')
+        return FAILURE
 
     stat = get_component_stat(component_id, 'host_table_size')
     if stat is not None:
@@ -155,6 +192,12 @@ def reinstall_ctrl_fallback(component_id):
 def clear_switch_state_besteffort(component_id):
     """Clear the switch state (including flow table), if possible."""
 
+    # Sense success vs. failure
+    res = Sense('clear_switch_state_besteffort')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "clear_switch_state_besteffort"')
+        return FAILURE
+
     stat = get_component_stat(component_id, 'flow_table_size')
     if stat is not None:
         stat['value'] = 0
@@ -164,6 +207,12 @@ def clear_switch_state_besteffort(component_id):
 def clear_switch_state_fallback(component_id):
     """Clear the switch state (including flow table) in a more robust way."""
 
+    # Sense success vs. failure
+    res = Sense('clear_switch_state_fallback')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "clear_switch_state_fallback"')
+        return FAILURE
+
     stat = get_component_stat(component_id, 'flow_table_size')
     if stat is not None:
         stat['value'] = 0
@@ -172,6 +221,12 @@ def clear_switch_state_fallback(component_id):
 
 def disconnect_reconnect_switch_port(component_id):
     """Disconnect and then reconnect switch port with most transmitted traffic."""
+
+    # Sense success vs. failure
+    res = Sense('disconnect_reconnect_switch_port')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "disconnect_reconnect_switch_port"')
+        return FAILURE
 
     cpu_stat = get_component_stat(component_id, 'cpu_perc_ewma')
     if cpu_stat is not None:
@@ -184,6 +239,12 @@ def disconnect_reconnect_switch_port(component_id):
 def disconnect_switch_port(component_id):
     """Disconnect switch port with most transmitted traffic."""
 
+    # Sense success vs. failure
+    res = Sense('disconnect_switch_port')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "disconnect_switch_port"')
+        return FAILURE
+
     cpu_stat = get_component_stat(component_id, 'cpu_perc_ewma')
     if cpu_stat is not None:
         cur_cpu = cpu_stat['value']
@@ -195,17 +256,27 @@ def disconnect_switch_port(component_id):
 def succeed():
     """Simply return success (always succeeds)."""
 
+    # No need to Sense()
+
     return SUCCESS
 
 
 def unsure():
     """Add some cost within refinement method."""
 
+    # Sense success vs. failure
+    res = Sense('unsure')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "unsure"')
+        return FAILURE
+
     return SUCCESS
 
 
 def fail():
     """Simply return failure (always fails)."""
+
+    # No need to Sense()
 
     return FAILURE
 
