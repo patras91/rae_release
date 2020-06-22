@@ -40,7 +40,7 @@ def initialize_state():
 
 if __name__ == '__main__':
 
-    verbosity = 1
+    verbosity = 0
     secmgr_config = {
         'health_warning_thresh': 0.6,
         'health_critical_thresh': 0.5,

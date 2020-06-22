@@ -18,7 +18,7 @@ sys.path.append('../shared/problems/OF/auto')
 sys.path.append('../shared/problems/OF/manual')
 sys.path.append('../shared/problems/SR/auto')
 #sys.path.append('../shared/problems/SR/manual')
-sys.path.append('../shared/problems/SDN')
+sys.path.append('../shared/problems/SDN/auto')
 sys.path.append('../shared/problems/unitTests')
 sys.path.append('../learning/')
 sys.path.append('../learning/encoders/')
@@ -71,7 +71,7 @@ def InitializeSecurityDomain(v, state):
     verbosity(v)
     SetMode('Counter')
     GLOBALS.SetShowOutputs('on')
-    GLOBALS.SetPlanner('UPOM')
+    GLOBALS.SetPlanner("UPOM")
     GLOBALS.SetDataGenerationMode(None) # for learning
     GLOBALS.Set_nRO(50) # to decide accordingly
     GLOBALS.SetTimeLimit(300) # in secs
@@ -80,8 +80,8 @@ def InitializeSecurityDomain(v, state):
     :param domain: the code of the domain
     :param problem: the problem id
     '''
-    InitializeDomain('SDN', None, state) # no concept of separate problem in SDN, so the second argument is None
-    GLOBALS.SetDomain('SDN')
+    InitializeDomain('SDN_dev', None, state) # no concept of separate problem in SDN, so the second argument is None
+    GLOBALS.SetDomain('SDN_dev')
     GLOBALS.SetUtility('efficiency') # maximizing the efficiency to start with
     GLOBALS.SetUseTrainedModel(None) # for learning, in case you have models
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
@@ -142,10 +142,7 @@ if __name__ == "__main__":
     args = argparser.parse_args()
 
     if args.planner == 'UPOM' or args.planner == "RAEPlan":
-        s = True
         assert(args.useTrainedModel == None or args.useTrainedModel == 'None' or args.useTrainedModel == 'learnH')
-    else:
-        s = False
 
     # params for RAEplan: b and k
     GLOBALS.Setb(args.b)
@@ -172,5 +169,5 @@ if __name__ == "__main__":
 
     assert(args.utility == "efficiency" or args.utility == "successRatio")
     GLOBALS.SetUtility(args.utility)
-    testRAEandPlanner(args.domain, args.problem, s)
+    testRAEandPlanner(args.domain, args.problem, args.planner)
     

@@ -7,10 +7,9 @@ __author__ = 'alex'
 
 from env_AIRS import Sense
 from domain_constants import SUCCESS, FAILURE
-from state import state
+from state import state, rv
 from timer import DURATION
 import RAE1_and_RAEplan as rae
-
 
 #
 # Helper functions
@@ -551,7 +550,7 @@ def handle_event(event, config):
                     # Check each monitored stat
                     if component not in state.stats:
                         log_err('could not find "' + component + '" in state.stats')
-                        rae.do_command(fail)
+                        #rae.do_command(fail)
                     else:
                         for stat in state.stats[component]:
                             stat_obj = state.stats[component][stat]

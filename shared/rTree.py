@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 import pipes
 from timer import DURATION
-#from graphviz import Digraph
+from graphviz import Digraph
 import types
 from utility import Utility
 import GLOBALS
@@ -530,7 +530,7 @@ class SearchTreeNode():
         self.util = Utility("UNK")
         self.prevState = None
         self.parent = None
-        if GLOBALS.GetUCTmode() == True and self.type == 'task':
+        if GLOBALS.GetPlanner() == "UPOM" and self.type == 'task':
             self.N = 0
             self.n = []
             self.Q = []
@@ -569,7 +569,7 @@ class SearchTreeNode():
         node.parent = self
         self.children.append(node)
         self.childWeights.append(1)
-        if GLOBALS.GetUCTmode() == True and self.type == 'task':
+        if GLOBALS.GetPlanner() == "UPOM" and self.type == 'task':
             self.n.append(0)
             self.Q.append(Utility('Success'))
 
@@ -680,7 +680,7 @@ class SearchTreeNode():
                 bestMethod = child.GetLabel()
         return (bestMethod, bestUtil)
 
-    def GetBestMethodAndUtility_UCT(self):
+    def GetBestMethodAndUtility_UPOM(self):
         index = None
         bestQ = Utility('Failure')
         

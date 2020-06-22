@@ -4,8 +4,7 @@ import functools
 import operator
 
 from domain_AIRS import *
-from state import state
-
+from state import state, rv
 
 secmgr_config = {
     'health_warning_thresh': 0.6,
@@ -166,6 +165,7 @@ def ResetState():
         }
     }
 
+rv.x = []
 
 event1 = {
     'source': 'sysmon',
@@ -173,5 +173,5 @@ event1 = {
     'component_id': 'ctrl1'
 }
 tasks = {
-    1: ['handle_event', event1, secmgr_config]
+    1: [['handle_event', event1, secmgr_config]]
 }

@@ -323,7 +323,7 @@ def InitializeStackLocals(task, raeArgs):
 
     raeLocals.SetUseBackupUCT(False)
 
-    if GLOBALS.GetDomain() == "SDN":
+    if GLOBALS.GetDomain() == "SDN_dev":
         cmdStatusStack[raeArgs.stack] = None
     
 def GetCandidateByPlanning(candidates, task, taskArgs):
@@ -343,7 +343,9 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
 
     queue = multiprocessing.Queue()
     actingTree = raeLocals.GetActingTree()
-    #actingTree.PrintUsingGraphviz()
+
+    actingTree.PrintUsingGraphviz()
+    print("Calling planner for ", task)
     p = multiprocessing.Process(
         target=RAE.PlannerMain, 
         args=[raeLocals.GetMainTask(), 
@@ -376,6 +378,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         #print("Done with planning. Result = {} \n".format(methodInstance), colorama.Style.RESET_ALL)
         print("Done with planning. Result = {} \n".format(methodInstance))
 
+    print("Task ", task, methodInstance)
     if methodInstance == 'Failure':
         if GLOBALS.GetBackupUCT() == True:
             raeLocals.SetUseBackupUCT(True)
@@ -730,6 +733,7 @@ def UPOM_Choice(task, planArgs):
             searchTreeRoot.updateIndex = 0
             do_task(task, *taskArgs) 
             #searchTreeRoot.PrintUsingGraphviz()
+            print("Utility = ", planLocals.GetUtilRollout())
             searchTreeRoot.UpdateQValues(planLocals.GetUtilRollout().GetValue())   
         except Failed_Rollout as e:
             v_failedCommand(e)
@@ -1057,7 +1061,7 @@ def DoCommand_Acting(cmd, cmdArgs):
     cmdRet = {'state':'running'}
 
     domain = GLOBALS.GetDomain()
-    if domain != 'SDN':
+    if domain != 'SDN_dev':
         cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
         cmdThread.start()
     else:
@@ -1073,7 +1077,7 @@ def DoCommand_Acting(cmd, cmdArgs):
     EndCriticalRegion()
     BeginCriticalRegion(raeLocals.GetStackId())
 
-    if domain != 'SDN':
+    if domain != 'SDN_dev':
         while (cmdRet['state'] == 'running'):
             if verbose > 0:
                 print_stack_size(raeLocals.GetStackId(), path)
@@ -1090,7 +1094,7 @@ def DoCommand_Acting(cmd, cmdArgs):
         print_stack_size(raeLocals.GetStackId(), path)
         print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
 
-    if domain != 'SDN':
+    if domain != 'SDN_dev':
         retcode = cmdRet['state']
     else:
         [id, retcode, nextState] = cmdStatusStack[raeLocals.GetStackId()]

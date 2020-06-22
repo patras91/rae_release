@@ -35,7 +35,7 @@ def GetNextAlive(lastActiveStack, numstacks, threadList):
     return nextAlive
 
 def noNewTasks():
-    if GLOBALS.GetDomain() == 'SDN':
+    if GLOBALS.GetDomain() == 'SDN_dev':
         return False
     for c in problem_module.tasks:
         if c > GetNewTasks.counter:
@@ -47,7 +47,7 @@ def GetNewTasks():
     :return: gets the new task that appears in the problem at the current time
     '''
     GetNewTasks.counter += 1
-    if GLOBALS.GetDomain() != 'SDN':
+    if GLOBALS.GetDomain() != 'SDN_dev':
         if GetNewTasks.counter in problem_module.tasks:
             return problem_module.tasks[GetNewTasks.counter]
         else:
@@ -64,14 +64,14 @@ def InitializeDomain(domain, problem, startState=None):
     :param problem: id of the problem
     :return:none
     '''
-    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'test', 'testInstantiation', 'SR2', 'testSSU',  'testMethodswithCosts']:
+    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'test', 'testInstantiation', 'SR2', 'testSSU',  'testMethodswithCosts', "SDN"]:
         module = problem + '_' + domain
         global problem_module
         ReinitializeState()    # useful for batch runs to start with the starting state
         problem_module = __import__(module)
         problem_module.ResetState()
         return problem_module
-    elif domain == 'SDN':
+    elif domain == 'SDN_dev':
         RestoreState(startState)
     else:
         print("Invalid domain\n", domain)
@@ -278,14 +278,16 @@ def CallPlanner(pArgs, queue):
         
         if GLOBALS.GetDoIterativeDeepening() == True:
             d = 5
+            while(d <= GLOBALS.GetMaxDepth()):
+                pArgs.SetDepth(d)
+                methodUtil, planningTime = UPOM_Choice(pArgs.GetTask(), pArgs)
+                method, util = methodUtil
+                d += 5
         else:
             d = GLOBALS.GetMaxDepth()
-
-        while(d <= GLOBALS.GetMaxDepth()):
             pArgs.SetDepth(d)
             methodUtil, planningTime = UPOM_Choice(pArgs.GetTask(), pArgs)
             method, util = methodUtil
-            d += 5
 
     elif GLOBALS.GetPlanner() == "RAEPlan":
 
