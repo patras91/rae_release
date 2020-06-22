@@ -1,6 +1,49 @@
 import random
 import math
 
+secmgr_config = {
+    'health_warning_thresh': 0.6,
+    'health_critical_thresh': 0.5,
+    'health_action_thresh': 0.49,
+    'cpu_ewma_alpha': 0.5,
+    'cpu_perc_warning_thresh': 75,
+    'cpu_perc_critical_thresh': 90,
+    'host_table_critical_thresh': 10000,
+    'flow_table_critical_thresh': 800
+}
+
+def GetWeakComponent(nCtrl, nSwitches):
+    type = random.choice(["CTRL", "SWITCH"])
+    if type == "CTRL":
+        id = "ctrl" + str(random.randint(0,nCtrl))
+        param = random.choice(["health", "cpu_perc", "host_table"])
+        v1 = 1 # can also assign these randomly in the safe range
+        v2 = 50
+        v3 = 5000
+        # assign the unsafe value randomly
+        if param == "health":
+            v1 = random.randint(1, 48)/100
+        elif param == "cpu_perc":
+            v2 = random.randint(91, 150)
+        elif param == "host_table":
+            v3 = random.randint(10001, 15000)
+
+    else:
+        id = "switch" + str(random.randint(0,nSwitches))
+        param = random.choice(["health", "cpu_perc", "flow_table"])
+        v1 = 1 # can also assign these randomly in the safe range
+        v2 = 50
+        v3 = 500
+        # assign the unsafe value randomly
+        if param == "health":
+            v1 = random.randint(1, 48)/100
+        elif param == "cpu_perc":
+            v2 = random.randint(91, 150)
+        elif param == "flow_table":
+            v3 = random.randint(801, 1000)
+
+    return id, (v1, v2, v3)
+
 def WriteComponent(file, id, type, c):
     file.write("\'{}\': ".format(id) + "{\n")
     file.write("    \'id\': \'{}\',\n".format(id))
@@ -28,8 +71,6 @@ def WriteComponentStat(file, id, type, v1, v2, v3):
         file.write("            \'thresh_exceeded_fn\': flow_table_exceeded_fn\n")
     file.write("        }\n")
     file.write("    },\n")
-
-
 
 def generateProblems():
     num = 1
@@ -60,20 +101,28 @@ def writeProblem(num):
 
     file.write("    }\n\n")
 
+    weakComp, value = GetWeakComponent(nCntr, nSwitches)
+
     file.write("    state.stat = {\n")
 
     for i in range(nCntr):
         id = "ctrl{}".format(i)
-        v1 = random.randint(1,100)
-        v2 = random.randint(1,100)
-        v3 = random.randint(1,100)
+        if id == weakComp:
+            v1, v2, v3 = value
+        else:
+            v1 = random.randint(1, 100)/100
+            v2 = random.randint(25,120)
+            v3 = random.randint(5000, 15000)
         WriteComponentStat(file, id, "CTRL", v1, v2, v3)
 
     for i in range(nSwitches):
         id = "switch{}".format(i)
-        v1 = random.randint(1,100)
-        v2 = random.randint(1,100)
-        v3 = random.randint(1,100)
+        if id == weakComp:
+            v1, v2, v3 = value
+        else:
+            v1 = random.randint(1, 100)/100
+            v2 = random.randint(25,120)
+            v3 = random.randint(200,1500)
         WriteComponentStat(file, id, "SWITCH", v1, v2, v3)
 
     file.write("    }\n\n")
@@ -85,7 +134,7 @@ def writeProblem(num):
     file.write("    \'type\': \'alarm\',\n")
     file.write("    \'component_id\': \'{}\'\n".format(weakComp))
     file.write("}\n\n")
-    
+
     file.write("tasks = {\n")
     file.write("    1: [[\'handle_event\', event1, secmgr_config]]\n")
     file.write("}\n\n")
