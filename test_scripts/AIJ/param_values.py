@@ -68,7 +68,7 @@ UCT_max_depth = {
     "SD": [0, 5, 10, 25, 50, 100, 250], #, 2500],
     "EE": [0, 5, 10, 25, 50, 100, 250], #, 2500, 5000],
     'OF': [0, 5, 10, 25, 50, 100, 250], #, 2500, 5000],
-    'SDN': [0, 5, 25, 100],
+    'SDN': [0, 5, 25, 50, 100],
 }
 
 UCT_lim_depth = {
@@ -172,6 +172,8 @@ def GetRAEfname(domain):
 def GetLowerLim(domain):
     if domain == "SR":
         return 0.8
+    elif domain == "SDN":
+        return 0
     else:
         return 0.9
 

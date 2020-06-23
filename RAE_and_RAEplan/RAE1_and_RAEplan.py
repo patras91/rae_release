@@ -15,8 +15,8 @@ import types
 import sys, pprint
 import os
 import time
-import torch
-import torch.nn as nn
+#import torch
+#import torch.nn as nn
 
 from state import GetState, PrintState, RestoreState, EvaluateParameters
 from helper_functions import *
@@ -32,8 +32,8 @@ import stateSpaceUCT as ssu
 
 #learning stuff
 from learningData import trainingDataRecords
-from paramInfo import *
-from convertDataFormat import Encode_LearnM, Decode_LearnM, Encode_LearnH, Decode_LearnH, Encode_LearnMI, Decode_LearnMI
+#from paramInfo import *
+#from convertDataFormat import Encode_LearnM, Decode_LearnM, Encode_LearnH, Decode_LearnH, Encode_LearnMI, Decode_LearnMI
 
 ############################################################
 

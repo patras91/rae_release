@@ -545,23 +545,23 @@ def handle_event(event, config):
             low_resource_components.append(component_id)
 
             # Check stats of all other components
-            for component in state.components:
-                if component not in low_resource_components:
+            # for component in state.components:
+            #     if component not in low_resource_components:
 
-                    # Check each monitored stat
-                    if component not in state.stats:
-                        log_err('could not find "' + component + '" in state.stats')
-                        #rae.do_command(fail)
-                    else:
-                        for stat in state.stats[component]:
-                            stat_obj = state.stats[component][stat]
-                            value = stat_obj['value']
-                            thresh_exceeded_fn = stat_obj['thresh_exceeded_fn']
-                            if thresh_exceeded_fn(value):
-                                log_trace('stat "' + stat + '" for component "' + component
-                                          + '" is exceeded')
-                                low_resource_components.append(component)
-                                break
+            #         # Check each monitored stat
+            #         if component not in state.stats:
+            #             log_err('could not find "' + component + '" in state.stats')
+            #             #rae.do_command(fail)
+            #         else:
+            #             for stat in state.stats[component]:
+            #                 stat_obj = state.stats[component][stat]
+            #                 value = stat_obj['value']
+            #                 thresh_exceeded_fn = stat_obj['thresh_exceeded_fn']
+            #                 if thresh_exceeded_fn(value):
+            #                     log_trace('stat "' + stat + '" for component "' + component
+            #                               + '" is exceeded')
+            #                     low_resource_components.append(component)
+            #                     break
 
             # Address symptoms of each affected component
             for component in low_resource_components:

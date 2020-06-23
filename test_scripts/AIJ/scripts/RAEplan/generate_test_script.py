@@ -381,7 +381,7 @@ if __name__=="__main__":
     for domain in ["SDN"]: 
     #for domain in [args.domain]:
     #for domain in ["CR", "EE", "SR", "SD", "OF"]: 
-        for optz in ["eff"]: # "sr"
+        for optz in ["eff", "sr"]: # "sr"
             for planner in ["UPOM"]: #"SLATE"
                 for depth in ["max"]:
                     for heuristic in ["DS"]: #['zero', 'DS', 'learnH']:
