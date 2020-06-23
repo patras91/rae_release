@@ -3,7 +3,8 @@ import random
 import os
 import argparse
 
-resultFolder="AIJ2020"
+#resultFolder="AIJ2020"
+resultFolder="SDN"
 
 def GetProblemsCR():
     l = list(range(1000, 1124))
@@ -45,6 +46,13 @@ def GetProblemsEE():
     names = ["problem{}".format(item) for item in p1]
     return names
 
+def GetProblemsSDN():
+    l = list(range(1, 100))
+    random.seed(625)
+    random.shuffle(l)
+    p1 = l[0:50]
+    names = ["problem{}".format(item) for item in p1]
+    return names
 
 timeLimit = {
     "OF": 1800,
@@ -53,6 +61,7 @@ timeLimit = {
     "EE": 1800,
     "IP": 1800,
     "SD": 1800,
+    "SDN": 300,
 }
 
 def writeList(name, l, file):
@@ -74,6 +83,8 @@ def writeProblems(name, file, domain):
         l = GetProblemsIP()
     elif domain == "EE":
         l = GetProblemsEE()
+    elif domain == "SDN":
+        l = GetProblemsSDN()
     writeList(name, l, file)
 
 def GenerateTestScriptRAE(domain):
@@ -98,7 +109,7 @@ def GenerateTestScriptRAE(domain):
     file.write("sys.path.append(\'../../learning/\')\n")
     file.write("sys.path.append(\'../../learning/encoders/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
-    file.write("GLOBALS.SetOpt('max')\n")
+    file.write("GLOBALS.SetUtility('efficiency')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
     file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
     file.write("GLOBALS.SetMaxDepth(80)\n")
@@ -111,7 +122,7 @@ def GenerateTestScriptRAE(domain):
     file.write("do\n")
 
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
-    file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', useRAEplan=False)\"\n")
+    file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', usePlanner=None)\"\n")
     
     str1 = "            fname=\"../../../raeResults/" + resultFolder + "/${domain}_v_journal/RAE.txt\"\n"
     file.write(str1)
@@ -129,7 +140,7 @@ def GenerateTestScriptRAE(domain):
 if __name__=="__main__":
     
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF', 'SD', 'EE']",
+    argparser.add_argument("--domain", help="domain in ['CR', 'SR', 'OF', 'SD', 'EE', 'SDN']",
                            type=str, required=True)
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)

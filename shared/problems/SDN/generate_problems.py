@@ -75,7 +75,7 @@ def WriteComponentStat(file, id, type, v1, v2, v3):
 
 def generateProblems():
     num = 1
-    for i in range(10):
+    for i in range(100):
         writeProblem(num)
         num += 1
 
@@ -84,8 +84,8 @@ def writeProblem(num):
     file = open(fname,"w") 
     writeHeader(file)
 
-    nCntr = random.randint(2,5)
-    nSwitches = random.randint(5, 10)
+    nCntr = random.randint(4,15)
+    nSwitches = random.randint(5, 20)
 
     file.write("def ResetState():\n\n")
     file.write("    state.components = {\n")

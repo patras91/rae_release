@@ -4,7 +4,8 @@ import os
 import argparse
 
 #resultFolder="ICAPS2020"
-resultFolder="AIJ2020"
+#resultFolder="AIJ2020"
+resultFolder="SDN"
 
 def GetProblemsCR(part):
     l = list(range(1000, 1124))
@@ -49,6 +50,16 @@ def GetProblemsSD(part):
 def GetProblemsEE(part):
     l = list(range(1, 193))
     random.seed(750)
+    random.shuffle(l)
+    p1 = l[0:50]
+    begin = (part - 1)*5
+    p2 = p1[begin: begin + 5]
+    names = ["problem{}".format(item) for item in p2]
+    return names
+
+def GetProblemsSDN(part):
+    l = list(range(1, 100))
+    random.seed(625)
     random.shuffle(l)
     p1 = l[0:50]
     begin = (part - 1)*5
@@ -118,6 +129,7 @@ UCT_max_depth = {
     "SR": [5, 10, 25], #[50, 100, 250, 500, 1000], 
     "EE": [5, 10, 25], #[25], #[50, 100, 250, 500, 1000],
     "OF": [5, 10, 25], #[50, 100, 250, 500, 1000]
+    "SDN": [5, 10, 25, 50, 100],
 }
 
 b_lim_depth = {
@@ -167,6 +179,7 @@ timeLimit = {
     "SR": 1800,
     "EE": 1800,
     "SD": 1800,
+    "SDN": 300,
 }
 
 def writeList(name, l, file):
@@ -188,14 +201,16 @@ def writeProblems(name, file, part, domain):
         l = GetProblemsIP(part)
     elif domain == "EE":
         l = GetProblemsEE(part)
+    elif domain == "SDN":
+        l = GetProblemsSDN(part)
     writeList(name, l, file)
 
-def GenerateTestScriptRAEplan(mode, domain, depth, part, opt, heuristic):
-    fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_{}.bash'.format(domain, domain, mode, depth, part, opt)
+def GenerateTestScriptRAEplan(planner, domain, depth, part, opt, heuristic):
+    fname = '../../../../autoGen_scripts/{}/test_{}_{}_{}_part_{}_{}.bash'.format(domain, domain, planner, depth, part, opt)
     if heuristic == "zero" and depth == "lim":
-        fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_{}_h_h0.bash'.format(domain, domain, mode, depth, part, opt)
+        fname = '../../../../autoGen_scripts/{}/test_{}_{}_{}_part_{}_{}_h_h0.bash'.format(domain, domain, planner, depth, part, opt)
     elif heuristic == "learnH" and depth == "lim":
-        fname = '../../../../autoGen_scripts/{}/test_RAEplan_{}_{}_{}_part_{}_{}_h_learnH.bash'.format(domain, domain, mode, depth, part, opt)
+        fname = '../../../../autoGen_scripts/{}/test_{}_{}_{}_part_{}_{}_h_learnH.bash'.format(domain, domain, planner, depth, part, opt)
     
     file = open(fname,"w") 
     file.write("#!/bin/sh\n")
@@ -204,29 +219,29 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt, heuristic):
 
     writeProblems("P", file, part, domain)
 
-    if mode == "SLATE" and depth == "max":
+    if planner == "RAEPlan" and depth == "max":
         writeList("B", b_max_depth[domain], file)
         writeList("K", k_max_depth[domain], file)
-    elif mode == "UCT" and depth == "max":
+    elif planner == "UPOM" and depth == "max":
         writeList("UCT", UCT_max_depth[domain], file)
-    elif mode == "SLATE" and depth == "lim":
+    elif planner == "RAEPlan" and depth == "lim":
         writeList("B", b_lim_depth[domain], file)
         writeList("K", k_lim_depth[domain], file)
         writeList("Depth", DEPTH[domain], file)
     else:
-        writeList("UCT", UCT_lim_depth[domain], file)
+        writeList("UPOM", UCT_lim_depth[domain], file)
         writeList("Depth", DEPTH[domain], file)
 
     file.write("for problem in ${P[@]}\n")
     file.write("do\n")
 
-    if mode == "SLATE":
+    if planner == "RAEPlan":
         file.write("    for b in ${B[@]}\n")
         file.write("    do\n")
         file.write("        for k in ${K[@]}\n")
         file.write("        do\n")
     else:
-        file.write("    for uctCount in ${UCT[@]}\n")
+        file.write("    for nro in ${UCT[@]}\n")
         file.write("    do\n")
 
     if depth == "lim":
@@ -243,26 +258,25 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt, heuristic):
     file.write("sys.path.append(\'../../../../learning/\')\n")
     file.write("sys.path.append(\'../../../../learning/encoders/\')\n")
     file.write("from testRAEandRAEplan import GLOBALS, testBatch\n")
-    #file.write("GLOBALS.SetOpt('max')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
 
-    if mode == "SLATE":
+    if planner == "RAEPlan":
         file.write("GLOBALS.Setb($b)\n")
         file.write("GLOBALS.Setk($k)\n")
-        file.write("GLOBALS.SetUCTmode(\'SLATE\')\n")
+        file.write("GLOBALS.SetPlanner(\'RAEPlan\')\n")
     else:
-        file.write("GLOBALS.SetUCTRuns($uctCount)\n")
-        file.write("GLOBALS.SetUCTmode(\'UCT\')\n")
+        file.write("GLOBALS.Set_nRO($nro)\n")
+        file.write("GLOBALS.SetPlanner(\'UPOM\')\n")
 
     if opt == "eff":
-        file.write("GLOBALS.SetOpt(\'max\')\n")
+        file.write("GLOBALS.SetUtility(\'efficiency\')\n")
         folderAnnex = "_eff"
     elif opt == "sr":
-        file.write("GLOBALS.SetOpt(\'sr\')\n")
+        file.write("GLOBALS.SetUtility(\'successRatio\')\n")
         folderAnnex = "_sr"
     if depth == "max":
         #file.write("GLOBALS.SetMaxDepth(float(\\\"inf\\\"))\"\n")
-        if mode == "SLATE":
+        if planner == "RAEPlan":
             file.write("GLOBALS.SetMaxDepth(20)\n")
         else:
             #file.write("GLOBALS.SetMaxDepth(30)\n")
@@ -289,40 +303,40 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt, heuristic):
     file.write("do\n")
 
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
-    file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', useRAEplan=True)\"\n")
+    file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', usePlanner=\'{}\')\"\n".format(planner))
     
     str1 = "            fname=\"../../../../../raeResults/" + resultFolder + "/${domain}_v_journal" 
     str3 = "_part_{}.txt\"\n".format(part)
 
-    if mode == "SLATE" and depth == "max":
+    if planner == "RAEPlan" and depth == "max":
         file.write("            echo \"b = \" $b \" k = \" $k\n")    
-        str2 = "/rae_plan_b_${b}_k_${k}"
+        str2 = "/RAEPlan_b_${b}_k_${k}"
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $b $k\" >> $fname\n")
-    elif mode == "SLATE" and depth == "lim":
+    elif planner == "RAEPlan" and depth == "lim":
         file.write("            echo \"b = \" $b \" k = \" $k \" d = \" $d\n")
         if heuristic == "zero":
-            str2 = "/rae_plan_b_${b}_k_${k}_d_${d}_h_h0"
+            str2 = "/RAEPlan_b_${b}_k_${k}_d_${d}_h_h0"
         elif heuristic == "DS":
-            str2 = "/rae_plan_b_${b}_k_${k}_d_${d}"
+            str2 = "/RAEPlan_b_${b}_k_${k}_d_${d}"
         file.write(str1 + folderAnnex + str2 + str3)
         file.write("            echo \"Time test of $domain $problem $b $k $d\" >> $fname\n")
-    elif mode == "UCT" and depth == "max":
-        file.write("            echo \"uctCount = \" $uctCount\n")
-        str2 = "/rae_plan_uct_${uctCount}"
+    elif planner == "UPOM" and depth == "max":
+        file.write("            echo \"number of rollouts = \" $nro\n")
+        str2 = "/UPOM_${nro}"
         file.write(str1 + folderAnnex + str2 + str3)
-        file.write("            echo \"Time test of $domain $problem $uctCount\" >> $fname\n")
+        file.write("            echo \"Time test of $domain $problem $nro\" >> $fname\n")
     else:
-        file.write("            echo \"uctCount = \" $uctCount \" d = \" $d\n")
+        file.write("            echo \"number of rollouts = \" $nro \" d = \" $d\n")
         if heuristic == "zero":
-            str2 = "/rae_plan_uct_${uctCount}_d_${d}_h_h0"
+            str2 = "/UPOM_${nro}_d_${d}_h_h0"
         elif heuristic == "DS":
-            str2 = "/rae_plan_uct_${uctCount}_d_${d}"
+            str2 = "/UPOM_${nro}_d_${d}"
         else:
-            str2 = "/rae_plan_uct_${uctCount}_d_${d}_h_learnH"
+            str2 = "/UPOM_${nro}_d_${d}_h_learnH"
 
         file.write(str1 + folderAnnex + str2 + str3)
-        file.write("            echo \"Time test of $domain $problem $uctCount $d\" >> $fname\n")
+        file.write("            echo \"Time test of $domain $problem $nro $d\" >> $fname\n")
 
     file.write("            python3 -m timeit -n 1 -r 1 -s \"$setup\" \"$time_test\" >> $fname\n")
 
@@ -332,7 +346,7 @@ def GenerateTestScriptRAEplan(mode, domain, depth, part, opt, heuristic):
     if depth == "lim":
         file.write("            done\n") # for depth
 
-    if mode == "SLATE":
+    if planner == "RAEPlan":
         file.write("        done\n") # for k
         file.write("    done\n") # for b
     else:
@@ -364,12 +378,12 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in ["OF"]: 
+    for domain in ["SDN"]: 
     #for domain in [args.domain]:
     #for domain in ["CR", "EE", "SR", "SD", "OF"]: 
         for optz in ["eff"]: # "sr"
-            for mode in ["SLATE"]: #"SLATE"
+            for planner in ["UPOM"]: #"SLATE"
                 for depth in ["max"]:
                     for heuristic in ["DS"]: #['zero', 'DS', 'learnH']:
                         for part in range(1, 11):
-                            GenerateTestScriptRAEplan(mode, domain, depth, part, optz, heuristic)
+                            GenerateTestScriptRAEplan(planner, domain, depth, part, optz, heuristic)
