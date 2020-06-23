@@ -12,7 +12,7 @@ from pylab import rcParams
 from param_values import *
 
 # used to keep track of problems that succeeded using purely reactive RAE
-succCases = { 'SD': set({}), 'EE': set({}), 'CR': set({}), 'SR': set({}), 'OF': set({})}
+succCases = { 'SD': set({}), 'EE': set({}), 'CR': set({}), 'SR': set({}), 'OF': set({}), 'SDN': set({})}
 
 def NotTimeLine(s):
     if len(s) < 7:
@@ -276,7 +276,7 @@ def Populate_UCT_max_depth(res, domain, utilF, num_tasks_per_problem):
         if n_ro == 0:
             fname = "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
         else:
-            fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, utilF, n_ro)
+            fname = '{}{}_v_journal{}/UPOM_{}.txt'.format(resultsFolder, domain, utilF, n_ro)
         fptr = open(fname, "r")
         print(fname)
         PopulateHelper(res, domain, open(fname), n_ro, fname, num_tasks_per_problem)
@@ -1101,9 +1101,10 @@ if __name__=="__main__":
     else:
         util = "_sr"
 
-    D = ["SD", "SR", "EE", "CR", "OF"]
+    #D = ["SD", "SR", "EE", "CR", "OF"]
     #D = ["CR", "OF"]
     #D = ["SD", "OF"]
+    D = ["SDN"]
 
     if args.l == "y":
         GeneratePlots_learning(0)

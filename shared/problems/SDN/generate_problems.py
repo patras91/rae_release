@@ -1,6 +1,7 @@
 import random
 import math
 
+
 secmgr_config = {
     'health_warning_thresh': 0.6,
     'health_critical_thresh': 0.5,
@@ -103,7 +104,7 @@ def writeProblem(num):
 
     weakComp, value = GetWeakComponent(nCntr, nSwitches)
 
-    file.write("    state.stat = {\n")
+    file.write("    state.stats = {\n")
 
     for i in range(nCntr):
         id = "ctrl{}".format(i)
@@ -146,6 +147,8 @@ def writeProblem(num):
 
 def writeHeader(file):
     file.write("__author__ = 'patras'\n\n")
+    file.write("import functools\n")
+    file.write("import operator\n")
     file.write("from domain_AIRS import *\n") 
     file.write("from timer import DURATION\n") 
     file.write("from state import state\n\n")

@@ -344,8 +344,7 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
     queue = multiprocessing.Queue()
     actingTree = raeLocals.GetActingTree()
 
-    actingTree.PrintUsingGraphviz()
-    print("Calling planner for ", task)
+    #actingTree.PrintUsingGraphviz()
     p = multiprocessing.Process(
         target=RAE.PlannerMain, 
         args=[raeLocals.GetMainTask(), 
@@ -378,7 +377,6 @@ def GetCandidateByPlanning(candidates, task, taskArgs):
         #print("Done with planning. Result = {} \n".format(methodInstance), colorama.Style.RESET_ALL)
         print("Done with planning. Result = {} \n".format(methodInstance))
 
-    print("Task ", task, methodInstance)
     if methodInstance == 'Failure':
         if GLOBALS.GetBackupUCT() == True:
             raeLocals.SetUseBackupUCT(True)
@@ -733,7 +731,6 @@ def UPOM_Choice(task, planArgs):
             searchTreeRoot.updateIndex = 0
             do_task(task, *taskArgs) 
             #searchTreeRoot.PrintUsingGraphviz()
-            print("Utility = ", planLocals.GetUtilRollout())
             searchTreeRoot.UpdateQValues(planLocals.GetUtilRollout().GetValue())   
         except Failed_Rollout as e:
             v_failedCommand(e)

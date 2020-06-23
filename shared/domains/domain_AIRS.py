@@ -126,6 +126,7 @@ def kill_top_proc(component_id):
         cur_health = health_stat['value']
         new_health = min(1.0, (cur_health + 0.1) * 2)
         health_stat['value'] = new_health
+    return SUCCESS
 
 
 def clear_ctrl_state_besteffort(component_id):

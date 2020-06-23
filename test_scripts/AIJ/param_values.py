@@ -1,5 +1,6 @@
 figuresFolder = "figures/"
-resultsFolder = "../../../raeResults/AIJ2020/"
+#resultsFolder = "../../../raeResults/AIJ2020/"
+resultsFolder = "../../../raeResults/SDN/"
 
 ptMax = 247264 # maximum planning time
 
@@ -67,6 +68,7 @@ UCT_max_depth = {
     "SD": [0, 5, 10, 25, 50, 100, 250], #, 2500],
     "EE": [0, 5, 10, 25, 50, 100, 250], #, 2500, 5000],
     'OF': [0, 5, 10, 25, 50, 100, 250], #, 2500, 5000],
+    'SDN': [0, 5, 25, 100],
 }
 
 UCT_lim_depth = {
@@ -105,6 +107,7 @@ timeLimit = {
     "SR": 1800,
     "EE": 1800,
     "SD": 1800,
+    "SDN": 300,
 }
 
 
@@ -123,6 +126,8 @@ def GetFullName(domain):
     elif domain == "EE":
         return "Explore Domain"
         return "Explore Environment Domain"
+    elif domain == "SDN":
+        return "Security Domain"
 
 # The set of problems with 1 task, 2 tasks, and 3 tasks in each domain
 problems_with_n_tasks = {
@@ -139,6 +144,11 @@ problems_with_n_tasks = {
         2: ['problem12', 'problem25', 'problem48', 'problem57', 'problem103', 'problem20', 'problem37', 'problem21', 'problem36', 'problem29', 'problem76', 'problem105', 'problem15', 'problem67', 'problem90', 'problem27', 'problem18', 'problem34', 'problem23', 'problem91', 'problem28', 'problem22', 'problem59', 'problem47', 'problem30', 'problem78', 'problem49', 'problem75', 'problem94'], 
         3: []
     },
+    'SDN': {
+        1: ['problem1', 'problem2', 'problem3', 'problem4', 'problem5', 'problem6', 'problem7', 'problem8', 'problem9', 'problem10'],
+        2: [],
+        3: [],
+    }
 }
 
 def GetNewDict():
