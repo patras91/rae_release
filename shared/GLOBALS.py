@@ -65,7 +65,7 @@ def GetUtility():
     return g.opt 
 
 def SetUtility(opt):
-    assert(opt == 'efficiency' or opt == 'successRatio')
+    assert(opt == 'efficiency' or opt == 'successRatio' or opt == "resilience")
     g.opt = opt
 
 def Set_nRO(v):

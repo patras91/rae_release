@@ -82,7 +82,7 @@ def InitializeSecurityDomain(v, state):
     '''
     InitializeDomain('SDN_dev', None, state) # no concept of separate problem in SDN, so the second argument is None
     GLOBALS.SetDomain('SDN_dev')
-    GLOBALS.SetUtility('efficiency') # maximizing the efficiency to start with
+    GLOBALS.SetUtility('resilience') # maximizing the resilience (0 or 1+1/sum(cost))
     GLOBALS.SetUseTrainedModel(None) # for learning, in case you have models
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
@@ -126,7 +126,7 @@ if __name__ == "__main__":
                            type=int, default=500, required=False)
 
     #what to optimize?
-    argparser.add_argument("--utility", help="efficiency or successRatio?",
+    argparser.add_argument("--utility", help="efficiency or successRatio or resilience?",
                            type=str, default="efficiency", required=False)
     
     #use learned models?
@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
     GLOBALS.SetBackupUCT(args.useBackupUCT) # for SDN
 
-    assert(args.utility == "efficiency" or args.utility == "successRatio")
+    assert(args.utility == "efficiency" or args.utility == "successRatio" or args.utility == "resilience")
     GLOBALS.SetUtility(args.utility)
     testRAEandPlanner(args.domain, args.problem, args.planner)
     

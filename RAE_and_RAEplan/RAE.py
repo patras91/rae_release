@@ -89,20 +89,21 @@ def BeginFreshIteration(lastActiveStack, numstacks, threadList):
 
 def CreateNewStack(taskInfo, raeArgs):
     stackid = raeArgs.stack
-    retcode, retryCount, eff, height, taskCount, commandCount, utilitiesList = RAE1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilitiesList)
+    retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = RAE1(raeArgs.task, raeArgs)
+    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)
 
 def PrintResult(taskInfo):
     print('ID ','\t','Task',
             '\t\t\t', 'Result',
             '\t\t\t', 'Retry Count', 
             '\t\t\t', 'Efficiency', 
-            '\t\t\t', 'h',
-            '\t\t\t', 't',
-            '\t\t\t', 'c',
+            '\t\t\t', 'height',
+            '\t\t\t', '#tasks',
+            '\t\t\t', '#commands',
+            '\t\t\t'
             '\n')
     for stackid in taskInfo:
-        args, res, retryCount, eff, height, taskCount, commandCount, utilitiesList = taskInfo[stackid]
+        args, res, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = taskInfo[stackid]
         
         print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),
             '\t\t\t', res,
@@ -111,6 +112,7 @@ def PrintResult(taskInfo):
             '\t\t\t', height,
             '\t\t\t', taskCount,
             '\t\t\t', commandCount,
+            '\t\t\t', utilVal,
             '\n')
         print(stackid, '\t', 'Task {}{}'.format(args[0], args[1:]),
             '\t')
@@ -147,7 +149,7 @@ def PrintResultSummaryVersion1(taskInfo):
 
 def PrintResultSummaryVersion2(taskInfo):
     for stackid in taskInfo:
-        args, res, retryCount, eff, height, taskCount, commandCount, utilitiesList = taskInfo[stackid]
+        args, res, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = taskInfo[stackid]
         if res == 'Success':
             succ = 1
             fail = 0
@@ -155,7 +157,7 @@ def PrintResultSummaryVersion2(taskInfo):
             succ = 0
             fail = 1
         print("v2", succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), 
-            globalTimer.GetRealCommandExecutionCounter(), eff, height, taskCount, commandCount)
+            globalTimer.GetRealCommandExecutionCounter(), eff, height, taskCount, commandCount, utilVal)
         utilString = ""
         for u in utilitiesList:
             utilString += str(u)  

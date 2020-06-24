@@ -10,7 +10,7 @@ class Utility():
                 self.value = float("inf")
             else:
                 self.value = val    
-        elif GLOBALS.GetUtility() == 'efficiency':
+        elif GLOBALS.GetUtility() == 'efficiency' or GLOBALS.GetUtility() == 'resilience':
             if val == 'Failure':
                 self.value = 0
             elif val == 'Success':
@@ -79,6 +79,20 @@ class Utility():
             sr1 = self.value
             sr2 = other.value
             return Utility(sr1 * sr2)
+        elif GLOBALS.GetUtility() == "resilience":
+            r1 = self.value
+            r2 = other.value
+            if r1 == 0 or r2 == 0:
+                res = 0
+            elif r1 == float("inf"):
+                res = r2
+            elif r2 == float("inf"):
+                res = r1
+            else:
+                e1 = r1 - 1
+                e2 = r2 - 1
+                res = 1 + e1 * e2 / (e1 + e2)
+            return Utility(res)
 
     def SetValue(self, val):
         self.value = val

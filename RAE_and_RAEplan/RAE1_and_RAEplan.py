@@ -304,6 +304,7 @@ def RAE1(task, raeArgs):
         raeLocals.GetRetryCount(), 
         raeLocals.GetEfficiency(), 
         h, t, c, 
+        raeLocals.GetUtility(),
         raeLocals.GetPlanningUtilitiesList())
 
 def InitializeStackLocals(task, raeArgs):
@@ -794,7 +795,8 @@ def FollowSearchTree_task(task, taskArgs, node):
         return tree
 
 def GetHeuristicEstimate(task=None, tArgs=None):
-    if GLOBALS.GetUseTrainedModel() == "learnH" and GLOBALS.GetUtility() == "efficiency":
+    if GLOBALS.GetUseTrainedModel() == "learnH":
+        assert(GLOBALS.GetUtility() == "efficiency" or GLOBALS.GetUtility() == "resilience")
         domain = GLOBALS.GetDomain()
         features = {
             "EE": 204, 
@@ -844,7 +846,13 @@ def GetHeuristicEstimate(task=None, tArgs=None):
             eff = Decode_LearnH(GLOBALS.GetDomain(), y)
             if eff > effMax:
                 effMax = eff
-        return effMax
+        if GLOBALS.GetUtility() == "efficiency":
+            return effMax
+        else:
+            if effMax == 0:
+                return 0
+            else:
+                return 1 + effMax # resilience
 
     elif GLOBALS.GetUtility() == "successRatio":
         mtask, args = planLocals.GetHeuristicArgs()
@@ -1307,8 +1315,10 @@ def GetCost(cmd, cmdArgs):
         return cost
 
 def GetFailureUtility(cmd, cmdArgs):
-    if GLOBALS.GetUtility() != "successRatio":
+    if GLOBALS.GetUtility() == "efficiency":
         return Utility(1/20)
+    elif GLOBALS.GetUtility() == "resilience":
+        return Utility(1 + 1/20)
     else:
         return Utility("Failure")
 
@@ -1321,16 +1331,29 @@ def GetUtility(cmd, cmdArgs):
         cost = DURATION.COUNTER[cmd.__name__]
     if GLOBALS.GetUtility() == "successRatio":
         return Utility("Success")
-    elif type(cost) == types.FunctionType:
+    
+    if type(cost) == types.FunctionType:
         numpy.random.seed(5000)
         res = cost(*cmdArgs)
-        return Utility(1/res)
     else:
-        return Utility(1/cost)
+        res = cost
+
+    if GLOBALS.GetUtility() == "efficiency":
+        return Utility(1/res)
+    elif GLOBALS.GetUtility() == "resilience":
+        return Utility(1 + 1/res)
+    else:
+        print("ERROR: Invalid utility")
+        exit()
 
 def GetUtilityforMethod(cost):
-    return Utility("Success") if GLOBALS.GetUtility() == "successRatio" else Utility(1/cost)
-
+    if GLOBALS.GetUtility() == "successRatio":
+        return Utility("Success")
+    elif GLOBALS.GetUtility() == "efficiency":
+        return Utility(1/cost)
+    elif GLOBALS.GetUtility() == "resilience":
+        return Utility(1 + 1/cost)
+    
 def GetFailureEfficiency(cmd, cmdArgs):
     return 1/20
 
