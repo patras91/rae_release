@@ -181,20 +181,27 @@ def writeProblem(num):
         file.write("    \'type\': \'alarm\',\n")
         file.write("    \'component_id\': \'{}\'\n".format(weakComp))
         file.write("}\n\n")
+        file.write("context = 'A security event was detected on {}'\n".format(weakComp))
         file.write("tasks = {\n")
-        file.write("    1: [[\'handle_event\', event1, secmgr_config]]\n")
+        file.write("    1: [[\'handle_event\', event1, secmgr_config, context]]\n")
         file.write("}\n\n")
     elif task_type == "FIX_ONE":
+        file.write("context = 'The component {} is low on resources'\n".format(weakComp))
         file.write("tasks = {\n")
-        file.write("    1: [[\'fix_component\', \'{}\', secmgr_config]]\n".format(weakComp))
+        file.write("    1: [[\'fix_component\', \'{}\', secmgr_config, context]]\n".format(weakComp))
         file.write("}\n\n")
     elif task_type == "FIX_MULT":
+        context = 'A number of components are low on resources, including {}'
+        if len(weak_ids) < 2:
+            context = 'The component {} is low on resources'
         file.write("tasks = {\n")
         cur_idx = 1
         for id in weak_ids:
             if cur_idx > 1:
                 file.write(",\n")
-            file.write("    {}: [[\'fix_component\', \'{}\', secmgr_config]]".format(cur_idx, id))
+            file.write("    {}: [[\'fix_component\', \'{}\', secmgr_config, \'{}\']]".format(
+                cur_idx, id, context.format(id)
+            ))
             cur_idx += 1
         file.write("\n}\n\n")
 
