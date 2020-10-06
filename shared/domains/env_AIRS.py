@@ -11,7 +11,12 @@ from domain_constants import SUCCESS, FAILURE
 # Each command is associated with a tuple indicating probability of success vs. failure
 commandProb = {
     'restart_vm': (0.95, 0.05),
+    'add_vcpu': (0.95, 0.05),
+    'increase_mem': (0.95, 0.05),
     'kill_top_proc': (0.95, 0.05),
+    'apply_update': (0.6, 0.4),
+    'add_switch': (0.75, 0.25),
+    'move_critical_hosts': (0.6, 0.4),
     'clear_ctrl_state_besteffort': (0.6, 0.4),
     'clear_ctrl_state_fallback': (0.8, 0.2),
     'reinstall_ctrl_besteffort': (0.75, 0.25),
