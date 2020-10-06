@@ -5,7 +5,7 @@ import argparse
 
 #resultFolder="ICAPS2020"
 #resultFolder="AIJ2020"
-resultFolder="SDN"
+resultFolder="SDN_USENIX_20"
 
 def GetProblemsCR(part):
     l = list(range(1000, 1124))

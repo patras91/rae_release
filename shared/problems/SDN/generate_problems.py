@@ -216,7 +216,7 @@ def writeHeader(file):
     file.write("import functools\n")
     file.write("import operator\n")
     file.write("from domain_AIRS import *\n")
-    file.write("from state import state\n\n")
+    file.write("from state import state, rv\n\n")
 
     file.write("secmgr_config = {\n")
     file.write("    \'health_warning_thresh\': 0.6,\n")

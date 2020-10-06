@@ -3,7 +3,7 @@ __author__ = 'patras'
 import functools
 import operator
 from domain_AIRS import *
-from state import state
+from state import state, rv
 
 secmgr_config = {
     'health_warning_thresh': 0.6,
@@ -50,15 +50,10 @@ def ResetState():
             'type': 'CTRL',
             'critical': False
         },
-        'ctrl3': {
-            'id': 'ctrl3',
-            'type': 'CTRL',
-            'critical': False
-        },
         'switch1': {
             'id': 'switch1',
             'type': 'SWITCH',
-            'critical': False
+            'critical': True
         },
         'switch2': {
             'id': 'switch2',
@@ -73,7 +68,7 @@ def ResetState():
         'switch4': {
             'id': 'switch4',
             'type': 'SWITCH',
-            'critical': True
+            'critical': False
         },
         'switch5': {
             'id': 'switch5',
@@ -83,12 +78,12 @@ def ResetState():
         'switch6': {
             'id': 'switch6',
             'type': 'SWITCH',
-            'critical': False
+            'critical': True
         },
         'switch7': {
             'id': 'switch7',
             'type': 'SWITCH',
-            'critical': False
+            'critical': True
         },
         'switch8': {
             'id': 'switch8',
@@ -103,12 +98,12 @@ def ResetState():
         'switch10': {
             'id': 'switch10',
             'type': 'SWITCH',
-            'critical': False
+            'critical': True
         },
         'switch11': {
             'id': 'switch11',
             'type': 'SWITCH',
-            'critical': False
+            'critical': True
         },
         'switch12': {
             'id': 'switch12',
@@ -118,7 +113,7 @@ def ResetState():
         'switch13': {
             'id': 'switch13',
             'type': 'SWITCH',
-            'critical': False
+            'critical': True
         },
         'switch14': {
             'id': 'switch14',
@@ -128,17 +123,17 @@ def ResetState():
         'switch15': {
             'id': 'switch15',
             'type': 'SWITCH',
-            'critical': True
+            'critical': False
         },
         'switch16': {
             'id': 'switch16',
             'type': 'SWITCH',
-            'critical': False
+            'critical': True
         },
         'switch17': {
             'id': 'switch17',
             'type': 'SWITCH',
-            'critical': False
+            'critical': True
         },
         'switch18': {
             'id': 'switch18',
@@ -150,170 +145,340 @@ def ResetState():
             'type': 'SWITCH',
             'critical': False
         },
+        'switch20': {
+            'id': 'switch20',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch21': {
+            'id': 'switch21',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch22': {
+            'id': 'switch22',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch23': {
+            'id': 'switch23',
+            'type': 'SWITCH',
+            'critical': True
+        },
+        'switch24': {
+            'id': 'switch24',
+            'type': 'SWITCH',
+            'critical': True
+        },
+        'switch25': {
+            'id': 'switch25',
+            'type': 'SWITCH',
+            'critical': True
+        },
+        'switch26': {
+            'id': 'switch26',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch27': {
+            'id': 'switch27',
+            'type': 'SWITCH',
+            'critical': True
+        },
+        'switch28': {
+            'id': 'switch28',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch29': {
+            'id': 'switch29',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch30': {
+            'id': 'switch30',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch31': {
+            'id': 'switch31',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch32': {
+            'id': 'switch32',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch33': {
+            'id': 'switch33',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch34': {
+            'id': 'switch34',
+            'type': 'SWITCH',
+            'critical': True
+        },
+        'switch35': {
+            'id': 'switch35',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch36': {
+            'id': 'switch36',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch37': {
+            'id': 'switch37',
+            'type': 'SWITCH',
+            'critical': True
+        },
+        'switch38': {
+            'id': 'switch38',
+            'type': 'SWITCH',
+            'critical': False
+        },
+        'switch39': {
+            'id': 'switch39',
+            'type': 'SWITCH',
+            'critical': False
+        },
     }
 
     state.stats = {
         'ctrl1': {
             'health': {
-                'value': 0.59,
+                'value': 1.0,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 20,
+                'value': 89,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'host_table_size': {
-                'value': 820,
+                'value': 5019,
                 'thresh_exceeded_fn': host_table_exceeded_fn
             }
         },
         'ctrl2': {
             'health': {
-                'value': 0.81,
+                'value': 0.89,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 73,
+                'value': 89,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'host_table_size': {
-                'value': 7068,
-                'thresh_exceeded_fn': host_table_exceeded_fn
-            }
-        },
-        'ctrl3': {
-            'health': {
-                'value': 0.69,
-                'thresh_exceeded_fn': health_exceeded_fn
-            },
-            'cpu_perc_ewma': {
-                'value': 85,
-                'thresh_exceeded_fn': cpu_perc_exceeded_fn
-            },
-            'host_table_size': {
-                'value': 2452,
+                'value': 3333,
                 'thresh_exceeded_fn': host_table_exceeded_fn
             }
         },
         'switch1': {
             'health': {
-                'value': 0.74,
+                'value': 0.41,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 84,
+                'value': 60,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 676,
+                'value': 937,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
         'switch2': {
             'health': {
-                'value': 0.77,
+                'value': 0.82,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 19,
+                'value': 15,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 143,
+                'value': 503,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
         'switch3': {
             'health': {
-                'value': 0.55,
+                'value': 0.95,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 47,
+                'value': 83,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 828,
+                'value': 618,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
         'switch4': {
             'health': {
-                'value': 0.86,
+                'value': 0.64,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 22,
+                'value': 94,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 343,
+                'value': 336,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
         'switch5': {
             'health': {
-                'value': 0.51,
+                'value': 0.58,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 79,
+                'value': 81,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 688,
+                'value': 721,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
         'switch6': {
             'health': {
-                'value': 0.44,
+                'value': 0.41,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 16,
+                'value': 30,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 269,
+                'value': 880,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
         'switch7': {
             'health': {
-                'value': 0.81,
+                'value': 0.69,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 12,
+                'value': 65,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 327,
+                'value': 472,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
         'switch8': {
             'health': {
-                'value': 0.92,
+                'value': 0.7,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 10,
+                'value': 38,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 107,
+                'value': 693,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
         'switch9': {
             'health': {
-                'value': 0.63,
+                'value': 0.41,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 14,
+                'value': 97,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 846,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch10': {
+            'health': {
+                'value': 0.55,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 13,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 464,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch11': {
+            'health': {
+                'value': 0.51,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 11,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 462,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch12': {
+            'health': {
+                'value': 0.5,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 96,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 483,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch13': {
+            'health': {
+                'value': 0.47,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 74,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 974,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch14': {
+            'health': {
+                'value': 0.74,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 76,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 54,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch15': {
+            'health': {
+                'value': 0.76,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 86,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
@@ -321,7 +486,259 @@ def ResetState():
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
-        'switch10': {
+        'switch16': {
+            'health': {
+                'value': 0.58,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 20,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 871,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch17': {
+            'health': {
+                'value': 0.57,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 34,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 341,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch18': {
+            'health': {
+                'value': 0.44,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 82,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 998,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch19': {
+            'health': {
+                'value': 0.88,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 30,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 770,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch20': {
+            'health': {
+                'value': 0.72,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 45,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 956,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch21': {
+            'health': {
+                'value': 0.51,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 80,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 656,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch22': {
+            'health': {
+                'value': 0.61,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 59,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 696,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch23': {
+            'health': {
+                'value': 0.89,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 64,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 390,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch24': {
+            'health': {
+                'value': 0.41,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 91,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 38,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch25': {
+            'health': {
+                'value': 0.87,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 88,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 607,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch26': {
+            'health': {
+                'value': 0.095,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 104,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 981,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch27': {
+            'health': {
+                'value': 0.61,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 59,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 353,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch28': {
+            'health': {
+                'value': 0.87,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 77,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 996,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch29': {
+            'health': {
+                'value': 0.4,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 66,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 256,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch30': {
+            'health': {
+                'value': 0.81,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 83,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 498,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch31': {
+            'health': {
+                'value': 0.6,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 73,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 635,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch32': {
+            'health': {
+                'value': 0.41,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 63,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 567,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch33': {
+            'health': {
+                'value': 0.63,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 32,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 304,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
+        },
+        'switch34': {
             'health': {
                 'value': 0.94,
                 'thresh_exceeded_fn': health_exceeded_fn
@@ -331,133 +748,77 @@ def ResetState():
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 165,
+                'value': 684,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
-        'switch11': {
+        'switch35': {
             'health': {
-                'value': 0.72,
+                'value': 0.5,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 26,
+                'value': 72,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 704,
+                'value': 804,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
-        'switch12': {
+        'switch36': {
             'health': {
-                'value': 0.67,
+                'value': 0.66,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 41,
+                'value': 11,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 558,
+                'value': 254,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
-        'switch13': {
+        'switch37': {
             'health': {
-                'value': 0.48,
+                'value': 0.79,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 58,
+                'value': 53,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 1105,
+                'value': 232,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
-        'switch14': {
+        'switch38': {
             'health': {
-                'value': 0.86,
+                'value': 0.52,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 25,
+                'value': 44,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 849,
+                'value': 584,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
-        'switch15': {
+        'switch39': {
             'health': {
-                'value': 0.64,
+                'value': 0.4,
                 'thresh_exceeded_fn': health_exceeded_fn
             },
             'cpu_perc_ewma': {
-                'value': 95,
+                'value': 40,
                 'thresh_exceeded_fn': cpu_perc_exceeded_fn
             },
             'flow_table_size': {
-                'value': 872,
-                'thresh_exceeded_fn': flow_table_exceeded_fn
-            }
-        },
-        'switch16': {
-            'health': {
-                'value': 0.61,
-                'thresh_exceeded_fn': health_exceeded_fn
-            },
-            'cpu_perc_ewma': {
-                'value': 41,
-                'thresh_exceeded_fn': cpu_perc_exceeded_fn
-            },
-            'flow_table_size': {
-                'value': 321,
-                'thresh_exceeded_fn': flow_table_exceeded_fn
-            }
-        },
-        'switch17': {
-            'health': {
-                'value': 0.98,
-                'thresh_exceeded_fn': health_exceeded_fn
-            },
-            'cpu_perc_ewma': {
-                'value': 89,
-                'thresh_exceeded_fn': cpu_perc_exceeded_fn
-            },
-            'flow_table_size': {
-                'value': 942,
-                'thresh_exceeded_fn': flow_table_exceeded_fn
-            }
-        },
-        'switch18': {
-            'health': {
-                'value': 0.42,
-                'thresh_exceeded_fn': health_exceeded_fn
-            },
-            'cpu_perc_ewma': {
-                'value': 63,
-                'thresh_exceeded_fn': cpu_perc_exceeded_fn
-            },
-            'flow_table_size': {
-                'value': 91,
-                'thresh_exceeded_fn': flow_table_exceeded_fn
-            }
-        },
-        'switch19': {
-            'health': {
-                'value': 0.72,
-                'thresh_exceeded_fn': health_exceeded_fn
-            },
-            'cpu_perc_ewma': {
-                'value': 52,
-                'thresh_exceeded_fn': cpu_perc_exceeded_fn
-            },
-            'flow_table_size': {
-                'value': 667,
+                'value': 636,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
         },
@@ -467,9 +828,16 @@ def ResetState():
 rv.x = []
 
 tasks = {
-    1: [['fix_component', 'switch6', secmgr_config, 'A number of components are low on resources, including switch6']],
-    2: [['fix_component', 'switch13', secmgr_config, 'A number of components are low on resources, including switch13']],
-    3: [['fix_component', 'switch18', secmgr_config, 'A number of components are low on resources, including switch18']]
+    1: [['fix_component', 'switch1', secmgr_config, 'A number of components are low on resources, including switch1']],
+    2: [['fix_component', 'switch6', secmgr_config, 'A number of components are low on resources, including switch6']],
+    3: [['fix_component', 'switch9', secmgr_config, 'A number of components are low on resources, including switch9']],
+    4: [['fix_component', 'switch13', secmgr_config, 'A number of components are low on resources, including switch13']],
+    5: [['fix_component', 'switch18', secmgr_config, 'A number of components are low on resources, including switch18']],
+    6: [['fix_component', 'switch24', secmgr_config, 'A number of components are low on resources, including switch24']],
+    7: [['fix_component', 'switch26', secmgr_config, 'A number of components are low on resources, including switch26']],
+    8: [['fix_component', 'switch29', secmgr_config, 'A number of components are low on resources, including switch29']],
+    9: [['fix_component', 'switch32', secmgr_config, 'A number of components are low on resources, including switch32']],
+    10: [['fix_component', 'switch39', secmgr_config, 'A number of components are low on resources, including switch39']]
 }
 
 eventsEnv = {}

@@ -584,7 +584,7 @@ def m_fix_sdn(config, context):
                         # Check new health
                         if not is_component_healthy(component_id):
                             log_err('failed to restore component health: ' + component_id)
-                            rae.do_task(fail)
+                            rae.do_command(fail)
 
 
 def m_handle_event(event, config, context):
@@ -631,7 +631,7 @@ def m_handle_event(event, config, context):
             # Check whether affected component is now healthy
             if not is_component_healthy(component_id):
                 log_err('failed to restore component health: ' + component_id)
-                rae.do_task(fail)
+                rae.do_command(fail)
 
         # Unhandled event source
         else:
@@ -723,7 +723,7 @@ def m_ctrl_mitigate_pktinflood(component_id, config, context):
                 rae.do_command(move_critical_hosts, switch_id, switch_id + '-new', explain_mvhosts)
 
             # Fix unhealthy switch
-            rae.do_task('fix_switch', switch_id, cur_ctx)
+            rae.do_task('fix_switch', switch_id, config, cur_ctx)
 
     # Clear controller state
     explain = context + ", so clear SDN controller state"
@@ -732,7 +732,7 @@ def m_ctrl_mitigate_pktinflood(component_id, config, context):
     # Check whether controller is now healthy
     if not is_component_healthy(component_id):
         log_err('failed to restore component health: ' + component_id)
-        rae.do_task(fail)
+        rae.do_command(fail)
 
 
 def m_fix_sdn_controller_fallback(component_id, config, context):
@@ -795,15 +795,15 @@ def m_fix_sdn_controller_fallback(component_id, config, context):
         if do_shrink_hosttable:
             # Fix problem with inflated host table
             log_info('adding new task "shrink_ctrl_hosttable" for "' + component_id + '"')
-            rae.do_task('shrink_ctrl_hosttable', component_id, context)
+            rae.do_task('shrink_ctrl_hosttable', component_id, config, context)
         elif do_alleviate_cpu:
             # Alleviate elevated CPU stat
             log_info('adding new task "alleviate_ctrl_cpu" for "' + component_id + '"')
-            rae.do_task('alleviate_ctrl_cpu', component_id, context)
+            rae.do_task('alleviate_ctrl_cpu', component_id, config, context)
         elif do_restore_health:
             # Restore low health (often also fixes CPU over-utilization)
             log_info('adding new task "restore_ctrl_health" for "' + component_id + '"')
-            rae.do_task('restore_ctrl_health', component_id, context)
+            rae.do_task('restore_ctrl_health', component_id, config, context)
         else:
             # No problem could be identified from stats
             log_info('no task to add for "' + component_id + '"')
@@ -876,15 +876,15 @@ def m_fix_switch(component_id, config, context):
         if do_shrink_flowtable:
             # Fix problem with inflated flow table
             log_info('adding new task "shrink_switch_flowtable" for "' + component_id + '"')
-            rae.do_task('shrink_switch_flowtable', component_id, context)
+            rae.do_task('shrink_switch_flowtable', component_id, config, context)
         elif do_alleviate_cpu:
             # Alleviate elevated CPU stat
             log_info('adding new task "alleviate_switch_cpu" for "' + component_id + '"')
-            rae.do_task('alleviate_switch_cpu', component_id, context)
+            rae.do_task('alleviate_switch_cpu', component_id, config, context)
         elif do_restore_health:
             # Restore low health (often also fixes CPU over-utilization)
             log_info('adding new task "restore_switch_health" for "' + component_id + '"')
-            rae.do_task('restore_switch_health', component_id, context)
+            rae.do_task('restore_switch_health', component_id, config, context)
         else:
             # No problem could be identified from stats
             # TODO: probe further ???
@@ -896,7 +896,7 @@ def m_fix_switch(component_id, config, context):
         # TODO: loop and continue checking stats until symptoms are gone ???
 
 
-def m_add_vcpu(component_id, context):
+def m_add_vcpu(component_id, config, context):
     """Method to add a VCPU to a component virtual machine."""
 
     explain = context + ", so add an additional VCPU to the VM"
@@ -904,7 +904,7 @@ def m_add_vcpu(component_id, context):
     rae.do_command(add_vcpu, component_id, explain)
 
 
-def m_increase_mem(component_id, context):
+def m_increase_mem(component_id, config, context):
     """Method to increase memory in a component virtual machine."""
 
     explain = context + ", so increase the memory in the VM"
@@ -912,7 +912,7 @@ def m_increase_mem(component_id, context):
     rae.do_command(increase_mem, component_id, explain)
 
 
-def m_ctrl_clearstate_besteffort(component_id, context):
+def m_ctrl_clearstate_besteffort(component_id, config, context):
     """Method to clear controller state (best effort)."""
 
     if not is_component_type(component_id, 'CTRL'):
@@ -923,7 +923,7 @@ def m_ctrl_clearstate_besteffort(component_id, context):
         rae.do_command(clear_ctrl_state_besteffort, component_id, explain)
 
 
-def m_ctrl_clearstate_fallback(component_id, context):
+def m_ctrl_clearstate_fallback(component_id, config, context):
     """Method to clear controller state (fallback)."""
 
     if not is_component_type(component_id, 'CTRL'):
@@ -934,7 +934,7 @@ def m_ctrl_clearstate_fallback(component_id, context):
         rae.do_command(clear_ctrl_state_fallback, component_id, explain)
 
 
-def m_ctrl_reinstall_besteffort(component_id, context):
+def m_ctrl_reinstall_besteffort(component_id, config, context):
     """Method to reinstall controller software (best effort)."""
 
     if not is_component_type(component_id, 'CTRL'):
@@ -945,7 +945,7 @@ def m_ctrl_reinstall_besteffort(component_id, context):
         rae.do_command(reinstall_ctrl_besteffort, component_id, explain)
 
 
-def m_ctrl_reinstall_fallback(component_id, context):
+def m_ctrl_reinstall_fallback(component_id, config, context):
     """Method to reinstall controller software (fallback)."""
 
     if not is_component_type(component_id, 'CTRL'):
@@ -957,21 +957,21 @@ def m_ctrl_reinstall_fallback(component_id, context):
         rae.do_command(reinstall_ctrl_fallback, component_id, explain)
 
 
-def m_component_restartvm(component_id, context):
+def m_component_restartvm(component_id, config, context):
     """Method to restart the virtual machine of a component."""
 
     explain = context + ", so restart the component VM"
     rae.do_command(restart_vm, component_id, explain)
 
 
-def m_component_kill_top_proc(component_id, context):
+def m_component_kill_top_proc(component_id, config, context):
     """Method to kill the top CPU-consuming process in a component virtual machine."""
 
     explain = context + ", so kill the process that is consuming the most CPU in the VM"
     rae.do_command(kill_top_proc, component_id, explain)
 
 
-def m_switch_clearstate_besteffort(component_id, context):
+def m_switch_clearstate_besteffort(component_id, config, context):
     """Method to clear switch state (best effort)."""
 
     if not is_component_type(component_id, 'SWITCH'):
@@ -982,7 +982,7 @@ def m_switch_clearstate_besteffort(component_id, context):
         rae.do_command(clear_switch_state_besteffort, component_id, explain)
 
 
-def m_switch_clearstate_fallback(component_id, context):
+def m_switch_clearstate_fallback(component_id, config, context):
     """Method to clear switch state (fallback)."""
 
     if not is_component_type(component_id, 'SWITCH'):
@@ -993,7 +993,7 @@ def m_switch_clearstate_fallback(component_id, context):
         rae.do_command(clear_switch_state_fallback, component_id, explain)
 
 
-def m_switch_discon_recon_txport(component_id, context):
+def m_switch_discon_recon_txport(component_id, config, context):
     """Method to disconnect and then reconnect switch port with most transmitted traffic."""
 
     if not is_component_type(component_id, 'SWITCH'):
@@ -1004,7 +1004,7 @@ def m_switch_discon_recon_txport(component_id, context):
         rae.do_command(disconnect_reconnect_switch_port, component_id, explain)
 
 
-def m_switch_disconnect_txport(component_id, context):
+def m_switch_disconnect_txport(component_id, config, context):
     """Method to disconnect switch port with most transmitted traffic."""
 
     if not is_component_type(component_id, 'SWITCH'):
@@ -1029,13 +1029,13 @@ rae.declare_task('try_generic_fix', 'component_id', 'config', 'context')
 rae.declare_task('fix_sdn_controller', 'component_id', 'config', 'context')
 rae.declare_task('fix_switch', 'component_id', 'config', 'context')
 
-rae.declare_task('shrink_ctrl_hosttable', 'component_id', 'context')
-rae.declare_task('alleviate_ctrl_cpu', 'component_id', 'context')
-rae.declare_task('restore_ctrl_health', 'component_id', 'context')
+rae.declare_task('shrink_ctrl_hosttable', 'component_id', 'config', 'context')
+rae.declare_task('alleviate_ctrl_cpu', 'component_id', 'config', 'context')
+rae.declare_task('restore_ctrl_health', 'component_id', 'config', 'context')
 
-rae.declare_task('shrink_switch_flowtable', 'component_id', 'context')
-rae.declare_task('alleviate_switch_cpu', 'component_id', 'context')
-rae.declare_task('restore_switch_health', 'component_id', 'context')
+rae.declare_task('shrink_switch_flowtable', 'component_id', 'config', 'context')
+rae.declare_task('alleviate_switch_cpu', 'component_id', 'config', 'context')
+rae.declare_task('restore_switch_health', 'component_id', 'config', 'context')
 
 rae.declare_methods(
     'fix_sdn',
