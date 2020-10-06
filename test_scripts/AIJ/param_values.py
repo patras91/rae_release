@@ -9,6 +9,7 @@ errIndex = {
         'successRatio': 'sr_error',
         'retryRatio': 'rr_error',
         'totalTime': 'tt_error',
+        'resilience': 'resilience_error'
     }
 
 B_max_depth = {
@@ -164,20 +165,27 @@ def GetNewDict():
             'sr_error': [],
             'rr_error': [],
             'tt_error': [],
+            'resilience': [],
+            'resilience_error': [],
             }
 
 def GetRAEfname(domain):
     return "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
 
-def GetLowerLim(domain):
+def GetLowerLim(domain, util):
     if domain == "SR":
         return 0.8
     elif domain == "SDN":
-        return 0
+        if util == "nu":
+            return 0.08
+        elif util == "retryRatio":
+            return 0.05
+        elif util == "cost":
+            return 6
     else:
         return 0.9
 
 COLORS = ['ro:', 'bs--', 'm^-.', 'go--', 'c^:', 'rs--', 'ms--', 'gs--']
 
-COLORBAR = ['orange', 'grey', 'black',  'turquoise', 'orchid', 'orangered', 'yellowgreen', ]
+COLORBAR = ['orange', 'grey', 'turquoise',  'turquoise', 'orchid', 'orangered', 'yellowgreen', ]
 

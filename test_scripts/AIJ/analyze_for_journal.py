@@ -43,9 +43,9 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
     line = f.readline()
 
     nSucc, nTasks, nRetry, totalCountForRetries, nTimeOut, nLine = 0, 0, 0, 0, 0, 0
-    plTime, acTime, ttTime, nu = 0, 0, 0, 0 # sums
+    plTime, acTime, ttTime, nu, resilience = 0, 0, 0, 0, 0 # sums
 
-    nu_L, sr_L, rr_L, tt_L = [], [], [], [] # lists of efficiency, success Ratio, retry ratio, total time 
+    nu_L, sr_L, rr_L, tt_L, resilience_L = [], [], [], [], [] # lists of efficiency, success Ratio, retry ratio, total time 
 
     while(line != ''):
 
@@ -85,6 +85,7 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
                         acTime += float(parts2[5])
                         tt_L.append(float(parts2[4]) + float(parts2[5]))
                         taskEff = float(parts2[6])
+                        taskResilience = float(parts2[7])
 
                     if taskEff == float("inf"):
                         print("Infinite efficiency! Normalizing.\n")
@@ -95,6 +96,8 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
                     nSucc += s
                     sr_L.append(s)
                     nTasks += t
+                    resilience += taskResilience
+                    resilience_L.append(taskResilience)
                     
                     if s == t: # for retry ratio
                         if ((pName in succCases[domain]) and param > 0): 
@@ -142,6 +145,9 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
     res['nu'].append(nu / nTasks)
     res['nu_error'].append(GetMSEError(nu_L, nu/nTasks, 1))
 
+    res['resilience'].append(resilience/nTasks)
+    res['resilience_error'].append(GetMSEError(resilience_L, resilience/nTasks, 1))
+
     res['timeOut'].append(nTimeOut)
 
 def GetStandardDev(l):
@@ -152,7 +158,7 @@ def GetStandardDev(l):
     return math.sqrt(r/(len(l)-1))
 
 def NormalizeValues(r):
-    for v in ['nu', 'successRatio', 'retryRatio']: # 'nu_error', 'sr_error', 'rr_error']:
+    for v in ['nu', 'successRatio', 'retryRatio', 'resilience']: # 'nu_error', 'sr_error', 'rr_error']:
         print("before", r[v])
         val = r[v][0]
         if val != 0:
@@ -161,6 +167,7 @@ def NormalizeValues(r):
                 'nu': 'nu_error',
                 'successRatio': 'sr_error',
                 'retryRatio': 'rr_error',
+                'resilience': 'resilience_error',
             }[v]
             r[key_error] = [item/val for item in r[key_error]]
 
@@ -281,7 +288,7 @@ def Populate_UCT_max_depth(res, domain, utilF, num_tasks_per_problem):
         print(fname)
         PopulateHelper(res, domain, open(fname), n_ro, fname, num_tasks_per_problem)
         fptr.close()
-    NormalizeValues(res)
+    #NormalizeValues(res)
 
 def Populate_learning(res, domain, model, num_tasks_per_problem):
     if model == "UCT":
@@ -381,7 +388,8 @@ def Populate_UCT_max_depth_error_ratio(res, domain):
             PopulateHelper_UCT_max_depth_error_ratio(res[uct], domain, f_rae, uct, f_rae_name)
             f_rae.close()
         else:
-            fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, util, uct)
+            #fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, util, uct)
+            fname = '{}{}_v_journal{}/UPOM_{}.txt'.format(resultsFolder, domain, util, uct)
             fptr = open(fname)
             print(fname)
             PopulateHelper_UCT_max_depth_error_ratio(res[uct], domain, open(fname), uct, fname)
@@ -462,10 +470,18 @@ def GeneratePlots_SLATE_max_depth():
     for util in ['nu', 'successRatio', 'retryRatio']:
         PlotHelper_SLATE_max(resDict, util)
 
-def GeneratePlots_UCT_max_depth(num_tasks_per_problem):
+def GeneratePlots_UCT_max_depth(num_tasks_per_problem, showTime):
     resDict = {}
     for domain in D:
-        if util == "_sr":
+        if util == "_res":
+            resDict[domain] = {}
+            resDict[domain]['_sr'] = GetNewDict()
+            resDict[domain]['_eff'] = GetNewDict()
+            resDict[domain]['_res'] = GetNewDict()
+            Populate_UCT_max_depth(resDict[domain]['_sr'], domain, '_sr', num_tasks_per_problem)
+            Populate_UCT_max_depth(resDict[domain]['_eff'], domain, '_eff', num_tasks_per_problem)
+            Populate_UCT_max_depth(resDict[domain]['_res'], domain, '_res', num_tasks_per_problem)
+        elif util == "_sr":
             resDict[domain] = {}
             resDict[domain]['_sr'] = GetNewDict()
             resDict[domain]['_eff'] = GetNewDict()
@@ -483,8 +499,8 @@ def GeneratePlots_UCT_max_depth(num_tasks_per_problem):
     plt.rc('font', **font)
     
     print(resDict)
-    for metric in ['nu', 'successRatio', 'retryRatio']:
-        PlotHelper_UCT_max(resDict, metric)
+    for metric in ['cost', 'nu', 'successRatio', 'retryRatio', 'resilience']:
+        PlotHelper_UCT_max(resDict, metric, showTime)
 
 def GeneratePlots_LearnMI(num_tasks):
     resDict = {}
@@ -657,17 +673,23 @@ def GetSum(*l):
             res[i] += item[i]
     return res
 
-def GetYlabel(util):
+def GetYlabel(util, domain):
     if util == 'nu':
-        return 'Efficiency'
+        res = 'Efficiency'
     elif util == 'successRatio':
-        return 'Success Ratio'
+        res = 'Success Ratio'
     elif util == "retryRatio":
-        return 'Retry Ratio'
+        res = 'Retry Ratio'
     elif util == "totalTime":
-        return 'Total time'
+        res = 'Total time'
+    elif util == "resilience":
+        res = "Resilience"
+    elif util == "cost":
+        res = "Estimated time"
     else:
-        return "Y"
+        res = "Y"
+    if domain == "SDN":
+        return res + " for attack recovery\n(in ~seconds)"
 
 def Accumulate(res1, res2):
     if res1 == []:
@@ -719,11 +741,11 @@ def PlotHelper_UCT_max_Acc(resDict, index1):
 
     plt.savefig(fname, bbox_inches='tight')
 
-def PlotHelper_UCT_max(resDict, utilp):
+def PlotHelper_UCT_max(resDict, utilp, showTime):
     font = {
         'family' : 'times',
         'weight' : 'bold',
-        'size'   : 20}
+        'size'   : 15}
     plt.rc('font', **font)
     #PlotHelper_UCT_max_Acc(resDict, utilp)
     #return
@@ -737,7 +759,42 @@ def PlotHelper_UCT_max(resDict, utilp):
         #fname = '{}{}_{}_UCT_max_depth_one_task.png'.format(figuresFolder, domain, utilp)
         fname = '{}{}_{}_UCT_max_depth.png'.format(figuresFolder, domain, utilp)
         
-        if util == "_sr":
+        if util == "_res":
+            fig, ax = plt.subplots()
+            if utilp == "resilience" :
+                X_timeValues = resDict[domain]['_res']['totalTime']
+                PlotViaMatlabBar(UCT_max_depth[domain], 
+                    resDict[domain]['_res'][index1],
+                    resDict[domain]['_res'][errIndex[index1]],
+                    COLORBAR[0],
+                    "utility = resilience", 0, ax, width)
+                
+            elif utilp == "nu":
+                X_timeValues = resDict[domain]['_eff']['totalTime']
+                PlotViaMatlabBar(UCT_max_depth[domain], 
+                    resDict[domain]['_eff'][index1],
+                    resDict[domain]['_eff'][errIndex[index1]],
+                    COLORBAR[1],
+                    "utility = efficiency", 0, ax, width)
+                
+            elif utilp == "cost":
+                X_timeValues = resDict[domain]['_eff']['totalTime']
+                PlotViaMatlabBar(UCT_max_depth[domain], 
+                    [1/item for item in resDict[domain]['_eff']['nu']],
+                    [50*item for item in resDict[domain]['_eff'][errIndex['nu']]],
+                    COLORBAR[1],
+                    "utility = cost", 0, ax, width)
+                
+            else:
+                X_timeValues = resDict[domain]['_sr']['totalTime']
+                PlotViaMatlabBar(UCT_max_depth[domain], 
+                    resDict[domain]['_sr'][index1],
+                    resDict[domain]['_sr'][errIndex[index1]],
+                    COLORBAR[2],
+                    "utility = successRatio", 0, ax, width)
+                
+
+        elif util == "_sr":
             fig, ax = plt.subplots()
             if utilp == "successRatio":
                 PlotViaMatlabBar(UCT_max_depth[domain], 
@@ -761,14 +818,21 @@ def PlotHelper_UCT_max(resDict, utilp):
         
         #plt.legend(bbox_to_anchor=(0.0, 1.05), loc=3, ncol=2, borderaxespad=0.)
             
-        ax.set_xticks(np.arange(len(UCT_max_depth[domain])))
-        ax.set_xticklabels([str(item) if item != 1000 else "1K" for item in UCT_max_depth[domain]])
-        plt.xlabel('Number of rollouts')
-        ax.set_title(GetFullName(domain))
-        ax.set_ylim(bottom=GetLowerLim(domain))
+        if showTime == False:
+            ax.set_xticks(np.arange(len(UCT_max_depth[domain])))
+            ax.set_xticklabels([str(item) if item != 1000 else "1K" for item in UCT_max_depth[domain]])
+            plt.xlabel('Number of rollouts')
+        else:
+            X_timeValues = [0, 200, 500, 1000, 2000]
+            ax.set_xticks(np.arange(len(X_timeValues)))
+            ax.set_xticklabels([str(int(item)) for item in X_timeValues])
+            plt.xlabel('Time taken by refinement planner UPOM\n(in msecs)')
+
+        #ax.set_title(GetFullName(domain))
+        ax.set_ylim(bottom=GetLowerLim(domain, utilp))
         #plt.xticks(UCT_max_depth[domain],
         #   [str(item) for item in UCT_max_depth[domain]])
-        plt.ylabel(GetYlabel(utilp))
+        plt.ylabel(GetYlabel(utilp, domain))
 
         plt.savefig(fname, bbox_inches='tight')
 
@@ -1020,13 +1084,14 @@ def PlotHelper_SLATE_lim(resDict, utilp):
 def PlotHelper_UCT_max_error_ratio(resDict):
     width = 0.25
 
-    for domain in ['EE']:
+    for domain in ['SDN']:
         plt.clf()
         fname = '{}{}_UCT_max_depth_error_ratio.png'.format(figuresFolder, util)
         
         i = 0
         val = None
         for uct in [5, 10, 25, 50, 100, 250]:# UCT_max_depth[domain][1:]:
+        #for uct in UCT_max_depth[domain][1:]:
             sortedDict = {}
             for k in sorted(resDict[domain][uct]):
                 sortedDict[k] = resDict[domain][uct][k]
@@ -1089,17 +1154,22 @@ if __name__=="__main__":
                            type=str, required=False, default="UCT")
     argparser.add_argument("--er", help="plot error ratio", default='n',
                             type=str, required=False)
-    argparser.add_argument("--utility", help="efficiency or successRatio?",
+    argparser.add_argument("--utility", help="efficiency or successRatio or resilience?",
                             type=str, required=True)
     argparser.add_argument("--l", help="Compare with learning? ('y' or 'mi' or 'n')?",
                             type=str, default='n', required=True)
+    argparser.add_argument("--showTime", help="Show time instead of number of Rollouts? ('y' or 'n')?",
+                            type=str, default='n', required=False)
+
     args = argparser.parse_args()
 
     learning = args.l
     if args.utility == "efficiency":
         util = "_eff"
-    else:
+    elif args.utility == "successRatio":
         util = "_sr"
+    else:
+        util = "_res"
 
     #D = ["SD", "SR", "EE", "CR", "OF"]
     #D = ["CR", "OF"]
@@ -1115,7 +1185,7 @@ if __name__=="__main__":
             GeneratePlots_SLATE_max_depth()
         else:
             if args.er == "n":
-                GeneratePlots_UCT_max_depth(0)
+                GeneratePlots_UCT_max_depth(0, args.showTime == 'y')
             else:
                 GeneratePlots_UCT_max_depth_error_ratio()
     elif args.depth == "lim":

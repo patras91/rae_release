@@ -274,6 +274,9 @@ def GenerateTestScriptRAEplan(planner, domain, depth, part, opt, heuristic):
     elif opt == "sr":
         file.write("GLOBALS.SetUtility(\'successRatio\')\n")
         folderAnnex = "_sr"
+    elif opt == "res":
+        file.write("GLOBALS.SetUtility(\'resilience\')\n")
+        folderAnnex = "_res"
     if depth == "max":
         #file.write("GLOBALS.SetMaxDepth(float(\\\"inf\\\"))\"\n")
         if planner == "RAEPlan":
@@ -362,7 +365,7 @@ if __name__=="__main__":
                            type=str, required=True)
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)
-    argparser.add_argument("--utility", help=" efficiency or successRatio? ",
+    argparser.add_argument("--utility", help=" efficiency or successRatio or resilience? ",
                            type=str, required=True, default="efficiency")
     argparser.add_argument("--heuristic", help="zero or DS or learnH? ",
                            type=str, required=True, default="zero")
@@ -381,7 +384,7 @@ if __name__=="__main__":
     for domain in ["SDN"]: 
     #for domain in [args.domain]:
     #for domain in ["CR", "EE", "SR", "SD", "OF"]: 
-        for optz in ["eff", "sr"]: # "sr"
+        for optz in ["eff", "sr", "res"]: # "sr"
             for planner in ["UPOM"]: #"SLATE"
                 for depth in ["max"]:
                     for heuristic in ["DS"]: #['zero', 'DS', 'learnH']:

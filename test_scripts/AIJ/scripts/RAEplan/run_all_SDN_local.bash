@@ -11,10 +11,10 @@ do
         do
             for p in ${Parts[@]}
             do
-            	fname1="../../../../autoGen_scripts/${domain}/test_${domain}_${pl}_${d}_part_${p}_eff.bash"
+            	fname1="../../../../autoGen_scripts/${domain}/test_${domain}_${pl}_${d}_part_${p}_res.bash"
             	./$fname1
-                fname2="../../../../autoGen_scripts/${domain}/test_${domain}_${pl}_${d}_part_${p}_sr.bash"
-                ./$fname2
+                #fname2="../../../../autoGen_scripts/${domain}/test_${domain}_${pl}_${d}_part_${p}_sr.bash"
+                #./$fname2
             done
         done
     done

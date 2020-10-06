@@ -93,6 +93,7 @@ def InitializeSecurityDomain(v, state):
         print('Failed to start RAE and RAEplan {}'.format(e))
     return taskQueue, cmdExecQueue, cmdStatusQueue 
 
+
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--v", help="verbosity of RAE's debugging output (0, 1 or 2)",
