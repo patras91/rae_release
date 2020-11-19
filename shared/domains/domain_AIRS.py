@@ -134,10 +134,20 @@ def restart_vm(component_id, explain):
     if hosttable_stat is not None:
         hosttable_stat['value'] = 0
 
+    # Switch table size should reset after restarting
+    switchtable_stat = get_component_stat(component_id, 'switch_table_size')
+    if switchtable_stat is not None:
+        switchtable_stat['value'] = 0
+
     # Flow table size should reset after restarting
     flowtable_stat = get_component_stat(component_id, 'flow_table_size')
     if flowtable_stat is not None:
         flowtable_stat['value'] = 0
+
+    # Switch-to-ctrl connection status should reset after restarting
+    isconn_stat = get_component_stat(component_id, 'is_conn_to_ctrl')
+    if isconn_stat is not None:
+        isconn_stat['value'] = True
 
     # Done
     return SUCCESS
@@ -306,7 +316,7 @@ def move_critical_hosts(old_switch_id, new_switch_id, explain):
 
 
 def clear_ctrl_state_besteffort(component_id, explain):
-    """Clear the SDN controller state (including host table), if possible."""
+    """Clear the SDN controller state (including host/switch tables), if possible."""
 
     # Print human-friendly explanation
     log_info(explain)
@@ -320,11 +330,14 @@ def clear_ctrl_state_besteffort(component_id, explain):
     stat = get_component_stat(component_id, 'host_table_size')
     if stat is not None:
         stat['value'] = 0
+    stat = get_component_stat(component_id, 'switch_table_size')
+    if stat is not None:
+        stat['value'] = 0
     return SUCCESS
 
 
 def clear_ctrl_state_fallback(component_id, explain):
-    """Clear the SDN controller state (including host table) in a more robust way."""
+    """Clear the SDN controller state (including host/switch tables) in a more robust way."""
 
     # Print human-friendly explanation
     log_info(explain)
@@ -336,6 +349,9 @@ def clear_ctrl_state_fallback(component_id, explain):
         return FAILURE
 
     stat = get_component_stat(component_id, 'host_table_size')
+    if stat is not None:
+        stat['value'] = 0
+    stat = get_component_stat(component_id, 'switch_table_size')
     if stat is not None:
         stat['value'] = 0
     return SUCCESS
@@ -356,6 +372,9 @@ def reinstall_ctrl_besteffort(component_id, explain):
     stat = get_component_stat(component_id, 'host_table_size')
     if stat is not None:
         stat['value'] = 0
+    stat = get_component_stat(component_id, 'switch_table_size')
+    if stat is not None:
+        stat['value'] = 0
     return SUCCESS
 
 
@@ -374,6 +393,27 @@ def reinstall_ctrl_fallback(component_id, explain):
     stat = get_component_stat(component_id, 'host_table_size')
     if stat is not None:
         stat['value'] = 0
+    stat = get_component_stat(component_id, 'switch_table_size')
+    if stat is not None:
+        stat['value'] = 0
+    return SUCCESS
+
+
+def reconnect_switch_to_ctrl(component_id, explain):
+    """Reconnect a switch to its ctrl."""
+
+    # Print human-friendly explanation
+    log_info(explain)
+
+    # Sense success vs. failure
+    res = Sense('reconnect_switch_to_ctrl')
+    if res == FAILURE:
+        log_err('Sense() returned FAILURE for "reconnect_switch_to_ctrl"')
+        return FAILURE
+
+    stat = get_component_stat(component_id, 'is_conn_to_ctrl')
+    if stat is not None:
+        stat['value'] = True
     return SUCCESS
 
 
@@ -494,6 +534,7 @@ rae.declare_commands([
     clear_ctrl_state_fallback,
     reinstall_ctrl_besteffort,
     reinstall_ctrl_fallback,
+    reconnect_switch_to_ctrl,
     clear_switch_state_besteffort,
     clear_switch_state_fallback,
     disconnect_reconnect_switch_port,
@@ -515,6 +556,7 @@ DURATION.TIME = {
     'clear_ctrl_state_fallback': 20,
     'reinstall_ctrl_besteffort': 30,
     'reinstall_ctrl_fallback': 60,
+    'reconnect_switch_to_ctrl': 10,
     'clear_switch_state_besteffort': 10,
     'clear_switch_state_fallback': 20,
     'disconnect_reconnect_switch_port': 5,
@@ -536,6 +578,7 @@ DURATION.COUNTER = {
     'clear_ctrl_state_fallback': 20,
     'reinstall_ctrl_besteffort': 30,
     'reinstall_ctrl_fallback': 60,
+    'reconnect_switch_to_ctrl': 10,
     'clear_switch_state_besteffort': 10,
     'clear_switch_state_fallback': 20,
     'disconnect_reconnect_switch_port': 5,
@@ -748,6 +791,7 @@ def m_fix_sdn_controller_fallback(component_id, config, context):
         # Check stats and determine what needs to be fixed
         stat_obj = state.stats[component_id]
         do_shrink_hosttable = False
+        do_shrink_switchtable = False
         do_alleviate_cpu = False
         do_restore_health = False
         if 'host_table_size' in stat_obj:
@@ -764,6 +808,20 @@ def m_fix_sdn_controller_fallback(component_id, config, context):
                 if thresh_exceeded_fn(value):
                     log_info('threshold exceeded for stat "host_table_size"')
                     do_shrink_hosttable = True
+        if 'switch_table_size' in stat_obj:
+            # TODO: if missing from state, can be populated lazily (here), via a probing action ???
+            if ('value' not in stat_obj['switch_table_size']
+                    or 'thresh_exceeded_fn' not in stat_obj['switch_table_size']):
+                log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                        + component_id + '"]["switch_table_size"]')
+                rae.do_command(fail)
+            else:
+                # Check for inflated switch table
+                value = stat_obj['switch_table_size']['value']
+                thresh_exceeded_fn = stat_obj['switch_table_size']['thresh_exceeded_fn']
+                if thresh_exceeded_fn(value):
+                    log_info('threshold exceeded for stat "switch_table_size"')
+                    do_shrink_switchtable = True
         if 'cpu_perc_ewma' in stat_obj:
             if ('value' not in stat_obj['cpu_perc_ewma']
                     or 'thresh_exceeded_fn' not in stat_obj['cpu_perc_ewma']):
@@ -796,6 +854,10 @@ def m_fix_sdn_controller_fallback(component_id, config, context):
             # Fix problem with inflated host table
             log_info('adding new task "shrink_ctrl_hosttable" for "' + component_id + '"')
             rae.do_task('shrink_ctrl_hosttable', component_id, config, context)
+        elif do_shrink_switchtable:
+            # Fix problem with inflated switch table
+            log_info('adding new task "shrink_ctrl_switchtable" for "' + component_id + '"')
+            rae.do_task('shrink_ctrl_switchtable', component_id, config, context)
         elif do_alleviate_cpu:
             # Alleviate elevated CPU stat
             log_info('adding new task "alleviate_ctrl_cpu" for "' + component_id + '"')
@@ -828,9 +890,23 @@ def m_fix_switch(component_id, config, context):
     else:
         # Check stats and determine what needs to be fixed
         stat_obj = state.stats[component_id]
+        do_reconnect_ctrl = False
         do_shrink_flowtable = False
         do_alleviate_cpu = False
         do_restore_health = False
+        if 'is_conn_to_ctrl' in stat_obj:
+            if ('value' not in stat_obj['is_conn_to_ctrl']
+                    or 'thresh_exceeded_fn' not in stat_obj['is_conn_to_ctrl']):
+                log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
+                        + component_id + '"]["is_conn_to_ctrl"]')
+                rae.do_command(fail)
+            else:
+                # Check for disconnection
+                value = stat_obj['is_conn_to_ctrl']['value']
+                thresh_exceeded_fn = stat_obj['is_conn_to_ctrl']['thresh_exceeded_fn']
+                if thresh_exceeded_fn(value):
+                    log_info('threshold exceeded for stat "is_conn_to_ctrl"')
+                    do_reconnect_ctrl = True
         if 'flow_table_size' in stat_obj:
             # TODO: if missing from state, can be populated lazily (here), via a probing action ???
             if ('value' not in stat_obj['flow_table_size']
@@ -873,6 +949,10 @@ def m_fix_switch(component_id, config, context):
                     do_restore_health = True
 
         # TODO: consider history when choosing an action here ??? or maintain in env_AIRS.py ???
+        if do_reconnect_ctrl:
+            # Fix problem with disconnected ctrl
+            log_info('adding new task "reconnect_ctrl" for "' + component_id + '"')
+            rae.do_task('reconnect_ctrl', component_id, config, context)
         if do_shrink_flowtable:
             # Fix problem with inflated flow table
             log_info('adding new task "shrink_switch_flowtable" for "' + component_id + '"')
@@ -971,6 +1051,17 @@ def m_component_kill_top_proc(component_id, config, context):
     rae.do_command(kill_top_proc, component_id, explain)
 
 
+def m_switch_reconnect_ctrl(component_id, config, context):
+    """Method to reconnect switch to its ctrl."""
+
+    if not is_component_type(component_id, 'SWITCH'):
+        log_err('component "' + component_id + '" is not a switch')
+        rae.do_command(fail)
+    else:
+        explain = context + ", so reconnect switch to its ctrl"
+        rae.do_command(reconnect_switch_to_ctrl, component_id, explain)
+
+
 def m_switch_clearstate_besteffort(component_id, config, context):
     """Method to clear switch state (best effort)."""
 
@@ -1030,9 +1121,11 @@ rae.declare_task('fix_sdn_controller', 'component_id', 'config', 'context')
 rae.declare_task('fix_switch', 'component_id', 'config', 'context')
 
 rae.declare_task('shrink_ctrl_hosttable', 'component_id', 'config', 'context')
+rae.declare_task('shrink_ctrl_switchtable', 'component_id', 'config', 'context')
 rae.declare_task('alleviate_ctrl_cpu', 'component_id', 'config', 'context')
 rae.declare_task('restore_ctrl_health', 'component_id', 'config', 'context')
 
+rae.declare_task('reconnect_ctrl', 'component_id', 'config', 'context')
 rae.declare_task('shrink_switch_flowtable', 'component_id', 'config', 'context')
 rae.declare_task('alleviate_switch_cpu', 'component_id', 'config', 'context')
 rae.declare_task('restore_switch_health', 'component_id', 'config', 'context')
@@ -1081,6 +1174,13 @@ rae.declare_methods(
     m_ctrl_reinstall_fallback
 )
 rae.declare_methods(
+    'shrink_ctrl_switchtable',
+    m_ctrl_clearstate_besteffort,
+    m_ctrl_clearstate_fallback,
+    m_ctrl_reinstall_besteffort,
+    m_ctrl_reinstall_fallback
+)
+rae.declare_methods(
     'alleviate_ctrl_cpu',
     m_component_kill_top_proc,
     m_ctrl_reinstall_besteffort,
@@ -1094,6 +1194,10 @@ rae.declare_methods(
     m_component_restartvm
 )
 
+rae.declare_methods(
+    'reconnect_ctrl',
+    m_switch_reconnect_ctrl
+)
 rae.declare_methods(
     'shrink_switch_flowtable',
     m_switch_clearstate_besteffort,

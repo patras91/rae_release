@@ -11,7 +11,8 @@ secmgr_config = {
     'cpu_perc_warning_thresh': 75,
     'cpu_perc_critical_thresh': 90,
     'host_table_critical_thresh': 10000,
-    'flow_table_critical_thresh': 800
+    'flow_table_critical_thresh': 800,
+    'switch_table_critical_thresh': 100
 }
 
 min_num_ctrls = 1
@@ -35,33 +36,44 @@ normal_hosts_max = 11000
 weak_hosts_min = 10001
 weak_hosts_max = 20000
 
+normal_switches_min = 16
+normal_switches_max = 64
+weak_switches_min = 48
+weak_switches_max = 1024
+
 normal_flows_min = 16
 normal_flows_max = 1000
 weak_flows_min = 801
 weak_flows_max = 1200
 
 
-def GetWeakComponent(nCtrl, nSwitches):
+def GetWeakComponent(category, nCtrl, nSwitches):
     # Assign low health, no matter the component type
     v1 = random.randint(weak_health_min, weak_health_max)/100
     # For now, assign normal CPU (applies to both component types)
     v2 = random.randint(normal_cpu_min, normal_cpu_max)
-    type = random.choice(["CTRL", "SWITCH"])
-    if type == "CTRL":
+    v3 = None
+    v4 = None
+    if category == 1:
+        # Attack category affects ctrl memory
         id = "ctrl" + str(random.randint(1, nCtrl))
         v3 = random.randint(normal_hosts_min, normal_hosts_max)
         # Assign one or more abnormal symptoms
-        params = random.choice(["CPU", "HOSTS", "BOTH"])
+        params = random.choice(["CPU", "HOSTS", "SWITCHES", "ALL"])
         if params == "CPU":
             v2 = random.randint(weak_cpu_min, weak_cpu_max)
         elif params == "HOSTS":
             v3 = random.randint(weak_hosts_min, weak_hosts_max)
-        elif params == "BOTH":
+        elif params == "SWITCHES":
+            v4 = random.randint(weak_switches_min, weak_switches_max)
+        elif params == "ALL":
             # Further penalize health
             v1 = v1/2
             v2 = random.randint(weak_cpu_min, weak_cpu_max)
             v3 = random.randint(weak_hosts_min, weak_hosts_max)
-    else:
+            v4 = random.randint(weak_switches_min, weak_switches_max)
+    elif category == 2:
+        # Attack category affects switch memory
         id = "switch" + str(random.randint(1, nSwitches))
         v3 = random.randint(normal_flows_min, normal_flows_max)
         # Assign one or more abnormal symptoms
@@ -75,8 +87,14 @@ def GetWeakComponent(nCtrl, nSwitches):
             v1 = v1/2
             v2 = random.randint(weak_cpu_min, weak_cpu_max)
             v3 = random.randint(weak_flows_min, weak_flows_max)
+            v4 = "True"
+    elif category == 3:
+        # Attack category disconnects switch from ctrl
+        id = "switch" + str(random.randint(1, nSwitches))
+        v3 = random.randint(normal_flows_min, normal_flows_max)
+        v4 = "False"
 
-    return id, (v1, v2, v3)
+    return id, (v1, v2, v3, v4)
 
 
 def WriteComponent(file, id, type, is_crit):
@@ -87,7 +105,7 @@ def WriteComponent(file, id, type, is_crit):
     file.write("        },\n")
 
 
-def WriteComponentStat(file, id, type, v1, v2, v3):
+def WriteComponentStat(file, id, type, v1, v2, v3, v4):
     file.write("        \'{}\': ".format(id) + "{\n")
     file.write("            \'health\': {\n")
     file.write("                \'value\': {},\n".format(v1))
@@ -101,10 +119,18 @@ def WriteComponentStat(file, id, type, v1, v2, v3):
         file.write("            \'host_table_size\': {\n")
         file.write("                \'value\': {},\n".format(v3))
         file.write("                \'thresh_exceeded_fn\': host_table_exceeded_fn\n")
+        file.write("            },\n")
+        file.write("            \'switch_table_size\': {\n")
+        file.write("                \'value\': {},\n".format(v4))
+        file.write("                \'thresh_exceeded_fn\': switch_table_exceeded_fn\n")
     else:
         file.write("            \'flow_table_size\': {\n")
         file.write("                \'value\': {},\n".format(v3))
         file.write("                \'thresh_exceeded_fn\': flow_table_exceeded_fn\n")
+        file.write("            },\n")
+        file.write("            \'is_conn_to_ctrl\': {\n")
+        file.write("                \'value\': {},\n".format(v4))
+        file.write("                \'thresh_exceeded_fn\': is_disconnected_fn\n")
     file.write("            }\n")
     file.write("        },\n")
 
@@ -112,14 +138,23 @@ def WriteComponentStat(file, id, type, v1, v2, v3):
 def generateProblems():
     num = 1
     for i in range(100):
-        writeProblem(num)
+        # Attack class 1: exhaust ctrl memory
+        writeProblem(1, num)
+        num += 1
+    for i in range(100):
+        # Attack class 2: exhaust switch memory
+        writeProblem(2, num)
+        num += 1
+    for i in range(100):
+        # Attack class 3: disconnect switch from ctrl
+        writeProblem(3, num)
         num += 1
 
 
-def writeProblem(num):
+def writeProblem(category, num):
     fname = 'auto/problem{}_SDN.py'.format(num)
     file = open(fname, "w")
-    writeHeader(file)
+    writeHeader(file, category, num)
 
     nCntr = random.randint(min_num_ctrls, max_num_ctrls)
     nSwitches = random.randint(min_num_switches, max_num_switches)
@@ -139,7 +174,7 @@ def writeProblem(num):
 
     file.write("    }\n\n")
 
-    weakComp, value = GetWeakComponent(nCntr, nSwitches)
+    weakComp, value = GetWeakComponent(category, nCntr, nSwitches)
 
     file.write("    state.stats = {\n")
 
@@ -147,35 +182,44 @@ def writeProblem(num):
     for i in range(1, nCntr + 1):
         id = "ctrl{}".format(i)
         if id == weakComp:
-            v1, v2, v3 = value
+            v1, v2, v3, v4 = value
             weak_ids.append(id)
         else:
             v1 = random.randint(normal_health_min, normal_health_max)/100
             v2 = random.randint(normal_cpu_min, normal_cpu_max)
             v3 = random.randint(normal_hosts_min, normal_hosts_max)
+            v4 = random.randint(normal_switches_min, nSwitches)
             if v1 < secmgr_config['health_action_thresh']:
                 weak_ids.append(id)
-        WriteComponentStat(file, id, "CTRL", v1, v2, v3)
+        WriteComponentStat(file, id, "CTRL", v1, v2, v3, v4)
 
     for i in range(1, nSwitches + 1):
         id = "switch{}".format(i)
         if id == weakComp:
-            v1, v2, v3 = value
+            v1, v2, v3, v4 = value
             weak_ids.append(id)
         else:
             v1 = random.randint(normal_health_min, normal_health_max)/100
             v2 = random.randint(normal_cpu_min, normal_cpu_max)
             v3 = random.randint(normal_flows_min, normal_flows_max)
+            v4 = True
             if v1 < secmgr_config['health_action_thresh']:
                 weak_ids.append(id)
-        WriteComponentStat(file, id, "SWITCH", v1, v2, v3)
+        WriteComponentStat(file, id, "SWITCH", v1, v2, v3, v4)
 
     file.write("    }\n\n\n")
 
     file.write("rv.x = []\n\n")
 
-    task_type = random.choice(["HANDLE_EVENT", "FIX_ONE", "FIX_MULT"])
-    if task_type == "HANDLE_EVENT":
+    task_type = "RECONNECT_SWITCH"
+    if category == 1 or category == 2:
+        task_type = random.choice(["HANDLE_EVENT", "FIX_ONE", "FIX_MULT"])
+    if task_type == "RECONNECT_SWITCH":
+        file.write("context = 'The component {} is disconnected from its ctrl'\n".format(weakComp))
+        file.write("tasks = {\n")
+        file.write("    1: [[\'fix_component\', \'{}\', secmgr_config, context]]\n".format(weakComp))
+        file.write("}\n\n")
+    elif task_type == "HANDLE_EVENT":
         file.write("event1 = {\n")
         file.write("    \'source\': \'sysmon\',\n")
         file.write("    \'type\': \'alarm\',\n")
@@ -211,12 +255,21 @@ def writeProblem(num):
     file.close()
 
 
-def writeHeader(file):
+def writeHeader(file, cat_idx, prob_idx):
     file.write("__author__ = 'patras'\n\n")
     file.write("import functools\n")
     file.write("import operator\n")
     file.write("from domain_AIRS import *\n")
     file.write("from state import state, rv\n\n")
+
+    file.write("# Attack category number {}".format(cat_idx))
+    if cat_idx == 1:
+        file.write(" (exhaust ctrl memory)\n")
+    elif cat_idx == 2:
+        file.write(" (exhaust switch memory)\n")
+    elif cat_idx == 3:
+        file.write(" (disconnect switch from ctrl)\n")
+    file.write("# Problem number {}\n\n".format(prob_idx))
 
     file.write("secmgr_config = {\n")
     file.write("    \'health_warning_thresh\': 0.6,\n")
@@ -226,7 +279,8 @@ def writeHeader(file):
     file.write("    \'cpu_perc_warning_thresh\': 75,\n")
     file.write("    \'cpu_perc_critical_thresh\': 90,\n")
     file.write("    \'host_table_critical_thresh\': 10000,\n")
-    file.write("    \'flow_table_critical_thresh\': 800\n")
+    file.write("    \'flow_table_critical_thresh\': 800,\n")
+    file.write("    \'switch_table_critical_thresh\': 100\n")
     file.write("}\n\n")
 
     file.write("health_exceeded_fn = functools.partial(\n")
@@ -244,9 +298,19 @@ def writeHeader(file):
     file.write("    secmgr_config[\'host_table_critical_thresh\']\n")
     file.write(")\n\n")
 
+    file.write("switch_table_exceeded_fn = functools.partial(\n")
+    file.write("    operator.le,\n")
+    file.write("    secmgr_config[\'switch_table_critical_thresh\']\n")
+    file.write(")\n\n")
+
     file.write("flow_table_exceeded_fn = functools.partial(\n")
     file.write("    operator.le,\n")
     file.write("    secmgr_config[\'flow_table_critical_thresh\']\n")
+    file.write(")\n\n\n")
+
+    file.write("is_disconnected_fn = functools.partial(\n")
+    file.write("    operator.eq,\n")
+    file.write("    False\n")
     file.write(")\n\n\n")
 
 
