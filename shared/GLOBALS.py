@@ -9,22 +9,27 @@ class RaeArgs():
         pass
 
 g = G()
-g.doPlanning = False
+g.planner = None
 g.planningMode = False
 g.heuristic = None
-g.mode = True
+g.backupUCT = False
 
-def SetDoPlanning(s):
-	g.doPlanning = s
+def SetPlanner(p):
+    if p == "UPOM":
+        g.planner = "UPOM"
+    elif p == "RAEPlan":
+        g.planner = "RAEPlan"
+    else:
+        g.planner = None
+
+def GetPlanner():
+    return g.planner
 
 def SetPlanningMode(s):
     g.planningMode = s
 
 def GetPlanningMode():
     return g.planningMode
-
-def GetDoPlanning():
-    return g.doPlanning
 
 def GetShowOutputs():
     return g.showOutputs
@@ -44,10 +49,10 @@ def Getk(): # number of outputs of commands to look at
 def Setk(k):
     g.k = k
 
-def SetSearchDepth(d):
+def SetMaxDepth(d):
     g.depth = d
 
-def GetSearchDepth():
+def GetMaxDepth():
     return g.depth
 
 def SetHeuristicName(name):
@@ -56,36 +61,62 @@ def SetHeuristicName(name):
 def GetHeuristicName():
     return g.heuristic
 
-def GetSDN():
-    return g.sdn
-    
-def SetSDN(sdn):
-    if sdn == 'yes':
-        g.sdn = True
-    else:
-        g.sdn = False
-
-def GetOpt():
+def GetUtility():
     return g.opt 
 
-def SetOpt(opt):
-    assert(opt == 'min' or opt == 'max')
+def SetUtility(opt):
+    assert(opt == 'efficiency' or opt == 'successRatio' or opt == "resilience")
     g.opt = opt
 
-def SetUCTRuns(v):
-    g.runs = v
+def Set_nRO(v):
+    g.nro = v
 
-def GetUCTRuns():
-    return g.runs
-
-def SetUCTmode(val):
-    if val == "UCT" or val == "uct" or val == "Uct":
-        g.mode = True
-    else:
-        g.mode = False
-
-def GetUCTmode():
-    return g.mode
+def Get_nRO():
+    return g.nro
 
 def GetC():
     return 2
+
+def SetDomain(dom):
+    g.domain = dom
+
+def GetDomain():
+    return g.domain
+
+def SetTimeLimit(t):
+    g.timeLimit = t
+
+def GetTimeLimit():
+    return g.timeLimit
+
+def SetDataGenerationMode(a):
+    g.dataGenMode = a
+
+def GetDataGenerationMode():
+    return g.dataGenMode
+
+def SetUseTrainedModel(t):
+    if t == 'None':
+        t = None
+    g.useTrainedModel = t
+
+def GetUseTrainedModel():
+    return g.useTrainedModel
+
+def SetModelPath(p):
+    g.modelPath = p
+
+def GetModelPath():
+    return g.modelPath
+
+def SetBackupUCT(b):
+    g.backupUCT = b
+
+def GetBackupUCT():
+    return g.backupUCT
+
+def SetDoIterativeDeepening(s):
+    g.iterativeDeepening = s
+
+def GetDoIterativeDeepening():
+    return g.iterativeDeepening

@@ -1,4 +1,4 @@
-import globals
+import GLOBALS
 import numpy
 from state import state
 from domain_orderFulfillment import rv
@@ -10,7 +10,7 @@ commandProb = {
     'pickup': [0.95, 0.05],
     'putdown': [0.95, 0.05],
     'loadMachine': [0.99, 0.01],
-    'repair': [0.9, 0.1]
+    'repair': [0.99, 0.01]
 }
 
 

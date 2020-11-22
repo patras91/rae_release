@@ -1,6 +1,7 @@
 import numpy
 from domain_constants import *
-from state import state
+from state import state, rv
+import GLOBALS
 
 commandProb = {
     'survey': [0.95, 0.05],
@@ -26,10 +27,13 @@ def Sense(cmd):
         return FAILURE
 
 def SenseFly():
-    if state.storm['active'] == True:
-        p = [0.5, 0.5]
+    if GLOBALS.GetPlanningMode() == True:
+        p = [0.75, 0.25]
     else:
-        p = [0.90, 0.10]
+        if state.storm['active'] == True:
+            p = [0.5, 0.5]
+        else:
+            p = [0.90, 0.10]
 
     outcome = numpy.random.choice(len(p), 50, p=p)
     res = outcome[0]

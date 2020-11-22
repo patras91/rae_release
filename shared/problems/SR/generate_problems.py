@@ -1,6 +1,10 @@
 import random
 import math
 
+# v8 zero heuristic with timer 1 time
+# v7 distance heuristic with timer 1 time
+# v6 zero heuristic without timer 5 times
+# v5 distance heuristic without timer 5 times
 def SR_GETDISTANCE_Manhattan(l0, l1):
     (x1, y1) = l0
     (x2, y2) = l1
@@ -55,7 +59,7 @@ def generateProblems():
 
 def writeProblem(num, w1_locx, w1_locy, p_locx, p_locy, w2_locx, w2_locy, 
                             obstacle, medicine, emergency, weather, a1_locx, a1_locy):
-    fname = 'problem{}_SR.py'.format(num)
+    fname = 'training/problem{}_SR.py'.format(num)
     file = open(fname,"w") 
     writeHeader(file)
     file.write("rv.OBSTACLES = { ")

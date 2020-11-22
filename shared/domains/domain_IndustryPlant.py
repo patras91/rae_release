@@ -1,13 +1,8 @@
 __author__ = 'patras'
 
-import importlib
-loader = importlib.find_loader('RAE1_and_RAEplan')
-if loader is not None:
-    from RAE1_and_RAEplan import *
-else:
-    from ape1_and_apeplan import *
+from RAE1_and_RAEplan import *
 
-from state import state
+from state import state, rv
 from gui import Simulate
 from domain_constants import *
 from timer import globalTimer
@@ -595,7 +590,16 @@ def MoveTo_Method1(r, l1, l2):
                 else:
                     lTemp = lNext
 
-rv = RV()
+declare_task('paint', '*')
+declare_task('assemble', '*')
+declare_task('pack', '*')
+declare_task('wrap', '*')
+declare_task('deliver', 'o', 'l')
+declare_task('order', 'taskArgs')
+declare_task('repair', 'm')
+declare_task('moveTo', 'r', 'l1', 'l2')
+declare_task('getRobot', 'loc')   
+
 declare_commands([
     paint, 
     assemble, 
@@ -617,4 +621,13 @@ declare_methods('repair', Repair_Method1)
 declare_methods('moveTo', MoveTo_Method1)
 declare_methods('getRobot', GetRobot_Method1, GetRobot_Method2, GetRobot_Method3)
 
+def Heuristic1(args):
+    return float("inf")
+
+def Heuristic2(args):
+    return 
+
+if GLOBALS.GetHeuristicName() == 'h1':
+    declare_heuristic('order', Heuristic1)
+    
 from env_IndustryPlant import *

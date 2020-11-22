@@ -6,6 +6,7 @@ from threading import Lock
 # may want to change logic to not require import
 import itertools
 import random
+import copy
 
 class State():
     def __init__(self):
@@ -13,6 +14,15 @@ class State():
 
     def __setattr__(self, key, value):
         self.__dict__[key] = StateDict(value)
+
+    def GetFeatureString(self):
+        res = ""
+        if self != False:
+            for (key, val) in vars(self).items():
+                res = res + key + " " + val.__str__() + "\n"
+        else:
+            res = 'False'
+        return res[0:-1]
 
     def __str__(self):
         res = ""
@@ -26,13 +36,17 @@ class State():
     def copy(self):
         s = State()
         for (key, val) in vars(self).items():
-            s.__setattr__(key, val.GetVal())
+            s.__setattr__(key, copy.deepcopy(val.GetVal()))
             s.__dict__[key].DeleteLocks() # because locks are not picklable
         return s
 
     def restore(self, s):
+        oldKeys = list(self.__dict__.keys())
         for (key, val) in vars(s).items():
-            self.__setattr__(key, val.GetVal())
+            self.__setattr__(key, copy.deepcopy(val.GetVal()))
+            oldKeys.remove(key)
+        for k in oldKeys:
+            del self.__dict__[k]
         return s
 
     def ReleaseLocks(self):

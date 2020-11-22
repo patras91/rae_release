@@ -2,14 +2,13 @@ __author__ = 'patras'
 
 from domain_constants import *
 import importlib
-loader = importlib.find_loader('RAE1_and_RAEplan')
-if loader is not None:
-    import RAE1_and_RAEplan as alg
+import RAE1_and_RAEplan as alg
 
-from state import state
+from state import state, rv
 import gui
 from timer import globalTimer
 from env_exploreEnv import *
+import GLOBALS
 
 '''Several UAVs and UGVs explore environment and collect data.
 UAV can only survey whereas UGVs can survey, monitor, screen, sample and process.
@@ -86,10 +85,10 @@ def survey(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'survey' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'survey' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('survey', start) == False):
             pass
@@ -102,7 +101,7 @@ def survey(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'survey':
+    elif rv.EQUIPMENTTYPE[e] != 'survey':
         gui.Simulate("%s is not the right equipment for survey\n" %e)
         res = FAILURE
     elif state.data[r] == 4:
@@ -118,10 +117,10 @@ def monitor(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'monitor' and r != 'UAV' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'monitor' and r != 'UAV' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('monitor', start) == False):
             pass
@@ -134,7 +133,7 @@ def monitor(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'monitor':
+    elif rv.EQUIPMENTTYPE[e] != 'monitor':
         gui.Simulate("%s is not the right equipment for monitor\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -153,10 +152,10 @@ def screen(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'screen' and r != 'UAV' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'screen' and r != 'UAV' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('screen', start) == False):
             pass
@@ -169,7 +168,7 @@ def screen(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'screen':
+    elif rv.EQUIPMENTTYPE[e] != 'screen':
         gui.Simulate("%s is not the right equipment for screening\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -188,10 +187,10 @@ def sample(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'sample' and r != 'UAV' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'sample' and r != 'UAV' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('sample', start) == False):
             pass
@@ -204,7 +203,7 @@ def sample(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'sample':
+    elif rv.EQUIPMENTTYPE[e] != 'sample':
         gui.Simulate("%s is not the right equipment for sampling\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -223,10 +222,10 @@ def process(r, l):
     state.loc.AcquireLock(r)
     state.data.AcquireLock(r)
     e = state.load[r]
-    if e not in rv.TYPE:
+    if e not in rv.EQUIPMENTTYPE:
         gui.Simulate("%s does not have any equipment\n" %r)
         res = FAILURE
-    elif state.loc[r] == l and rv.TYPE[e] == 'process' and r != 'UAV' and state.data[r] < 4:
+    elif state.loc[r] == l and rv.EQUIPMENTTYPE[e] == 'process' and r != 'UAV' and state.data[r] < 4:
         start = globalTimer.GetTime()
         while(globalTimer.IsCommandExecutionOver('process', start) == False):
             pass
@@ -239,7 +238,7 @@ def process(r, l):
     elif state.loc[r] != l:
         gui.Simulate("%s is not in location %s\n" %(r, l))
         res = FAILURE
-    elif rv.TYPE[e] != 'process':
+    elif rv.EQUIPMENTTYPE[e] != 'process':
         gui.Simulate("%s is not the right equipment for process\n" %e)
         res = FAILURE
     elif r == 'UAV':
@@ -509,8 +508,9 @@ def GetEquipment_Method2(r, activity):
     else:
         alg.do_command(fail)
 
-def GetEquipment_Method3(r1, activity):
+def GetEquipment_Method3(r, activity):
     """  When the equipment is with another robot """
+    r1 = r
     e = rv.EQUIPMENT[activity]
     if state.load[r1] != e:
         loc = state.pos[e]
@@ -606,13 +606,16 @@ def DepositData_Method2(r):
 
 def Recharge_Method1(r):
     c = 'c1'
-    if state.pos[c] not in rv.LOCATIONS and state.pos[c] != r:
-        gui.Simulate("%s cannot find charger %s\n" %(r, c))
-        alg.do_command(fail)
-    elif state.loc[r] != state.pos[c] and state.pos[c] != r:
-        dist = EE_GETDISTANCE(state.loc[r], state.pos[c])
+    l1 = state.loc[r]
+    if state.pos[c] != l1 and state.pos[c] != r:
+        if state.pos[c] in rv.LOCATIONS: 
+            l2 = state.pos[c]
+        else:
+            r2 = state.pos[c]
+            l2 = state.loc[r2]
+        dist = EE_GETDISTANCE(l1, l2)
         if state.charge[r] >= dist:
-            alg.do_task('moveTo', r, state.pos[c])
+            alg.do_task('moveTo', r, l2)
             alg.do_command(charge, r, c)
         else:
             gui.Simulate("%s is stranded without any possibility of charging\n" %r)
@@ -622,13 +625,16 @@ def Recharge_Method1(r):
 
 def Recharge_Method2(r):
     c = 'c1'
-    if state.pos[c] not in rv.LOCATIONS and state.pos[c] != r:
-        gui.Simulate("%s cannot find charger %s\n" %(r, c))
-        alg.do_command(fail)
-    elif state.loc[r] != state.pos[c] and state.pos[c] != r:
-        dist = EE_GETDISTANCE(state.loc[r], state.pos[c])
+    l1 = state.loc[r]
+    if state.pos[c] != l1 and state.pos[c] != r:
+        if state.pos[c] in rv.LOCATIONS: 
+            l2 = state.pos[c]
+        else:
+            r2 = state.pos[c]
+            l2 = state.loc[r2]
+        dist = EE_GETDISTANCE(l1, l2)
         if state.charge[r] >= dist:
-            alg.do_task('moveTo', r, state.pos[c])
+            alg.do_task('moveTo', r, l2)
             alg.do_command(charge, r, c)
             alg.do_command(take, r, c)
         else:
@@ -668,7 +674,15 @@ def HandleEmergency_Method3(r, l):
     alg.do_task('flyTo', r, l)
     alg.do_command(handleAlien, r, l)
 
-rv = RV()
+alg.declare_task('explore', 'r', 'activity', 'l')
+alg.declare_task('getEquipment', 'r', 'activity')
+alg.declare_task('flyTo', 'r', 'l')
+alg.declare_task('moveTo', 'r', 'l')
+alg.declare_task('recharge', 'r')
+alg.declare_task('depositData', 'r')
+alg.declare_task('doActivities', 'r', 'actList')
+alg.declare_task('handleEmergency', 'r', 'l') 
+
 alg.declare_commands([
     survey, 
     monitor, 
@@ -719,4 +733,36 @@ alg.declare_methods('handleEmergency',
     HandleEmergency_Method1,
     HandleEmergency_Method3)
 
+def Heuristic1(args):
+    return float("inf")
+
+def Heuristic2(args):
+    r = args[0]
+    l1 = state.loc[r]
+    actList = args[1]
+    dist = 0
+    for act in actList:
+        l2 = act[1]
+        dist += EE_GETDISTANCE(l1, l2)
+
+    if dist == 0: 
+        return float("inf")
+    return 1/dist
+
+def Heuristic2_e(args):
+    r = args[0]
+    l1 = state.loc[r]
+    l2 = args[1]
+    dist = EE_GETDISTANCE(l1, l2)
+    if dist == 0: 
+        return float("inf")
+    return 1/dist
+
+
+if GLOBALS.GetHeuristicName() == 'h2':
+    alg.declare_heuristic('doActivities', Heuristic2)
+    alg.declare_heuristic('handleEmergency', Heuristic2_e)
+elif GLOBALS.GetHeuristicName() == "h1":
+    alg.declare_heuristic('doActivities', Heuristic1)
+    alg.declare_heuristic('handleEmergency', Heuristic1)
 
