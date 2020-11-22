@@ -852,7 +852,7 @@ def GetHeuristicEstimate(task=None, tArgs=None):
             if effMax == 0:
                 return 0
             else:
-                return 1 + effMax # resilience
+                return 1/20 + effMax # resilience
 
     elif GLOBALS.GetUtility() == "successRatio":
         mtask, args = planLocals.GetHeuristicArgs()
@@ -1318,7 +1318,7 @@ def GetFailureUtility(cmd, cmdArgs):
     if GLOBALS.GetUtility() == "efficiency":
         return Utility(1/20)
     elif GLOBALS.GetUtility() == "resilience":
-        return Utility(1 + 1/20)
+        return Utility(1/20 + 1/20)
     else:
         return Utility("Failure")
 
@@ -1341,7 +1341,7 @@ def GetUtility(cmd, cmdArgs):
     if GLOBALS.GetUtility() == "efficiency":
         return Utility(1/res)
     elif GLOBALS.GetUtility() == "resilience":
-        return Utility(1 + 1/res)
+        return Utility(1/20 + 1/res)
     else:
         print("ERROR: Invalid utility")
         exit()
@@ -1352,7 +1352,7 @@ def GetUtilityforMethod(cost):
     elif GLOBALS.GetUtility() == "efficiency":
         return Utility(1/cost)
     elif GLOBALS.GetUtility() == "resilience":
-        return Utility(1 + 1/cost)
+        return Utility(1/20 + 1/cost)
     
 def GetFailureEfficiency(cmd, cmdArgs):
     return 1/20

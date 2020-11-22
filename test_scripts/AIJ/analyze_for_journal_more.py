@@ -152,7 +152,7 @@ def Get_UCT_max_depth_discrepencies(res, domain):
         for uct in [50, 75]:
         #for uct in UCT_max_depth[domain]:
             if uct > 0:
-                fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, util, uct)
+                fname = '{}{}_v_journal{}/UPOM_{}.txt'.format(resultsFolder, domain, util, uct)
                 fptr = open(fname)
                 utils = GetUtilities(res, domain, open(fname), uct, fname, p)
                 if lastUtils > 1.5 * utils:
@@ -201,10 +201,10 @@ def Print_Problems_and_Tasks(domain):
     nTasks = sum([p[pname]/z for pname in p])
     print("Number of tasks is ", nTasks)
 
-    tasks = {1:[], 2:[], 3:[]}
-    nTasks = {1:[], 2:[], 3:[]}
+    tasks = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[], 13:[]}
+    nTasks = {1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12: [], 13:[]}
     for pname in p:
-        tasks[int(p[pname]/z)].append(pname)
+        tasks[round(p[pname]/z)].append(pname)
 
     for t in tasks:
         nTasks[t] = len(tasks[t])
@@ -215,7 +215,7 @@ def Get_UCT_max_depth_run_counts(res, domain):
     problems, count = GetProblemsAndCounts(open(GetRAEfname(domain)))
     for uct in UCT_max_depth[domain]:
         if uct > 0:
-            fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, util, uct)
+            fname = '{}{}_v_journal{}/UPOM_{}.txt'.format(resultsFolder, domain, util, uct)
             fptr = open(fname)
             count_uct, time, passCount, timeOutCount, highestTime, problems, minCommCount, maxCommCount = \
                 GetCountAndTime(res, domain, open(fname), uct, fname)
@@ -263,7 +263,7 @@ def Populate_UCT_max_depth_planning_utilities(res, domain):
             PopulateHelper_UCT_max_depth_planning_utilities(res[uct], domain, f_rae, uct, f_rae_name)
             f_rae.close()
         else:
-            fname = '{}{}_v_journal{}/rae_plan_uct_{}.txt'.format(resultsFolder, domain, util, uct)
+            fname = '{}{}_v_journal{}/UPOM_{}.txt'.format(resultsFolder, domain, util, uct)
             fptr = open(fname)
             print(fname)
             PopulateHelper_UCT_max_depth_planning_utilities(res[uct], domain, open(fname), uct, fname)
@@ -314,13 +314,13 @@ util = None
 
 if __name__=="__main__":
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--domain", help="domain in ['CR', 'SD', 'SR', 'OF', 'EE']",
+    argparser.add_argument("--domain", help="domain in ['CR', 'SD', 'SR', 'OF', 'EE', 'SDN']",
                            type=str, required=True)
     args = argparser.parse_args()
     D = [args.domain]
     Print_Problems_and_Tasks(D[0])
     for depth in ['max']: #, 'lim']:
-        for util in [ '_eff', '_sr']:
+        for util in [ '_eff', '_sr', '_res']:
             s = "UCT"
             print("---------------- Depth = ", depth, "  Utility function = ", util, "---------------------")
             if depth == "max":

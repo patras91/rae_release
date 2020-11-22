@@ -89,9 +89,9 @@ class Utility():
             elif r2 == float("inf"):
                 res = r1
             else:
-                e1 = r1 - 1
-                e2 = r2 - 1
-                res = 1 + e1 * e2 / (e1 + e2)
+                e1 = r1 - 1/20
+                e2 = r2 - 1/20
+                res = 1/20 + e1 * e2 / (e1 + e2)
             return Utility(res)
 
     def SetValue(self, val):

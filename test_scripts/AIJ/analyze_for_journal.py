@@ -55,11 +55,12 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
             pName = parts[4][0:-1] if parts[4][-1] == '\n' else parts[4]
 
             fLine = f.readline()
-            if fLine[0] == "T":
-                print("passing ---------------")
-                print(fileName, " line number = ", nLine)
-                fLine = f.readline()
-                nLine += 1
+            if fLine[0] == "T" or fLine[0] == "r" or fLine[0] == "C":
+                while(fLine[0] == "r" or fLine[0] == "T" or fLine[0] == "C"):
+                    print("passing ---------------")
+                    print(fileName, " line number = ", nLine)
+                    fLine = f.readline()
+                    nLine += 1
             nLine += 1
 
             while(NotTimeLine(fLine)):
@@ -85,7 +86,12 @@ def PopulateHelper(res, domain, f, param, fileName, num_tasks_per_problem=0): # 
                         acTime += float(parts2[5])
                         tt_L.append(float(parts2[4]) + float(parts2[5]))
                         taskEff = float(parts2[6])
-                        taskResilience = float(parts2[7])
+
+                        #taskResilience = float(parts2[7])
+                        if taskEff > 0:
+                            taskResilience = 1/20 + taskEff
+                        else:
+                            taskResilience = 0
 
                     if taskEff == float("inf"):
                         print("Infinite efficiency! Normalizing.\n")
@@ -464,7 +470,7 @@ def GeneratePlots_SLATE_max_depth():
         'weight' : 'bold',
         'size'   : 24}
     plt.rc('font', **font)
-    #plt.rcParams.update({'font.size': 22})
+    plt.rcParams.update({'font.size': 36})
 
     print(resDict)
     for util in ['nu', 'successRatio', 'retryRatio']:
@@ -683,13 +689,14 @@ def GetYlabel(util, domain):
     elif util == "totalTime":
         res = 'Total time'
     elif util == "resilience":
-        res = "Resilience"
+        res = "costEffectiveness"
     elif util == "cost":
         res = "Estimated time"
     else:
         res = "Y"
-    if domain == "SDN":
-        return res + " for attack recovery\n(in ~seconds)"
+    if domain == "SDN" and util == "cost":
+        res += " for attack\nrecovery (in seconds)"
+    return res
 
 def Accumulate(res1, res2):
     if res1 == []:
@@ -745,7 +752,7 @@ def PlotHelper_UCT_max(resDict, utilp, showTime):
     font = {
         'family' : 'times',
         'weight' : 'bold',
-        'size'   : 15}
+        'size'   : 26}
     plt.rc('font', **font)
     #PlotHelper_UCT_max_Acc(resDict, utilp)
     #return
@@ -770,26 +777,26 @@ def PlotHelper_UCT_max(resDict, utilp, showTime):
                     "utility = resilience", 0, ax, width)
                 
             elif utilp == "nu":
-                X_timeValues = resDict[domain]['_eff']['totalTime']
+                X_timeValues = resDict[domain]['_res']['totalTime']
                 PlotViaMatlabBar(UCT_max_depth[domain], 
-                    resDict[domain]['_eff'][index1],
-                    resDict[domain]['_eff'][errIndex[index1]],
+                    resDict[domain]['_res'][index1],
+                    resDict[domain]['_res'][errIndex[index1]],
                     COLORBAR[1],
                     "utility = efficiency", 0, ax, width)
                 
             elif utilp == "cost":
-                X_timeValues = resDict[domain]['_eff']['totalTime']
+                X_timeValues = resDict[domain]['_res']['totalTime']
                 PlotViaMatlabBar(UCT_max_depth[domain], 
-                    [1/item for item in resDict[domain]['_eff']['nu']],
-                    [50*item for item in resDict[domain]['_eff'][errIndex['nu']]],
+                    [1/item for item in resDict[domain]['_res']['nu']],
+                    [50*item for item in resDict[domain]['_res'][errIndex['nu']]],
                     COLORBAR[1],
                     "utility = cost", 0, ax, width)
                 
             else:
-                X_timeValues = resDict[domain]['_sr']['totalTime']
+                X_timeValues = resDict[domain]['_res']['totalTime']
                 PlotViaMatlabBar(UCT_max_depth[domain], 
-                    resDict[domain]['_sr'][index1],
-                    resDict[domain]['_sr'][errIndex[index1]],
+                    resDict[domain]['_res'][index1],
+                    resDict[domain]['_res'][errIndex[index1]],
                     COLORBAR[2],
                     "utility = successRatio", 0, ax, width)
                 
@@ -826,7 +833,7 @@ def PlotHelper_UCT_max(resDict, utilp, showTime):
             X_timeValues = [0, 200, 500, 1000, 2000]
             ax.set_xticks(np.arange(len(X_timeValues)))
             ax.set_xticklabels([str(int(item)) for item in X_timeValues])
-            plt.xlabel('Time taken by refinement planner UPOM\n(in msecs)')
+            plt.xlabel('Time taken by refinement planner\nUPOM (in msecs)')
 
         #ax.set_title(GetFullName(domain))
         ax.set_ylim(bottom=GetLowerLim(domain, utilp))

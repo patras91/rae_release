@@ -1,6 +1,6 @@
 figuresFolder = "figures/"
 #resultsFolder = "../../../raeResults/AIJ2020/"
-resultsFolder = "../../../raeResults/SDN/"
+resultsFolder = "../../../raeResults/SDN_USENIX_20/"
 
 ptMax = 247264 # maximum planning time
 
@@ -181,7 +181,11 @@ def GetLowerLim(domain, util):
         elif util == "retryRatio":
             return 0.05
         elif util == "cost":
-            return 6
+            return 7.5
+        elif util == "resilience":
+            return 0.125
+        elif util == "successRatio":
+            return 0.7
     else:
         return 0.9
 
