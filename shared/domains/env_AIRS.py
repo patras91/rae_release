@@ -21,6 +21,7 @@ commandProb = {
     'clear_ctrl_state_fallback': (0.8, 0.2),
     'reinstall_ctrl_besteffort': (0.75, 0.25),
     'reinstall_ctrl_fallback': (0.9, 0.1),
+    'reconnect_switch_to_ctrl': (0.8, 0.2),
     'clear_switch_state_besteffort': (0.8, 0.2),
     'clear_switch_state_fallback': (0.9, 0.1),
     'disconnect_reconnect_switch_port': (0.75, 0.25),
