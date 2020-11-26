@@ -10,28 +10,34 @@ for d in ["UnitTests", "nav", "fetch", "explore", "rescue", "deliver", "AIRS"]:
     sys.path.append("./domains/" + d + "/")
     sys.path.append("./domains/" + d + "/problems/auto/")
 
-sys.path.append('../learning/')
-sys.path.append('../learning/encoders/')
+sys.path.append('./actor/')
+sys.path.append('./planners/APEPlan/')
+sys.path.append('./planners/RAEPlan/')
+sys.path.append('./planners/UPOM/')
+sys.path.append('./planners/StateSpaceUCT/')
+sys.path.append('./planners/shared/')
+
+sys.path.append('./learning/')
+sys.path.append('./learning/encoders/')
 
 import argparse
 import gui
 import GLOBALS
-from RAE import raeMult, InitializeDomain
+from RAE import rae
 from RAE1_and_RAEplan import verbosity
 from timer import SetMode
 import multiprocessing
 import os
 from sharedData import *
 
-def testRAEandPlanner(domain, problem, usePlanner):
+def testRAEandPlanner(domain, problem, planner):
     '''
-    :param domain: the code of the domain
+    :param domain: the code of the domain ('fetch', 'nav', 'explore', 'rescue', AIRS', 'deliver', 'UnitTests')
     :param problem: the problem id
-    :param usePlanner: bool value indicating whether to do planning or not before executing the tasks and events
-    :return:
+    :param planner: None, APEPlan, RAEPlan, UPOM, StateSpaceUCT
     '''
     domain_module = InitializeDomain(domain, problem)
-    GLOBALS.SetPlanner(usePlanner)
+    GLOBALS.SetPlanner(planner)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared between RAE, RAEplan and UPOM
     try:

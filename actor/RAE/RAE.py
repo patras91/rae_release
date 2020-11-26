@@ -13,6 +13,11 @@ import sys
 
 __author__ = 'patras'
 
+class rae():
+    def __init__(self, planner):
+        self.planner = planner()
+
+
 problem_module = None
 
 def GetNextAlive(lastActiveStack, numstacks, threadList):
