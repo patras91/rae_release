@@ -6,328 +6,361 @@ from state import ReinitializeState, RemoveLocksFromState, RestoreState
 import threading
 import GLOBALS
 import os
-from sharedData import *
 from learningData import WriteTrainingData
 import signal
 import sys
+import multiprocessing as mp
 
 __author__ = 'patras'
 
 class rae():
-    def __init__(self, planner):
-        self.planner = planner()
+    def __init__(self, domain, problem, planner, plannerParams, showOutputs, v):
+        self.InitializePlanner(planner, plannerParams)
+        self.InitializeDomain(domain, problem)
 
+        self.showOutputs = showOutputs
+        self.verbosity = v
 
-problem_module = None
+        self.taskQueue = mp.Queue() # where the tasks come in
+        self.cmdExecQueue = mp.Queue() # where commands go out
+        self.cmdStatusQueue = mp.Queue() # where the status of commands come in
+        self.cmdStatusStack = {} # where the command statuses are saved after reading from cmdStatusQueue
 
-def GetNextAlive(lastActiveStack, numstacks, threadList):
-    '''
-    :param lastActiveStack: the stack which was progressed before this
-    :param numstacks: total number of stacks in the Agenda
-    :param threadList: list of all the threads, each running a RAE stack
-    :return: The stack which should be executed next
-    '''
-    nextAlive = -1
-    i = 1
-    j = lastActiveStack % numstacks + 1
-    while i <= numstacks:
-        if threadList[j-1].isAlive() == True:
-            nextAlive = j
-            break
-        i = i + 1
-        j = j % numstacks + 1
+        self.cmdStackTable = {} # keeps track of which command belongs to which stack/job
 
-    return nextAlive
-
-def noNewTasks():
-    if GLOBALS.GetDomain() == 'SDN_dev':
-        return False
-    for c in problem_module.tasks:
-        if c > GetNewTasks.counter:
-            return False
-    return True
-
-def GetNewTasks():
-    '''
-    :return: gets the new task that appears in the problem at the current time
-    '''
-    GetNewTasks.counter += 1
-    if GLOBALS.GetDomain() != 'SDN_dev':
-        if GetNewTasks.counter in problem_module.tasks:
-            return problem_module.tasks[GetNewTasks.counter]
+    def InitializePlanner(self, p, params):
+        if p == "APEPlan":
+            self.planner = APEPlanChoice(params)
+        elif p == "RAEPlan":
+            self.planner = RAEPlanChoice(params)
+        elif p == "UPOM":
+            self.planner = UPOMChoice(params)
+        elif p == "None" or p == None:
+            self.planner = None 
         else:
-            return []
-    else:
-        tasks = []
-        while not taskQueue.empty():
-            tasks.append(taskQueue.get())
-        return tasks
+            print("Invalid planner. Please select from [APEPlan, RAEPlan, UPOM, None]")
+            exit()
 
-def InitializeDomain(domain, problem, startState=None):
-    '''
-    :param domain: code of the domain which you are running
-    :param problem: id of the problem
-    :return:none
-    '''
-    if domain in ['CR', 'SD', 'EE', 'IP', 'OF', 'SR', 'test', 'testInstantiation', 'SR2', 'testSSU',  'testMethodswithCosts', "SDN"]:
-        module = problem + '_' + domain
-        global problem_module
-        ReinitializeState()    # useful for batch runs to start with the starting state
-        problem_module = __import__(module)
-        problem_module.ResetState()
-        return problem_module
-    elif domain == 'SDN_dev':
-        RestoreState(startState)
-    else:
-        print("Invalid domain\n", domain)
-        exit(11)
-
-def BeginFreshIteration(lastActiveStack, numstacks, threadList):
-    begin = True
-    i = lastActiveStack % numstacks + 1
-    while i != 1:
-        if threadList[i - 1].isAlive() == True:
-            begin = False
-            break
-        i = i % numstacks + 1
-    return begin
-
-def CreateNewStack(taskInfo, raeArgs):
-    stackid = raeArgs.stack
-    retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = RAE1(raeArgs.task, raeArgs)
-    taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)
-
-def PrintResult(taskInfo):
-    print('ID ','\t','Task',
-            '\t\t\t', 'Result',
-            '\t\t\t', 'Retry Count', 
-            '\t\t\t', 'Efficiency', 
-            '\t\t\t', 'height',
-            '\t\t\t', '#tasks',
-            '\t\t\t', '#commands',
-            '\t\t\t'
-            '\n')
-    for stackid in taskInfo:
-        args, res, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = taskInfo[stackid]
+    def InitializeDomain(self, domain, problem, startState=None):
+        '''
+        :param domain: code of the domain which you are running
+        :param problem: id of the problem
+        :return:none
+        '''
         
-        print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),
-            '\t\t\t', res,
-            '\t\t\t', retryCount, 
-            '\t\t\t', eff, 
-            '\t\t\t', height,
-            '\t\t\t', taskCount,
-            '\t\t\t', commandCount,
-            '\t\t\t', utilVal,
-            '\n')
-        print(stackid, '\t', 'Task {}{}'.format(args[0], args[1:]),
-            '\t')
-
-        utilString = ""
-        for u in utilitiesList:
-            utilString += str(u)  
-            utilString += ","
-
-        print(utilString)
-
-def PrintResultSummaryVersion1(taskInfo):
-    succ = 0
-    fail = 0
-    retries = 0
-    effTotal = 0
-    h = 0
-    t = 0
-    c = 0
-    for stackid in taskInfo:
-        args, res, retryCount, eff, height, taskCount, commandCount = taskInfo[stackid]
-        if res == 'Success':
-            succ += 1
+        self.domain = domain
+        if domain in ['fetch', 'nav', 'explore', 'rescue', 'deliver', 'testInstantiation', 'testSSU',  'testMethodswithCosts', "AIRS"]:
+            module = problem + '_' + domain
+            ReinitializeState()    # useful for batch runs to start with the starting state
+            self.problemModule = __import__(module)
+            self.problemModule.ResetState()
+        elif domain == 'AIRS_dev':
+            RestoreState(startState)
         else:
-            fail += 1
-        retries += retryCount
-        effTotal += eff.GetValue()
-        c += commandCount
-        t += taskCount
-        if height > h:
-            h = height
-    print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal, h, t, c)
-    #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
+            print("Invalid domain\n", domain)
+            exit(11)
 
-def PrintResultSummaryVersion2(taskInfo):
-    for stackid in taskInfo:
-        args, res, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = taskInfo[stackid]
-        if res == 'Success':
-            succ = 1
-            fail = 0
+    def GetNextAlive(self, lastActiveStack, numstacks, threadList):
+        '''
+        :param lastActiveStack: the stack which was progressed before this
+        :param numstacks: total number of stacks in the Agenda
+        :param threadList: list of all the threads, each running a RAE stack
+        :return: The stack which should be executed next
+        '''
+        nextAlive = -1
+        i = 1
+        j = lastActiveStack % numstacks + 1
+        while i <= numstacks:
+            if threadList[j-1].isAlive() == True:
+                nextAlive = j
+                break
+            i = i + 1
+            j = j % numstacks + 1
+
+        return nextAlive
+
+    def noNewTasks(self):
+        if self.domain == 'AIRS_dev':
+            return False
+        for c in self.probleModule.tasks:
+            if c > self.GetNewTasks.counter:
+                return False
+        return True
+
+    def GetNewTasks(self):
+        '''
+        :return: gets the new task that appears in the problem at the current time
+        '''
+        self.GetNewTasks.counter += 1
+        if self.domain != 'AIRS_dev':
+            if self.GetNewTasks.counter in self.problemModule.tasks:
+                return self.problemModule.tasks[self.GetNewTasks.counter]
+            else:
+                return []
         else:
-            succ = 0
-            fail = 1
-        print("v2", succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), 
-            globalTimer.GetRealCommandExecutionCounter(), eff, height, taskCount, commandCount, utilVal)
-        utilString = ""
-        for u in utilitiesList:
-            utilString += str(u)  
-            utilString += " "
+            tasks = []
+            while not self.taskQueue.empty():
+                tasks.append(self.taskQueue.get())
+            return tasks
 
-        print(utilString)
+    def BeginFreshIteration(self, lastActiveStack, numstacks, threadList):
+        begin = True
+        i = lastActiveStack % numstacks + 1
+        while i != 1:
+            if threadList[i - 1].isAlive() == True:
+                begin = False
+                break
+            i = i % numstacks + 1
+        return begin
 
+    def CreateNewStack(self, taskInfo, raeArgs):
+        stackid = raeArgs.stack
+        retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = RAE1(raeArgs.task, raeArgs)
+        taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)
+
+    def PrintResult(self, taskInfo):
+        print('ID ','\t','Task',
+                '\t\t\t', 'Result',
+                '\t\t\t', 'Retry Count', 
+                '\t\t\t', 'Efficiency', 
+                '\t\t\t', 'height',
+                '\t\t\t', '#tasks',
+                '\t\t\t', '#commands',
+                '\t\t\t'
+                '\n')
+        for stackid in taskInfo:
+            args, res, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = taskInfo[stackid]
+            
+            print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),
+                '\t\t\t', res,
+                '\t\t\t', retryCount, 
+                '\t\t\t', eff, 
+                '\t\t\t', height,
+                '\t\t\t', taskCount,
+                '\t\t\t', commandCount,
+                '\t\t\t', utilVal,
+                '\n')
+            print(stackid, '\t', 'Task {}{}'.format(args[0], args[1:]),
+                '\t')
+
+            utilString = ""
+            for u in utilitiesList:
+                utilString += str(u)  
+                utilString += ","
+
+            print(utilString)
+
+    def PrintResultSummaryVersion1(self, taskInfo):
+        succ = 0
+        fail = 0
+        retries = 0
+        effTotal = 0
+        h = 0
+        t = 0
+        c = 0
+        for stackid in taskInfo:
+            args, res, retryCount, eff, height, taskCount, commandCount = taskInfo[stackid]
+            if res == 'Success':
+                succ += 1
+            else:
+                fail += 1
+            retries += retryCount
+            effTotal += eff.GetValue()
+            c += commandCount
+            t += taskCount
+            if height > h:
+                h = height
+        print(succ, succ+fail, retries, globalTimer.GetSimulationCounter(), globalTimer.GetRealCommandExecutionCounter(), effTotal, h, t, c)
         #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
-
-def StartEnv():
-    while(True):
-        envArgs.sem.acquire()
-        if envArgs.exit == True:
-            ipcArgs.sem[0].release() # main controller
-            return
-
-        StartEnv.counter += 1
-        if GLOBALS.GetDomain() != "SDN":
-            if StartEnv.counter in problem_module.eventsEnv:
-                eventArgs = problem_module.eventsEnv[StartEnv.counter]
-                event = eventArgs[0]
-                eventParams = eventArgs[1]
-                t = threading.Thread(target=event, args=eventParams)
-                t.setDaemon(True)  # Setting the environment thread to daemon because we don't want the environment running once the tasks are done
-                t.start()
-        ipcArgs.sem[0].release()
-
-def add_tasks(tasks):
-    current_counter = GetNewTasks.counter
-    if current_counter + 1 not in problem_module.tasks:
-        problem_module.tasks[current_counter + 1] = tasks
-    else:
-        problem_module.tasks[current_counter + 1] += tasks
-
-def raeMult():
-    ipcArgs.sem = [threading.Semaphore(1)]  #the semaphores to control progress of each stack and master
-    ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
-    ipcArgs.threadList = [] #keeps track of all the stacks in RAE Agenda
-    lastActiveStack = 0 #keeps track of the last stack that was Progressed
-    numstacks = 0 #keeps track of the total number of stacks
-    GetNewTasks.counter = 0
-    StartEnv.counter = 0
-    taskInfo = {}
-
-    envArgs.sem = threading.Semaphore(0)
-    envArgs.exit = False
-
-    envThread = threading.Thread(target=StartEnv)
-    #startTime = time()
-    envThread.start()
-
-
-    while (True):
-        #if ipcArgs.nextStack == 0 or ipcArgs.threadList[ipcArgs.nextStack-1].isAlive() == False:
-        if True:
-            ipcArgs.sem[0].acquire()
-            if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
-
-                taskParams = GetNewTasks()
-                if taskParams != []:
-
-                    for newTask in taskParams:
-                        numstacks = numstacks + 1
-                        raeArgs = GLOBALS.RaeArgs()
-                        raeArgs.stack = numstacks
-                        raeArgs.task = newTask[0]
-                        raeArgs.taskArgs = newTask[1:]
-
-                        ipcArgs.sem.append(threading.Semaphore(0))
-                        ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, raeArgs)))
-                        ipcArgs.threadList[numstacks-1].start()
-
-                lastActiveStack = 0 # for the environment
-                envArgs.sem.release()
-                ipcArgs.sem[0].acquire()
-
-                if GLOBALS.GetDomain() == "SDN":
-                    UpdateCommandStatus()
-                globalTimer.IncrementTime()
-
-            if numstacks > 0:
-                res = GetNextAlive(lastActiveStack, numstacks, ipcArgs.threadList)
-
-                if res != -1:
-                    ipcArgs.nextStack = res
-                    lastActiveStack = res
-                    ipcArgs.sem[res].release()
-                else:
-                    if noNewTasks():
-                        envArgs.exit = True
-                        envArgs.sem.release()
-                        break
+    def PrintResultSummaryVersion2(self, taskInfo):
+        for stackid in taskInfo:
+            args, res, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = taskInfo[stackid]
+            if res == 'Success':
+                succ = 1
+                fail = 0
             else:
-                ipcArgs.sem[0].release()
+                succ = 0
+                fail = 1
+            print("v2", succ, succ+fail, retryCount, globalTimer.GetSimulationCounter(), 
+                globalTimer.GetRealCommandExecutionCounter(), eff, height, taskCount, commandCount, utilVal)
+            utilString = ""
+            for u in utilitiesList:
+                utilString += str(u)  
+                utilString += " "
 
-        WriteTrainingData()
-    if GLOBALS.GetShowOutputs() == 'on':
-        print("----Done with RAE----\n")
-        PrintResult(taskInfo)
-    else:
-        PrintResultSummaryVersion2(taskInfo)
-        #globalTimer.Callibrate(startTime)
+            print(utilString)
 
-    return taskInfo # for unit tests
+            #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
-def HandleTermination(signalId, frame):
-    methodUtil, planningTime = GetBestTillNow()
-    method, util = methodUtil
-    HandleTermination.q.put((method, util, planningTime))
-    sys.exit()
-HandleTermination.q = None 
 
-def CallPlanner(pArgs, queue):
-    """ Calls the planner according to what the user decided."""
-    if GLOBALS.GetPlanner() == "UPOM":
+    def StartEnv(self):
+        while(True):
+            envArgs.sem.acquire()
+            if envArgs.exit == True:
+                ipcArgs.sem[0].release() # main controller
+                return
 
-        HandleTermination.q = queue
-        signal.signal(signal.SIGTERM, HandleTermination)
-        
-        if GLOBALS.GetDoIterativeDeepening() == True:
-            d = 5
-            while(d <= GLOBALS.GetMaxDepth()):
+            StartEnv.counter += 1
+            if self.domain != "AIRS":
+                if StartEnv.counter in problem_module.eventsEnv:
+                    eventArgs = problem_module.eventsEnv[StartEnv.counter]
+                    event = eventArgs[0]
+                    eventParams = eventArgs[1]
+                    t = threading.Thread(target=event, args=eventParams)
+                    t.setDaemon(True)  # Setting the environment thread to daemon because we don't want the environment running once the tasks are done
+                    t.start()
+            ipcArgs.sem[0].release()
+
+    def add_tasks(self, tasks):
+        current_counter = GetNewTasks.counter
+        if current_counter + 1 not in problem_module.tasks:
+            problem_module.tasks[current_counter + 1] = tasks
+        else:
+            problem_module.tasks[current_counter + 1] += tasks
+
+    def raeMult(self):
+        ipcArgs.sem = [threading.Semaphore(1)]  #the semaphores to control progress of each stack and master
+        ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
+        ipcArgs.threadList = [] #keeps track of all the stacks in RAE Agenda
+        lastActiveStack = 0 #keeps track of the last stack that was Progressed
+        numstacks = 0 #keeps track of the total number of stacks
+        GetNewTasks.counter = 0
+        StartEnv.counter = 0
+        taskInfo = {}
+
+        envArgs.sem = threading.Semaphore(0)
+        envArgs.exit = False
+
+        envThread = threading.Thread(target=StartEnv)
+        #startTime = time()
+        envThread.start()
+
+
+        while (True):
+            #if ipcArgs.nextStack == 0 or ipcArgs.threadList[ipcArgs.nextStack-1].isAlive() == False:
+            if True:
+                ipcArgs.sem[0].acquire()
+                if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
+
+                    taskParams = GetNewTasks()
+                    if taskParams != []:
+
+                        for newTask in taskParams:
+                            numstacks = numstacks + 1
+                            raeArgs = GLOBALS.RaeArgs()
+                            raeArgs.stack = numstacks
+                            raeArgs.task = newTask[0]
+                            raeArgs.taskArgs = newTask[1:]
+
+                            ipcArgs.sem.append(threading.Semaphore(0))
+                            ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, raeArgs)))
+                            ipcArgs.threadList[numstacks-1].start()
+
+                    lastActiveStack = 0 # for the environment
+                    envArgs.sem.release()
+                    ipcArgs.sem[0].acquire()
+
+                    if self.domain == "AIRS":
+                        UpdateCommandStatus()
+                    globalTimer.IncrementTime()
+
+                if numstacks > 0:
+                    res = GetNextAlive(lastActiveStack, numstacks, ipcArgs.threadList)
+
+                    if res != -1:
+                        ipcArgs.nextStack = res
+                        lastActiveStack = res
+                        ipcArgs.sem[res].release()
+                    else:
+                        if noNewTasks():
+                            envArgs.exit = True
+                            envArgs.sem.release()
+                            break
+                else:
+                    ipcArgs.sem[0].release()
+
+            WriteTrainingData()
+        if self.showOutputs == 'on':
+            print("----Done with RAE----\n")
+            PrintResult(taskInfo)
+        else:
+            PrintResultSummaryVersion2(taskInfo)
+            #globalTimer.Callibrate(startTime)
+
+        return taskInfo # for unit tests
+
+    def HandleTermination(self, signalId, frame):
+        methodUtil, planningTime = GetBestTillNow()
+        method, util = methodUtil
+        HandleTermination.q.put((method, util, planningTime))
+        sys.exit()
+    HandleTermination.q = None 
+
+    def CallPlanner(self, pArgs, queue):
+        """ Calls the planner according to what the user decided."""
+        if self.planner.name == "UPOM":
+
+            HandleTermination.q = queue
+            signal.signal(signal.SIGTERM, HandleTermination)
+            
+            if GLOBALS.GetDoIterativeDeepening() == True:
+                d = 5
+                while(d <= GLOBALS.GetMaxDepth()):
+                    pArgs.SetDepth(d)
+                    methodUtil, planningTime = UPOM_Choice(pArgs.GetTask(), pArgs)
+                    method, util = methodUtil
+                    d += 5
+            else:
+                d = GLOBALS.GetMaxDepth()
                 pArgs.SetDepth(d)
                 methodUtil, planningTime = UPOM_Choice(pArgs.GetTask(), pArgs)
                 method, util = methodUtil
-                d += 5
-        else:
-            d = GLOBALS.GetMaxDepth()
-            pArgs.SetDepth(d)
-            methodUtil, planningTime = UPOM_Choice(pArgs.GetTask(), pArgs)
+
+        elif self.planner.name == "RAEPlan":
+
+            pArgs.SetDepth(GLOBALS.GetMaxDepth())
+            methodUtil, planningTime = RAEplan_Choice(pArgs.GetTask(), pArgs)
             method, util = methodUtil
 
-    elif GLOBALS.GetPlanner() == "RAEPlan":
-
-        pArgs.SetDepth(GLOBALS.GetMaxDepth())
-        methodUtil, planningTime = RAEplan_Choice(pArgs.GetTask(), pArgs)
-        method, util = methodUtil
-
-    else:
-        print("Invalid planner")
+        else:
+            print("Invalid planner")
 
 
-    queue.put((method, util, planningTime))
+        queue.put((method, util, planningTime))
 
-def PlannerMain(task, taskArgs, queue, candidateMethods, state, aTree, curUtil):
+    def PlannerMain(self, task, taskArgs, queue, candidateMethods, state, aTree, curUtil):
 
-    SetMode('Counter') #Counter mode in simulation
-    GLOBALS.SetPlanningMode(True)
-    #RemoveLocksFromState()
+        SetMode('Counter') #Counter mode in simulation
+        GLOBALS.SetPlanningMode(True)
+        #RemoveLocksFromState()
 
-    pArgs = PlanArgs()
+        pArgs = PlanArgs()
 
-    pArgs.SetStackId(1) # Simulating one stack now
-    # TODO: Simulate multiple stacks in future
-    
-    pArgs.SetTask(task)
-    pArgs.SetTaskArgs(taskArgs)
-    pArgs.SetCandidates(candidateMethods)
+        pArgs.SetStackId(1) # Simulating one stack now
+        # TODO: Simulate multiple stacks in future
+        
+        pArgs.SetTask(task)
+        pArgs.SetTaskArgs(taskArgs)
+        pArgs.SetCandidates(candidateMethods)
 
-    pArgs.SetState(state)
-    pArgs.SetActingTree(aTree)
-    pArgs.SetCurUtil(curUtil)
+        pArgs.SetState(state)
+        pArgs.SetActingTree(aTree)
+        pArgs.SetCurUtil(curUtil)
 
-    CallPlanner(pArgs, queue)
+        self.CallPlanner(pArgs, queue)
 
-    WriteTrainingData() # data to be used for learning
+        WriteTrainingData() # data to be used for learning
+
+
+    # RAE updates which stack a new command belongs to 
+    def AddToCommandStackTable(self, cmdid, stackid):
+        self.cmdStackTable[cmdid] = stackid
+
+    # RAE reads the cmdStatusQueue and updates the cmdStatusStack  
+    def UpdateCommandStatus(self):
+        while(self.cmdStatusQueue.empty() == False):
+            (id, res, nextState) = self.cmdStatusQueue.get()
+            stackid = self.cmdStackTable[id]
+            self.cmdStatusStack[stackid] = (id, res, nextState)
     
