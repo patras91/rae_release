@@ -386,8 +386,10 @@ class rae():
         WriteTrainingData() # data to be used for learning
 
 
-    def do_task(self):
+    def do_task(self, task, *taskArgs):
         # the current active stack do_task
+        currentStack = self.ipcArgs.nextStack
+
 
     # RAE updates which stack a new command belongs to 
     def AddToCommandStackTable(self, cmdid, stackid):
