@@ -61,7 +61,7 @@ def generateProblems():
                                     num += 1
 
 def generateProblemsSearchWithNotEnoughCharge():
-    num = 1000
+    num = 1
     for cost_index in range(1, 2):
         for map in [Map(3), Map(4), Map(5)]:
             for loc in map.locations:
@@ -132,7 +132,7 @@ def generateProblemsEmergencyWithoutSearch():
 
 def writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, emergency):
     
-    fname = 'training/problem{}_CR.py'.format(num)
+    fname = 'problems/auto/problem{}_fetch.py'.format(num)
     file = open(fname,"w") 
     writeHeader(file, cost_index)
 
@@ -189,7 +189,7 @@ def writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, em
 
 def writeHeader(file, index):
     file.write("__author__ = 'patras'\n")
-    file.write("from domain_chargeableRobot import *\n") 
+    file.write("from domain_fetch import *\n") 
     file.write("from timer import DURATION\n") 
     file.write("from state import state\n\n") 
 
@@ -272,7 +272,7 @@ def writeHeader(file, index):
 
 if __name__=="__main__":
     generateProblemsSearchWithNotEnoughCharge()
-    generateProblemsSearchWithEmergency()
-    generateProblemsCarryCharger()
-    generateProblemsChargerWithAnotherRobot()
-    generateProblemsEmergencyWithoutSearch()
+    # generateProblemsSearchWithEmergency()
+    # generateProblemsCarryCharger()
+    # generateProblemsChargerWithAnotherRobot()
+    # generateProblemsEmergencyWithoutSearch()

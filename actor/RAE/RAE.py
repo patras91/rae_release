@@ -10,6 +10,9 @@ from learningData import WriteTrainingData
 import signal
 import sys
 import multiprocessing as mp
+from UPOM import UPOMChoice
+from RAEPlan import RAEPlanChoice
+from APEPlan import APEPlanChoice
 
 __author__ = 'patras'
 
@@ -28,7 +31,14 @@ class rae():
 
         self.cmdStackTable = {} # keeps track of which command belongs to which stack/job
 
+        self.TASKS = {} # dictionary of tasknames and the task parameters
+        self.commands = {} # dictionary of commands, initialized once for every run via the domain file
+        self.methods = {} # dictionary of the list of methods for every task, initialized once for every run via the domain file
+
+        self.heuristic = {}
+
     def InitializePlanner(self, p, params):
+        print(params)
         if p == "APEPlan":
             self.planner = APEPlanChoice(params)
         elif p == "RAEPlan":
@@ -83,7 +93,7 @@ class rae():
         if self.domain == 'AIRS_dev':
             return False
         for c in self.probleModule.tasks:
-            if c > self.GetNewTasks.counter:
+            if c > self.newTasksCounter:
                 return False
         return True
 
@@ -91,10 +101,10 @@ class rae():
         '''
         :return: gets the new task that appears in the problem at the current time
         '''
-        self.GetNewTasks.counter += 1
+        self.newTasksCounter += 1
         if self.domain != 'AIRS_dev':
-            if self.GetNewTasks.counter in self.problemModule.tasks:
-                return self.problemModule.tasks[self.GetNewTasks.counter]
+            if self.newTasksCounter in self.problemModule.tasks:
+                return self.problemModule.tasks[self.newTasksCounter]
             else:
                 return []
         else:
@@ -201,10 +211,10 @@ class rae():
                 ipcArgs.sem[0].release() # main controller
                 return
 
-            StartEnv.counter += 1
+            self.startEnvCounter += 1
             if self.domain != "AIRS":
-                if StartEnv.counter in problem_module.eventsEnv:
-                    eventArgs = problem_module.eventsEnv[StartEnv.counter]
+                if self.startEnvCounter in self.problemModule.eventsEnv:
+                    eventArgs = self.problemModule.eventsEnv[self.startEnvCounter]
                     event = eventArgs[0]
                     eventParams = eventArgs[1]
                     t = threading.Thread(target=event, args=eventParams)
@@ -213,11 +223,11 @@ class rae():
             ipcArgs.sem[0].release()
 
     def add_tasks(self, tasks):
-        current_counter = GetNewTasks.counter
-        if current_counter + 1 not in problem_module.tasks:
-            problem_module.tasks[current_counter + 1] = tasks
+        current_counter = self.newTasksCounter
+        if current_counter + 1 not in self.problemModule.tasks:
+            problemModule.tasks[current_counter + 1] = tasks
         else:
-            problem_module.tasks[current_counter + 1] += tasks
+            problemModule.tasks[current_counter + 1] += tasks
 
     def raeMult(self):
         ipcArgs.sem = [threading.Semaphore(1)]  #the semaphores to control progress of each stack and master
@@ -225,14 +235,14 @@ class rae():
         ipcArgs.threadList = [] #keeps track of all the stacks in RAE Agenda
         lastActiveStack = 0 #keeps track of the last stack that was Progressed
         numstacks = 0 #keeps track of the total number of stacks
-        GetNewTasks.counter = 0
-        StartEnv.counter = 0
+        self.newTasksCounter = 0
+        self.startEnvCounter = 0
         taskInfo = {}
 
         envArgs.sem = threading.Semaphore(0)
         envArgs.exit = False
 
-        envThread = threading.Thread(target=StartEnv)
+        envThread = threading.Thread(target=self.StartEnv)
         #startTime = time()
         envThread.start()
 
@@ -241,9 +251,9 @@ class rae():
             #if ipcArgs.nextStack == 0 or ipcArgs.threadList[ipcArgs.nextStack-1].isAlive() == False:
             if True:
                 ipcArgs.sem[0].acquire()
-                if numstacks == 0 or BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
+                if numstacks == 0 or self.BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
 
-                    taskParams = GetNewTasks()
+                    taskParams = self.GetNewTasks()
                     if taskParams != []:
 
                         for newTask in taskParams:
@@ -254,7 +264,7 @@ class rae():
                             raeArgs.taskArgs = newTask[1:]
 
                             ipcArgs.sem.append(threading.Semaphore(0))
-                            ipcArgs.threadList.append(threading.Thread(target=CreateNewStack, args = (taskInfo, raeArgs)))
+                            ipcArgs.threadList.append(threading.Thread(target=self.CreateNewStack, args = (taskInfo, raeArgs)))
                             ipcArgs.threadList[numstacks-1].start()
 
                     lastActiveStack = 0 # for the environment
@@ -363,4 +373,41 @@ class rae():
             (id, res, nextState) = self.cmdStatusQueue.get()
             stackid = self.cmdStackTable[id]
             self.cmdStatusStack[stackid] = (id, res, nextState)
-    
+
+    def declare_commands(self, cmd_list):
+        """
+        Call this after defining the commands, to tell APE and APE-plan what they are.
+        cmd_list must be a list of functions, not strings.
+        """
+        self.commands.update({cmd.__name__:cmd for cmd in cmd_list})
+
+    def declare_task(self, t, *args):
+        self.TASKS[t] = args
+
+    # declares the refinement methods for a task;
+    # ensuring that some constraints are satisfied
+    def declare_methods(self, task_name, *method_list):
+
+        taskArgs = self.TASKS[task_name]
+        q = len(taskArgs)
+        
+        self.methods[task_name] = []
+        for m in method_list:
+
+            variableArgs = False
+            if len(taskArgs) == 1:
+                if taskArgs[0] == "*":
+                    variableArgs = True
+            if variableArgs != True:
+                # ensure that the method has atleast as many parameters as the task
+                assert(m.__code__.co_argcount >= q)
+                
+                # ensure that the variable names of the 
+                # first q parameters of m match with the parameters of task t
+                assert(m.__code__.co_varnames[0:q] == taskArgs)
+
+            self.methods[task_name].append(m)
+
+    def declare_heuristic(self, task, name):
+        self.heuristic[task] = name
+        

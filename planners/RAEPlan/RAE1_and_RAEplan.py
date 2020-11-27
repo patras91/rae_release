@@ -3,7 +3,7 @@ from __future__ import print_function
 """
 File RAE1_and_RAEplan.py
 Author:
-Sunandita Patra <patras@cs.umd.edu>
+Sunandita Patra <patras@umd.edu>
 """
 
 import threading
@@ -59,32 +59,22 @@ def verbosity(level):
         pass
         #import colorama
 
-# Both RAE and RAEplan
-TASKS = {} # dictionary of tasknames and the task parameters
 
-methods = {} # dictionary of the list of methods for every task, initialized once for every run via the domain file
 path = {} # global variable shared by all stacks for debugging
 
 # Only RAE1
-commands = {} # dictionary of commands, initialized once for every run via the domain file
+
 raeLocals = rL_APE() # APE variables that are local to every stack
 
 #only RAEplan
 planLocals = rL_PLAN() # APEplan_systematic variables that are local to every call to APEplan_systematic, 
                        # we need this to be thread local because we have multiple stacks in APE as 
                        # multiple threads and each thread call its own APEplan_systematic
-heuristic = {}
+
 
 ############################################################
 # Functions to tell Rae1 what the commands and methods are
 
-def declare_commands(cmd_list):
-    """
-    Call this after defining the commands, to tell APE and APE-plan what they are.
-    cmd_list must be a list of functions, not strings.
-    """
-    commands.update({cmd.__name__:cmd for cmd in cmd_list})
-    return commands
 
 def GetCommand(cmd):
     """
@@ -123,32 +113,6 @@ class MethodInstance():
         else:
             return self.method == other.method and self.params == other.params
 
-def declare_task(t, *args):
-    TASKS[t] = args
-
-# declares the refinement methods for a task;
-# ensuring that some constraints are satisfied
-def declare_methods(task_name, *method_list):
-
-    taskArgs = TASKS[task_name]
-    q = len(taskArgs)
-    
-    methods[task_name] = []
-    for m in method_list:
-
-        variableArgs = False
-        if len(taskArgs) == 1:
-            if taskArgs[0] == "*":
-                variableArgs = True
-        if variableArgs != True:
-            # ensure that the method has atleast as many parameters as the task
-            assert(m.__code__.co_argcount >= q)
-            
-            # ensure that the variable names of the 
-            # first q parameters of m match with the parameters of task t
-            assert(m.__code__.co_varnames[0:q] == taskArgs)
-
-        methods[task_name].append(m)
 
 def GetMethodInstances(methods, tArgs):
     
@@ -180,20 +144,19 @@ def GetMethodInstances(methods, tArgs):
     random.shuffle(instanceList)
     return instanceList 
 
-def declare_heuristic(task, name):
-    heuristic[task] = name
+
 ############################################################
 # The user can use these to see what the commands and methods are.
 
-def print_commands(olist=commands):
-    """Print out the names of the commands"""
-    print('commands:', ', '.join(olist))
+# def print_commands(olist=commands):
+#     """Print out the names of the commands"""
+#     print('commands:', ', '.join(olist))
 
-def print_methods(mlist=methods):
-    """Print out a table of what the methods are for each task"""
-    print('{:<14}{}'.format('TASK:','METHODS:'))
-    for task in mlist:
-        print('{:<14}'.format(task) + ', '.join([f.__name__ for f in mlist[task]]))
+# def print_methods(mlist=methods):
+#     """Print out a table of what the methods are for each task"""
+#     print('{:<14}{}'.format('TASK:','METHODS:'))
+#     for task in mlist:
+#         print('{:<14}'.format(task) + ', '.join([f.__name__ for f in mlist[task]]))
 
 
 ############################################################

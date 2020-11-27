@@ -12,6 +12,7 @@ for d in ["UnitTests", "nav", "fetch", "explore", "rescue", "deliver", "AIRS"]:
 
 sys.path.append('./actor/RAE/')
 sys.path.append('./actor/APE/')
+sys.path.append('./planners/')
 sys.path.append('./planners/APEPlan/')
 sys.path.append('./planners/RAEPlan/')
 sys.path.append('./planners/UPOM/')
@@ -28,6 +29,7 @@ from RAE import rae
 from timer import SetMode
 import multiprocessing
 import os
+from domain_fetch import Fetch
 
 def testRAEandPlanner(domain, problem, planner, plannerParams, showOutputs, v):
     '''
@@ -35,13 +37,14 @@ def testRAEandPlanner(domain, problem, planner, plannerParams, showOutputs, v):
     :param problem: the problem id
     :param planner: None, APEPlan, RAEPlan, UPOM, StateSpaceUCT
     '''
-    r = rae(domain, problem, planner, plannerParams, showOutputs, v)
+    if domain == "fetch":
+        domainInstance = Fetch(problem, planner, plannerParams, showOutputs, v)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared between RAE, RAEplan and UPOM
     try:
-        rM = threading.Thread(target=r.raeMult)
+        rM = threading.Thread(target=domainInstance.actor.raeMult)
         rM.start()
-        gui.start(domain, r.problemModule.rv) # graphical user interface to show action executions
+        gui.start(domain, domainInstance.problemModule.rv) # graphical user interface to show action executions
         rM.join()
     except Exception as e:
         print('Failed RAE and {} {}'.format(planner, e))
@@ -95,7 +98,7 @@ if __name__ == "__main__":
     argparser.add_argument("--domain", help="name of the test domain (fetch, nav, explore, rescue, AIRS, deliver)",
                            type=str, default='fetch', required=False)
     argparser.add_argument("--problem", help="identifier for the problem eg. 'problem1', 'problem2', etc",
-                           type=str, default="problem1005", required=False)
+                           type=str, default="problem1", required=False)
     argparser.add_argument("--planner", help="Which planner? ('APEPlan', RAEPlan' or 'UPOM' or 'None')",
                            type=str, default='UPOM', required=False)
     argparser.add_argument("--clockMode", help="Mode of the clock ('Counter' or 'Clock')",
