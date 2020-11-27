@@ -1,5 +1,6 @@
-from __future__ import print_function
-from RAE1_and_RAEplan import ipcArgs, envArgs, RAE1, RAEplan_Choice, UPOM_Choice, GetBestTillNow
+__author__ = 'patras'
+#from RAE1_and_RAEplan import ipcArgs, envArgs, RAEplan_Choice, UPOM_Choice, GetBestTillNow
+from RAE1Stack import RAE1
 from dataStructures import PlanArgs
 from timer import globalTimer, SetMode
 from state import ReinitializeState, RemoveLocksFromState, RestoreState
@@ -14,10 +15,32 @@ from UPOM import UPOMChoice
 from RAEPlan import RAEPlanChoice
 from APEPlan import APEPlanChoice
 
-__author__ = 'patras'
+#****************************************************************
+#To control Progress of each stack step by step
+class IpcArgs():
+    def __init__(self):
+        self.sem = [threading.Semaphore(1)]  #the semaphores to control progress of each stack and master
+        self.nextStack = 0                 #the master thread is the next in line to be executed, master thread adds a new stack for every new incoming task
+        self.threadList = [] #keeps track of all the stacks in RAE's Agenda
+
+    def BeginCriticalRegion(self, stackid):
+        #while(ipcArgs.nextStack != stackid):
+        #    pass
+        self.sem[stackid].acquire()
+
+    def EndCriticalRegion(self):
+        #ipcArgs.nextStack = 0
+        self.sem[0].release()
+
+class EnvArgs():
+    def __init__(self):
+        self.sem = threading.Semaphore(0)
+        self.exit = False
+
+#****************************************************************
 
 class rae():
-    def __init__(self, domain, problem, planner, plannerParams, showOutputs, v):
+    def __init__(self, domain, problem, planner, plannerParams, showOutputs, v, state):
         self.InitializePlanner(planner, plannerParams)
         self.InitializeDomain(domain, problem)
 
@@ -36,6 +59,11 @@ class rae():
         self.methods = {} # dictionary of the list of methods for every task, initialized once for every run via the domain file
 
         self.heuristic = {}
+
+        self.ipcArgs = IpcArgs() # for inter stack (thread) control transfer
+        self.envArgs = EnvArgs() # for control transfer between environment and stacks; checks for events in the env
+
+        self.state = state # only used via RAE1
 
     def InitializePlanner(self, p, params):
         print(params)
@@ -125,7 +153,8 @@ class rae():
 
     def CreateNewStack(self, taskInfo, raeArgs):
         stackid = raeArgs.stack
-        retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = RAE1(raeArgs.task, raeArgs)
+        rae1 = RAE1(raeArgs.task, raeArgs, self.domain, self.ipcArgs, self.cmdStatusStack, self.verbosity, self.state, self.methods)
+        retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = rae1.RAE1Main(raeArgs.task, raeArgs)
         taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)
 
     def PrintResult(self, taskInfo):
@@ -206,21 +235,21 @@ class rae():
 
     def StartEnv(self):
         while(True):
-            envArgs.sem.acquire()
-            if envArgs.exit == True:
-                ipcArgs.sem[0].release() # main controller
+            self.envArgs.sem.acquire()
+            if self.envArgs.exit == True:
+                self.ipcArgs.sem[0].release() # main controller
                 return
 
             self.startEnvCounter += 1
             if self.domain != "AIRS":
                 if self.startEnvCounter in self.problemModule.eventsEnv:
-                    eventArgs = self.problemModule.eventsEnv[self.startEnvCounter]
+                    self.eventArgs = self.problemModule.eventsEnv[self.startEnvCounter]
                     event = eventArgs[0]
                     eventParams = eventArgs[1]
                     t = threading.Thread(target=event, args=eventParams)
                     t.setDaemon(True)  # Setting the environment thread to daemon because we don't want the environment running once the tasks are done
                     t.start()
-            ipcArgs.sem[0].release()
+            self.ipcArgs.sem[0].release()
 
     def add_tasks(self, tasks):
         current_counter = self.newTasksCounter
@@ -230,17 +259,11 @@ class rae():
             problemModule.tasks[current_counter + 1] += tasks
 
     def raeMult(self):
-        ipcArgs.sem = [threading.Semaphore(1)]  #the semaphores to control progress of each stack and master
-        ipcArgs.nextStack = 0                 #the master thread is the next in line to be executed, which adds a new stack for every new task
-        ipcArgs.threadList = [] #keeps track of all the stacks in RAE Agenda
         lastActiveStack = 0 #keeps track of the last stack that was Progressed
         numstacks = 0 #keeps track of the total number of stacks
         self.newTasksCounter = 0
         self.startEnvCounter = 0
         taskInfo = {}
-
-        envArgs.sem = threading.Semaphore(0)
-        envArgs.exit = False
 
         envThread = threading.Thread(target=self.StartEnv)
         #startTime = time()
@@ -250,8 +273,8 @@ class rae():
         while (True):
             #if ipcArgs.nextStack == 0 or ipcArgs.threadList[ipcArgs.nextStack-1].isAlive() == False:
             if True:
-                ipcArgs.sem[0].acquire()
-                if numstacks == 0 or self.BeginFreshIteration(lastActiveStack, numstacks, ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
+                self.ipcArgs.sem[0].acquire()
+                if numstacks == 0 or self.BeginFreshIteration(lastActiveStack, numstacks, self.ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
 
                     taskParams = self.GetNewTasks()
                     if taskParams != []:
@@ -263,32 +286,32 @@ class rae():
                             raeArgs.task = newTask[0]
                             raeArgs.taskArgs = newTask[1:]
 
-                            ipcArgs.sem.append(threading.Semaphore(0))
-                            ipcArgs.threadList.append(threading.Thread(target=self.CreateNewStack, args = (taskInfo, raeArgs)))
-                            ipcArgs.threadList[numstacks-1].start()
+                            self.ipcArgs.sem.append(threading.Semaphore(0))
+                            self.ipcArgs.threadList.append(threading.Thread(target=self.CreateNewStack, args = (taskInfo, raeArgs)))
+                            self.ipcArgs.threadList[numstacks-1].start()
 
                     lastActiveStack = 0 # for the environment
-                    envArgs.sem.release()
-                    ipcArgs.sem[0].acquire()
+                    self.envArgs.sem.release()
+                    self.ipcArgs.sem[0].acquire()
 
                     if self.domain == "AIRS":
-                        UpdateCommandStatus()
+                        self.UpdateCommandStatus()
                     globalTimer.IncrementTime()
 
                 if numstacks > 0:
-                    res = GetNextAlive(lastActiveStack, numstacks, ipcArgs.threadList)
+                    res = self.GetNextAlive(lastActiveStack, numstacks, self.ipcArgs.threadList)
 
                     if res != -1:
-                        ipcArgs.nextStack = res
+                        self.ipcArgs.nextStack = res
                         lastActiveStack = res
-                        ipcArgs.sem[res].release()
+                        self.ipcArgs.sem[res].release()
                     else:
                         if noNewTasks():
-                            envArgs.exit = True
-                            envArgs.sem.release()
+                            self.envArgs.exit = True
+                            self.envArgs.sem.release()
                             break
                 else:
-                    ipcArgs.sem[0].release()
+                    self.ipcArgs.sem[0].release()
 
             WriteTrainingData()
         if self.showOutputs == 'on':
@@ -400,11 +423,12 @@ class rae():
                     variableArgs = True
             if variableArgs != True:
                 # ensure that the method has atleast as many parameters as the task
-                assert(m.__code__.co_argcount >= q)
+                assert(m.__code__.co_argcount - 1 >= q)
                 
                 # ensure that the variable names of the 
                 # first q parameters of m match with the parameters of task t
-                assert(m.__code__.co_varnames[0:q] == taskArgs)
+                print(m.__code__.co_varnames, taskArgs)
+                assert(m.__code__.co_varnames[1:q+1] == taskArgs)
 
             self.methods[task_name].append(m)
 

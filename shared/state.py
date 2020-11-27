@@ -168,10 +168,7 @@ class RV():
 
 rv = RV()
 
-def EvaluateParameters(expr, mArgs, tArgs):
-    for i in range(0, len(tArgs)):
-        globals()[mArgs[i]] = tArgs[i]
-    return eval(expr, globals())
+
     
 if __name__=="__main__":
     s = State()
