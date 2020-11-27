@@ -17,7 +17,7 @@ class Fetch():
         self.state = State()
         self.rv = RV()
         self.env = FetchEnv(self.state)
-        self.actor = rae('fetch', problem, planner, plannerParams, showOutputs, v, self.state)
+        self.actor = rae('fetch', problem, planner, plannerParams, showOutputs, v, self.state, self.rv)
 
         self.actor.declare_commands([self.put, self.take, self.perceive, self.charge, self.move, self.moveToEmergency, self.addressEmergency, self.wait, self.fail])
 

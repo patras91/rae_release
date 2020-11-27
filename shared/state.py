@@ -137,14 +137,14 @@ class StateDict():
     def DeleteLocks(self):
         self.lock = None
 
-state = State()  # the global state of RAE, this is shared by all stacks
+#state = State()  # the global state of RAE, this is shared by all stacks
 
-def ReinitializeState():   
+#def ReinitializeState():   
     """
     State is reinitialized before every run, useful in batch runs
     """
-    global state
-    state = State()
+    #global state
+    #state = State()
 
 def RemoveLocksFromState():
     """

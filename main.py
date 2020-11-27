@@ -44,10 +44,10 @@ def testRAEandPlanner(domain, problem, planner, plannerParams, showOutputs, v):
     try:
         rM = threading.Thread(target=domainInstance.actor.raeMult)
         rM.start()
-        gui.start(domain, domainInstance.problemModule.rv) # graphical user interface to show action executions
+        gui.start(domain, showOutputs) # graphical user interface to show action executions
         rM.join()
     except Exception as e:
-        print('Failed RAE and {} {}'.format(planner, e))
+        print('Failed RAE and {}, for domain {}, {}'.format(planner, domain, e))
 
 def testBatch(domain, problem, usePlanner):
     SetMode('Counter')

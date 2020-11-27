@@ -3,7 +3,7 @@ __author__ = 'patras'
 from RAE1Stack import RAE1
 from dataStructures import PlanArgs
 from timer import globalTimer, SetMode
-from state import ReinitializeState, RemoveLocksFromState, RestoreState
+from state import RemoveLocksFromState, RestoreState
 import threading
 import GLOBALS
 import os
@@ -40,10 +40,7 @@ class EnvArgs():
 #****************************************************************
 
 class rae():
-    def __init__(self, domain, problem, planner, plannerParams, showOutputs, v, state):
-        self.InitializePlanner(planner, plannerParams)
-        self.InitializeDomain(domain, problem)
-
+    def __init__(self, domain, problem, planner, plannerParams, showOutputs, v, state, rv):
         self.showOutputs = showOutputs
         self.verbosity = v
 
@@ -64,6 +61,10 @@ class rae():
         self.envArgs = EnvArgs() # for control transfer between environment and stacks; checks for events in the env
 
         self.state = state # only used via RAE1
+        self.rv = rv
+
+        self.InitializePlanner(planner, plannerParams)
+        self.InitializeDomain(domain, problem)
 
     def InitializePlanner(self, p, params):
         print(params)
@@ -89,9 +90,8 @@ class rae():
         self.domain = domain
         if domain in ['fetch', 'nav', 'explore', 'rescue', 'deliver', 'testInstantiation', 'testSSU',  'testMethodswithCosts', "AIRS"]:
             module = problem + '_' + domain
-            ReinitializeState()    # useful for batch runs to start with the starting state
             self.problemModule = __import__(module)
-            self.problemModule.ResetState()
+            self.problemModule.SetInitialStateVariables(self.state, self.rv)
         elif domain == 'AIRS_dev':
             RestoreState(startState)
         else:
@@ -385,6 +385,9 @@ class rae():
 
         WriteTrainingData() # data to be used for learning
 
+
+    def do_task(self):
+        # the current active stack do_task
 
     # RAE updates which stack a new command belongs to 
     def AddToCommandStackTable(self, cmdid, stackid):

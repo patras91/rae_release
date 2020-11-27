@@ -3,20 +3,15 @@ __author__ = 'patras'
 
 from tkinter import *
 from queue import Queue
-import GLOBALS
 import turtle
 
 globalQueue = Queue()
 
 class GUI():
-    def __init__(self, domain, rv):
+    def __init__(self, domain, showOutputs):
         self.domain = domain
-        if domain == 'IP_':
-            turtle.Screen()
-            #tdraw.draw_problem(title="IP_1", rv=rv)
-            while(True):
-                self.simulate()
-        else:
+        self.showOutputs = showOutputs
+        if showOutputs == "on":
             self.root = Tk()
             self.text = Text(self.root)
             self.text.pack()
@@ -36,13 +31,13 @@ class GUI():
             self.root.after(1, self.simulate)
 
 def Simulate(*t):
-    if (GLOBALS.GetPlanningMode() == True or GLOBALS.GetShowOutputs() == 'off'):
+    if (GLOBALS.GetPlanningMode() == True or g.showOutputs == 'off'):
         return
-    elif GLOBALS.GetDomain() == "SDN" and GLOBALS.GetShowOutputs() == "on":
+    elif GLOBALS.GetDomain() == "AIRS" and g.showOutputs == "on":
         print(t)
     globalQueue.put(t)
 
-def start(domain, rv):
-    if (GLOBALS.GetShowOutputs() == 'on'):
+def start(domain, showOutputs):
+    if showOutputs == 'on':
         global g
-        g = GUI(domain, rv)
+        g = GUI(domain, showOutputs)
