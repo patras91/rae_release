@@ -1,25 +1,27 @@
 __author__ = 'patras'
 from opPlanner import OpPlanner
+from dataStructures import rL_PLAN
 
 class RAEPlanChoice(OpPlanner):
-	def __init__(self, l):
-		self.b = l[0]
-		self.k = l[1]
-		self.maxSearchDepth = l[2]
+    def __init__(self, l):
+        self.b = l[0]
+        self.k = l[1]
+        self.maxSearchDepth = l[2]
+        self.planLocals = rL_PLAN()
 
-	def DoTask_RAEPlan(self, task, taskArgs):
+    def DoTask_RAEPlan(self, task, taskArgs):
         # Need to look through several candidates for this task
         cand, state, flag = GetCandidates(task, taskArgs)
 
-        searchTreeNode = planLocals.GetSearchTreeNode()
+        searchTreeNode = self.planLocals.GetSearchTreeNode()
         taskNode = rTree.SearchTreeNode(task, 'task', taskArgs)
         searchTreeNode.AddChild(taskNode)
         if flag == 1:
-            planLocals.SetTaskToRefine(taskNode)
-            planLocals.SetRefDepth(planLocals.GetDepth())
+            self.planLocals.SetTaskToRefine(taskNode)
+            self.planLocals.SetRefDepth(self.planLocals.GetDepth())
 
             
-        if planLocals.GetRefDepth() + planLocals.GetRolloutDepth() <= planLocals.GetDepth():
+        if self.planLocals.GetRefDepth() + self.planLocals.GetRolloutDepth() <= self.planLocals.GetDepth():
 
             newNode = rTree.SearchTreeNode('heuristic', 'heuristic', taskArgs)
             newNode.SetPrevState(state)
@@ -36,12 +38,12 @@ class RAEPlanChoice(OpPlanner):
     def DoCommand_RAEPlan(self, cmd, cmdArgs):
         #outcomeStates = []
 
-        searchTreeNode = planLocals.GetSearchTreeNode()
+        searchTreeNode = self.planLocals.GetSearchTreeNode()
         prevState = state.copy()
         newCommandNode = rTree.SearchTreeNode(cmd, 'command', cmdArgs)
         searchTreeNode.AddChild(newCommandNode)
 
-        #k = max(1, GLOBALS.Getk() - int(planLocals.GetDepth() / 2))
+        #k = max(1, GLOBALS.Getk() - int(self.planLocals.GetDepth() / 2))
         k = GLOBALS.Getk()
         for i in range(0, k):
             RestoreState(prevState)
@@ -75,34 +77,34 @@ class RAEPlanChoice(OpPlanner):
         RAEplan_Choice is the main routine of the planner used by RAE which plans using the available operational models
         """
 
-        #planLocals is the set of variables local to this call to RAEplanChoice but used throughout
-        planLocals.SetStackId(planArgs.GetStackId()) # Right now, the stack id is always set to 1 and is not important.
+        #self.planLocals is the set of variables local to this call to RAEplanChoice but used throughout
+        self.planLocals.SetStackId(planArgs.GetStackId()) # Right now, the stack id is always set to 1 and is not important.
                                                      # This will be useful if we decide to simulate multiple stacks in future.
-        planLocals.SetCandidates(planArgs.GetCandidates())
-        planLocals.SetState(planArgs.state)
+        self.planLocals.SetCandidates(planArgs.GetCandidates())
+        self.planLocals.SetState(planArgs.state)
 
         taskArgs = planArgs.GetTaskArgs()
-        planLocals.SetHeuristicArgs(task, taskArgs)
-        planLocals.SetRolloutDepth(planArgs.GetDepth())
+        self.planLocals.SetHeuristicArgs(task, taskArgs)
+        self.planLocals.SetRolloutDepth(planArgs.GetDepth())
 
         globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
         
         searchTreeRoot = planArgs.GetSearchTree()
-        planLocals.SetSearchTreeRoot(searchTreeRoot)
+        self.planLocals.SetSearchTreeRoot(searchTreeRoot)
             
         InitializePlanningTree() 
 
         if self.verbosity > 1:
-            print_stack_size(planLocals.GetStackId())
+            print_stack_size(self.planLocals.GetStackId())
             print('Initial state is:')
             PrintState()
 
-        planLocals.SetRefDepth(float("inf"))
+        self.planLocals.SetRefDepth(float("inf"))
         while (searchTreeRoot.GetSearchDone() == False): # all rollouts not explored
             try:
-                planLocals.SetDepth(0)
+                self.planLocals.SetDepth(0)
                 
-                planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
+                self.planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
                 self.do_task(task, *taskArgs) 
                 searchTreeRoot.UpdateChildPointers()  
             except Failed_Rollout as e:
@@ -116,11 +118,11 @@ class RAEPlanChoice(OpPlanner):
                 pass
 
         if self.verbosity > 1:
-            print_stack_size(planLocals.GetStackId())
+            print_stack_size(self.planLocals.GetStackId())
             print('Final state is:')
             PrintState()
 
-        taskToRefine = planLocals.GetTaskToRefine()
+        taskToRefine = self.planLocals.GetTaskToRefine()
         if GLOBALS.GetDataGenerationMode() == "learnH":
             taskToRefine.GetTrainingItems_SLATE(
                 trainingDataRecords, 
@@ -136,23 +138,23 @@ class RAEPlanChoice(OpPlanner):
             raise DepthLimitReached()
         else:
             RestoreState(nextNode.GetPrevState())
-            planLocals.SetSearchTreeNode(nextNode)
+            self.planLocals.SetSearchTreeNode(nextNode)
             tree = DoMethod(m, task, taskArgs)
             return tree
 
-    def FollowSearchTree_command(cmd, cmdArgs, searchNode):
-        #planLocals.GetSearchTreeRoot().PrintUsingGraphviz()
+    def FollowSearchTree_command(self, cmd, cmdArgs, searchNode):
+        #self.planLocals.GetSearchTreeRoot().PrintUsingGraphviz()
         assert(cmd == searchNode.GetLabel())
         stateNode = searchNode.GetNext()
         RestoreState(stateNode.GetLabel())
-        planLocals.SetSearchTreeNode(stateNode)
+        self.planLocals.SetSearchTreeNode(stateNode)
 
         if stateNode.GetUtility() != Utility('Failure'):
             util = GetUtility(cmd, cmdArgs)
             stateNode.SetUtility(util)
             newNode = rTree.PlanningTree(cmd, cmdArgs, 'cmd')
-            planLocals.GetCurrentNode().AddChild(newNode)
-            planLocals.GetCurrentNode().AddUtility(util)
+            self.planLocals.GetCurrentNode().AddChild(newNode)
+            self.planLocals.GetCurrentNode().AddUtility(util)
             return 'Success'
         else:
             raise Failed_Rollout('{}{}'.format(cmd.__name__, cmdArgs))

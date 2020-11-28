@@ -4,6 +4,7 @@ __author__ = 'patras'
 from tkinter import *
 from queue import Queue
 import turtle
+import GLOBALS
 
 globalQueue = Queue()
 
@@ -31,6 +32,7 @@ class GUI():
             self.root.after(1, self.simulate)
 
 def Simulate(*t):
+    global g
     if (GLOBALS.GetPlanningMode() == True or g.showOutputs == 'off'):
         return
     elif GLOBALS.GetDomain() == "AIRS" and g.showOutputs == "on":
@@ -41,3 +43,4 @@ def start(domain, showOutputs):
     if showOutputs == 'on':
         global g
         g = GUI(domain, showOutputs)
+        print("GUI is initialized ...")

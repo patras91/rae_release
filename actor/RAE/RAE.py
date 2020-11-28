@@ -66,6 +66,8 @@ class rae():
         self.InitializePlanner(planner, plannerParams)
         self.InitializeDomain(domain, problem)
 
+        self.rae1Instances = {} # dictionary mapping stack ids to the rae1 objects
+
     def InitializePlanner(self, p, params):
         print(params)
         if p == "APEPlan":
@@ -153,7 +155,8 @@ class rae():
 
     def CreateNewStack(self, taskInfo, raeArgs):
         stackid = raeArgs.stack
-        rae1 = RAE1(raeArgs.task, raeArgs, self.domain, self.ipcArgs, self.cmdStatusStack, self.verbosity, self.state, self.methods)
+        rae1 = RAE1(raeArgs.task, raeArgs, self.domain, self.ipcArgs, self.cmdStatusStack, self.verbosity, self.state, self.methods, self.commands)
+        self.rae1Instances[stackid] = rae1
         retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = rae1.RAE1Main(raeArgs.task, raeArgs)
         taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)
 
@@ -385,11 +388,15 @@ class rae():
 
         WriteTrainingData() # data to be used for learning
 
-
     def do_task(self, task, *taskArgs):
         # the current active stack do_task
-        currentStack = self.ipcArgs.nextStack
+        currentStackId = self.ipcArgs.nextStack
+        self.rae1Instances[currentStackId].do_task(task, *taskArgs)
 
+    def do_command(self, cmd, *cmdArgs):
+        # the current active stack do_task
+        currentStackId = self.ipcArgs.nextStack
+        self.rae1Instances[currentStackId].do_command(cmd, *cmdArgs)
 
     # RAE updates which stack a new command belongs to 
     def AddToCommandStackTable(self, cmdid, stackid):

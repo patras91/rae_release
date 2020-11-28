@@ -45,7 +45,7 @@ class Fetch():
     # Using Dijsktra's self.actororithm
     def CR_GETDISTANCE(self, l0, l1):
         visitedDistances = {l0: 0}
-        locs = list(rv.LOCATIONS)
+        locs = list(self.rv.LOCATIONS)
 
         while locs:
             min_loc = None
@@ -62,7 +62,7 @@ class Fetch():
             locs.remove(min_loc)
             current_dist = visitedDistances[min_loc]
 
-            for l in rv.EDGES[min_loc]:
+            for l in self.rvEDGES[min_loc]:
                 dist = current_dist + 1
                 if l not in visitedDistances or dist < visitedDistances[l]:
                     visitedDistances[l] = dist
@@ -80,7 +80,7 @@ class Fetch():
                 start = globalTimer.GetTime()
                 while(globalTimer.IsCommandExecutionOver('take', start) == False):
                     pass
-                res = Sense('take')
+                res = self.env.Sense('take')
                 if res == SUCCESS:
                     gui.Simulate("Robot %s has picked up object %s\n" %(r, o))
                     self.state.pos[o] = r
@@ -105,7 +105,7 @@ class Fetch():
             self.state.load.AcquireLock(r)
             while(globalTimer.IsCommandExecutionOver('put', start) == False):
                 pass
-            res = Sense('put')
+            res = self.env.Sense('put')
             if res == SUCCESS:    
                 gui.Simulate("Robot %s has put object %s at location %d\n" %(r,o,self.state.loc[r]))
                 self.state.pos[o] = self.state.loc[r]
@@ -128,7 +128,7 @@ class Fetch():
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('charge', start) == False):
                 pass
-            res = Sense('charge')
+            res = self.env.Sense('charge')
             if res == SUCCESS:
                 self.state.charge[r] = 4
                 gui.Simulate("Robot %s is fully charged\n" %r)
@@ -152,7 +152,7 @@ class Fetch():
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('move', start) == False):
                pass
-            res = Sense('moveToEmergency')
+            res = self.env.Sense('moveToEmergency')
             if res == SUCCESS:
                 gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
                 self.state.loc[r] = l2
@@ -183,7 +183,7 @@ class Fetch():
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('perceive', start) == False):
                 pass
-            Sense('perceive')
+            self.env.Sense('perceive')
             for c in self.state.containers[l]:
                 self.state.pos.AcquireLock(c)
                 self.state.pos[c] = l
@@ -207,7 +207,7 @@ class Fetch():
                 start = globalTimer.GetTime()
                 while(globalTimer.IsCommandExecutionOver('move', start) == False):
                    pass
-                res = Sense('move')
+                res = self.env.Sense('move')
                 if res == SUCCESS:
                     gui.Simulate("Robot %s has moved from %d to %d\n" %(r, l1, l2))
                     self.state.loc[r] = l2
@@ -240,7 +240,7 @@ class Fetch():
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('addressEmergency', start) == False):
                 pass
-            res = Sense('addressEmergency')
+            res = self.env.Sense('addressEmergency')
             if res == SUCCESS:
                 gui.Simulate("Robot %s has addressed emergency %d\n" %(r, i))
             else:
@@ -259,73 +259,73 @@ class Fetch():
             while(globalTimer.IsCommandExecutionOver('wait', start) == False):
                 pass
             gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
-            Sense('wait')
+            self.env.Sense('wait')
         return SUCCESS
 
     def Recharge_Method3(self, r, c):
         """ Robot r charges and carries the charger with it """
         if self.state.loc[r] != self.state.pos[c] and self.state.pos[c] != r:
-            if self.state.pos[c] in rv.LOCATIONS:
+            if self.state.pos[c] in self.rv.LOCATIONS:
                 self.actor.do_task('moveTo', r, self.state.pos[c])
             else:
                 robot = self.state.pos[c]
-                self.actor.do_command(put, robot, c)
+                self.actor.do_command(self.put, robot, c)
                 self.actor.do_task('moveTo', r, self.state.pos[c])
-        self.actor.do_command(charge, r, c)
-        self.actor.do_command(take, r, c)
+        self.actor.do_command(self.charge, r, c)
+        self.actor.do_command(self.take, r, c)
 
     def Recharge_Method2(self, r, c):
         """ Robot r charges and does not carry the charger with it """
         if self.state.loc[r] != self.state.pos[c] and self.state.pos[c] != r:
-            if self.state.pos[c] in rv.LOCATIONS:
+            if self.state.pos[c] in self.rv.LOCATIONS:
                 self.actor.do_task('moveTo', r, self.state.pos[c])
             else:
                 robot = self.state.pos[c]
-                self.actor.do_command(put, robot, c)
+                self.actor.do_command(self.put, robot, c)
                 self.actor.do_task('moveTo', r, self.state.pos[c])
-        self.actor.do_command(charge, r, c)
+        self.actor.do_command(self.charge, r, c)
 
     def Recharge_Method1(self, r, c):
         """ When the charger is with another robot and that robot takes the charger back """ 
         robot = NIL
         if self.state.loc[r] != self.state.pos[c] and self.state.pos[c] != r:
-            if self.state.pos[c] in rv.LOCATIONS:
+            if self.state.pos[c] in self.rv.LOCATIONS:
                 self.actor.do_task('moveTo', r, self.state.pos[c])
             else:
                 robot = self.state.pos[c]
-                self.actor.do_command(put, robot, c)
+                self.actor.do_command(self.put, robot, c)
                 self.actor.do_task('moveTo', r, self.state.pos[c])
-        self.actor.do_command(charge, r, c)
+        self.actor.do_command(self.charge, r, c)
         if robot != NIL:
-            self.actor.do_command(take, robot, c)
+            self.actor.do_command(self.take, robot, c)
 
     def Search_Method1(self, r, o):
         if self.state.pos[o] == UNK:
             toBePerceived = NIL
-            for l in rv.LOCATIONS:
+            for l in self.rv.LOCATIONS:
                 if self.state.view[l] == False:
                     toBePerceived = l
                     break
 
             if toBePerceived != NIL:
                 self.actor.do_task('moveTo', r, toBePerceived)
-                self.actor.do_command(perceive, toBePerceived)
+                self.actor.do_command(self.perceive, toBePerceived)
                 if self.state.pos[o] == toBePerceived:
                     if self.state.load[r] != NIL:
-                        self.actor.do_command(put, r, self.state.load[r])
-                    self.actor.do_command(take, r, o)
+                        self.actor.do_command(self.put, r, self.state.load[r])
+                    self.actor.do_command(self.take, r, o)
                 else:
                     self.actor.do_task('search', r, o)
             else:
                 gui.Simulate("Failed to search %s" %o)
-                self.actor.do_command(fail)
+                self.actor.do_command(self.fail)
         else:
             gui.Simulate("Position of %s is already known\n" %o)
 
     def Search_Method2(self, r, o):
         if self.state.pos[o] == UNK:
             toBePerceived = NIL
-            for l in rv.LOCATIONS:
+            for l in self.rv.LOCATIONS:
                 if self.state.view[l] == False:
                     toBePerceived = l
                     break
@@ -333,16 +333,16 @@ class Fetch():
             if toBePerceived != NIL:
                 self.actor.do_task('recharge', r, 'c1') # is this allowed?
                 self.actor.do_task('moveTo', r, toBePerceived)
-                self.actor.do_command(perceive, toBePerceived)
+                self.actor.do_command(self.perceive, toBePerceived)
                 if self.state.pos[o] == toBePerceived:
                     if self.state.load[r] != NIL:
-                        self.actor.do_command(put, r, self.state.load[r])
-                    self.actor.do_command(take, r, o)
+                        self.actor.do_command(self.put, r, self.state.load[r])
+                    self.actor.do_command(self.take, r, o)
                 else:
                     self.actor.do_task('search', r, o)
             else:
                 gui.Simulate("Failed to search %s" %o)
-                self.actor.do_command(fail)
+                self.actor.do_command(self.fail)
         else:
             gui.Simulate("Position of %s is already known\n" %o)
 
@@ -354,8 +354,8 @@ class Fetch():
             if self.state.loc[r] != pos_o:
                 self.actor.do_task('moveTo', r, pos_o)
             if self.state.load[r] != NIL:
-                self.actor.do_command(put, r, self.state.load[r])
-            self.actor.do_command(take, r, o)
+                self.actor.do_command(self.put, r, self.state.load[r])
+            self.actor.do_command(self.take, r, o)
 
     def Fetch_Method2(self, r, o):
         pos_o = self.state.pos[o]
@@ -366,29 +366,29 @@ class Fetch():
                 self.actor.do_task('recharge', r, 'c1')
                 self.actor.do_task('moveTo', r, pos_o)
             if self.state.load[r] != NIL:
-                self.actor.do_command(put, r, self.state.load[r])
-            self.actor.do_command(take, r, o)
+                self.actor.do_command(self.put, r, self.state.load[r])
+            self.actor.do_command(self.take, r, o)
 
     def Emergency_Method1(self, r, l, i):
         if self.state.emergencyHandling[r] == False:
             self.state.emergencyHandling[r] = True
             load_r = self.state.load[r]
             if load_r != NIL:
-                self.actor.do_command(put, r, load_r)
+                self.actor.do_command(self.put, r, load_r)
             l1 = self.state.loc[r]
             dist = CR_GETDISTANCE(l1, l)
-            self.actor.do_command(moveToEmergency, r, l1, l, dist)
-            self.actor.do_command(addressEmergency, r, l, i)
+            self.actor.do_command(self.moveToEmergency, r, l1, l, dist)
+            self.actor.do_command(self.addressEmergency, r, l, i)
         else:
             gui.Simulate("%r is already busy handling another emergency\n" %r)
-            self.actor.do_command(fail)
+            self.actor.do_command(self.fail)
 
     def NonEmergencyMove_Method1(self, r, l1, l2, dist):
         if self.state.emergencyHandling[r] == False:
-            self.actor.do_command(move, r, l1, l2, dist)
+            self.actor.do_command(self.move, r, l1, l2, dist)
         else:
-            self.actor.do_command(wait, r)
-            self.actor.do_command(move, r, l1, l2, dist)
+            self.actor.do_command(self.wait, r)
+            self.actor.do_command(self.move, r, l1, l2, dist)
 
     def MoveTo_Method1(self, r, l):
         x = self.state.loc[r]
@@ -398,7 +398,7 @@ class Fetch():
         else:
             self.state.charge[r] = 0
             gui.Simulate("Robot %s does not have enough charge to move from %d to %d\n" %(r, x, l))
-            self.actor.do_command(fail)
+            self.actor.do_command(self.fail)
 
     def Heuristic1(self, args):
         return float("inf")
@@ -427,7 +427,7 @@ class FetchEnv():
                 return SUCCESS
         elif cmd == 'wait':
             if GLOBALS.GetPlanningMode() == True:
-                for r in rv.ROBOTS:
+                for r in self.rv.ROBOTS:
                     self.state.emergencyHandling[r] = False
         else:
             p = self.commandProb[cmd]
@@ -445,7 +445,7 @@ class FetchEnv():
             if self.state.view[loc] == False:
                 total += 1
 
-        for o in rv.OBJECTS:
+        for o in self.rv.OBJECTS:
             prob = {}
             if self.state.pos[o] == UNK:
                 for l in self.state.view:

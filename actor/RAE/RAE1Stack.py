@@ -5,6 +5,7 @@ from utility import Utility
 import GLOBALS
 import random
 import numpy
+import threading
 
 class MethodInstance():
     def __init__(self, m):
@@ -56,7 +57,7 @@ class DepthLimitReached(Exception):
 
 
 class RAE1():
-    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods):
+    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands):
         self.raeLocals = rL_APE() # variables that are local to every stack
         """ Initialize the local variables of a stack used during acting """
         self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
@@ -85,6 +86,7 @@ class RAE1():
         self.verbosity = v
         self.state = state
         self.methods = methods
+        self.commands = commands
 
     def GetMethodInstances(self, methods, tArgs):
     
@@ -95,6 +97,7 @@ class RAE1():
             q = m.__code__.co_argcount
             mArgs = m.__code__.co_varnames
             
+            print("RAE1Stack : taskargs ", tArgs)
             if len(tArgs) < q - 1:
                 # some parameters are uninstantiated
                 print(m.__name__)
@@ -156,7 +159,7 @@ class RAE1():
         if self.verbosity > 0:
             print("\n---- RAE: Done with stack %d\n" %self.raeLocals.GetStackId())
 
-        EndCriticalRegion()
+        self.ipcArgs.EndCriticalRegion()
 
         if retcode == 'Failure':
             self.raeLocals.SetUtility(Utility('Failure'))
@@ -575,7 +578,7 @@ class RAE1():
             raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
 
     def beginCommand(self, cmd, cmdRet, cmdArgs):
-        cmdPtr = GetCommand(cmd)
+        cmdPtr = self.GetCommand(cmd)
         cmdRet['state'] = cmdPtr(*cmdArgs)
 
     def do_command(self, cmd, *cmdArgs):
@@ -585,16 +588,16 @@ class RAE1():
         if GLOBALS.GetPlanningMode() == True:
             planLocals.IncreaseDepthBy1()
             if GLOBALS.GetPlanner() == "UPOM":
-                DoCommand_UPOM(cmd, cmdArgs)
+                self.DoCommand_UPOM(cmd, cmdArgs)
             else:
                 nextNode = planLocals.GetSearchTreeNode().GetNext()
                 if nextNode == None:
-                    return DoCommand_RAEPlan(cmd, cmdArgs)
+                    return self.DoCommand_RAEPlan(cmd, cmdArgs)
                 else:
                     assert(nextNode.GetType() == "command")
-                    return FollowSearchTree_command(cmd, cmdArgs, nextNode)
+                    return self.FollowSearchTree_command(cmd, cmdArgs, nextNode)
         else:
-            return DoCommand_Acting(cmd, cmdArgs)
+            return self.DoCommand_Acting(cmd, cmdArgs)
 
     def GetNewId(self):
         self.GetNewIdNum += 1
@@ -621,11 +624,11 @@ class RAE1():
 
         domain = self.domain
         if domain != 'SDN_dev':
-            cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
+            cmdThread = threading.Thread(target=self.beginCommand, args = [cmd, cmdRet, cmdArgs])
             cmdThread.start()
         else:
             newCmdId = GetNewId()
-            AddToCommandStackTable(newCmdId, self.raeLocals.GetStackId())
+            self.AddToCommandStackTable(newCmdId, self.raeLocals.GetStackId())
             cmdExecQueue.put([newCmdId, cmd, cmdArgs])
 
         if cmd.__name__ in self.raeLocals.GetCommandCount():
@@ -633,20 +636,20 @@ class RAE1():
         else:
             self.raeLocals.GetCommandCount()[cmd.__name__] = 1
 
-        EndCriticalRegion()
-        BeginCriticalRegion(self.raeLocals.GetStackId())
+        self.ipcArgs.EndCriticalRegion()
+        self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
 
         if domain != 'SDN_dev':
             while (cmdRet['state'] == 'running'):
                 if self.verbosity > 0:
                     print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
 
-                EndCriticalRegion()
-                BeginCriticalRegion(self.raeLocals.GetStackId())
+                self.ipcArgs.EndCriticalRegion()
+                self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
         else:
             while(self.cmdStatusStack[self.raeLocals.GetStackId()] == None):
-                EndCriticalRegion()
-                BeginCriticalRegion(self.raeLocals.GetStackId())
+                self.ipcArgs.EndCriticalRegion()
+                self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
 
         if self.verbosity > 0:
             print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
@@ -710,18 +713,18 @@ class RAE1():
         #cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
         #cmdThread.start()
 
-        beginCommand(cmd, cmdRet, cmdArgs)
+        self.beginCommand(cmd, cmdRet, cmdArgs)
         #if GLOBALS.GetPlanningMode() == False:
-        #    EndCriticalRegion()
-        #    BeginCriticalRegion(planLocals.GetStackId())
+        #    self.ipcArgs.EndCriticalRegion()
+        #    self.ipcArgs.BeginCriticalRegion(planLocals.GetStackId())
 
         #while (cmdRet['state'] == 'running'):
         #    if self.verbosity > 0:
         #        print_stack_size(planLocals.GetStackId(), path)
         #        print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
         #    if GLOBALS.GetPlanningMode() == False:
-        #        EndCriticalRegion()
-        #        BeginCriticalRegion(planLocals.GetStackId())
+        #        self.ipcArgs.EndCriticalRegion()
+        #        self.ipcArgs.BeginCriticalRegion(planLocals.GetStackId())
 
         if self.verbosity > 0:
             print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
@@ -743,6 +746,13 @@ class RAE1():
             i += 1 
         return -1
     
+    def GetCommand(self, cmd):
+        """
+            Get the actual operational model of the command 
+        """
+        name = cmd.__name__
+        return self.commands[name]
+
     def GetCost(self, cmd, cmdArgs):
         assert(cmd.__name__ != "fail")
         if self.domain == "SD" and cmd.__name__ == "helpRobot":

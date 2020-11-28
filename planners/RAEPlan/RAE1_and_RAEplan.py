@@ -23,7 +23,7 @@ from helper_functions import *
 
 #import colorama
 from timer import globalTimer, DURATION
-from dataStructures import rL_PLAN
+
 from APE_stack import print_entire_stack, print_stack_size
 
 import stateSpaceUCT as ssu
