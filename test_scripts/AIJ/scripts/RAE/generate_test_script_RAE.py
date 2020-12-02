@@ -4,7 +4,8 @@ import os
 import argparse
 
 #resultFolder="AIJ2020"
-resultFolder="SDN"
+#resultFolder="SDN"
+resultFolder="SDN_IAAI_21"
 
 def GetProblemsCR():
     l = list(range(1000, 1124))
@@ -46,9 +47,9 @@ def GetProblemsEE():
     names = ["problem{}".format(item) for item in p1]
     return names
 
-def GetProblemsSDN():
-    l = list(range(1, 100))
-    random.seed(625)
+def GetProblemsSDN(c):
+    l = list(range(c*100+1, c*100+100))
+    random.seed(625*c + 23)
     random.shuffle(l)
     p1 = l[0:50]
     names = ["problem{}".format(item) for item in p1]
@@ -70,7 +71,7 @@ def writeList(name, l, file):
         file.write("\"{}\" \n".format(item))
     file.write(")\n")
 
-def writeProblems(name, file, domain):
+def writeProblems(name, file, domain, c):
     if domain == "CR":
         l = GetProblemsCR()       
     elif domain == "SR":
@@ -84,18 +85,20 @@ def writeProblems(name, file, domain):
     elif domain == "EE":
         l = GetProblemsEE()
     elif domain == "SDN":
-        l = GetProblemsSDN()
+        l = GetProblemsSDN(c)
     writeList(name, l, file)
 
-def GenerateTestScriptRAE(domain):
+def GenerateTestScriptRAE(domain, c):
     fname = '../../../../autoGen_scripts/{}/test_RAE_{}.bash'.format(domain, domain)
     
+    if domain == "SDN":
+        fname = fname = '../../../../autoGen_scripts/{}/test_RAE_{}_class{}.bash'.format(domain, domain, c)
     file = open(fname,"w") 
     file.write("#!/bin/sh\n")
     file.write("domain=\"{}\"\n".format(domain))
     file.write("runs={}\n".format(runs))
 
-    writeProblems("P", file, domain)
+    writeProblems("P", file, domain, c)
 
     file.write("for problem in ${P[@]}\n")
     file.write("do\n")
@@ -123,7 +126,7 @@ def GenerateTestScriptRAE(domain):
 
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
     file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', usePlanner=None)\"\n")
-    
+
     str1 = "            fname=\"../../../raeResults/" + resultFolder + "/${domain}_v_journal/RAE.txt\"\n"
     file.write(str1)
     file.write("            echo \"Time test of $domain $problem\" >> $fname\n")
@@ -144,8 +147,12 @@ if __name__=="__main__":
                            type=str, required=True)
     argparser.add_argument("--count", help="Number of runs for each combination of parameters for a problem ",
                            type=int, required=True)
+    argparser.add_argument("--c", help="0,1,2 for SDN? ",
+                           type=int, required=True)
     args = argparser.parse_args()
 
     global runs
     runs = args.count
-    GenerateTestScriptRAE(args.domain)
+    if args.domain == "SDN":
+        resultFolder += "/class{}".format(args.c)
+    GenerateTestScriptRAE(args.domain, args.c)

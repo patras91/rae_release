@@ -810,7 +810,7 @@ def m_fix_sdn_controller_fallback(component_id, config, context):
                     do_shrink_hosttable = True
         if 'switch_table_size' in stat_obj:
             # TODO: if missing from state, can be populated lazily (here), via a probing action ???
-            if ('value' not in stat_obj['switch_table_size']
+            if ('value' not in stat_obj['switch_table_size'] or stat_obj['switch_table_size']['value'] == None
                     or 'thresh_exceeded_fn' not in stat_obj['switch_table_size']):
                 log_err('could not find "value" or "thresh_exceeded_fn" in state.stats["'
                         + component_id + '"]["switch_table_size"]')

@@ -5,7 +5,8 @@ import argparse
 
 #resultFolder="ICAPS2020"
 #resultFolder="AIJ2020"
-resultFolder="SDN_USENIX_20"
+#resultFolder="SDN_USENIX_20"
+resultFolder="SDN_IAAI_21"
 
 def GetProblemsCR(part):
     l = list(range(1000, 1124))
@@ -57,9 +58,9 @@ def GetProblemsEE(part):
     names = ["problem{}".format(item) for item in p2]
     return names
 
-def GetProblemsSDN(part):
-    l = list(range(1, 100))
-    random.seed(625)
+def GetProblemsSDN(part, c):
+    l = list(range(c*100+1, c*100+100))
+    random.seed(625*c + 23)
     random.shuffle(l)
     p1 = l[0:50]
     begin = (part - 1)*5
@@ -188,7 +189,7 @@ def writeList(name, l, file):
         file.write("\"{}\" \n".format(item))
     file.write(")\n")
 
-def writeProblems(name, file, part, domain):
+def writeProblems(name, file, part, domain, c=None):
     if domain == "CR":
         l = GetProblemsCR(part)
     elif domain == "SR":
@@ -202,22 +203,26 @@ def writeProblems(name, file, part, domain):
     elif domain == "EE":
         l = GetProblemsEE(part)
     elif domain == "SDN":
-        l = GetProblemsSDN(part)
+        l = GetProblemsSDN(part, c)
     writeList(name, l, file)
 
-def GenerateTestScriptRAEplan(planner, domain, depth, part, opt, heuristic):
-    fname = '../../../../autoGen_scripts/{}/test_{}_{}_{}_part_{}_{}.bash'.format(domain, domain, planner, depth, part, opt)
+def GenerateTestScriptRAEplan(planner, domain, depth, part, opt, heuristic, c=None):
+    fname = '../../../../autoGen_scripts/{}/test_{}_{}_{}_part_{}_{}'.format(domain, domain, planner, depth, part, opt)
     if heuristic == "zero" and depth == "lim":
-        fname = '../../../../autoGen_scripts/{}/test_{}_{}_{}_part_{}_{}_h_h0.bash'.format(domain, domain, planner, depth, part, opt)
+        fname += '_h_h0.bash'
     elif heuristic == "learnH" and depth == "lim":
-        fname = '../../../../autoGen_scripts/{}/test_{}_{}_{}_part_{}_{}_h_learnH.bash'.format(domain, domain, planner, depth, part, opt)
+        fname += '_h_learnH.bash'
+    elif domain == "SDN":
+        fname += '_class{}.bash'.format(c)
+    else:
+        fname += '.bash'
     
     file = open(fname,"w") 
     file.write("#!/bin/sh\n")
     file.write("domain=\"{}\"\n".format(domain))
     file.write("runs={}\n".format(runs))
 
-    writeProblems("P", file, part, domain)
+    writeProblems("P", file, part, domain, c)
 
     if planner == "RAEPlan" and depth == "max":
         writeList("B", b_max_depth[domain], file)
@@ -369,6 +374,8 @@ if __name__=="__main__":
                            type=str, required=True, default="efficiency")
     argparser.add_argument("--heuristic", help="zero or DS or learnH? ",
                            type=str, required=True, default="zero")
+    argparser.add_argument("--c", help="0,1,2 for SDN? ",
+                           type=int, required=True)
     args = argparser.parse_args()
 
     global runs
@@ -381,12 +388,15 @@ if __name__=="__main__":
         print("Invalid utility")
         exit(1)
 
-    for domain in ["SDN"]: 
     #for domain in [args.domain]:
     #for domain in ["CR", "EE", "SR", "SD", "OF"]: 
-        for optz in ["eff", "sr", "res"]: # "sr"
-            for planner in ["UPOM"]: #"SLATE"
-                for depth in ["max"]:
-                    for heuristic in ["DS"]: #['zero', 'DS', 'learnH']:
-                        for part in range(1, 11):
-                            GenerateTestScriptRAEplan(planner, domain, depth, part, optz, heuristic)
+    for domain in ["SDN"]:
+        for  c in [0,1,2]:
+            if domain == "SDN":
+                resultFolder = "SDN_IAAI_21/class{}".format(c)
+            for optz in ["eff", "sr", "res"]: # "sr"
+                for planner in ["UPOM"]: #"SLATE"
+                    for depth in ["max"]:
+                        for heuristic in ["DS"]: #['zero', 'DS', 'learnH']:
+                            for part in range(1, 11):
+                                GenerateTestScriptRAEplan(planner, domain, depth, part, optz, heuristic, c)
