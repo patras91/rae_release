@@ -13,11 +13,11 @@ import GLOBALS
 import numpy
 
 class Fetch():
-    def __init__(self, problem, planner, plannerParams, showOutputs, v):
+    def __init__(self, problem, planner, plannerParams, v):
         self.state = State()
         self.rv = RV()
         self.env = FetchEnv(self.state)
-        self.actor = rae('fetch', problem, planner, plannerParams, showOutputs, v, self.state, self.rv)
+        self.actor = rae('fetch', problem, planner, plannerParams, v, self.state, self.rv)
 
         self.actor.declare_commands([self.put, self.take, self.perceive, self.charge, self.move, self.moveToEmergency, self.addressEmergency, self.wait, self.fail])
 
@@ -43,7 +43,7 @@ class Fetch():
             self.actor.declare_heuristic('fetch', self.Heuristic2)
 
     # Using Dijsktra's self.actororithm
-    def CR_GETDISTANCE(self, l0, l1):
+    def GETDISTANCE(self, l0, l1):
         visitedDistances = {l0: 0}
         locs = list(self.rv.LOCATIONS)
 
@@ -62,7 +62,7 @@ class Fetch():
             locs.remove(min_loc)
             current_dist = visitedDistances[min_loc]
 
-            for l in self.rvEDGES[min_loc]:
+            for l in self.rv.EDGES[min_loc]:
                 dist = current_dist + 1
                 if l not in visitedDistances or dist < visitedDistances[l]:
                     visitedDistances[l] = dist
@@ -376,7 +376,7 @@ class Fetch():
             if load_r != NIL:
                 self.actor.do_command(self.put, r, load_r)
             l1 = self.state.loc[r]
-            dist = CR_GETDISTANCE(l1, l)
+            dist = self.GETDISTANCE(l1, l)
             self.actor.do_command(self.moveToEmergency, r, l1, l, dist)
             self.actor.do_command(self.addressEmergency, r, l, i)
         else:
@@ -392,7 +392,7 @@ class Fetch():
 
     def MoveTo_Method1(self, r, l):
         x = self.state.loc[r]
-        dist = CR_GETDISTANCE(x, l)
+        dist = self.GETDISTANCE(x, l)
         if self.state.charge[r] >= dist or self.state.load[r] == 'c1':
             self.actor.do_task('nonEmergencyMove', r, x, l, dist)
         else:

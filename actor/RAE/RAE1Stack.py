@@ -6,6 +6,8 @@ import GLOBALS
 import random
 import numpy
 import threading
+from timer import globalTimer, DURATION
+import types
 
 class MethodInstance():
     def __init__(self, m):
@@ -180,8 +182,9 @@ class RAE1():
 
     def GetCandidateByPlanning(self, candidates, task, taskArgs):
         """
-        RAE calls this functions when it wants suggestions from RAEplan
+        RAE calls this functions when it wants suggestions from a planner
         """
+        print("Needs planning")
         if self.verbosity > 0:
             #print(colorama.Fore.RED, "Starting simulation for stack")
             print("Starting simulation for stack")
@@ -384,8 +387,8 @@ class RAE1():
             retcode = self.CallMethod_OperationalModel(self.raeLocals.GetStackId(), m, taskArgs)
             
             if m.cost > 0:
-                self.raeLocals.SetEfficiency(AddEfficiency(self.raeLocals.GetEfficiency(), 1/m.cost))
-                self.raeLocals.SetUtility(GetUtilityforMethod(m.cost) + self.raeLocals.GetUtility())
+                self.raeLocals.SetEfficiency(self.AddEfficiency(self.raeLocals.GetEfficiency(), 1/m.cost))
+                self.raeLocals.SetUtility(self.GetUtilityforMethod(m.cost) + self.raeLocals.GetUtility())
         
             if candidates == []:
                 break
@@ -665,7 +668,7 @@ class RAE1():
 
         cmdNode.SetLabelAndType(cmd, 'command', cmdArgs)
 
-        cmdNode.SetNextState(state.copy())
+        cmdNode.SetNextState(self.state.copy())
 
         if self.verbosity > 1:
             print('Command {}{} returned {}'.format(cmd.__name__, cmdArgs, retcode))
@@ -673,12 +676,12 @@ class RAE1():
             PrintState()
 
         if cmd.__name__ == "fail" or retcode == 'Failure':
-            util1 = GetFailureUtility(cmd, cmdArgs)
+            util1 = self.GetFailureUtility(cmd, cmdArgs)
             self.raeLocals.AddToPlanningUtilityList('fail')
-            eff1 = GetFailureEfficiency(cmd, cmdArgs)
+            eff1 = self.GetFailureEfficiency(cmd, cmdArgs)
         else:
-            util1 = GetUtility(cmd, cmdArgs)
-            eff1 = GetEfficiency(cmd, cmdArgs)
+            util1 = self.GetUtility(cmd, cmdArgs)
+            eff1 = self.GetEfficiency(cmd, cmdArgs)
             wait = False
 
             if self.domain == "OF": # to avoid overflow in output files
@@ -698,7 +701,7 @@ class RAE1():
 
         util2 = self.raeLocals.GetUtility()
         self.raeLocals.SetUtility(util1 + util2)
-        self.raeLocals.SetEfficiency(AddEfficiency(eff1, self.raeLocals.GetEfficiency()))
+        self.raeLocals.SetEfficiency(self.AddEfficiency(eff1, self.raeLocals.GetEfficiency()))
 
         if retcode == 'Failure':
             raise Failed_command('{}{}'.format(cmd.__name__, cmdArgs))

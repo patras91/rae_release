@@ -11,7 +11,7 @@ import multiprocessing
 
 import math
 
-import types
+
 import sys, pprint
 import os
 import time
@@ -22,7 +22,7 @@ from state import GetState, PrintState, RestoreState, EvaluateParameters
 from helper_functions import *
 
 #import colorama
-from timer import globalTimer, DURATION
+
 
 from APE_stack import print_entire_stack, print_stack_size
 

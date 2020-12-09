@@ -8,11 +8,14 @@ import GLOBALS
 
 globalQueue = Queue()
 
-class GUI():
+class GUIParams():
     def __init__(self, domain, showOutputs):
         self.domain = domain
         self.showOutputs = showOutputs
-        if showOutputs == "on":
+
+class GUI():
+    def __init__(self):
+        if gParams.showOutputs == "on":
             self.root = Tk()
             self.text = Text(self.root)
             self.text.pack()
@@ -20,7 +23,7 @@ class GUI():
             self.root.mainloop()
 
     def simulate(self):
-        if self.domain == 'IP_':
+        if gParams.domain == 'IP_':
             if globalQueue.empty() == False:
                 t = globalQueue.get()
                 tdraw.simulate(t)
@@ -32,15 +35,14 @@ class GUI():
             self.root.after(1, self.simulate)
 
 def Simulate(*t):
-    global g
-    if (GLOBALS.GetPlanningMode() == True or g.showOutputs == 'off'):
+    if (GLOBALS.GetPlanningMode() == True or gParams.showOutputs == "off"):
         return
-    elif GLOBALS.GetDomain() == "AIRS" and g.showOutputs == "on":
+    elif gParams.domain == "AIRS" and gParams.showOutputs == "on":
         print(t)
     globalQueue.put(t)
 
 def start(domain, showOutputs):
     if showOutputs == 'on':
-        global g
-        g = GUI(domain, showOutputs)
-        print("GUI is initialized ...")
+        global gParams
+        gParams = GUIParams(domain, showOutputs)
+        GUI()

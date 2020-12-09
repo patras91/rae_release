@@ -38,7 +38,7 @@ def testRAEandPlanner(domain, problem, planner, plannerParams, showOutputs, v):
     :param planner: None, APEPlan, RAEPlan, UPOM, StateSpaceUCT
     '''
     if domain == "fetch":
-        domainInstance = Fetch(problem, planner, plannerParams, showOutputs, v)
+        domainInstance = Fetch(problem, planner, plannerParams, v)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared between RAE, RAEplan and UPOM
     try:

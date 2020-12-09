@@ -40,8 +40,7 @@ class EnvArgs():
 #****************************************************************
 
 class rae():
-    def __init__(self, domain, problem, planner, plannerParams, showOutputs, v, state, rv):
-        self.showOutputs = showOutputs
+    def __init__(self, domain, problem, planner, plannerParams, v, state, rv):
         self.verbosity = v
 
         self.taskQueue = mp.Queue() # where the tasks come in
@@ -122,7 +121,7 @@ class rae():
     def noNewTasks(self):
         if self.domain == 'AIRS_dev':
             return False
-        for c in self.probleModule.tasks:
+        for c in self.problemModule.tasks:
             if c > self.newTasksCounter:
                 return False
         return True
@@ -309,7 +308,7 @@ class rae():
                         lastActiveStack = res
                         self.ipcArgs.sem[res].release()
                     else:
-                        if noNewTasks():
+                        if self.noNewTasks():
                             self.envArgs.exit = True
                             self.envArgs.sem.release()
                             break
@@ -317,11 +316,11 @@ class rae():
                     self.ipcArgs.sem[0].release()
 
             WriteTrainingData()
-        if self.showOutputs == 'on':
+        if self.verbosity > 0:
             print("----Done with RAE----\n")
-            PrintResult(taskInfo)
+            self.PrintResult(taskInfo)
         else:
-            PrintResultSummaryVersion2(taskInfo)
+            self.PrintResultSummaryVersion2(taskInfo)
             #globalTimer.Callibrate(startTime)
 
         return taskInfo # for unit tests
