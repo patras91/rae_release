@@ -1,6 +1,16 @@
 __author__ = 'patras'
 from opPlanner import OpPlanner
 from dataStructures import rL_PLAN
+from timer import globalTimer
+import rTree
+from utility import Utility
+from state import RestoreState
+
+class Failed_Rollout(Exception):
+    pass
+
+class DepthLimitReached(Exception):
+    pass
 
 class UPOMChoice(OpPlanner):
     
@@ -8,8 +18,9 @@ class UPOMChoice(OpPlanner):
         self.n_ro = l[0]
         self.maxSearchDepth = l[1]
         self.planLocals = rL_PLAN()
+        self.name = "UPOM"
 
-    def UPOM_Choice(self, task, planArgs):
+    def UPOMChoiceMain(self, task, planArgs):
 
         #planLocals is the set of variables local to this call to RAEplanChoice but used throughout
         self.planLocals.SetStackId(planArgs.GetStackId()) # Right now, the stack id is always set to 1 and is not important.
@@ -27,14 +38,10 @@ class UPOMChoice(OpPlanner):
         self.planLocals.SetSearchTreeRoot(searchTreeRoot)
         self.planLocals.SetTaskToRefine(-1)
             
-        InitializePlanningTree() 
-
-        if self.verbosity > 1:
-            print('Initial state is:')
-            PrintState()
+        self.InitializePlanningTree() 
 
         i = 1
-        while (i <= GLOBALS.Get_nRO()): # all rollouts not explored
+        while (i <= self.n_ro): # all rollouts not explored
             try:
                 self.planLocals.SetDepth(0)
                 self.planLocals.SetRefDepth(float("inf"))
@@ -58,10 +65,6 @@ class UPOMChoice(OpPlanner):
                 pass
             i += 1
 
-        if self.verbosity > 1:
-            print('Final state is:')
-            PrintState()
-
         taskToRefine = self.planLocals.GetTaskToRefine()
         if GLOBALS.GetDataGenerationMode() == "learnH":
             taskToRefine.UpdateAllUtilities()
@@ -73,8 +76,7 @@ class UPOMChoice(OpPlanner):
         #taskToRefine.PrintMethodsAndUtilities()
         return GetBestTillNow()
 
-
-    def DoTask_UPOM(self, task, taskArgs):
+    def DoTaskUPOM(self, task, taskArgs):
         searchTreeNode = self.planLocals.GetSearchTreeNode()
         
         if searchTreeNode.children == []:
@@ -166,7 +168,7 @@ class UPOMChoice(OpPlanner):
         elif depthLimReached:
             raise DepthLimitReached()
 
-    def DoCommand_UPOM(self, cmd, cmdArgs):
+    def DoCommandUPOM(self, cmd, cmdArgs):
 
         searchTreeNode = self.planLocals.GetSearchTreeNode()
         #self.planLocals.GetSearchTreeRoot().PrintUsingGraphviz()

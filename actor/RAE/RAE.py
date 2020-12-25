@@ -1,19 +1,15 @@
 __author__ = 'patras'
 #from RAE1_and_RAEplan import ipcArgs, envArgs, RAEplan_Choice, UPOM_Choice, GetBestTillNow
 from RAE1Stack import RAE1
-from dataStructures import PlanArgs
-from timer import globalTimer, SetMode
+from timer import globalTimer
 from state import RemoveLocksFromState, RestoreState
 import threading
 import GLOBALS
 import os
 from learningData import WriteTrainingData
-import signal
 import sys
 import multiprocessing as mp
-from UPOM import UPOMChoice
-from RAEPlan import RAEPlanChoice
-from APEPlan import APEPlanChoice
+
 
 #****************************************************************
 #To control Progress of each stack step by step
@@ -62,24 +58,11 @@ class rae():
         self.state = state # only used via RAE1
         self.rv = rv
 
-        self.InitializePlanner(planner, plannerParams)
         self.InitializeDomain(domain, problem)
 
         self.rae1Instances = {} # dictionary mapping stack ids to the rae1 objects
-
-    def InitializePlanner(self, p, params):
-        print(params)
-        if p == "APEPlan":
-            self.planner = APEPlanChoice(params)
-        elif p == "RAEPlan":
-            self.planner = RAEPlanChoice(params)
-        elif p == "UPOM":
-            self.planner = UPOMChoice(params)
-        elif p == "None" or p == None:
-            self.planner = None 
-        else:
-            print("Invalid planner. Please select from [APEPlan, RAEPlan, UPOM, None]")
-            exit()
+        self.planner = planner
+        self.plannerParams = plannerParams
 
     def InitializeDomain(self, domain, problem, startState=None):
         '''
@@ -154,7 +137,7 @@ class rae():
 
     def CreateNewStack(self, taskInfo, raeArgs):
         stackid = raeArgs.stack
-        rae1 = RAE1(raeArgs.task, raeArgs, self.domain, self.ipcArgs, self.cmdStatusStack, self.verbosity, self.state, self.methods, self.commands)
+        rae1 = RAE1(raeArgs.task, raeArgs, self.domain, self.ipcArgs, self.cmdStatusStack, self.verbosity, self.state, self.methods, self.commands, self.planner, self.plannerParams)
         self.rae1Instances[stackid] = rae1
         retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = rae1.RAE1Main(raeArgs.task, raeArgs)
         taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)
@@ -325,67 +308,7 @@ class rae():
 
         return taskInfo # for unit tests
 
-    def HandleTermination(self, signalId, frame):
-        methodUtil, planningTime = GetBestTillNow()
-        method, util = methodUtil
-        HandleTermination.q.put((method, util, planningTime))
-        sys.exit()
-    HandleTermination.q = None 
 
-    def CallPlanner(self, pArgs, queue):
-        """ Calls the planner according to what the user decided."""
-        if self.planner.name == "UPOM":
-
-            HandleTermination.q = queue
-            signal.signal(signal.SIGTERM, HandleTermination)
-            
-            if GLOBALS.GetDoIterativeDeepening() == True:
-                d = 5
-                while(d <= GLOBALS.GetMaxDepth()):
-                    pArgs.SetDepth(d)
-                    methodUtil, planningTime = UPOM_Choice(pArgs.GetTask(), pArgs)
-                    method, util = methodUtil
-                    d += 5
-            else:
-                d = GLOBALS.GetMaxDepth()
-                pArgs.SetDepth(d)
-                methodUtil, planningTime = UPOM_Choice(pArgs.GetTask(), pArgs)
-                method, util = methodUtil
-
-        elif self.planner.name == "RAEPlan":
-
-            pArgs.SetDepth(GLOBALS.GetMaxDepth())
-            methodUtil, planningTime = RAEplan_Choice(pArgs.GetTask(), pArgs)
-            method, util = methodUtil
-
-        else:
-            print("Invalid planner")
-
-
-        queue.put((method, util, planningTime))
-
-    def PlannerMain(self, task, taskArgs, queue, candidateMethods, state, aTree, curUtil):
-
-        SetMode('Counter') #Counter mode in simulation
-        GLOBALS.SetPlanningMode(True)
-        #RemoveLocksFromState()
-
-        pArgs = PlanArgs()
-
-        pArgs.SetStackId(1) # Simulating one stack now
-        # TODO: Simulate multiple stacks in future
-        
-        pArgs.SetTask(task)
-        pArgs.SetTaskArgs(taskArgs)
-        pArgs.SetCandidates(candidateMethods)
-
-        pArgs.SetState(state)
-        pArgs.SetActingTree(aTree)
-        pArgs.SetCurUtil(curUtil)
-
-        self.CallPlanner(pArgs, queue)
-
-        WriteTrainingData() # data to be used for learning
 
     def do_task(self, task, *taskArgs):
         # the current active stack do_task

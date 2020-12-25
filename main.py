@@ -12,10 +12,12 @@ for d in ["UnitTests", "nav", "fetch", "explore", "rescue", "deliver", "AIRS"]:
 
 sys.path.append('./actor/RAE/')
 sys.path.append('./actor/APE/')
+
 sys.path.append('./planners/')
 sys.path.append('./planners/APEPlan/')
 sys.path.append('./planners/RAEPlan/')
 sys.path.append('./planners/UPOM/')
+
 sys.path.append('./planners/StateSpaceUCT/')
 sys.path.append('./planners/shared/')
 

@@ -8,6 +8,10 @@ import numpy
 import threading
 from timer import globalTimer, DURATION
 import types
+from UPOM import UPOMChoice
+from RAEPlan import RAEPlanChoice
+from APEPlan import APEPlanChoice
+import multiprocessing
 
 class MethodInstance():
     def __init__(self, m):
@@ -42,9 +46,6 @@ class MethodInstance():
 class Failed_command(Exception):
     pass
 
-class Failed_Rollout(Exception):
-    pass
-
 class Failed_task(Exception):
     pass
 
@@ -54,12 +55,8 @@ class Incorrect_return_code(Exception):
 class Expanded_Search_Tree_Node(Exception):
     pass
 
-class DepthLimitReached(Exception):
-    pass
-
-
 class RAE1():
-    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands):
+    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands, planner, plannerParams):
         self.raeLocals = rL_APE() # variables that are local to every stack
         """ Initialize the local variables of a stack used during acting """
         self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
@@ -89,6 +86,22 @@ class RAE1():
         self.state = state
         self.methods = methods
         self.commands = commands
+
+        self.InitializePlanner(planner, plannerParams)
+
+    def InitializePlanner(self, p, params):
+        print(params)
+        if p == "APEPlan":
+            self.planner = APEPlanChoice(params)
+        elif p == "RAEPlan":
+            self.planner = RAEPlanChoice(params)
+        elif p == "UPOM":
+            self.planner = UPOMChoice(params)
+        elif p == "None" or p == None:
+            self.planner = None 
+        else:
+            print("Invalid planner. Please select from [APEPlan, RAEPlan, UPOM, None]")
+            exit()
 
     def GetMethodInstances(self, methods, tArgs):
     
@@ -130,7 +143,7 @@ class RAE1():
         """
 
         if self.verbosity > 0:
-            print('\n---- RAE: Create stack {}, task {}{}\n'.format(raeLocals.GetStackId(), task, raeArgs.taskArgs))
+            print('\n---- RAE: Create stack {}, task {}{}\n'.format(self.raeLocals.GetStackId(), task, raeArgs.taskArgs))
 
         self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
 
@@ -201,7 +214,7 @@ class RAE1():
 
         #actingTree.PrintUsingGraphviz()
         p = multiprocessing.Process(
-            target=RAE.PlannerMain, 
+            target=self.planner.Main, 
             args=[self.raeLocals.GetMainTask(), 
             self.raeLocals.GetMainTaskArgs(), 
             queue, 
@@ -337,17 +350,17 @@ class RAE1():
         return (candidates[0], candidates[1:])
 
     def choose_candidate(self, candidates, task, taskArgs):
-        if len(candidates) == 1 or (GLOBALS.GetPlanner() == None and GLOBALS.GetUseTrainedModel() == None):
+        if len(candidates) == 1 or (self.planner == None and GLOBALS.GetUseTrainedModel() == None):
             #random.shuffle(candidates)
             return(candidates[0], candidates[1:])
-        elif GLOBALS.GetPlanner() == None and GLOBALS.GetUseTrainedModel() == "learnM1":
+        elif self.planner == None and GLOBALS.GetUseTrainedModel() == "learnM1":
             fname = GLOBALS.GetModelPath() + "model_to_choose_{}_actor".format(self.domain)
-            return GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
-        elif GLOBALS.GetPlanner() == None and GLOBALS.GetUseTrainedModel() == "learnM2" or GLOBALS.GetUseTrainedModel() == "learnMI":
+            return self.etCandidateFromLearnedModel(fname, task, candidates, taskArgs)
+        elif self.planner == None and GLOBALS.GetUseTrainedModel() == "learnM2" or GLOBALS.GetUseTrainedModel() == "learnMI":
             fname = GLOBALS.GetModelPath() + "model_to_choose_{}_planner".format(self.domain)
-            return GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
+            return self.GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
         else:
-            return GetCandidateByPlanning(candidates, task, taskArgs)
+            return self.GetCandidateByPlanning(candidates, task, taskArgs)
 
     def DoTask_Acting(self, task, taskArgs):
         """
