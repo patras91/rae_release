@@ -367,20 +367,20 @@ class ActingTree():
         l = GuideList(l2)
         return l
 
-    def GetSearchTree(self):
+    def GetSearchTree(self, planner):
         l1 = self.root.GetPreorderTraversal()
         root = None
         currNode = None
         for item in l1:
             t = item.GetType()
             if t == "method":
-                node = SearchTreeNode('task', 'task', None)
-                child = SearchTreeNode(item.GetLabel(), 'method', None)
+                node = SearchTreeNode('task', 'task', None, planner)
+                child = SearchTreeNode(item.GetLabel(), 'method', None, planner)
                 child.SetPrevState(item.GetPrevState())
                 node.AddChild(child)
             elif t == "command":
-                node = SearchTreeNode(item.GetLabel(), 'command', None)
-                child = SearchTreeNode(item.GetNextState(), 'state', None)
+                node = SearchTreeNode(item.GetLabel(), 'command', None, planner)
+                child = SearchTreeNode(item.GetNextState(), 'state', None, planner)
                 child.SetPrevState(item.GetPrevState())
                 node.AddChild(child)
             else:
@@ -519,7 +519,7 @@ class GuideList():
     #        return 1/cost
 
 class SearchTreeNode():
-    def __init__(self, l, t, args):
+    def __init__(self, l, t, args, planner):
         self.label = l
         self.args = args
         assert(t == "task" or t == "method" or t == "command" or t == "state" or t == "heuristic")
@@ -530,7 +530,8 @@ class SearchTreeNode():
         self.util = Utility("UNK")
         self.prevState = None
         self.parent = None
-        if GLOBALS.GetPlanner() == "UPOM" and self.type == 'task':
+        self.planner = planner
+        if planner == "UPOM" and self.type == 'task':
             self.N = 0
             self.n = []
             self.Q = []
@@ -569,7 +570,7 @@ class SearchTreeNode():
         node.parent = self
         self.children.append(node)
         self.childWeights.append(1)
-        if GLOBALS.GetPlanner() == "UPOM" and self.type == 'task':
+        if self.planner == "UPOM" and self.type == 'task':
             self.n.append(0)
             self.Q.append(Utility('Success'))
 

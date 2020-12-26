@@ -229,8 +229,8 @@ class PlanArgs():
     def SetActingTree(self, t):
         self.actingTree = t
 
-    def GetSearchTree(self):
-        return self.actingTree.GetSearchTree()
+    def GetSearchTree(self, planner):
+        return self.actingTree.GetSearchTree(planner)
 
     def SetCurUtil(self, u):
         self.util = u

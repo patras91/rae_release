@@ -155,8 +155,8 @@ def RemoveLocksFromState():
 def PrintState():
     print(state)
 
-def RestoreState(s):
-    state.restore(s)
+def RestoreState(s1, s2):
+    s1.restore(s2)
 
 def GetState():
     return state

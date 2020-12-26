@@ -5,12 +5,8 @@ from timer import globalTimer
 import rTree
 from utility import Utility
 from state import RestoreState
-
-class Failed_Rollout(Exception):
-    pass
-
-class DepthLimitReached(Exception):
-    pass
+import random
+from exceptions import *
 
 class UPOMChoice(OpPlanner):
     
@@ -34,7 +30,7 @@ class UPOMChoice(OpPlanner):
 
         globalTimer.ResetSimCounter()           # SimCounter keeps track of the number of ticks for every call to APE-plan
         
-        searchTreeRoot = planArgs.GetSearchTree()
+        searchTreeRoot = planArgs.GetSearchTree("UPOM")
         self.planLocals.SetSearchTreeRoot(searchTreeRoot)
         self.planLocals.SetTaskToRefine(-1)
             
@@ -48,7 +44,7 @@ class UPOMChoice(OpPlanner):
                 self.planLocals.SetUtilRollout(Utility('Success'))
                 self.planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
                 self.planLocals.SetFlip(False)
-                RestoreState(searchTreeRoot.GetNext().GetPrevState())
+                RestoreState(self.planLocals.GetState(), searchTreeRoot.GetNext().GetPrevState())
                 searchTreeRoot.updateIndex = 0
                 self.do_task(task, *taskArgs) 
                 #searchTreeRoot.PrintUsingGraphviz()
@@ -81,17 +77,17 @@ class UPOMChoice(OpPlanner):
         
         if searchTreeNode.children == []:
             # add new nodes with this task and its applicable method instances
-            taskNode = rTree.SearchTreeNode(task, 'task', taskArgs)
+            taskNode = rTree.SearchTreeNode(task, 'task', taskArgs, "UPOM")
             searchTreeNode.AddChild(taskNode)
             # Need to look through several candidates for this task
-            cand, state, flag = GetCandidates(task, taskArgs)
-
+            cand, state, flag = self.GetCandidates(task, taskArgs)
+            print("CAND = ", cand)
             if flag == 1:
                 self.planLocals.SetTaskToRefine(taskNode)
                 self.planLocals.SetRefDepth(self.planLocals.GetDepth())
                 self.planLocals.SetFlip(True)
             if self.planLocals.GetRefDepth() + self.planLocals.GetRolloutDepth() <= self.planLocals.GetDepth():
-                newNode = rTree.SearchTreeNode('heuristic', 'heuristic', taskArgs)
+                newNode = rTree.SearchTreeNode('heuristic', 'heuristic', taskArgs, "UPOM")
 
                 util1 = self.planLocals.GetUtilRollout()
                 util2 = Utility(GetHeuristicEstimate(task, taskArgs))
@@ -103,7 +99,7 @@ class UPOMChoice(OpPlanner):
                 raise DepthLimitReached()
 
             for m in cand:
-                newSearchTreeNode = rTree.SearchTreeNode(m, 'method', taskArgs)
+                newSearchTreeNode = rTree.SearchTreeNode(m, 'method', taskArgs, "UPOM")
                 newSearchTreeNode.SetPrevState(state)
                 taskNode.AddChild(newSearchTreeNode)
         else:
@@ -147,12 +143,12 @@ class UPOMChoice(OpPlanner):
                     index = i
 
         m = mNode.GetLabel()
-        RestoreState(mNode.GetPrevState())
+        RestoreState(self.planLocals.GetState(), mNode.GetPrevState())
         self.planLocals.SetSearchTreeNode(mNode)
         failed = False
         depthLimReached = False
         try:
-            DoMethod(m, task, taskArgs)
+            self.DoMethod(m, task, taskArgs)
         except Failed_Rollout as e:
             failed = True
         except DepthLimitReached as e:
@@ -173,7 +169,7 @@ class UPOMChoice(OpPlanner):
         searchTreeNode = self.planLocals.GetSearchTreeNode()
         #self.planLocals.GetSearchTreeRoot().PrintUsingGraphviz()
         if searchTreeNode.children == []:
-            commandNode = rTree.SearchTreeNode(cmd, 'command', None)
+            commandNode = rTree.SearchTreeNode(cmd, 'command', None, "UPOM")
             searchTreeNode.AddChild(commandNode)
         else:
             commandNode = searchTreeNode.children[0]
@@ -189,7 +185,7 @@ class UPOMChoice(OpPlanner):
             nextState = state.copy()
 
         if retcode == 'Failure':
-            nextStateNode = rTree.SearchTreeNode(nextState, 'state', None)
+            nextStateNode = rTree.SearchTreeNode(nextState, 'state', None, "UPOM")
             nextStateNode.SetUtility(Utility('Failure'))
             commandNode.AddChild(nextStateNode)
             self.planLocals.SetUtilRollout(Utility('Failure'))
@@ -198,7 +194,7 @@ class UPOMChoice(OpPlanner):
         else:
             nextStateNode = commandNode.FindAmongChildren(nextState) 
             if nextStateNode == None:
-                nextStateNode = rTree.SearchTreeNode(nextState, 'state', None)
+                nextStateNode = rTree.SearchTreeNode(nextState, 'state', None, "UPOM")
 
                 commandNode.AddChild(nextStateNode)
             
@@ -213,3 +209,6 @@ class UPOMChoice(OpPlanner):
         taskToRefine = self.planLocals.GetTaskToRefine()
         return (taskToRefine.GetBestMethodAndUtility_UPOM(), globalTimer.GetSimulationCounter())
 
+    def do_task(self, task, *taskArgs):
+        self.planLocals.IncreaseDepthBy1()
+        self.DoTaskUPOM(task, taskArgs)

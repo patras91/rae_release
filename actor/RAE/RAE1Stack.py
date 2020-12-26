@@ -12,6 +12,7 @@ from UPOM import UPOMChoice
 from RAEPlan import RAEPlanChoice
 from APEPlan import APEPlanChoice
 import multiprocessing
+from exceptions import *
 
 class MethodInstance():
     def __init__(self, m):
@@ -42,18 +43,6 @@ class MethodInstance():
             return False
         else:
             return self.method == other.method and self.params == other.params
-
-class Failed_command(Exception):
-    pass
-
-class Failed_task(Exception):
-    pass
-
-class Incorrect_return_code(Exception):
-    pass
-
-class Expanded_Search_Tree_Node(Exception):
-    pass
 
 class RAE1():
     def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands, planner, plannerParams):
@@ -219,7 +208,7 @@ class RAE1():
             self.raeLocals.GetMainTaskArgs(), 
             queue, 
             candidates,
-            self.state.copy(),
+            self.state,
             self.raeLocals.GetActingTree(),
             self.raeLocals.GetUtility()])
 
@@ -474,28 +463,6 @@ class RAE1():
                     return self.DoTask_RAEPlan(task, taskArgs)
         else:
             return self.DoTask_Acting(task, taskArgs)
-
-    def GetCandidates(self, task, tArgs):
-        """ Called from DoTask_RAEPlan """
-        if planLocals.GetCandidates() != None:
-            # when candidates is a subset of the applicable methods, it is available from planLocals
-            candidates = planLocals.GetCandidates()[:]
-            planLocals.SetCandidates(None) # resetting planLocals for the rest of the search
-            prevState = planLocals.state
-            flag = 1
-        else:
-            candidateMethods = methods[task][:] # set of applicable methods
-            candidates = GetMethodInstances(candidateMethods, tArgs)
-            prevState = state
-            flag = 0
-            
-        # b = max(1, GLOBALS.Getb() - int(planLocals.GetDepth() / 4))
-        if GLOBALS.GetPlanner() == "UPOM":
-            cand = candidates
-        else:
-            b = GLOBALS.Getb()
-            cand = candidates[0:min(b, len(candidates))]
-        return cand, prevState, flag
 
     def GetHeuristicEstimate(self, task=None, tArgs=None):
         if GLOBALS.GetUseTrainedModel() == "learnH":
