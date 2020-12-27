@@ -159,4 +159,21 @@ class RAEPlanChoice(OpPlanner):
         else:
             raise Failed_Rollout('{}{}'.format(cmd.__name__, cmdArgs))
 
+    def do_task(self, task, *taskArgs):
+        self.planLocals.IncreaseDepthBy1()
+        nextNode = self.planLocals.GetSearchTreeNode().GetNext()
+        if nextNode != None:
+            assert(nextNode.GetType() == "task" or nextNode.GetType() == "heuristic")
+            return self.FollowSearchTree_task(task, taskArgs, nextNode)
+        else:
+            return self.DoTask_RAEPlan(task, taskArgs)
+
+    def do_command(self, cmd, *cmdArgs):
+        nextNode = self.planLocals.GetSearchTreeNode().GetNext()
+        if nextNode == None:
+            return self.DoCommand_RAEPlan(cmd, cmdArgs)
+        else:
+            assert(nextNode.GetType() == "command")
+            return self.FollowSearchTree_command(cmd, cmdArgs, nextNode)
+
     

@@ -2,7 +2,6 @@ __author__ = 'patras'
 #from RAE1_and_RAEplan import ipcArgs, envArgs, RAEplan_Choice, UPOM_Choice, GetBestTillNow
 from RAE1Stack import RAE1
 from timer import globalTimer
-from state import RemoveLocksFromState, RestoreState
 import threading
 import GLOBALS
 import os
@@ -36,7 +35,7 @@ class EnvArgs():
 #****************************************************************
 
 class rae():
-    def __init__(self, domain, problem, planner, plannerParams, v, state, rv):
+    def __init__(self, domain, problem, planner, plannerParams, v, state, rv, RestoreState, GetDomainState):
         self.verbosity = v
 
         self.taskQueue = mp.Queue() # where the tasks come in
@@ -57,6 +56,8 @@ class rae():
 
         self.state = state # only used via RAE1
         self.rv = rv
+        self.RestoreState = RestoreState
+        self.GetDomainState = GetDomainState
 
         self.InitializeDomain(domain, problem)
 
@@ -77,7 +78,7 @@ class rae():
             self.problemModule = __import__(module)
             self.problemModule.SetInitialStateVariables(self.state, self.rv)
         elif domain == 'AIRS_dev':
-            RestoreState(startState)
+            self.RestoreState(startState)
         else:
             print("Invalid domain\n", domain)
             exit(11)
@@ -137,7 +138,7 @@ class rae():
 
     def CreateNewStack(self, taskInfo, raeArgs):
         stackid = raeArgs.stack
-        rae1 = RAE1(raeArgs.task, raeArgs, self.domain, self.ipcArgs, self.cmdStatusStack, self.verbosity, self.state, self.methods, self.commands, self.planner, self.plannerParams)
+        rae1 = RAE1(raeArgs.task, raeArgs, self.domain, self.ipcArgs, self.cmdStatusStack, self.verbosity, self.state, self.methods, self.commands, self.planner, self.plannerParams, self.RestoreState, self.GetDomainState)
         self.rae1Instances[stackid] = rae1
         retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = rae1.RAE1Main(raeArgs.task, raeArgs)
         taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)

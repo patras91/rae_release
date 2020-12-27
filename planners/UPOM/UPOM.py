@@ -1,20 +1,28 @@
 __author__ = 'patras'
 from opPlanner import OpPlanner
 from dataStructures import rL_PLAN
-from timer import globalTimer
+from timer import globalTimer, DURATION
 import rTree
 from utility import Utility
-from state import RestoreState
 import random
 from exceptions import *
+import types
+import GLOBALS
+import math
 
 class UPOMChoice(OpPlanner):
     
-    def __init__(self, l):
+    def __init__(self, l, methods, m, commands, domain, RestoreState, GetDomainState):
         self.n_ro = l[0]
         self.maxSearchDepth = l[1]
         self.planLocals = rL_PLAN()
         self.name = "UPOM"
+        self.methods = methods
+        self.GetMethodInstances = m
+        self.commands = commands
+        self.domain = domain
+        self.RestoreState = RestoreState
+        self.GetDomainState = GetDomainState
 
     def UPOMChoiceMain(self, task, planArgs):
 
@@ -22,6 +30,7 @@ class UPOMChoice(OpPlanner):
         self.planLocals.SetStackId(planArgs.GetStackId()) # Right now, the stack id is always set to 1 and is not important.
                                                      # This will be useful if we decide to simulate multiple stacks in future.
         self.planLocals.SetCandidates(planArgs.GetCandidates())
+
         self.planLocals.SetState(planArgs.state)
 
         taskArgs = planArgs.GetTaskArgs()
@@ -39,18 +48,18 @@ class UPOMChoice(OpPlanner):
         i = 1
         while (i <= self.n_ro): # all rollouts not explored
             try:
+                print("rollout ", i)
                 self.planLocals.SetDepth(0)
                 self.planLocals.SetRefDepth(float("inf"))
                 self.planLocals.SetUtilRollout(Utility('Success'))
                 self.planLocals.SetSearchTreeNode(searchTreeRoot.GetNext())
                 self.planLocals.SetFlip(False)
-                RestoreState(self.planLocals.GetState(), searchTreeRoot.GetNext().GetPrevState())
+                self.RestoreState(searchTreeRoot.GetNext().GetPrevState())
                 searchTreeRoot.updateIndex = 0
                 self.do_task(task, *taskArgs) 
                 #searchTreeRoot.PrintUsingGraphviz()
                 searchTreeRoot.UpdateQValues(self.planLocals.GetUtilRollout().GetValue())   
             except Failed_Rollout as e:
-                self.v_failedCommand(e)
                 #searchTreeRoot.PrintUsingGraphviz()
                 searchTreeRoot.UpdateQValues(self.planLocals.GetUtilRollout().GetValue())
             except DepthLimitReached as e:
@@ -70,7 +79,7 @@ class UPOMChoice(OpPlanner):
                 planArgs.GetTask())
 
         #taskToRefine.PrintMethodsAndUtilities()
-        return GetBestTillNow()
+        return self.GetBestTillNow()
 
     def DoTaskUPOM(self, task, taskArgs):
         searchTreeNode = self.planLocals.GetSearchTreeNode()
@@ -81,7 +90,6 @@ class UPOMChoice(OpPlanner):
             searchTreeNode.AddChild(taskNode)
             # Need to look through several candidates for this task
             cand, state, flag = self.GetCandidates(task, taskArgs)
-            print("CAND = ", cand)
             if flag == 1:
                 self.planLocals.SetTaskToRefine(taskNode)
                 self.planLocals.SetRefDepth(self.planLocals.GetDepth())
@@ -143,7 +151,7 @@ class UPOMChoice(OpPlanner):
                     index = i
 
         m = mNode.GetLabel()
-        RestoreState(self.planLocals.GetState(), mNode.GetPrevState())
+        self.RestoreState(mNode.GetPrevState())
         self.planLocals.SetSearchTreeNode(mNode)
         failed = False
         depthLimReached = False
@@ -179,10 +187,10 @@ class UPOMChoice(OpPlanner):
         if self.planLocals.GetFlip() == False:
             retcode = 'Success'
             nextState = commandNode.GetNext().GetLabel()
-            RestoreState(nextState)
+            self.RestoreState(nextState)
         else:
-            retcode = CallCommand_OperationalModel(cmd, cmdArgs)
-            nextState = state.copy()
+            retcode = self.CallCommand_OperationalModel(cmd, cmdArgs)
+            nextState = self.GetDomainState().copy()
 
         if retcode == 'Failure':
             nextStateNode = rTree.SearchTreeNode(nextState, 'state', None, "UPOM")
@@ -199,11 +207,15 @@ class UPOMChoice(OpPlanner):
                 commandNode.AddChild(nextStateNode)
             
             util1 = self.planLocals.GetUtilRollout()
-            util2 = GetUtility(cmd, cmdArgs)
+            util2 = self.GetUtility(cmd, cmdArgs)
             self.planLocals.SetUtilRollout(util1 + util2)
             commandNode.updateChild = nextStateNode
-            nextStateNode.SetUtility(GetUtility(cmd, cmdArgs))
+            nextStateNode.SetUtility(self.GetUtility(cmd, cmdArgs))
             self.planLocals.SetSearchTreeNode(nextStateNode)
+
+    def beginCommand(self, cmd, cmdRet, cmdArgs):
+        cmdPtr = self.GetCommand(cmd)
+        cmdRet['state'] = cmdPtr(*cmdArgs)
 
     def GetBestTillNow(self):
         taskToRefine = self.planLocals.GetTaskToRefine()
@@ -212,3 +224,31 @@ class UPOMChoice(OpPlanner):
     def do_task(self, task, *taskArgs):
         self.planLocals.IncreaseDepthBy1()
         self.DoTaskUPOM(task, taskArgs)
+
+    def do_command(self, cmd, *cmdArgs):
+        self.planLocals.IncreaseDepthBy1()
+        self.DoCommandUPOM(cmd, cmdArgs)
+
+    def GetUtility(self, cmd, cmdArgs):
+        assert(cmd.__name__ != "fail")
+        if self.domain == "SD" and cmd.__name__ == "helpRobot": 
+            # kluge because I forgot to add this cost in the auto-gen problems
+            cost = 7
+        else:
+            cost = DURATION.COUNTER[cmd.__name__]
+        if GLOBALS.GetUtility() == "successRatio":
+            return Utility("Success")
+        
+        if type(cost) == types.FunctionType:
+            numpy.random.seed(5000)
+            res = cost(*cmdArgs)
+        else:
+            res = cost
+
+        if GLOBALS.GetUtility() == "efficiency":
+            return Utility(1/res)
+        elif GLOBALS.GetUtility() == "resilience":
+            return Utility(1/20 + 1/res)
+        else:
+            print("ERROR: Invalid utility")
+            exit()

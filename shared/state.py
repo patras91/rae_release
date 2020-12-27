@@ -155,9 +155,6 @@ def RemoveLocksFromState():
 def PrintState():
     print(state)
 
-def RestoreState(s1, s2):
-    s1.restore(s2)
-
 def GetState():
     return state
 
@@ -168,8 +165,6 @@ class RV():
 
 rv = RV()
 
-
-    
 if __name__=="__main__":
     s = State()
     s.a = {1:3, 2:5}

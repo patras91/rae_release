@@ -45,7 +45,7 @@ class MethodInstance():
             return self.method == other.method and self.params == other.params
 
 class RAE1():
-    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands, planner, plannerParams):
+    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands, planner, plannerParams, RestoreState, GetDomainState):
         self.raeLocals = rL_APE() # variables that are local to every stack
         """ Initialize the local variables of a stack used during acting """
         self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
@@ -73,6 +73,8 @@ class RAE1():
         self.GetNewIdNum = 0
         self.verbosity = v
         self.state = state
+        self.RestoreState = RestoreState
+        self.GetDomainState = GetDomainState
         self.methods = methods
         self.commands = commands
 
@@ -85,7 +87,7 @@ class RAE1():
         elif p == "RAEPlan":
             self.planner = RAEPlanChoice(params)
         elif p == "UPOM":
-            self.planner = UPOMChoice(params)
+            self.planner = UPOMChoice(params, self.methods, self.GetMethodInstances, self.commands, self.domain, self.RestoreState, self.GetDomainState)
         elif p == "None" or p == None:
             self.planner = None 
         else:
@@ -101,7 +103,6 @@ class RAE1():
             q = m.__code__.co_argcount
             mArgs = m.__code__.co_varnames
             
-            print("RAE1Stack : taskargs ", tArgs)
             if len(tArgs) < q - 1:
                 # some parameters are uninstantiated
                 print(m.__name__)
@@ -208,7 +209,7 @@ class RAE1():
             self.raeLocals.GetMainTaskArgs(), 
             queue, 
             candidates,
-            self.state,
+            self.state.copy(),
             self.raeLocals.GetActingTree(),
             self.raeLocals.GetUtility()])
 
@@ -217,16 +218,20 @@ class RAE1():
 
         if p.is_alive() == True:
             p.terminate()
-            methodInstance, expUtil, simTime = queue.get()
+            print("here1")
+            methodInstance, expUtil, planningTime = queue.get()
         else:
-            methodInstance, expUtil, simTime = queue.get()
+            print("here2")
+            methodInstance, expUtil, planningTime = queue.get()
+            print("here3")
             curUtil = self.raeLocals.GetUtility()
 
             # save some metadata
             self.raeLocals.AddToPlanningUtilityList(curUtil)
             self.raeLocals.AddToPlanningUtilityList(expUtil)
             self.raeLocals.AddToPlanningUtilityList(expUtil + curUtil)
-            globalTimer.UpdateSimCounter(simTime)
+            globalTimer.UpdateSimCounter(planningTime)
+
 
         #retcode = plannedTree.GetRetcode()
 
@@ -451,16 +456,7 @@ class RAE1():
 
     def do_task(self, task, *taskArgs):
         if GLOBALS.GetPlanningMode() == True:
-            self.planLocals.IncreaseDepthBy1()
-            if GLOBALS.GetPlanner() == "UPOM":
-                self.DoTask_UPOM(task, taskArgs)
-            else:
-                nextNode = self.planLocals.GetSearchTreeNode().GetNext()
-                if nextNode != None:
-                    assert(nextNode.GetType() == "task" or nextNode.GetType() == "heuristic")
-                    return self.FollowSearchTree_task(task, taskArgs, nextNode)
-                else:
-                    return self.DoTask_RAEPlan(task, taskArgs)
+            self.planner.do_task(task, *taskArgs)
         else:
             return self.DoTask_Acting(task, taskArgs)
 
@@ -569,16 +565,7 @@ class RAE1():
         Perform command cmd(cmdArgs).
         """
         if GLOBALS.GetPlanningMode() == True:
-            planLocals.IncreaseDepthBy1()
-            if GLOBALS.GetPlanner() == "UPOM":
-                self.DoCommand_UPOM(cmd, cmdArgs)
-            else:
-                nextNode = planLocals.GetSearchTreeNode().GetNext()
-                if nextNode == None:
-                    return self.DoCommand_RAEPlan(cmd, cmdArgs)
-                else:
-                    assert(nextNode.GetType() == "command")
-                    return self.FollowSearchTree_command(cmd, cmdArgs, nextNode)
+            self.planner.do_command(cmd, *cmdArgs)                
         else:
             return self.DoCommand_Acting(cmd, cmdArgs)
 
@@ -642,7 +629,7 @@ class RAE1():
         else:
             [id, retcode, nextState] = self.cmdStatusStack[self.raeLocals.GetStackId()]
             assert(retcode == 'Success' or retcode == 'Failure')
-            RestoreState(nextState)
+            self.RestoreState(nextState)
 
         par, cmdNode = self.raeLocals.GetCurrentNodes()
 
@@ -756,29 +743,6 @@ class RAE1():
         else:
             return Utility("Failure")
 
-    def GetUtility(self, cmd, cmdArgs):
-        assert(cmd.__name__ != "fail")
-        if self.domain == "SD" and cmd.__name__ == "helpRobot": 
-            # kluge because I forgot to add this cost in the auto-gen problems
-            cost = 7
-        else:
-            cost = DURATION.COUNTER[cmd.__name__]
-        if GLOBALS.GetUtility() == "successRatio":
-            return Utility("Success")
-        
-        if type(cost) == types.FunctionType:
-            numpy.random.seed(5000)
-            res = cost(*cmdArgs)
-        else:
-            res = cost
-
-        if GLOBALS.GetUtility() == "efficiency":
-            return Utility(1/res)
-        elif GLOBALS.GetUtility() == "resilience":
-            return Utility(1/20 + 1/res)
-        else:
-            print("ERROR: Invalid utility")
-            exit()
 
     def GetUtilityforMethod(self, cost):
         if GLOBALS.GetUtility() == "successRatio":
@@ -808,7 +772,8 @@ class RAE1():
         for i in range(0, len(tArgs)):
             globals()[mArgs[i]] = tArgs[i]
         return eval(expr, globals())
-        ## Verbosity functions 
+    
+    ## Verbosity functions 
 
     def v_begin(self, task, taskArgs):
         if self.verbosity > 0:

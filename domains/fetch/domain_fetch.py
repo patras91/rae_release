@@ -16,8 +16,8 @@ class Fetch():
     def __init__(self, problem, planner, plannerParams, v):
         self.state = State()
         self.rv = RV()
-        self.env = FetchEnv(self.state)
-        self.actor = rae('fetch', problem, planner, plannerParams, v, self.state, self.rv)
+        self.env = FetchEnv(self.state, self.rv)
+        self.actor = rae('fetch', problem, planner, plannerParams, v, self.state, self.rv, self.RestoreState, self.GetDomainState)
 
         self.actor.declare_commands([self.put, self.take, self.perceive, self.charge, self.move, self.moveToEmergency, self.addressEmergency, self.wait, self.fail])
 
@@ -41,6 +41,12 @@ class Fetch():
         elif GLOBALS.GetHeuristicName() == 'h2':
             self.actor.declare_heuristic('search', self.Heuristic2)
             self.actor.declare_heuristic('fetch', self.Heuristic2)
+
+    def RestoreState(self, s2):
+        self.state.restore(s2)
+
+    def GetDomainState(self):
+        return self.state
 
     # Using Dijsktra's self.actororithm
     def GETDISTANCE(self, l0, l1):
@@ -408,7 +414,7 @@ class Fetch():
         return 5 * self.state.charge[robot]
         
 class FetchEnv():
-    def __init__(self, state):
+    def __init__(self, state, rv):
         self.commandProb = {
             'take': [0.9, 0.1],
             'put': [0.99, 0.01],
@@ -418,6 +424,7 @@ class FetchEnv():
             'addressEmergency': [0.98, 0.02],
         }
         self.state = state
+        self.rv = rv
 
     def Sense(self, cmd):
         if cmd == 'perceive':

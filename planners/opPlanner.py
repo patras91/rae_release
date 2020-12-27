@@ -5,6 +5,16 @@ from dataStructures import PlanArgs
 import signal
 import rTree
 from exceptions import *
+from utility import Utility
+from learningData import WriteTrainingData
+import multiprocessing
+import copy
+
+class MethodInstance():
+    def __init__(self, m):
+        self.method = m
+        self.params = None
+        self.cost = 0
 
 class OpPlanner(): # Operational Planner; Planner that uses Operational Models
     def __init__(self):
@@ -14,6 +24,12 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
         root = rTree.PlanningTree('root', 'root', 'root') # initialize the root of the refinement tree being built
         self.planLocals.SetCurrentNode(root)
         self.planLocals.SetPlanningTree(root)
+
+    def GetMethodInstanceCopy(self, m):
+        m2 = MethodInstance(self.methods['fetch'][0])
+        m2.cost = m.cost
+        print(m2)
+        return m2
 
     def CallPlanner(self, pArgs, queue):
         """ Calls the planner according to what the user decided."""
@@ -44,8 +60,11 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
         else:
             print("Invalid planner")
 
+        print("opPlanner: best method is ", method)
 
-        queue.put((method, util, planningTime))
+        queue.put((self.GetMethodInstanceCopy(method), util, planningTime))
+        print(queue)
+        print("put in queue")
 
     def Main(self, task, taskArgs, queue, candidateMethods, state, aTree, curUtil):
 
@@ -71,7 +90,7 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
         WriteTrainingData() # data to be used for learning
 
     def HandleTermination(self, signalId, frame):
-        methodUtil, planningTime = GetBestTillNow()
+        methodUtil, planningTime = self.GetBestTillNow()
         method, util = methodUtil
         self.HandleTerminationQueue.put((method, util, planningTime))
         sys.exit()
@@ -85,10 +104,9 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
             prevState = self.planLocals.GetState()
             flag = 1
         else:
-            print(" in the other ")
             candidateMethods = self.methods[task][:] # set of applicable methods
             candidates = self.GetMethodInstances(candidateMethods, tArgs)
-            prevState = state
+            prevState = self.GetDomainState()
             flag = 0
             
         # b = max(1, GLOBALS.Getb() - int(planLocals.GetDepth() / 4))
@@ -109,6 +127,18 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
         except Failed_task as e:
             pass
         return retcode
+
+    def CallCommand_OperationalModel(self, cmd, cmdArgs):
+        cmdRet = {'state':'running'}
+        self.beginCommand(cmd, cmdRet, cmdArgs)
+        return cmdRet['state']
+
+    def GetCommand(self, cmd):
+        """
+            Get the actual operational model of the command 
+        """
+        name = cmd.__name__
+        return self.commands[name]
 
     def DoMethod(self, m, task, taskArgs):
         savedNode = self.planLocals.GetCurrentNode()
