@@ -10,14 +10,13 @@ for d in ["UnitTests", "nav", "fetch", "explore", "rescue", "deliver", "AIRS"]:
     sys.path.append("./domains/" + d + "/")
     sys.path.append("./domains/" + d + "/problems/auto/")
 
-sys.path.append('./actor/RAE/')
-sys.path.append('./actor/APE/')
+sys.path.append('./actors/RAE/')
+sys.path.append('./actors/APE/')
 
 sys.path.append('./planners/')
 sys.path.append('./planners/APEPlan/')
 sys.path.append('./planners/RAEPlan/')
 sys.path.append('./planners/UPOM/')
-
 sys.path.append('./planners/StateSpaceUCT/')
 sys.path.append('./planners/shared/')
 
@@ -152,20 +151,26 @@ if __name__ == "__main__":
         plannerParams = [args.b, args.k, args.depth]
     elif args.planner == "UPOM":
         plannerParams = [args.n_RO, args.depth]
+    else:
+        plannerParams = []
 
     GLOBALS.SetHeuristicName(args.heuristic)
 
     SetMode(args.clockMode)
 
     GLOBALS.SetTimeLimit(args.timeLim)
+
+    # learning related info
     GLOBALS.SetDataGenerationMode(None)
     GLOBALS.SetUseTrainedModel(args.useTrainedModel)
     GLOBALS.SetModelPath("../learning/models/AIJ2020/")
+
     GLOBALS.SetDoIterativeDeepening(args.doIterativeDeepening)
 
     GLOBALS.SetBackupUCT(args.useBackupUCT) # for SDN
 
     assert(args.utility == "efficiency" or args.utility == "successRatio" or args.utility == "resilience")
     GLOBALS.SetUtility(args.utility)
+
     testRAEandPlanner(args.domain, args.problem, args.planner, plannerParams, args.showOutputs, args.v)
     

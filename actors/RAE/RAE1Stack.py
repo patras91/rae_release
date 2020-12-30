@@ -125,6 +125,10 @@ class RAE1():
         random.shuffle(instanceList)
         return instanceList 
 
+    def GetMethodsForGoal(self, args):
+        # TODO
+        pass
+
     def RAE1Main(self, task, raeArgs):
         """
         RAE1 is the actor with a single execution stack. The first argument is the name (which
@@ -356,17 +360,21 @@ class RAE1():
         else:
             return self.GetCandidateByPlanning(candidates, task, taskArgs)
 
-    def DoTask_Acting(self, task, taskArgs):
+    def DoTask_Acting(self, task, args):
         """
         Function to do the task in real world
         """
-        self.v_begin(task, taskArgs)
+        self.v_begin(task, args)
 
         retcode = 'Failure'
-        candidateMethods = self.methods[task][:]
-        candidates = self.GetMethodInstances(candidateMethods, taskArgs)
+        if task == 'achieve':
+            candidateMethods = self.GetMethodsForGoal(args)
+        else:
+            candidateMethods = self.methods[task][:]
+
+        candidates = self.GetMethodInstances(candidateMethods, args)
         if candidates == []:
-            raise Failed_task('{}{}'.format(task, taskArgs))
+            raise Failed_task('{}{}'.format(task, args))
 
         parent, node = self.raeLocals.GetCurrentNodes()
 
@@ -376,7 +384,7 @@ class RAE1():
             if GLOBALS.GetUtility() == "successRatio": # there may be a better way to do this
                 self.raeLocals.SetUtility(Utility("Success"))
 
-            (m,candidates) = self.choose_candidate(candidates, task, taskArgs)
+            (m,candidates) = self.choose_candidate(candidates, task, args)
             
             # if candidates == "usingBackupUCT":
             #     plan = m
@@ -391,7 +399,7 @@ class RAE1():
             
             node.SetLabelAndType(m, 'method')
             self.raeLocals.SetCurrentNode(node)
-            retcode = self.CallMethod_OperationalModel(self.raeLocals.GetStackId(), m, taskArgs)
+            retcode = self.CallMethod_OperationalModel(self.raeLocals.GetStackId(), m, args)
             
             if m.cost > 0:
                 self.raeLocals.SetEfficiency(self.AddEfficiency(self.raeLocals.GetEfficiency(), 1/m.cost))
@@ -406,7 +414,7 @@ class RAE1():
         self.raeLocals.SetCurrentNode(parent)
 
         if retcode == 'Failure':
-            raise Failed_task('{}{}'.format(task, taskArgs))
+            raise Failed_task('{}{}'.format(task, args))
         elif retcode == 'Success':
             if GLOBALS.GetDataGenerationMode() == "learnM1" or GLOBALS.GetDataGenerationMode() == "learnM2":
                 trainingDataRecords.Add(
@@ -414,13 +422,13 @@ class RAE1():
                     m, 
                     self.raeLocals.GetEfficiency(),
                     task,
-                    taskArgs,
+                    args,
                     self.raeLocals.GetMainTask(),
                     self.raeLocals.GetMainTaskArgs(),
                 )
             return retcode
         else:
-            raise Incorrect_return_code('{} for {}{}'.format(retcode, task, taskArgs))
+            raise Incorrect_return_code('{} for {}{}'.format(retcode, task, args))
 
     def CallMethod_OperationalModel(self, stackid, m, taskArgs):
         if self.verbosity > 0:
@@ -773,6 +781,30 @@ class RAE1():
             globals()[mArgs[i]] = tArgs[i]
         return eval(expr, globals())
     
+    def GetUtility(self, cmd, cmdArgs):
+        assert(cmd.__name__ != "fail")
+        if self.domain == "SD" and cmd.__name__ == "helpRobot": 
+            # kluge because I forgot to add this cost in the auto-gen problems
+            cost = 7
+        else:
+            cost = DURATION.COUNTER[cmd.__name__]
+        if GLOBALS.GetUtility() == "successRatio":
+            return Utility("Success")
+        
+        if type(cost) == types.FunctionType:
+            numpy.random.seed(5000)
+            res = cost(*cmdArgs)
+        else:
+            res = cost
+
+        if GLOBALS.GetUtility() == "efficiency":
+            return Utility(1/res)
+        elif GLOBALS.GetUtility() == "resilience":
+            return Utility(1/20 + 1/res)
+        else:
+            print("ERROR: Invalid utility")
+            exit()
+            
     ## Verbosity functions 
 
     def v_begin(self, task, taskArgs):

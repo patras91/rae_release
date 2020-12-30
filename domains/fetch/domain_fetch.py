@@ -42,6 +42,16 @@ class Fetch():
             self.actor.declare_heuristic('search', self.Heuristic2)
             self.actor.declare_heuristic('fetch', self.Heuristic2)
 
+        self.declare_goals()
+
+    def declare_goals(self):
+        pass
+        # TODO
+        # for g in [...]:
+        #   goalState = ...
+        #   goalMethod = ...   
+        #   self.actor.declare_goal_method(method, goalState)
+
     def RestoreState(self, s2):
         self.state.restore(s2)
 
@@ -412,7 +422,11 @@ class Fetch():
     def Heuristic2(self, args):
         robot = args[0]
         return 5 * self.state.charge[robot]
-        
+
+    # TODO
+    #def goalMethod1(self):
+    #   pass
+
 class FetchEnv():
     def __init__(self, state, rv):
         self.commandProb = {

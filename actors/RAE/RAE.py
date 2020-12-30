@@ -73,7 +73,16 @@ class rae():
         '''
         
         self.domain = domain
-        if domain in ['fetch', 'nav', 'explore', 'rescue', 'deliver', 'testInstantiation', 'testSSU',  'testMethodswithCosts', "AIRS"]:
+        if domain in ['fetch', 
+            'nav', 
+            'explore', 
+            'rescue', 
+            'deliver', 
+            'testInstantiation', 
+            'testSSU',  
+            'testMethodswithCosts', 
+            "AIRS"
+        ]:
             module = problem + '_' + domain
             self.problemModule = __import__(module)
             self.problemModule.SetInitialStateVariables(self.state, self.rv)
@@ -138,7 +147,20 @@ class rae():
 
     def CreateNewStack(self, taskInfo, raeArgs):
         stackid = raeArgs.stack
-        rae1 = RAE1(raeArgs.task, raeArgs, self.domain, self.ipcArgs, self.cmdStatusStack, self.verbosity, self.state, self.methods, self.commands, self.planner, self.plannerParams, self.RestoreState, self.GetDomainState)
+        rae1 = RAE1(raeArgs.task, 
+            raeArgs, 
+            self.domain, 
+            self.ipcArgs, 
+            self.cmdStatusStack, 
+            self.verbosity, 
+            self.state, 
+            self.methods, 
+            self.commands, 
+            self.planner, 
+            self.plannerParams, 
+            self.RestoreState, 
+            self.GetDomainState
+        )
         self.rae1Instances[stackid] = rae1
         retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = rae1.RAE1Main(raeArgs.task, raeArgs)
         taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)
@@ -369,4 +391,9 @@ class rae():
 
     def declare_heuristic(self, task, name):
         self.heuristic[task] = name
+
+    def declare_goal_method(self, method, goalState):
+        # TODO
+        # save the methods and corresponding states in a dict
+        pass
         
