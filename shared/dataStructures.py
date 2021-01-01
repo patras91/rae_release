@@ -217,8 +217,8 @@ class PlanArgs():
     def GetStackId(self):
         return self.stackid
 
-    def SetStackId(self, id):
-        self.stackid = id
+    def SetStackId(self, i):
+        self.stackid = i
 
     def SetState(self, s):
         self.state = s

@@ -25,12 +25,6 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
         self.planLocals.SetCurrentNode(root)
         self.planLocals.SetPlanningTree(root)
 
-    def GetMethodInstanceCopy(self, m):
-        m2 = MethodInstance(self.methods['fetch'][0])
-        m2.cost = m.cost
-        print(m2)
-        return m2
-
     def CallPlanner(self, pArgs, queue):
         """ Calls the planner according to what the user decided."""
         if self.name == "UPOM":
@@ -60,18 +54,17 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
         else:
             print("Invalid planner")
 
-        print("opPlanner: best method is ", method)
-
-        queue.put((self.GetMethodInstanceCopy(method), util, planningTime))
-        print(queue)
-        print("put in queue")
+        if method != 'Failure':
+            i = pArgs.GetCandidates().index(method)
+        else:
+            i = 'Failure'
+        queue.put((i, util, planningTime))
 
     def Main(self, task, taskArgs, queue, candidateMethods, state, aTree, curUtil):
 
         SetMode('Counter') #Counter mode in simulation
         GLOBALS.SetPlanningMode(True)
         #RemoveLocksFromState()
-
         pArgs = PlanArgs()
 
         pArgs.SetStackId(1) # Simulating one stack now

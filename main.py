@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     # parameter for UPOM
     argparser.add_argument("--n_RO", help="Number of rollouts in UPOM?",
-                           type=int, default=500, required=False)
+                           type=int, default=100, required=False)
 
     argparser.add_argument("--depth", help="Search Depth",
                            type=int, default=50, required=False)

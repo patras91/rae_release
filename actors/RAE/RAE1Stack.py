@@ -81,7 +81,6 @@ class RAE1():
         self.InitializePlanner(planner, plannerParams)
 
     def InitializePlanner(self, p, params):
-        print(params)
         if p == "APEPlan":
             self.planner = APEPlanChoice(params)
         elif p == "RAEPlan":
@@ -95,7 +94,6 @@ class RAE1():
             exit()
 
     def GetMethodInstances(self, methods, tArgs):
-    
         instanceList = [] # List of all applicable method instances for t
 
         for m in methods:
@@ -105,7 +103,6 @@ class RAE1():
             
             if len(tArgs) < q - 1:
                 # some parameters are uninstantiated
-                print(m.__name__)
                 paramList = self.EvaluateParameters(m.parameters, mArgs, tArgs)
                 
                 for params in paramList:
@@ -191,7 +188,6 @@ class RAE1():
         """
         RAE calls this functions when it wants suggestions from a planner
         """
-        print("Needs planning")
         if self.verbosity > 0:
             #print(colorama.Fore.RED, "Starting simulation for stack")
             print("Starting simulation for stack")
@@ -222,12 +218,9 @@ class RAE1():
 
         if p.is_alive() == True:
             p.terminate()
-            print("here1")
-            methodInstance, expUtil, planningTime = queue.get()
+            methodIndex, expUtil, planningTime = queue.get()
         else:
-            print("here2")
-            methodInstance, expUtil, planningTime = queue.get()
-            print("here3")
+            methodIndex, expUtil, planningTime = queue.get()
             curUtil = self.raeLocals.GetUtility()
 
             # save some metadata
@@ -238,12 +231,11 @@ class RAE1():
 
 
         #retcode = plannedTree.GetRetcode()
-
         if self.verbosity > 0:
             #print("Done with planning. Result = {} \n".format(methodInstance), colorama.Style.RESET_ALL)
-            print("Done with planning. Result = {} \n".format(methodInstance))
+            print("Done with planning. Result = {} \n".format(methodIndex))
 
-        if methodInstance == 'Failure':
+        if methodIndex == 'Failure':
             if GLOBALS.GetBackupUCT() == True:
                 self.raeLocals.SetUseBackupUCT(True)
                 planM = ssu.StateSpaceUCTMain(task, taskArgs)
@@ -254,6 +246,7 @@ class RAE1():
             else:
                 return (candidates[0], candidates[1:])
         else:
+            methodInstance = candidates[methodIndex]
             if GLOBALS.GetDataGenerationMode() == "learnM2":
                 trainingDataRecords.Add(
                         self.state, 
@@ -264,7 +257,7 @@ class RAE1():
                         self.raeLocals.GetMainTask(),
                         self.raeLocals.GetMainTaskArgs()
                     )
-            candidates.pop(candidates.index(methodInstance))
+            candidates.pop(methodIndex)
             return (methodInstance, candidates)
 
     def GetCandidateFromLearnedModel(self, fname, task, candidates, taskArgs):

@@ -384,7 +384,6 @@ class rae():
                 
                 # ensure that the variable names of the 
                 # first q parameters of m match with the parameters of task t
-                print(m.__code__.co_varnames, taskArgs)
                 assert(m.__code__.co_varnames[1:q+1] == taskArgs)
 
             self.methods[task_name].append(m)

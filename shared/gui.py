@@ -42,7 +42,6 @@ def Simulate(*t):
     globalQueue.put(t)
 
 def start(domain, showOutputs):
-    if showOutputs == 'on':
-        global gParams
-        gParams = GUIParams(domain, showOutputs)
-        GUI()
+    global gParams
+    gParams = GUIParams(domain, showOutputs)
+    GUI()

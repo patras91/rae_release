@@ -48,7 +48,6 @@ class UPOMChoice(OpPlanner):
         i = 1
         while (i <= self.n_ro): # all rollouts not explored
             try:
-                print("rollout ", i)
                 self.planLocals.SetDepth(0)
                 self.planLocals.SetRefDepth(float("inf"))
                 self.planLocals.SetUtilRollout(Utility('Success'))
