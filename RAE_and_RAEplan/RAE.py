@@ -176,7 +176,7 @@ def StartEnv():
             return
 
         StartEnv.counter += 1
-        if GLOBALS.GetDomain() != "SDN":
+        if GLOBALS.GetDomain() != "SDN" and GLOBALS.GetDomain() != "SDN_dev":
             if StartEnv.counter in problem_module.eventsEnv:
                 eventArgs = problem_module.eventsEnv[StartEnv.counter]
                 event = eventArgs[0]
