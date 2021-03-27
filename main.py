@@ -30,25 +30,25 @@ from RAE import rae
 from timer import SetMode
 import multiprocessing
 import os
-from domain_fetch import Fetch
+from setup import Setup
 
-def testRAEandPlanner(domain, problem, planner, plannerParams, showOutputs, v):
+def testActorandPlanner(domain, problem, actor, planner, plannerParams, showGui, v):
     '''
     :param domain: the code of the domain ('fetch', 'nav', 'explore', 'rescue', AIRS', 'deliver', 'UnitTests')
     :param problem: the problem id
     :param planner: None, APEPlan, RAEPlan, UPOM, StateSpaceUCT
     '''
     if domain == "fetch":
-        domainInstance = Fetch(problem, planner, plannerParams, v)
+        problemInstance = Setup('fetch', problem, actor, planner, plannerParams, v)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared between RAE, RAEplan and UPOM
     try:
-        rM = threading.Thread(target=domainInstance.actor.raeMult)
+        rM = threading.Thread(target=problemInstance.actor.raeMult)
         rM.start()
-        gui.start(domain, showOutputs) # graphical user interface to show action executions
+        gui.start(domain, showGui) # graphical user interface to show action executions
         rM.join()
     except Exception as e:
-        print('Failed RAE and {}, for domain {}, {}'.format(planner, domain, e))
+        print('Failed {} and {}, for domain {}, {}'.format(actor, planner, domain, e))
 
 def testBatch(domain, problem, usePlanner):
     SetMode('Counter')
@@ -172,5 +172,5 @@ if __name__ == "__main__":
     assert(args.utility == "efficiency" or args.utility == "successRatio" or args.utility == "resilience")
     GLOBALS.SetUtility(args.utility)
 
-    testRAEandPlanner(args.domain, args.problem, args.planner, plannerParams, args.showOutputs, args.v)
+    testActorandPlanner(args.domain, args.problem, "RAE", args.planner, plannerParams, args.showOutputs, args.v)
     

@@ -1,62 +1,52 @@
 __author__ = 'patras'
 
-'''A robot is searching for an object in the environment consisting of a few locations.
+'''A robot is searching for an object in the environment consisting of a few locations. 
+The robot knows the map. It is a rigig state variable.
+The robot moves from one location to another using Djikstra's shortest path.
 It has a battery that needs to be recharged after some moves.
 A move consumes 1/4 of the battery capacity.'''
 
 from constants import *
 import gui
 from state import State, RV
-from RAE import rae
 from timer import globalTimer
-import GLOBALS
+import GLOBALS # needed for heuristic (h1 or h2), and for planning mode in environment
 import numpy
 
-class Fetch():
-    def __init__(self, problem, planner, plannerParams, v):
-        self.state = State()
-        self.rv = RV()
-        self.env = FetchEnv(self.state, self.rv)
-        self.actor = rae('fetch', problem, planner, plannerParams, v, self.state, self.rv, self.RestoreState, self.GetDomainState)
+class FetchDomain():
+    def __init__(self, state, rv, actor, env):
+        # params:
+        # state: the state the domain operates on
+        # actor: needed for do_task and do_command
+        # env: the environment the domain gathers/senses information from
 
-        self.actor.declare_commands([self.put, self.take, self.perceive, self.charge, self.move, self.moveToEmergency, self.addressEmergency, self.wait, self.fail])
+        self.state = state
+        self.actor = actor
+        self.env = env
+        self.rv = rv
+        actor.declare_commands([self.put, self.take, self.perceive, self.charge, self.move, self.moveToEmergency, self.addressEmergency, self.wait, self.fail])
 
-        self.actor.declare_task('search', 'r', 'o')
-        self.actor.declare_task('fetch', 'r', 'o')
-        self.actor.declare_task('recharge', 'r', 'c')
-        self.actor.declare_task('moveTo', 'r', 'l')
-        self.actor.declare_task('emergency', 'r', 'l', 'i')
-        self.actor.declare_task('nonEmergencyMove', 'r', 'l1', 'l2', 'dist')
+        actor.declare_task('search', 'r', 'o')
+        actor.declare_task('fetch', 'r', 'o')
+        actor.declare_task('recharge', 'r', 'c')
+        actor.declare_task('moveTo', 'r', 'l')
+        actor.declare_task('emergency', 'r', 'l', 'i')
+        actor.declare_task('nonEmergencyMove', 'r', 'l1', 'l2', 'dist')
 
-        self.actor.declare_methods('search', self.Search_Method1, self.Search_Method2)
-        self.actor.declare_methods('fetch', self.Fetch_Method1, self.Fetch_Method2)
-        self.actor.declare_methods('recharge', self.Recharge_Method1, self.Recharge_Method2, self.Recharge_Method3)
-        self.actor.declare_methods('moveTo', self.MoveTo_Method1)
-        self.actor.declare_methods('emergency', self.Emergency_Method1)
-        self.actor.declare_methods('nonEmergencyMove', self.NonEmergencyMove_Method1)
+        actor.declare_methods('search', self.Search_Method1, self.Search_Method2)
+        actor.declare_methods('fetch', self.Fetch_Method1, self.Fetch_Method2)
+        actor.declare_methods('recharge', self.Recharge_Method1, self.Recharge_Method2, self.Recharge_Method3)
+        actor.declare_methods('moveTo', self.MoveTo_Method1)
+        actor.declare_methods('emergency', self.Emergency_Method1)
+        actor.declare_methods('nonEmergencyMove', self.NonEmergencyMove_Method1)
 
         if GLOBALS.GetHeuristicName() == 'h1':
-            self.actor.declare_heuristic('search', self.Heuristic1)
-            self.actor.declare_heuristic('fetch', self.Heuristic1)
+            actor.declare_heuristic('search', self.Heuristic1)
+            actor.declare_heuristic('fetch', self.Heuristic1)
         elif GLOBALS.GetHeuristicName() == 'h2':
-            self.actor.declare_heuristic('search', self.Heuristic2)
-            self.actor.declare_heuristic('fetch', self.Heuristic2)
+            actor.declare_heuristic('search', self.Heuristic2)
+            actor.declare_heuristic('fetch', self.Heuristic2)
 
-        self.declare_goals()
-
-    def declare_goals(self):
-        pass
-        # TODO
-        # for g in [...]:
-        #   goalState = ...
-        #   goalMethod = ...   
-        #   self.actor.declare_goal_method(method, goalState)
-
-    def RestoreState(self, s2):
-        self.state.restore(s2)
-
-    def GetDomainState(self):
-        return self.state
 
     # Using Dijsktra's self.actororithm
     def GETDISTANCE(self, l0, l1):
