@@ -1,4 +1,4 @@
-__author__ = 'patras'
+__author__ = 'patras' # Sunandita Patra patras@umd.edu
 
 import threading
 import sys
@@ -38,8 +38,7 @@ def testActorandPlanner(domain, problem, actor, planner, plannerParams, showGui,
     :param problem: the problem id
     :param planner: None, APEPlan, RAEPlan, UPOM, StateSpaceUCT
     '''
-    if domain == "fetch":
-        problemInstance = Setup('fetch', problem, actor, planner, plannerParams, v)
+    problemInstance = Setup(domain, problem, actor, planner, plannerParams, v)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared between RAE, RAEplan and UPOM
     try:
@@ -50,13 +49,11 @@ def testActorandPlanner(domain, problem, actor, planner, plannerParams, showGui,
     except Exception as e:
         print('Failed {} and {}, for domain {}, {}'.format(actor, planner, domain, e))
 
-def testBatch(domain, problem, usePlanner):
+def testBatch(domain, problem, planner):
     SetMode('Counter')
-    verbosity(0)
-    GLOBALS.SetShowOutputs('off')
-    GLOBALS.SetDomain(domain)
+    #GLOBALS.SetDomain(domain)
     GLOBALS.SetDoIterativeDeepening(False)
-    p = multiprocessing.Process(target=testRAEandPlanner, args=(domain, problem, usePlanner))
+    p = multiprocessing.Process(target=testActorandPlanner, args=(domain, problem, "RAE", planner, plannerParams, 'off', 0))
     p.start()
     p.join(GLOBALS.GetTimeLimit())
     if p.is_alive() == True:
@@ -65,31 +62,33 @@ def testBatch(domain, problem, usePlanner):
     
 # Specifically set parameters for the SDN domain
 def InitializeSecurityDomain(v, state):
+    print(state)
     GLOBALS.SetMaxDepth(float("inf"))
-    verbosity(v)
     SetMode('Counter')
-    GLOBALS.SetShowOutputs('on')
-    GLOBALS.SetPlanner("UPOM")
     GLOBALS.SetDataGenerationMode(None) # for learning
-    GLOBALS.Set_nRO(50) # to decide accordingly
     GLOBALS.SetTimeLimit(300) # in secs
     GLOBALS.SetDoIterativeDeepening(False)
-    '''
-    :param domain: the code of the domain
-    :param problem: the problem id
-    '''
-    InitializeDomain('AIRS_dev', None, state) # no concept of separate problem in SDN, so the second argument is None
-    GLOBALS.SetDomain('AIRS_dev')
+    problemInstance = Setup(
+        domain="AIRS_dev", 
+        problem=None, 
+        actor="RAE", 
+        planner="UPOM", 
+        plannerParams=[50, float("inf")], 
+        v=v,
+        startState=state)
+    
     GLOBALS.SetUtility('resilience') # maximizing the resilience (0 or 1+1/sum(cost))
     GLOBALS.SetUseTrainedModel(None) # for learning, in case you have models
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
-        rM = threading.Thread(target=raeMult)
+        rM = threading.Thread(target=problemInstance.actor.raeMult)
         rM.start()
     except Exception as e:
-        print('Failed to start RAE and RAEplan {}'.format(e))
-    return taskQueue, cmdExecQueue, cmdStatusQueue 
+        print('Failed to start RAE and UPOM {}'.format(e))
+    return problemInstance.actor.taskQueue, \
+        problemInstance.actor.cmdExecQueue, \
+        problemInstance.actor.cmdStatusQueue 
 
 
 if __name__ == "__main__":

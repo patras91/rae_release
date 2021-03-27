@@ -15,6 +15,7 @@ class UPOMChoice(OpPlanner):
     def __init__(self, l, methods, m, commands, domain, RestoreState, GetDomainState):
         self.n_ro = l[0]
         self.maxSearchDepth = l[1]
+        self._C = 2
         self.planLocals = rL_PLAN()
         self.name = "UPOM"
         self.methods = methods
@@ -143,7 +144,7 @@ class UPOMChoice(OpPlanner):
             index = None
             for i in range(0, len(taskNode.children)):
                 v = taskNode.Q[i].GetValue() + \
-                    GLOBALS.GetC() * math.sqrt(math.log(taskNode.N)/taskNode.n[i])
+                    self._C * math.sqrt(math.log(taskNode.N)/taskNode.n[i])
                 if v >= vmax:
                     vmax = v
                     mNode = taskNode.children[i]

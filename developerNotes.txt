@@ -1,0 +1,29 @@
+__author__="Sunandita Patra"
+
+March 27, 2021:
+
+Different components:
+Actor core
+Planner core
+Planner high-level
+data structures
+test scripts TOFIX
+domain 
+setup = domain + actor + planner + env 
+A problem is setup plus initial state + tasks
+A test case is an instance of a problem
+A test case is run several times
+
+RAE's communication queues : task queue, command execution queue, command status queue, is a part of the actor object
+Duration should move into the domain/env file
+exit for the queue
+test scripts running
+
+
+Todo in future:
+Move/get rid of declare task and declare commands and methods in domain files
+relative naming of the paths
+Execution Platform
+merge the queues and test files
+
+

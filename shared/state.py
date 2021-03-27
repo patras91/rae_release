@@ -44,7 +44,8 @@ class State():
         oldKeys = list(self.__dict__.keys())
         for (key, val) in vars(s).items():
             self.__setattr__(key, copy.deepcopy(val.GetVal()))
-            oldKeys.remove(key)
+            if key in oldKeys:
+                oldKeys.remove(key)
         for k in oldKeys:
             del self.__dict__[k]
         return s

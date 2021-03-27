@@ -8,7 +8,6 @@ A move consumes 1/4 of the battery capacity.'''
 
 from constants import *
 import gui
-from state import State, RV
 from timer import globalTimer
 import GLOBALS # needed for heuristic (h1 or h2), and for planning mode in environment
 import numpy

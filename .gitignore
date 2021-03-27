@@ -1,22 +1,8 @@
-*.xlsx
 *.pyc
-*.out
-misc.xml
-*.xml
-planners/RAE_and_RAEplan/visuals
-planners/RAE_and_RAEplan/config.dox
-planners/RAE_and_RAEplan/html
-planners/RAE_and_RAEplan/latex
-.idea/
 
-autoGen_scripts/
-
-planners/RAE_and_RAEplan/actingTree
-planners/RAE_and_RAEplan/actingTree.png
-planners/RAE_and_RAEplan/searchTree
-planners/RAE_and_RAEplan/searchTree.png
+test_scripts/autoGen_scripts/
 
 learning/plots
 learning/models
 
-test_scripts/AIJ/figures/
+test_scripts/figures/

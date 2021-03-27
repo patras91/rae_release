@@ -73,7 +73,8 @@ class rae():
         '''
         
         self.domain = domain
-        if domain in ['fetch', 
+        if domain in [
+            'fetch', 
             'nav', 
             'explore', 
             'rescue', 
@@ -87,7 +88,7 @@ class rae():
             self.problemModule = __import__(module)
             self.problemModule.SetInitialStateVariables(self.state, self.rv)
         elif domain == 'AIRS_dev':
-            self.RestoreState(startState)
+            pass
         else:
             print("Invalid domain\n", domain)
             exit(11)
@@ -249,7 +250,7 @@ class rae():
                 return
 
             self.startEnvCounter += 1
-            if self.domain != "AIRS":
+            if self.domain != "AIRS_dev" and self.domain != "AIRS":
                 if self.startEnvCounter in self.problemModule.eventsEnv:
                     self.eventArgs = self.problemModule.eventsEnv[self.startEnvCounter]
                     event = eventArgs[0]

@@ -14,16 +14,16 @@ g.planningMode = False
 g.heuristic = None
 g.backupUCT = False
 
-def SetPlanner(p):
-    if p == "UPOM":
-        g.planner = "UPOM"
-    elif p == "RAEPlan":
-        g.planner = "RAEPlan"
-    else:
-        g.planner = None
+# def SetPlanner(p):
+#     if p == "UPOM":
+#         g.planner = "UPOM"
+#     elif p == "RAEPlan":
+#         g.planner = "RAEPlan"
+#     else:
+#         g.planner = None
 
-def GetPlanner():
-    return g.planner
+# def GetPlanner():
+#     return g.planner
 
 def SetPlanningMode(s):
     g.planningMode = s
@@ -31,11 +31,11 @@ def SetPlanningMode(s):
 def GetPlanningMode():
     return g.planningMode
 
-def GetShowOutputs():
-    return g.showOutputs
+# def GetShowOutputs():
+#     return g.showOutputs
 
-def SetShowOutputs(o):
-    g.showOutputs = o
+# def SetShowOutputs(o):
+#     g.showOutputs = o
 
 def Setb(b): # number of methods to look at for every task/sub-task
     g.b = b
@@ -68,20 +68,17 @@ def SetUtility(opt):
     assert(opt == 'efficiency' or opt == 'successRatio' or opt == "resilience")
     g.opt = opt
 
-def Set_nRO(v):
-    g.nro = v
+# def Set_nRO(v):
+#     g.nro = v
 
-def Get_nRO():
-    return g.nro
+# def Get_nRO():
+#     return g.nro
 
-def GetC():
-    return 2
+# def SetDomain(dom):
+#     g.domain = dom
 
-def SetDomain(dom):
-    g.domain = dom
-
-def GetDomain():
-    return g.domain
+# def GetDomain():
+#     return g.domain
 
 def SetTimeLimit(t):
     g.timeLimit = t
