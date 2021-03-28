@@ -1,14 +1,14 @@
 __author__ = 'patras'
 #from RAE1_and_RAEplan import ipcArgs, envArgs, RAEplan_Choice, UPOM_Choice, GetBestTillNow
-from RAE1Stack import RAE1
-from timer import globalTimer
+from actors.RAE.RAE1Stack import RAE1
+from shared.timer import globalTimer
 import threading
-import GLOBALS
+from shared import GLOBALS
 import os
 from learningData import WriteTrainingData
 import sys
 import multiprocessing as mp
-
+import importlib
 
 #****************************************************************
 #To control Progress of each stack step by step
@@ -84,8 +84,9 @@ class rae():
             'testMethodswithCosts', 
             "AIRS"
         ]:
-            module = problem + '_' + domain
-            self.problemModule = __import__(module)
+            module = 'domains.' + domain + '.problems.auto.' + problem + '_' + domain
+            print("importing ", module)
+            self.problemModule = importlib.import_module(module)
             self.problemModule.SetInitialStateVariables(self.state, self.rv)
         elif domain == 'AIRS_dev':
             pass

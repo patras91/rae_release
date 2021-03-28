@@ -1,18 +1,18 @@
 __author__="patras"
-from dataStructures import rL_APE
-import rTree
-from utility import Utility
-import GLOBALS
+from shared.dataStructures import rL_APE
+from shared import rTree
+from shared.utility import Utility
+from shared import GLOBALS
 import random
 import numpy
 import threading
-from timer import globalTimer, DURATION
+from shared.timer import globalTimer, DURATION
 import types
 from UPOM import UPOMChoice
 from RAEPlan import RAEPlanChoice
 from APEPlan import APEPlanChoice
 import multiprocessing
-from exceptions import *
+from shared.exceptions import *
 
 class MethodInstance():
     def __init__(self, m):

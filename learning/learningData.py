@@ -1,4 +1,4 @@
-import GLOBALS
+from shared import GLOBALS
 
 outputFolder = "AIJ2020"
 

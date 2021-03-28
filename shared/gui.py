@@ -4,7 +4,7 @@ __author__ = 'patras'
 from tkinter import *
 from queue import Queue
 import turtle
-import GLOBALS
+from shared import GLOBALS
 
 globalQueue = Queue()
 

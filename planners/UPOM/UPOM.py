@@ -1,13 +1,13 @@
 __author__ = 'patras'
 from opPlanner import OpPlanner
-from dataStructures import rL_PLAN
-from timer import globalTimer, DURATION
-import rTree
-from utility import Utility
+from shared.dataStructures import rL_PLAN
+from shared.timer import globalTimer, DURATION
+from shared import rTree
+from shared.utility import Utility
 import random
-from exceptions import *
+from shared.exceptions import *
 import types
-import GLOBALS
+from shared import GLOBALS
 import math
 
 class UPOMChoice(OpPlanner):

@@ -6,8 +6,8 @@ This file defines the tasks, methods, and commands for the AIRS SDN domain.
 __author__ = 'alex'
 # From Sunandita on March 27, 2021: I modified the domain file to fit with the new object-oriented of the code base
 
-from constants import *
-from timer import DURATION
+from domains.constants import *
+from shared.timer import DURATION
 import numpy as np
 
 class AIRSDomain():

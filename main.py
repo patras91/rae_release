@@ -3,16 +3,6 @@ __author__ = 'patras' # Sunandita Patra patras@umd.edu
 import threading
 import sys
 
-sys.path.append('./shared/')
-sys.path.append('./domains/')
-
-for d in ["UnitTests", "nav", "fetch", "explore", "rescue", "deliver", "AIRS"]:
-    sys.path.append("./domains/" + d + "/")
-    sys.path.append("./domains/" + d + "/problems/auto/")
-
-sys.path.append('./actors/RAE/')
-sys.path.append('./actors/APE/')
-
 sys.path.append('./planners/')
 sys.path.append('./planners/APEPlan/')
 sys.path.append('./planners/RAEPlan/')
@@ -24,13 +14,13 @@ sys.path.append('./learning/')
 sys.path.append('./learning/encoders/')
 
 import argparse
-import gui
-import GLOBALS
-from RAE import rae
-from timer import SetMode
+from shared import gui
+from shared import GLOBALS
+from actors.RAE.RAE import rae
+from shared.timer import SetMode
 import multiprocessing
 import os
-from setup import Setup
+from shared.setup import Setup
 
 def testActorandPlanner(domain, problem, actor, planner, plannerParams, showGui, v):
     '''
@@ -53,7 +43,7 @@ def testBatch(domain, problem, planner):
     SetMode('Counter')
     #GLOBALS.SetDomain(domain)
     GLOBALS.SetDoIterativeDeepening(False)
-    p = multiprocessing.Process(target=testActorandPlanner, args=(domain, problem, "RAE", planner, plannerParams, 'off', 0))
+    p = multiprocessing.Process(target=testActorandPlanner, args=(domain, problem, "RAE", planner, [], 'off', 0))
     p.start()
     p.join(GLOBALS.GetTimeLimit())
     if p.is_alive() == True:

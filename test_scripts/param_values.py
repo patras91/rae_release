@@ -1,6 +1,6 @@
 figuresFolder = "figures/"
-#resultsFolder = "../../../raeResults/AIJ2020/"
-resultsFolder = "../../../raeResults/SDN_USENIX_20/"
+#resultsFolder = "../../raeResults/AIJ2020/"
+resultsFolder = "../../raeResults/SDN_USENIX_20/"
 
 ptMax = 247264 # maximum planning time
 

@@ -6,10 +6,10 @@ The robot moves from one location to another using Djikstra's shortest path.
 It has a battery that needs to be recharged after some moves.
 A move consumes 1/4 of the battery capacity.'''
 
-from constants import *
-import gui
-from timer import globalTimer
-import GLOBALS # needed for heuristic (h1 or h2), and for planning mode in environment
+from domains.constants import *
+from shared import gui
+from shared.timer import globalTimer
+from shared import GLOBALS # needed for heuristic (h1 or h2), and for planning mode in environment
 import numpy
 
 class FetchDomain():

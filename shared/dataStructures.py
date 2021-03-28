@@ -1,8 +1,8 @@
 __author__ = 'patras'
 
 import threading
-import GLOBALS
-from utility import *
+from shared import GLOBALS
+from shared.utility import *
 
 class rL():
     def __init__(self):

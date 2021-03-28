@@ -1,5 +1,5 @@
 __author__ = 'patras'
-import GLOBALS
+from shared import GLOBALS
 
 class Utility():
     def __init__(self, val):

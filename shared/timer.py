@@ -1,7 +1,7 @@
 __author__ = 'patras'
 
 from time import time
-import GLOBALS
+from shared import GLOBALS
 import types
 
 class Duration():

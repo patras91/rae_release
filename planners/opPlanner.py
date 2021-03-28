@@ -1,11 +1,11 @@
 __author__ = 'patras'
-from timer import SetMode
-import GLOBALS
-from dataStructures import PlanArgs
+from shared.timer import SetMode
+from shared import GLOBALS
+from shared.dataStructures import PlanArgs
 import signal # for interrupting when planner's time limit is reached
-import rTree # refinement tree
-from exceptions import *
-from utility import Utility # the utility function the planner optimizes
+from shared import rTree # refinement tree
+from shared.exceptions import *
+from shared.utility import Utility # the utility function the planner optimizes
 from learningData import WriteTrainingData
 import copy
 

@@ -1,6 +1,6 @@
 __author__ = 'patras'
-from domain_fetch import *
-from timer import DURATION
+from domains.fetch.domain_fetch import *
+from shared.timer import DURATION
 
 DURATION.TIME = {
     'put': 2,

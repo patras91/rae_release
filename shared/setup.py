@@ -1,14 +1,15 @@
 __author__="patras"
-from state import State, RV
-from RAE import rae
-from domain_fetch import FetchDomain, FetchEnv
-from domain_AIRS import AIRSDomain, AIRSEnv
+from shared.state import State, RV
+from actors.RAE.RAE import rae
+from domains.fetch.domain_fetch import FetchDomain, FetchEnv
+from domains.AIRS.domain_AIRS import AIRSDomain, AIRSEnv
 
 class Setup():
     def __init__(self, domain, problem, actor, planner, plannerParams, v, startState=None):
         self.state = State()
         self.rv = RV()
-        self.actor = rae(domain, 
+        self.actor = rae(
+            domain, 
             problem, 
             planner, plannerParams, 
             v, 

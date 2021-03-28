@@ -1,11 +1,11 @@
 __author__ = 'patras'
 
 import pipes
-from timer import DURATION
+from shared.timer import DURATION
 #from graphviz import Digraph
 import types
-from utility import Utility
-import GLOBALS
+from shared.utility import Utility
+from shared import GLOBALS
 from learningData import TrainingDataItem
 import pdb
 

@@ -1,12 +1,12 @@
 from __future__ import print_function
 from ape1_and_apeplan import ipcArgs, envArgs, APE1, APEplan
-from dataStructures import PlanArgs
+from shared.dataStructures import PlanArgs
 from timer import globalTimer, SetMode
 #from time import time
 from state import ReinitializeState, RemoveLocksFromState
 import threading
 import colorama
-import globals
+from shared import GLOBALS
 
 __author__ = 'patras'
 
