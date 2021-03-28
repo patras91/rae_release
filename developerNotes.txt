@@ -7,7 +7,7 @@ Actor core
 Planner core
 Planner high-level
 data structures
-test scripts TOFIX
+test scripts TO FIX
 domain 
 setup = domain + actor + planner + env 
 A problem is setup plus initial state + tasks
@@ -18,11 +18,11 @@ RAE's communication queues : task queue, command execution queue, command status
 Duration should move into the domain/env file
 exit for the queue
 test scripts running
+Make every domain compatible with the new refactoring
 
 
 Todo in future:
 Move/get rid of declare task and declare commands and methods in domain files
-relative naming of the paths
 Execution Platform
 merge the queues and test files
 
