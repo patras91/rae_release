@@ -1,5 +1,5 @@
 __author__ = 'patras'
-from opPlanner import OpPlanner
+from planners.opPlanner import OpPlanner
 from shared.dataStructures import rL_PLAN
 
 class RAEPlanChoice(OpPlanner):

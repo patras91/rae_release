@@ -3,16 +3,6 @@ __author__ = 'patras' # Sunandita Patra patras@umd.edu
 import threading
 import sys
 
-sys.path.append('./planners/')
-sys.path.append('./planners/APEPlan/')
-sys.path.append('./planners/RAEPlan/')
-sys.path.append('./planners/UPOM/')
-sys.path.append('./planners/StateSpaceUCT/')
-sys.path.append('./planners/shared/')
-
-sys.path.append('./learning/')
-sys.path.append('./learning/encoders/')
-
 import argparse
 from shared import gui
 from shared import GLOBALS

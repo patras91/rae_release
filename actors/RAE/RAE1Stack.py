@@ -8,9 +8,9 @@ import numpy
 import threading
 from shared.timer import globalTimer, DURATION
 import types
-from UPOM import UPOMChoice
-from RAEPlan import RAEPlanChoice
-from APEPlan import APEPlanChoice
+from planners.UPOM.UPOM import UPOMChoice
+from planners.RAEPlan.RAEPlan import RAEPlanChoice
+from planners.APEPlan.APEPlan import APEPlanChoice
 import multiprocessing
 from shared.exceptions import *
 

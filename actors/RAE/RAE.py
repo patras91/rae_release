@@ -5,7 +5,7 @@ from shared.timer import globalTimer
 import threading
 from shared import GLOBALS
 import os
-from learningData import WriteTrainingData
+from learning.learningData import WriteTrainingData
 import sys
 import multiprocessing as mp
 import importlib
@@ -85,7 +85,7 @@ class rae():
             "AIRS"
         ]:
             module = 'domains.' + domain + '.problems.auto.' + problem + '_' + domain
-            print("importing ", module)
+            print("Importing ", module)
             self.problemModule = importlib.import_module(module)
             self.problemModule.SetInitialStateVariables(self.state, self.rv)
         elif domain == 'AIRS_dev':

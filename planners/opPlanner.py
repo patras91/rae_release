@@ -6,7 +6,7 @@ import signal # for interrupting when planner's time limit is reached
 from shared import rTree # refinement tree
 from shared.exceptions import *
 from shared.utility import Utility # the utility function the planner optimizes
-from learningData import WriteTrainingData
+from learning.learningData import WriteTrainingData
 import copy
 
 class MethodInstance():

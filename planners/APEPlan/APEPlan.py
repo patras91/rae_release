@@ -1,5 +1,5 @@
 __author__ = 'patras'
-from opPlanner import OpPlanner
+from planners.opPlanner import OpPlanner
 
 class APEPlanChoice(OpPlanner):
 	def __init__(self, l):
