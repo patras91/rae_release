@@ -1,6 +1,6 @@
 figuresFolder = "figures/"
-#resultsFolder = "../../raeResults/AIJ2020/"
-resultsFolder = "../../raeResults/SDN_USENIX_20/"
+#resultFolder = "../../raeResults/AIJ2020/"
+resultFolder = "../../raeResults/SDN_USENIX_20/"
 
 ptMax = 247264 # maximum planning time
 
@@ -170,7 +170,7 @@ def GetNewDict():
             }
 
 def GetRAEfname(domain):
-    return "{}{}_v_journal/RAE.txt".format(resultsFolder, domain)
+    return "{}{}_v_journal/RAE.txt".format(resultFolder, domain)
 
 def GetLowerLim(domain, util):
     if domain == "SR":

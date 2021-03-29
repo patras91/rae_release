@@ -29,11 +29,11 @@ def testActorandPlanner(domain, problem, actor, planner, plannerParams, showGui,
     except Exception as e:
         print('Failed {} and {}, for domain {}, {}'.format(actor, planner, domain, e))
 
-def testBatch(domain, problem, planner):
+def testBatch(domain, problem, planner, plannerParams):
     SetMode('Counter')
     #GLOBALS.SetDomain(domain)
     GLOBALS.SetDoIterativeDeepening(False)
-    p = multiprocessing.Process(target=testActorandPlanner, args=(domain, problem, "RAE", planner, [], 'off', 0))
+    p = multiprocessing.Process(target=testActorandPlanner, args=(domain, problem, "RAE", planner, plannerParams, 'off', 0))
     p.start()
     p.join(GLOBALS.GetTimeLimit())
     if p.is_alive() == True:

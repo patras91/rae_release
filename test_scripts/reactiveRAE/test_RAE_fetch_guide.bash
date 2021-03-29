@@ -11,7 +11,6 @@ P=(
 for problem in ${P[@]}
 do
 setup="
-import sys
 from main import testBatch
 from shared import GLOBALS
 GLOBALS.SetUtility('efficiency')

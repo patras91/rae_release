@@ -7,7 +7,7 @@ Actor core
 Planner core
 Planner high-level
 data structures
-test scripts TO FIX
+test scripts (TO FIX)
 domain 
 setup = domain + actor + planner + env 
 A problem is setup plus initial state + tasks
@@ -25,5 +25,11 @@ Todo in future:
 Move/get rid of declare task and declare commands and methods in domain files
 Execution Platform
 merge the queues and test files
+
+March 29, 2021:
+Planner scripts parameters are:
+1) RAEPlan: b,k
+2) UPOM: nro, d
+3) heuristic: None, domainSpecific, learnH
 
 
