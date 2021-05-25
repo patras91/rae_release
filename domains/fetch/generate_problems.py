@@ -7,6 +7,8 @@ import math
 #v7 1068 to 1099 when charger is with another robot
 #v8 1100 to 1123 search with emergency
 
+global num
+num = 1
 class Map():
     def __init__(self, initIndex):
         if initIndex == 1:
@@ -47,7 +49,8 @@ class Map():
 MAPS = [Map(1), Map(2), Map(3)]
 
 def generateProblems():
-    num = 100
+    #num = 100
+    global num
     for cost_index in range(1, 3):
         for map in MAPS:
             for loc in map.locations[1:3]:
@@ -61,7 +64,8 @@ def generateProblems():
                                     num += 1
 
 def generateProblemsSearchWithNotEnoughCharge():
-    num = 1
+    #num = 1
+    global num
     for cost_index in range(1, 2):
         for map in [Map(3), Map(4), Map(5)]:
             for loc in map.locations:
@@ -75,7 +79,8 @@ def generateProblemsSearchWithNotEnoughCharge():
                                 num += 1
 
 def generateProblemsSearchWithEmergency():
-    num = 1100
+    #num = 1100
+    global num
     for cost_index in range(2, 3):
         for map in [Map(3), Map(4), Map(5)]:
             for loc in map.locations:
@@ -90,7 +95,8 @@ def generateProblemsSearchWithEmergency():
     print("num = ", num)
 
 def generateProblemsCarryCharger():
-    num = 1025
+    #num = 1025
+    global num
     for cost_index in range(1, 4):
         for map in [Map(6)]:
             for loc in [1]:
@@ -103,7 +109,8 @@ def generateProblemsCarryCharger():
                                     num += 1
 
 def generateProblemsChargerWithAnotherRobot():
-    num = 1068
+    #num = 1068
+    global num
     for cost_index in range(2, 4):
         for map in [Map(6)]:
             for loc in [1,2]:
@@ -117,7 +124,8 @@ def generateProblemsChargerWithAnotherRobot():
     print("num = ", num)
 
 def generateProblemsEmergencyWithoutSearch():
-    num = 1052
+    #num = 1052
+    global num
     for cost_index in range(1, 3):
         for map in [Map(1), Map(2)]:
             for loc in [1]:
@@ -136,22 +144,23 @@ def writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, em
     file = open(fname,"w") 
     writeHeader(file, cost_index)
 
-    file.write(map.GetLocationsString())
-    file.write(map.GetEdgesString())
-    file.write("rv.OBJECTS=['o1']\n\n")
+    file.write("def SetInitialStateVariables(state, rv):\n")
+    file.write("    "+map.GetLocationsString())
+    file.write("    "+map.GetEdgesString())
+    file.write("    "+"rv.OBJECTS=['o1']\n\n")
 
     if chargerLoc == 'r2':
-        file.write("rv.ROBOTS=['r1','r2']\n\n")
+        file.write("    rv.ROBOTS=['r1','r2']\n\n")
         locString = "    state.loc = {{'r1': {}, 'r2': {}}}\n".format(loc, 1)
         chargeString = "    state.charge = {{'r1': {}, 'r2': 3}}\n".format(charge)
         loadString = "    state.load = {'r1': NIL, 'r2': NIL}\n"
     else:
-        file.write("rv.ROBOTS=['r1']\n\n")
+        file.write("    rv.ROBOTS=['r1']\n\n")
         locString = "    state.loc = {{'r1': {}}}\n".format(loc)
         chargeString = "    state.charge = {{'r1': {}}}\n".format(charge)
         loadString = "    state.load = {'r1': NIL}\n"
 
-    file.write("def ResetState():\n")
+    #file.write("def ResetState():\n")
     file.write(locString)
 
     file.write(chargeString)
@@ -189,9 +198,8 @@ def writeProblem(num, map, cost_index, loc, charge, chargerLoc, obj_loc, pos, em
 
 def writeHeader(file, index):
     file.write("__author__ = 'patras'\n")
-    file.write("from domain_fetch import *\n") 
-    file.write("from timer import DURATION\n") 
-    file.write("from state import state\n\n") 
+    file.write("from domains.fetch.domain_fetch import *\n")
+    file.write("from shared.timer import DURATION\n\n")
 
     if index == 1:
         file.write("DURATION.TIME = {\n")
@@ -272,7 +280,7 @@ def writeHeader(file, index):
 
 if __name__=="__main__":
     generateProblemsSearchWithNotEnoughCharge()
-    # generateProblemsSearchWithEmergency()
-    # generateProblemsCarryCharger()
-    # generateProblemsChargerWithAnotherRobot()
-    # generateProblemsEmergencyWithoutSearch()
+    generateProblemsSearchWithEmergency()
+    generateProblemsCarryCharger()
+    generateProblemsChargerWithAnotherRobot()
+    generateProblemsEmergencyWithoutSearch()

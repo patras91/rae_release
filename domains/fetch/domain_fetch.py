@@ -9,7 +9,7 @@ A move consumes 1/4 of the battery capacity.'''
 from domains.constants import *
 from shared import gui
 from shared.timer import globalTimer
-from shared import GLOBALS # needed for heuristic (h1 or h2), and for planning mode in environment
+from shared import GLOBALS # needed for heuristic (zero or domainSpecific), and for planning mode in environment
 import numpy
 
 class FetchDomain():
@@ -39,10 +39,10 @@ class FetchDomain():
         actor.declare_methods('emergency', self.Emergency_Method1)
         actor.declare_methods('nonEmergencyMove', self.NonEmergencyMove_Method1)
 
-        if GLOBALS.GetHeuristicName() == 'h1':
+        if GLOBALS.GetHeuristicName() == 'zero':
             actor.declare_heuristic('search', self.Heuristic1)
             actor.declare_heuristic('fetch', self.Heuristic1)
-        elif GLOBALS.GetHeuristicName() == 'h2':
+        elif GLOBALS.GetHeuristicName() == 'domainSpecific':
             actor.declare_heuristic('search', self.Heuristic2)
             actor.declare_heuristic('fetch', self.Heuristic2)
 

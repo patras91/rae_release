@@ -69,6 +69,19 @@ class State():
                         return False
         return True
 
+    def GetDiff(self, s):
+        res = {}
+        for (key1, val1) in vars(self).items():
+            for sub_k1 in val1:
+                if key1 not in vars(s):
+                    res[key1] = val1
+                else:
+                    if sub_k1 not in vars(s)[key1]:
+                        res[key1] = val1.__str__()
+                    elif vars(s)[key1][sub_k1] != val1[sub_k1]:
+                        res[key1] = val1.__str__()
+        return res
+
 class StateDict():
     def __init__(self, d):
         if hasattr(d, '__iter__'):

@@ -13,7 +13,6 @@ commandProb = {
     'repair': [0.99, 0.01]
 }
 
-
 def SenseWrap(n):
     p = 1-numpy.exp(-(1/100)*n)
     p = [1-p, p]

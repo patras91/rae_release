@@ -14,8 +14,12 @@ class UPOMChoice(OpPlanner):
     
     def __init__(self, l, methods, m, commands, domain, RestoreState, GetDomainState):
         self.n_ro = l[0]
-        self.maxSearchDepth = l[1]
+        if len(l) > 1:
+            assert(GLOBALS.GetHeuristicName() not in [None, 'None'])
+            self.maxSearchDepth = l[1]
         self._C = 2
+        self._fallback_max_depth = 80
+        self._fallback_heuristic = 'zero'
         self.planLocals = rL_PLAN()
         self.name = "UPOM"
         self.methods = methods

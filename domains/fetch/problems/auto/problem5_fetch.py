@@ -32,11 +32,12 @@ def SetInitialStateVariables(state, rv):
     rv.OBJECTS=['o1']
 
     rv.ROBOTS=['r1']
+
     state.loc = {'r1': 3}
     state.charge = {'r1': 4}
     state.load = {'r1': NIL}
     state.pos = {'c1': 1, 'o1': UNK}
-    state.containers = { 1:[],2:[],3:['o1'],4:[],}
+    state.containers = { 1:[],2:[],3:[],4:['o1'],}
     state.emergencyHandling = {'r1': False, 'r2': False}
     state.view = {}
     for l in rv.LOCATIONS:

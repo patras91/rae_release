@@ -1,24 +1,20 @@
 __author__ = 'patras' # Sunandita Patra patras@umd.edu
 
 import threading
-import sys
-
 import argparse
 from shared import gui
 from shared import GLOBALS
-from actors.RAE.RAE import rae
 from shared.timer import SetMode
 import multiprocessing
-import os
 from shared.setup import Setup
 
-def testActorandPlanner(domain, problem, actor, planner, plannerParams, showGui, v):
+def testActorandPlanner(domain, problem, actor, useLearningStrategy, planner, plannerParams, showGui, v):
     '''
     :param domain: the code of the domain ('fetch', 'nav', 'explore', 'rescue', AIRS', 'deliver', 'UnitTests')
     :param problem: the problem id
     :param planner: None, APEPlan, RAEPlan, UPOM, StateSpaceUCT
     '''
-    problemInstance = Setup(domain, problem, actor, planner, plannerParams, v)
+    problemInstance = Setup(domain, problem, actor, useLearningStrategy, planner, plannerParams, v)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared between RAE, RAEplan and UPOM
     try:
@@ -29,36 +25,33 @@ def testActorandPlanner(domain, problem, actor, planner, plannerParams, showGui,
     except Exception as e:
         print('Failed {} and {}, for domain {}, {}'.format(actor, planner, domain, e))
 
-def testBatch(domain, problem, planner, plannerParams):
+def testBatch(domain, problem, actor, useLearningStrategy, planner, plannerParams):
     SetMode('Counter')
-    #GLOBALS.SetDomain(domain)
     GLOBALS.SetDoIterativeDeepening(False)
-    p = multiprocessing.Process(target=testActorandPlanner, args=(domain, problem, "RAE", planner, plannerParams, 'off', 0))
+    p = multiprocessing.Process(target=testActorandPlanner, args=(domain, problem, actor, useLearningStrategy, planner, plannerParams, 'off', 0))
     p.start()
     p.join(GLOBALS.GetTimeLimit())
     if p.is_alive() == True:
         p.terminate()
         print("0 1 0 0 0 0 0 0 0")
     
-# Specifically set parameters for the SDN domain
-def InitializeSecurityDomain(v, state):
-    print(state)
-    GLOBALS.SetMaxDepth(float("inf"))
+def initialize_unitTest_for_online_method_addition(v, state):
     SetMode('Counter')
     GLOBALS.SetDataGenerationMode(None) # for learning
     GLOBALS.SetTimeLimit(300) # in secs
+    GLOBALS.SetHeuristicName(None)
     GLOBALS.SetDoIterativeDeepening(False)
     problemInstance = Setup(
-        domain="AIRS_dev", 
+        domain="UnitTest", 
         problem=None, 
-        actor="RAE", 
+        actor="RAE",
+        useLearningStrategy=None, 
         planner="UPOM", 
-        plannerParams=[50, float("inf")], 
+        plannerParams=[50], 
         v=v,
         startState=state)
     
-    GLOBALS.SetUtility('resilience') # maximizing the resilience (0 or 1+1/sum(cost))
-    GLOBALS.SetUseTrainedModel(None) # for learning, in case you have models
+    GLOBALS.SetUtility('efficiency') 
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
@@ -68,7 +61,39 @@ def InitializeSecurityDomain(v, state):
         print('Failed to start RAE and UPOM {}'.format(e))
     return problemInstance.actor.taskQueue, \
         problemInstance.actor.cmdExecQueue, \
-        problemInstance.actor.cmdStatusQueue 
+        problemInstance.actor.cmdStatusQueue, \
+        problemInstance.domain
+
+
+# Specifically set parameters for the AIRS domain
+def InitializeAIRSDomain(v, state):
+    SetMode('Counter')
+    GLOBALS.SetDataGenerationMode(None) # for learning
+    GLOBALS.SetTimeLimit(300) # in secs
+    GLOBALS.SetHeuristicName(None)
+    GLOBALS.SetDoIterativeDeepening(False)
+    problemInstance = Setup(
+        domain="AIRS_dev", 
+        problem=None, 
+        actor="RAE",
+        useLearningStrategy=None, 
+        planner="UPOM", 
+        plannerParams=[50], 
+        v=v,
+        startState=state)
+    
+    GLOBALS.SetUtility('resilience') # maximizing the resilience (0 or 1+1/sum(cost))
+    GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
+                                   # because some code is shared by both RAE and RAEplan
+    try:
+        rM = threading.Thread(target=problemInstance.actor.raeMult)
+        rM.start()
+    except Exception as e:
+        print('Failed to start RAE and UPOM {}'.format(e))
+    return problemInstance.actor.taskQueue, \
+        problemInstance.actor.cmdExecQueue, \
+        problemInstance.actor.cmdStatusQueue, \
+        problemInstance.domain
 
 
 if __name__ == "__main__":
@@ -78,13 +103,15 @@ if __name__ == "__main__":
     argparser.add_argument("--domain", help="name of the test domain (fetch, nav, explore, rescue, AIRS, deliver)",
                            type=str, default='fetch', required=False)
     argparser.add_argument("--problem", help="identifier for the problem eg. 'problem1', 'problem2', etc",
-                           type=str, default="problem1", required=False)
+                           type=str, default="problem100", required=False)
+    argparser.add_argument("--actor", help="Which actor? ('RAE' or APE')",
+                           type=str, default='RAE', required=False)
     argparser.add_argument("--planner", help="Which planner? ('APEPlan', RAEPlan' or 'UPOM' or 'None')",
                            type=str, default='UPOM', required=False)
     argparser.add_argument("--clockMode", help="Mode of the clock ('Counter' or 'Clock')",
                            type=str, default='Counter', required=False)
     argparser.add_argument("--showOutputs", help="Whether to display the outputs of commands or not? (set 'on' for more clarity and 'off' for batch runs)",
-                           type=str, default='on', required=False)
+                           type=str, default='off', required=False)
     
     # parameters of RAEPlan
     argparser.add_argument("--b", help="Number of methods RAEplan should look at",
@@ -111,7 +138,7 @@ if __name__ == "__main__":
                            type=str, default="efficiency", required=False)
     
     #use learned models?
-    argparser.add_argument("--useTrainedModel", help="learnM1 or learnM2 or learnH or learnMI or None?", 
+    argparser.add_argument("--useLearningStrategy", help="learnM1 or learnM2 or learnH or learnMI or None?", 
                         type=str, default=None, required=False)
     
     argparser.add_argument("--useBackupUCT", help="If planners fails, do you want to run UCT with only commands?",
@@ -123,7 +150,7 @@ if __name__ == "__main__":
     args = argparser.parse_args()
 
     if args.planner == 'UPOM' or args.planner == "RAEPlan":
-        assert(args.useTrainedModel == None or args.useTrainedModel == 'None' or args.useTrainedModel == 'learnH')
+        assert(args.useLearningStrategy == None or args.useLearningStrategy == 'None' or args.useLearningStrategy == 'learnH')
 
     assert(args.depth >= 1)
     if args.planner == "RAEPlan":
@@ -141,7 +168,6 @@ if __name__ == "__main__":
 
     # learning related info
     GLOBALS.SetDataGenerationMode(None)
-    GLOBALS.SetUseTrainedModel(args.useTrainedModel)
     GLOBALS.SetModelPath("../learning/models/AIJ2020/")
 
     GLOBALS.SetDoIterativeDeepening(args.doIterativeDeepening)
@@ -151,5 +177,5 @@ if __name__ == "__main__":
     assert(args.utility == "efficiency" or args.utility == "successRatio" or args.utility == "resilience")
     GLOBALS.SetUtility(args.utility)
 
-    testActorandPlanner(args.domain, args.problem, "RAE", args.planner, plannerParams, args.showOutputs, args.v)
+    testActorandPlanner(args.domain, args.problem, args.actor, args.useLearningStrategy, args.planner, plannerParams, args.showOutputs, args.v)
     

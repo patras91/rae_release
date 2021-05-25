@@ -77,7 +77,7 @@ class AIRSDomain():
         self.actor.declare_methods(
             'fix_component',
             self.m_fix_vm,
-            self.m_fix_software
+            #self.m_fix_software
         )
         self.actor.declare_methods(
             'fix_low_resources',
@@ -153,6 +153,13 @@ class AIRSDomain():
             self.m_switch_disconnect_txport
         )
 
+    def add_refinement_method(self, task, method):
+        print(method.__name__)
+        setattr(self, method.__name__, method)
+        m2 = getattr(self, method.__name__)
+        print(m2.__code__.co_argcount)
+        self.actor.add_new_method(task, getattr(self, method.__name__))
+        
 
     #
     # Helper functions
@@ -773,27 +780,27 @@ class AIRSDomain():
             self.actor.do_command(self.restart_vm, component_id, explain)
 
 
-    def m_fix_software(self, component_id, config, context):
-        """Method to fix symptoms at the software/process level."""
+    # def m_fix_software(self, component_id, config, context):
+    #     """Method to fix symptoms at the software/process level."""
 
-        do_fix_generic = False
-        do_fix_sdnctrl = False
-        do_fix_switch = False
-        if self.is_component_type(component_id, 'CTRL'):
-            do_fix_sdnctrl = True
-        elif self.is_component_type(component_id, 'SWITCH'):
-            do_fix_switch = True
-        else:
-            do_fix_generic = True
+    #     do_fix_generic = False
+    #     do_fix_sdnctrl = False
+    #     do_fix_switch = False
+    #     if self.is_component_type(component_id, 'CTRL'):
+    #         do_fix_sdnctrl = True
+    #     elif self.is_component_type(component_id, 'SWITCH'):
+    #         do_fix_switch = True
+    #     else:
+    #         do_fix_generic = True
 
-        if do_fix_generic is True:
-            self.actor.do_task('try_generic_fix', component_id, config, context)
-        elif do_fix_sdnctrl is True:
-            self.actor.do_task('fix_sdn_controller', component_id, config, context)
-        elif do_fix_switch is True:
-            self.actor.do_task('fix_switch', component_id, config, context)
-        else:
-            self.actor.do_command(self.fail)
+    #     if do_fix_generic is True:
+    #         self.actor.do_task('try_generic_fix', component_id, config, context)
+    #     elif do_fix_sdnctrl is True:
+    #         self.actor.do_task('fix_sdn_controller', component_id, config, context)
+    #     elif do_fix_switch is True:
+    #         self.actor.do_task('fix_switch', component_id, config, context)
+    #     else:
+    #         self.actor.do_command(self.fail)
 
 
     def m_software_update(self, component_id, config, context):

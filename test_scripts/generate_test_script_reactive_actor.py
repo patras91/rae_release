@@ -4,6 +4,7 @@ import os
 import argparse
 
 def GetProblems(minId, maxId, seed):
+    return ["problem1", "problem2", "problem3", "problem4", "problem5"]
     l = list(range(minId, maxId))
     random.seed(seed)
     random.shuffle(l)
@@ -59,18 +60,16 @@ def GenerateTestScriptActor(domain, runs, actor, resultFolder):
     file.write("from shared import GLOBALS\n")
     file.write("GLOBALS.SetUtility('efficiency')\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
-    file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
-    file.write("GLOBALS.SetMaxDepth(80)\n")
     file.write("GLOBALS.SetDataGenerationMode(None)\n")
     file.write("GLOBALS.SetModelPath(\'../learning/models\')\n")
-    file.write("GLOBALS.SetUseTrainedModel(None)\"\n")
+    file.write("\"\n")
 
     file.write("counter=1\n")
     file.write("while [ $counter -le $runs ]\n")
     file.write("do\n")
 
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
-    file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', planner=None, plannerParams=[])\"\n")
+    file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', useLearningStrategy=None, actor=\'{}\', planner=None, plannerParams=[])\"\n".format(actor))
     
     str1 = "            fname=\"" + resultFolder + "/${domain}/RAE.txt\"\n"
     file.write(str1)

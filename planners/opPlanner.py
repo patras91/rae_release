@@ -39,7 +39,10 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
                     method, util = methodUtil
                     d += 5
             else:
-                d = self.maxSearchDepth
+                if hasattr(self, 'maxSearchDepth'):
+                    d = self.maxSearchDepth
+                else:
+                    d = self._fallback_max_depth
                 pArgs.SetDepth(d)
                 methodUtil, planningTime = self.UPOMChoiceMain(pArgs.GetTask(), pArgs)
                 method, util = methodUtil
@@ -51,7 +54,7 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
             method, util = methodUtil
 
         else:
-            print("Invalid planner")
+            print("ERROR: Invalid planner")
 
         if method != 'Failure':
             i = pArgs.GetCandidates().index(method)

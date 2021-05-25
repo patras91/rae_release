@@ -6,3 +6,6 @@ learning/plots
 learning/models
 
 test_scripts/figures/
+
+venv/
+.idea/

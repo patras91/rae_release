@@ -8,6 +8,7 @@ import argparse
 #resultFolder="SDN_USENIX_20"
 
 def GetProblems(minId, maxId, seed, part):
+    return ["problem1", "problem2", "problem3", "problem4", "problem5"]
     l = list(range(1000, 1124))
     random.seed(100)
     random.shuffle(l)
@@ -73,7 +74,7 @@ k_max_depth = {
 #}
 
 # for AIJ2020
-UCT_max_depth = {
+UPOM_nro_max_horizon = {
     "fetch": [5, 10, 25], #[50, 100, 250, 500, 1000], 
     "nav": [5, 10, 25], #[50, 100, 250, 500, 1000],
     "rescue": [5, 10, 25], #[50, 100, 250, 500, 1000], 
@@ -121,7 +122,7 @@ DEPTH = {
     "deliver": [1, 2, 3, 4], #[5, 10, 15, 20, 25, 30], # 35, 40, 45, 50],
 }
 
-# was 300 for ICAPS 2020 submission
+# was 300 for ICAPS 2020 paper
 
 timeLimit = {
     "deliver": 1800,
@@ -164,109 +165,97 @@ def GenerateTestScript_actor_with_planner(domain, actor, planner, part, utility,
 
     writeProblems("P", file, part, domain)
 
-    if planner == "RAEPlan" and heuristic == "None":
-        writeList("B", b_max_depth[domain], file)
-        writeList("K", k_max_depth[domain], file)
-    elif planner == "UPOM" and heuristic == "None":
-        writeList("UCT", UCT_max_depth[domain], file)
-    elif planner == "RAEPlan" and heuristic != "None":
-        writeList("B", b_lim_depth[domain], file)
-        writeList("K", k_lim_depth[domain], file)
-        writeList("Depth", DEPTH[domain], file)
-    else:
-        writeList("UPOM", UCT_lim_depth[domain], file)
-        writeList("Depth", DEPTH[domain], file)
-
     file.write("for problem in ${P[@]}\n")
     file.write("do\n")
 
-    if planner == "RAEPlan":
+    # loop over the parameters of the planner depending on the script
+    if planner == "RAEPlan" and heuristic == "None":
+        writeList("B", b_max_depth[domain], file)
+        writeList("K", k_max_depth[domain], file)
         file.write("    for b in ${B[@]}\n")
         file.write("    do\n")
         file.write("        for k in ${K[@]}\n")
         file.write("        do\n")
-    else:
-        file.write("    for nro in ${UCT[@]}\n")
-        file.write("    do\n")
-
-    if heuristic != "None":
+        plannerParams= {
+            '_str': "[$b, $k]",
+            '_len': 2,
+            '_output_file': "/RAEPlan_b_${b}_k_${k}_h_{}".format(heuristic),
+            '_heuristic': heuristic,
+        }
+    elif planner == "RAEPlan" and heuristic != "None":
+        writeList("B", b_lim_depth[domain], file)
+        writeList("K", k_lim_depth[domain], file)
+        writeList("Depth", DEPTH[domain], file)
         file.write("            for d in ${Depth[@]}\n")
         file.write("            do\n")
-    
-
-    file.write("setup=\"\n")
+        plannerParams= {
+            '_str': "[$b,$k,$d]",
+            '_len': 3,
+            '_output_file': "/RAEPlan_b_${b}_k_${k}_d_${d}_h_{}".format(heuristic),
+            '_heuristic': heuristic,
+        }
+    elif planner == "UPOM" and heuristic == "None":
+        writeList("N_RO", UPOM_nro_max_horizon[domain], file)
+        file.write("    for nro in ${N_RO[@]}\n")
+        file.write("    do\n")
+        plannerParams= {
+            '_str': "[$nro]",
+            '_len': 1,
+            '_output_file': "/UPOM_${nro}",
+            '_heuristic': None,
+        }
+    else:
+        writeList("UPOM", UCT_lim_depth[domain], file)
+        writeList("Depth", DEPTH[domain], file)
+        file.write("            for d in ${Depth[@]}\n")
+        file.write("            do\n")
+        plannerParams= {
+            '_str': "[$nro, $d]",
+            '_len': 2,
+            '_output_file': "/UPOM_${nro}_d_${d}_h_{}".format(heuristic),
+            '_heuristic': None,
+        }
+        
+    file.write("setup=\"\n") # opening the setup
     file.write("from main import testBatch\n")
     file.write("from shared import GLOBALS\n")
     file.write("GLOBALS.SetTimeLimit({})\n".format(timeLimit[domain]))
 
-    if planner=="RAEPlan":
-        planerParams="[$b,$k]"
-    elif planner=="UPOM":
-        plannerParams="[$nro, $d]"
-
     file.write("GLOBALS.SetUtility(\'{}\')\n".format(utility))
-    if heuristic == "None" or heuristic == None:
-        #file.write("GLOBALS.SetMaxDepth(float(\\\"inf\\\"))\"\n")
-        if planner == "RAEPlan":
-            file.write("GLOBALS.SetMaxDepth(20)\n")
-        else:
-            #file.write("GLOBALS.SetMaxDepth(30)\n")
-            file.write("GLOBALS.SetMaxDepth(80)\n")
-        file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
+    if heuristic == "None":
+        file.write("GLOBALS.SetHeuristicName(\\\"zero\\\")\n")
     else:
-        file.write("GLOBALS.SetMaxDepth($d)\n")
-        if heuristic == "zero":
-            file.write("GLOBALS.SetHeuristicName(\\\"h1\\\")\n")
-        elif heuristic == "DS":
-            file.write("GLOBALS.SetHeuristicName(\\\"h2\\\")\n")
-
+        file.write("GLOBALS.SetHeuristicName(\\\"{}\\\")\n".format(heuristic))
 
     file.write("GLOBALS.SetDataGenerationMode(None)\n")
     file.write("GLOBALS.SetModelPath(\'./learning/models/AIJ2020/\')\n")
-
-    if heuristic == "learnH":
-        file.write("GLOBALS.SetUseTrainedModel('learnH')\"\n")
-    else:
-        file.write("GLOBALS.SetUseTrainedModel(None)\"\n")
+    file.write("\"\n") # closing the setup
 
     file.write("counter=1\n")
     file.write("while [ $counter -le $runs ]\n")
     file.write("do\n")
 
     file.write("            echo $domain $problem \" Run \" $counter/$runs\n")
-    file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', planner=\'{}\', plannerParams=\'{}\')\"\n".format(planner, plannerParams))
+    file.write("            time_test=\"testBatch(domain=\'$domain\', problem=\'$problem\', actor=\'{}\', useLearningStrategy=None, planner=\'{}\', plannerParams={})\"\n".format(actor, planner, plannerParams['_str']))
     
     str1 = "            fname=\"" + resultFolder + "/${domain}" 
-    str3 = "_part_{}.txt\"\n".format(part)
+    str2 = "_part_{}.txt\"\n".format(part)
 
     if planner == "RAEPlan" and heuristic != "None":
         file.write("            echo \"b = \" $b \" k = \" $k\n")    
-        str2 = "/RAEPlan_b_${b}_k_${k}"
-        file.write(str1 + "_" + utility + str2 + str3)
+        file.write(str1 + "_" + utility + plannerParams['_output_file'] + str2)
         file.write("            echo \"Time test of $domain $problem $b $k\" >> $fname\n")
     elif planner == "RAEPlan" and heuristic != "None":
         file.write("            echo \"b = \" $b \" k = \" $k \" d = \" $d\n")
-        if heuristic == "zero":
-            str2 = "/RAEPlan_b_${b}_k_${k}_d_${d}_h_h0"
-        elif heuristic == "DS":
-            str2 = "/RAEPlan_b_${b}_k_${k}_d_${d}"
-        file.write(str1 + "_" + utility + str2 + str3)
+        file.write(str1 + "_" + utility + plannerParams['_output_file'] + str2)
         file.write("            echo \"Time test of $domain $problem $b $k $d\" >> $fname\n")
-    elif planner == "UPOM" and heuristic != "None":
+    elif planner == "UPOM" and heuristic == "None":
         file.write("            echo \"number of rollouts = \" $nro\n")
-        str2 = "/UPOM_${nro}"
-        file.write(str1 + "_" + utility + str2 + str3)
+        file.write(str1 + "_" + utility + plannerParams['_output_file'] + str2)
         file.write("            echo \"Time test of $domain $problem $nro\" >> $fname\n")
     else:
         file.write("            echo \"number of rollouts = \" $nro \" d = \" $d\n")
-        if heuristic == "zero":
-            str2 = "/UPOM_${nro}_d_${d}_h_h0"
-        elif heuristic == "DS":
-            str2 = "/UPOM_${nro}_d_${d}"
-        else:
-            str2 = "/UPOM_${nro}_d_${d}_h_learnH"
-
-        file.write(str1 + "_" + utility + str2 + str3)
+        file.write(str1 + "_" + utility + plannerParams['_output_file'] + str2)
         file.write("            echo \"Time test of $domain $problem $nro $d\" >> $fname\n")
 
     file.write("            python3 -m timeit -n 1 -r 1 -s \"$setup\" \"$time_test\" >> $fname\n")
@@ -274,17 +263,11 @@ def GenerateTestScript_actor_with_planner(domain, actor, planner, part, utility,
     file.write("((counter++))\n")
     file.write("done\n") # for counter
 
-    if heuristic != "None":
-        file.write("            done\n") # for depth
+    for i in range(plannerParams['_len']):
+        file.write("            done\n") # close the loop for each param
 
-    if planner == "RAEPlan":
-        file.write("        done\n") # for k
-        file.write("    done\n") # for b
-    else:
-        file.write("    done\n") # for uct
-
-    file.write("done\n") # for the problems
-    os.system("chmod 777 {}".format(fname))
+    file.write("done\n") # closing the loop for all problems
+    os.system("chmod 777 {}".format(fname)) # change the file mode to be executable
 
 
 if __name__=="__main__":
@@ -299,16 +282,16 @@ if __name__=="__main__":
                            type=str, required=True)
     argparser.add_argument("--utility", help=" efficiency or successRatio or resilience? ",
                            type=str, required=True, default="efficiency")
-    argparser.add_argument("--heuristic", help="None or zero or DS or learnH? ",
+    argparser.add_argument("--heuristic", help="None or zero or domainSpecific or learnH or the name of your custom heuristic function? ",
                            type=str, required=True, default="zero")
     argparser.add_argument("--resultFolder", help="Which folder to save the test results at? ",
-                           type=str, required=True, default="zero")
+                           type=str, required=True)
     args = argparser.parse_args()
 
     for domain in [args.domain]:
         for optz in [args.utility]:
             for actor in [args.actor]:
                 for planner in [args.planner]: 
-                    for heuristic in [args.heuristic]: #['zero', 'DS', 'learnH']:
+                    for heuristic in [args.heuristic]: #['zero', 'domainSpecific', 'learnH']:
                         for part in range(1, 11):
                             GenerateTestScript_actor_with_planner(domain, actor, planner, part, optz, heuristic, args.resultFolder, args.runs)

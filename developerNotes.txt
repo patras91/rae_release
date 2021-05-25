@@ -24,7 +24,7 @@ Make every domain compatible with the new refactoring
 Todo in future:
 Move/get rid of declare task and declare commands and methods in domain files
 Execution Platform
-merge the queues and test files
+merge the queues and test files - Postponed now for speed to run batch tests; keeps the execution and planning environment models different.
 
 March 29, 2021:
 Planner scripts parameters are:
@@ -32,4 +32,10 @@ Planner scripts parameters are:
 2) UPOM: nro, d
 3) heuristic: None, domainSpecific, learnH
 
+Add some time and date information on the scripts
+
+March 30, 2021:
+Verify iterative deepening works alright
+write a script to generate data and learn from models
+heuristic and Learning for the AIRS domain
 

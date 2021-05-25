@@ -1,12 +1,10 @@
 __author__ = 'patras'
-#from RAE1_and_RAEplan import ipcArgs, envArgs, RAEplan_Choice, UPOM_Choice, GetBestTillNow
+
 from actors.RAE.RAE1Stack import RAE1
 from shared.timer import globalTimer
 import threading
 from shared import GLOBALS
-import os
 from learning.learningData import WriteTrainingData
-import sys
 import multiprocessing as mp
 import importlib
 
@@ -35,7 +33,7 @@ class EnvArgs():
 #****************************************************************
 
 class rae():
-    def __init__(self, domain, problem, planner, plannerParams, v, state, rv, RestoreState, GetDomainState):
+    def __init__(self, domain, problem, useLearningStrategy, planner, plannerParams, v, state, rv, RestoreState, GetDomainState):
         self.verbosity = v
 
         self.taskQueue = mp.Queue() # where the tasks come in
@@ -62,6 +60,7 @@ class rae():
         self.InitializeDomain(domain, problem)
 
         self.rae1Instances = {} # dictionary mapping stack ids to the rae1 objects
+        self.useLearningStrategy = useLearningStrategy
         self.planner = planner
         self.plannerParams = plannerParams
 
@@ -82,7 +81,8 @@ class rae():
             'testInstantiation', 
             'testSSU',  
             'testMethodswithCosts', 
-            "AIRS"
+            "AIRS",
+            'UnitTest',
         ]:
             module = 'domains.' + domain + '.problems.auto.' + problem + '_' + domain
             print("Importing ", module)
@@ -105,7 +105,7 @@ class rae():
         i = 1
         j = lastActiveStack % numstacks + 1
         while i <= numstacks:
-            if threadList[j-1].isAlive() == True:
+            if threadList[j-1].is_alive() == True:
                 nextAlive = j
                 break
             i = i + 1
@@ -158,14 +158,15 @@ class rae():
             self.state, 
             self.methods, 
             self.commands, 
+            self.useLearningStrategy,
             self.planner, 
             self.plannerParams, 
             self.RestoreState, 
             self.GetDomainState
         )
         self.rae1Instances[stackid] = rae1
-        retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = rae1.RAE1Main(raeArgs.task, raeArgs)
-        taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList)
+        retcode, retryCount, eff, height, taskCount, commandCount, traces, utilVal, utilitiesList = rae1.RAE1Main(raeArgs.task, raeArgs)
+        taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, traces, utilVal, utilitiesList)
 
     def PrintResult(self, taskInfo):
         print('ID ','\t','Task',
@@ -178,7 +179,7 @@ class rae():
                 '\t\t\t'
                 '\n')
         for stackid in taskInfo:
-            args, res, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = taskInfo[stackid]
+            args, res, retryCount, eff, height, taskCount, commandCount, traces, utilVal, utilitiesList = taskInfo[stackid]
             
             print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),
                 '\t\t\t', res,
@@ -224,7 +225,7 @@ class rae():
 
     def PrintResultSummaryVersion2(self, taskInfo):
         for stackid in taskInfo:
-            args, res, retryCount, eff, height, taskCount, commandCount, utilVal, utilitiesList = taskInfo[stackid]
+            args, res, retryCount, eff, height, taskCount, commandCount, traces, utilVal, utilitiesList = taskInfo[stackid]
             if res == 'Success':
                 succ = 1
                 fail = 0
@@ -239,6 +240,10 @@ class rae():
                 utilString += " "
 
             print(utilString)
+
+            with open("traces.txt", "a") as f:
+                f.write("\n\n")
+                f.write(traces)
 
             #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
@@ -369,26 +374,29 @@ class rae():
     # declares the refinement methods for a task;
     # ensuring that some constraints are satisfied
     def declare_methods(self, task_name, *method_list):
-
-        taskArgs = self.TASKS[task_name]
-        q = len(taskArgs)
-        
         self.methods[task_name] = []
         for m in method_list:
+            self.add_new_method(task_name, m)
+            
+    def add_new_method(self, task_name, m):
+        taskArgs = self.TASKS[task_name]
+        q = len(taskArgs)
+        variableArgs = False
+        if len(taskArgs) == 1:
+            if taskArgs[0] == "*":
+                variableArgs = True
+        if variableArgs != True:
+            # ensure that the method has atleast as many parameters as the task
+            assert(m.__code__.co_argcount - 1 >= q)
+            
+            # ensure that the variable names of the 
+            # first q parameters of m match with the parameters of task t
+            assert(m.__code__.co_varnames[1:q+1] == taskArgs)
 
-            variableArgs = False
-            if len(taskArgs) == 1:
-                if taskArgs[0] == "*":
-                    variableArgs = True
-            if variableArgs != True:
-                # ensure that the method has atleast as many parameters as the task
-                assert(m.__code__.co_argcount - 1 >= q)
-                
-                # ensure that the variable names of the 
-                # first q parameters of m match with the parameters of task t
-                assert(m.__code__.co_varnames[1:q+1] == taskArgs)
 
-            self.methods[task_name].append(m)
+        self.methods[task_name].append(m)
+
+        #print(self.methods['fix_component'])
 
     def declare_heuristic(self, task, name):
         self.heuristic[task] = name

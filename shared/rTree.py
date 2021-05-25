@@ -238,7 +238,7 @@ class ActingNode():
         assert(len(self.children) == 1)
         return self.children[0]
 
-    def Print(self):
+    def Print_bfs(self):
         level = {}
         level[0] = [self]
         level[1] = []
@@ -252,6 +252,25 @@ class ActingNode():
             curr += 1
             next += 1
             level[next] = []
+
+    def Print_dfs(self, node):
+        if node.label == 'root':
+            res = str(node.prevState) + 'root'
+            self.last_printed_state = node.prevState
+        elif node.label != None:
+            if node.type == 'method':
+                res = str(node.prevState.GetDiff(self.last_printed_state)) + node.label.GetName()
+                self.last_printed_state = node.prevState
+            else:
+                res =  node.label.__name__ + ", " + str(node.nextState.GetDiff(self.last_printed_state))
+                self.last_printed_state = node.nextState
+
+        if node.children:
+            res += "<"
+            for elem in node.children:
+                res += "(" + self.Print_dfs(elem) + ")"
+            res += ">"
+        return res
 
     def PrintUsingGraphViz(self, name):
         g = Digraph('G', filename=name, format="png")
@@ -396,15 +415,16 @@ class ActingTree():
         return self.root.GetPreorderTraversal()
 
     def Print(self):
-        print("\n------ACTING TREE-------")
-        self.root.Print()
-        print("\n------------------------")
+        #print("\n------ACTING TREE-------")
+        return self.root.Print_dfs(self.root)
+        #print("\n------------------------")
 
     def GetSize(self):
         return self.root.GetSize()
 
     def PrintUsingGraphviz(self, name='actingTree'):
         self.root.PrintUsingGraphViz(name)
+
 
     def GetMetaData(self):
         h, t, c =  self.root.GetMetaData()

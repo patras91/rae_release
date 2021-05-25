@@ -6,7 +6,10 @@ class RAEPlanChoice(OpPlanner):
     def __init__(self, l):
         self.b = l[0]
         self.k = l[1]
-        self.maxSearchDepth = l[2]
+        if len(l) > 2:
+            self.maxSearchDepth = l[2]
+        self._fallback_max_depth = 20
+        self._fallback_heuristic = 'zero'
         self.planLocals = rL_PLAN()
 
     def DoTask_RAEPlan(self, task, taskArgs):

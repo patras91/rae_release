@@ -1,7 +1,6 @@
 __author__ = 'patras'
-from domain_fetch import *
-from timer import DURATION
-from state import state
+from domains.fetch.domain_fetch import *
+from shared.timer import DURATION
 
 DURATION.TIME = {
     'put': 2,
@@ -27,13 +26,13 @@ DURATION.COUNTER = {
     'wait': 5,
 }
 
-rv.LOCATIONS = [1, 2, 3, 4]
-rv.EDGES = {1: [2, 3], 2: [1, 4], 3: [1, 4], 4: [2, 3]}
-rv.OBJECTS=['o1']
+def SetInitialStateVariables(state, rv):
+    rv.LOCATIONS = [1, 2, 3, 4]
+    rv.EDGES = {1: [2, 3], 2: [1, 4], 3: [1, 4], 4: [2, 3]}
+    rv.OBJECTS=['o1']
 
-rv.ROBOTS=['r1']
+    rv.ROBOTS=['r1']
 
-def ResetState():
     state.loc = {'r1': 3}
     state.charge = {'r1': 4}
     state.load = {'r1': NIL}
@@ -45,7 +44,7 @@ def ResetState():
         state.view[l] = False
 
 tasks = {
-    7: [['fetch', 'r1', 'o1']],
+    5: [['fetch', 'r1', 'o1']],
 }
 eventsEnv = {
 }

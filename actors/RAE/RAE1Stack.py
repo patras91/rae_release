@@ -45,7 +45,7 @@ class MethodInstance():
             return self.method == other.method and self.params == other.params
 
 class RAE1():
-    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands, planner, plannerParams, RestoreState, GetDomainState):
+    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands, useLearningStrategy, planner, plannerParams, RestoreState, GetDomainState):
         self.raeLocals = rL_APE() # variables that are local to every stack
         """ Initialize the local variables of a stack used during acting """
         self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
@@ -78,6 +78,7 @@ class RAE1():
         self.methods = methods
         self.commands = commands
 
+        self.useLearningStrategy = useLearningStrategy
         self.InitializePlanner(planner, plannerParams)
 
     def InitializePlanner(self, p, params):
@@ -119,7 +120,7 @@ class RAE1():
                 instanceList.append(instance)
 
         random.seed(100)
-        random.shuffle(instanceList)
+        #random.shuffle(instanceList)
         return instanceList 
 
     def GetMethodsForGoal(self, args):
@@ -177,10 +178,11 @@ class RAE1():
 
         #self.raeLocals.GetActingTree().PrintUsingGraphviz()
         h, t, c = self.raeLocals.GetActingTree().GetMetaData()
-        return (retcode, 
+        traces = self.raeLocals.GetActingTree().Print()
+        return (retcode,
             self.raeLocals.GetRetryCount(), 
             self.raeLocals.GetEfficiency(), 
-            h, t, c, 
+            h, t, c, traces,
             self.raeLocals.GetUtility(),
             self.raeLocals.GetPlanningUtilitiesList())
 
@@ -200,18 +202,19 @@ class RAE1():
                 raise Failed_task('{}{}'.format(task, taskArgs))
 
         queue = multiprocessing.Queue()
-        actingTree = self.raeLocals.GetActingTree()
+        #actingTree = self.raeLocals.GetActingTree()
 
         #actingTree.PrintUsingGraphviz()
         p = multiprocessing.Process(
-            target=self.planner.Main, 
-            args=[self.raeLocals.GetMainTask(), 
-            self.raeLocals.GetMainTaskArgs(), 
-            queue, 
+            target=self.planner.Main,
+            args=[self.raeLocals.GetMainTask(),
+            self.raeLocals.GetMainTaskArgs(),
+            queue,
             candidates,
             self.state.copy(),
             self.raeLocals.GetActingTree(),
-            self.raeLocals.GetUtility()])
+            self.raeLocals.GetUtility()
+            ])
 
         p.start()
         p.join(int(0.7*GLOBALS.GetTimeLimit())) # planner gets max 70% of total time 
@@ -303,7 +306,7 @@ class RAE1():
         else:
             m_chosen = candidates[0].GetName()
 
-        if GLOBALS.GetUseTrainedModel() == "learnMI" and m_chosen in params[domain]:
+        if self.useLearningStrategy == "learnMI" and m_chosen in params[domain]:
             pList = []
             for p in params[domain][m_chosen]:
                 
@@ -341,13 +344,13 @@ class RAE1():
         return (candidates[0], candidates[1:])
 
     def choose_candidate(self, candidates, task, taskArgs):
-        if len(candidates) == 1 or (self.planner == None and GLOBALS.GetUseTrainedModel() == None):
+        if len(candidates) == 1 or (self.planner == None and self.useLearningStrategy == None):
             #random.shuffle(candidates)
             return(candidates[0], candidates[1:])
-        elif self.planner == None and GLOBALS.GetUseTrainedModel() == "learnM1":
+        elif self.planner == None and self.useTrainedModel == "learnM1":
             fname = GLOBALS.GetModelPath() + "model_to_choose_{}_actor".format(self.domain)
-            return self.etCandidateFromLearnedModel(fname, task, candidates, taskArgs)
-        elif self.planner == None and GLOBALS.GetUseTrainedModel() == "learnM2" or GLOBALS.GetUseTrainedModel() == "learnMI":
+            return self.GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
+        elif self.planner == None and self.useTrainedModel in ["learnM2", "learnMI"]:
             fname = GLOBALS.GetModelPath() + "model_to_choose_{}_planner".format(self.domain)
             return self.GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
         else:
@@ -462,7 +465,7 @@ class RAE1():
             return self.DoTask_Acting(task, taskArgs)
 
     def GetHeuristicEstimate(self, task=None, tArgs=None):
-        if GLOBALS.GetUseTrainedModel() == "learnH":
+        if GLOBALS.GetHeuristic() == "learnH":
             assert(GLOBALS.GetUtility() == "efficiency" or GLOBALS.GetUtility() == "resilience")
             domain = self.domain
             features = {

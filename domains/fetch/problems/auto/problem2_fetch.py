@@ -37,14 +37,14 @@ def SetInitialStateVariables(state, rv):
     state.charge = {'r1': 4}
     state.load = {'r1': NIL}
     state.pos = {'c1': 1, 'o1': UNK}
-    state.containers = { 1:['o1'],2:[],3:[],4:[],}
+    state.containers = { 1:[],2:[],3:[],4:['o1'],}
     state.emergencyHandling = {'r1': False, 'r2': False}
     state.view = {}
     for l in rv.LOCATIONS:
         state.view[l] = False
 
 tasks = {
-    4: [['fetch', 'r1', 'o1']],
+    2: [['fetch', 'r1', 'o1']],
 }
 eventsEnv = {
 }

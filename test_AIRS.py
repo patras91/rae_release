@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-__author__ = 'alex'
+__author__ = 'alex, sunandita'
+# Last Modified: Sunandita: May 3, 2021
 
 import functools
 import operator
 import threading
 
-from main import InitializeSecurityDomain
-from state import State
-from domain_AIRS import *
+from main import InitializeAIRSDomain
+from shared.state import State
+#from domains.AIRS.domain_AIRS import *
 
 
 def beginCommand(cmd, cmdRet, args):
@@ -197,9 +198,47 @@ if __name__ == '__main__':
                 'value': 6,
                 'thresh_exceeded_fn': flow_table_exceeded_fn
             }
+        },
+        'switch5': {
+            'health': {
+                'value': 1.0,
+                'thresh_exceeded_fn': health_exceeded_fn
+            },
+            'cpu_perc_ewma': {
+                'value': 2.0,
+                'thresh_exceeded_fn': cpu_perc_exceeded_fn
+            },
+            'flow_table_size': {
+                'value': 6,
+                'thresh_exceeded_fn': flow_table_exceeded_fn
+            }
         }
     }
-    (task_queue, exec_queue, status_queue) = InitializeSecurityDomain(verbosity, state)
+    (task_queue, exec_queue, status_queue, domain) = InitializeAIRSDomain(verbosity, state)
+    
+    def m_fix_software(self, component_id, config, context):
+        """Method to fix symptoms at the software/process level."""
+
+        do_fix_generic = False
+        do_fix_sdnctrl = False
+        do_fix_switch = False
+        if self.is_component_type(component_id, 'CTRL'):
+            do_fix_sdnctrl = True
+        elif self.is_component_type(component_id, 'SWITCH'):
+            do_fix_switch = True
+        else:
+            do_fix_generic = True
+
+        if do_fix_generic is True:
+            self.actor.do_task('try_generic_fix', component_id, config, context)
+        elif do_fix_sdnctrl is True:
+            self.actor.do_task('fix_sdn_controller', component_id, config, context)
+        elif do_fix_switch is True:
+            self.actor.do_task('fix_switch', component_id, config, context)
+        else:
+            self.actor.do_command(self.fail)
+
+    domain.add_refinement_method('fix_component', m_fix_software)
 
     # Invoke the planner
     # task_queue.put(['fix_sdn', secmgr_config])
