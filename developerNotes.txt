@@ -10,9 +10,9 @@ data structures
 test scripts (TO FIX)
 domain 
 setup = domain + actor + planner + env 
-A problem is setup plus initial state + tasks
+problem = setup + initial state + tasks + events
 A test case is an instance of a problem
-A test case is run several times
+Each test case is run several times
 
 RAE's communication queues : task queue, command execution queue, command status queue, is a part of the actor object
 Duration should move into the domain/env file
@@ -20,6 +20,9 @@ exit for the queue
 test scripts running
 Make every domain compatible with the new refactoring
 
+TOD0
+Integration with learning with the new refactoring
+Adding method online
 
 Todo in future:
 Move/get rid of declare task and declare commands and methods in domain files

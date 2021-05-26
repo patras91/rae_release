@@ -45,7 +45,7 @@ class MethodInstance():
             return self.method == other.method and self.params == other.params
 
 class RAE1():
-    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, v, state, methods, commands, useLearningStrategy, planner, plannerParams, RestoreState, GetDomainState):
+    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, cmdStackTable, cmdExecQueue, v, state, methods, commands, useLearningStrategy, planner, plannerParams, RestoreState, GetDomainState):
         self.raeLocals = rL_APE() # variables that are local to every stack
         """ Initialize the local variables of a stack used during acting """
         self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
@@ -65,9 +65,11 @@ class RAE1():
 
         self.domain = domain
         self.cmdStatusStack = cmdStatusStack
+        self.cmdStackTable = cmdStackTable
+        self.cmdExecQueue = cmdExecQueue
         self.ipcArgs = ipcArgs
 
-        if domain == "SDN_dev":
+        if domain in ["AIRS_dev", 'Mobipick']:
             cmdStatusStack[raeArgs.stack] = None
 
         self.GetNewIdNum = 0
@@ -597,13 +599,15 @@ class RAE1():
         cmdRet = {'state':'running'}
 
         domain = self.domain
-        if domain != 'SDN_dev':
+        if domain not in ['AIRS_dev', 'Mobipick']:
             cmdThread = threading.Thread(target=self.beginCommand, args = [cmd, cmdRet, cmdArgs])
             cmdThread.start()
         else:
-            newCmdId = GetNewId()
-            self.AddToCommandStackTable(newCmdId, self.raeLocals.GetStackId())
-            cmdExecQueue.put([newCmdId, cmd, cmdArgs])
+            newCmdId = self.GetNewId()
+            # Update which stack a new command belongs to
+            self.cmdStackTable[newCmdId] = self.raeLocals.GetStackId()
+            #self.cmdExecQueue.put([newCmdId, cmd, cmdArgs])
+            self.cmdExecQueue.put([newCmdId, cmd.__name__, cmdArgs])
 
         if cmd.__name__ in self.raeLocals.GetCommandCount():
             self.raeLocals.GetCommandCount()[cmd.__name__] += 1
@@ -613,7 +617,7 @@ class RAE1():
         self.ipcArgs.EndCriticalRegion()
         self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
 
-        if domain != 'SDN_dev':
+        if domain not in ['AIRS_dev', 'Mobipick']:
             while (cmdRet['state'] == 'running'):
                 if self.verbosity > 0:
                     print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
@@ -621,14 +625,14 @@ class RAE1():
                 self.ipcArgs.EndCriticalRegion()
                 self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
         else:
-            while(self.cmdStatusStack[self.raeLocals.GetStackId()] == None):
+            while not self.cmdStatusStack[self.raeLocals.GetStackId()]:
                 self.ipcArgs.EndCriticalRegion()
                 self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
 
         if self.verbosity > 0:
             print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
 
-        if domain != 'SDN_dev':
+        if domain not in ['Mobipick', 'AIRS_dev']:
             retcode = cmdRet['state']
         else:
             [id, retcode, nextState] = self.cmdStatusStack[self.raeLocals.GetStackId()]

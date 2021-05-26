@@ -28,7 +28,7 @@ def exec_cmds(exec_queue, status_queue):
             t = threading.Thread(target=beginCommand, args=(cmd, cmdRet, args))
             t.start()
             t.join()
-            print('Done executing cmd: ' + str(cmd.__name__))
+            print('Done executing cmd: ' + str(cmd))
             status_queue.put([id, cmdRet['state'], state.copy()])
 
 
@@ -238,7 +238,7 @@ if __name__ == '__main__':
         else:
             self.actor.do_command(self.fail)
 
-    domain.add_refinement_method('fix_component', m_fix_software)
+    #domain.add_refinement_method('fix_component', m_fix_software)
 
     # Invoke the planner
     # task_queue.put(['fix_sdn', secmgr_config])

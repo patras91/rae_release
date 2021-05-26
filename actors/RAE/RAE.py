@@ -72,27 +72,13 @@ class rae():
         '''
         
         self.domain = domain
-        if domain in [
-            'fetch', 
-            'nav', 
-            'explore', 
-            'rescue', 
-            'deliver', 
-            'testInstantiation', 
-            'testSSU',  
-            'testMethodswithCosts', 
-            "AIRS",
-            'UnitTest',
-        ]:
+        if domain in ['AIRS_dev', 'Mobipick']:
+            pass
+        else:
             module = 'domains.' + domain + '.problems.auto.' + problem + '_' + domain
             print("Importing ", module)
             self.problemModule = importlib.import_module(module)
             self.problemModule.SetInitialStateVariables(self.state, self.rv)
-        elif domain == 'AIRS_dev':
-            pass
-        else:
-            print("Invalid domain\n", domain)
-            exit(11)
 
     def GetNextAlive(self, lastActiveStack, numstacks, threadList):
         '''
@@ -126,7 +112,7 @@ class rae():
         :return: gets the new task that appears in the problem at the current time
         '''
         self.newTasksCounter += 1
-        if self.domain != 'AIRS_dev':
+        if self.domain not in  ['AIRS_dev', 'Mobipick']:
             if self.newTasksCounter in self.problemModule.tasks:
                 return self.problemModule.tasks[self.newTasksCounter]
             else:
@@ -149,11 +135,14 @@ class rae():
 
     def CreateNewStack(self, taskInfo, raeArgs):
         stackid = raeArgs.stack
-        rae1 = RAE1(raeArgs.task, 
+        rae1 = RAE1(
+            raeArgs.task,
             raeArgs, 
             self.domain, 
             self.ipcArgs, 
-            self.cmdStatusStack, 
+            self.cmdStatusStack,
+            self.cmdStackTable,
+            self.cmdExecQueue,
             self.verbosity, 
             self.state, 
             self.methods, 
@@ -247,18 +236,17 @@ class rae():
 
             #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
-
     def StartEnv(self):
-        while(True):
+        while True:
             self.envArgs.sem.acquire()
-            if self.envArgs.exit == True:
+            if self.envArgs.exit:
                 self.ipcArgs.sem[0].release() # main controller
                 return
 
             self.startEnvCounter += 1
-            if self.domain != "AIRS_dev" and self.domain != "AIRS":
+            if self.domain not in ["AIRS_dev", "Mobipick"] and self.domain != "AIRS":
                 if self.startEnvCounter in self.problemModule.eventsEnv:
-                    self.eventArgs = self.problemModule.eventsEnv[self.startEnvCounter]
+                    eventArgs = self.problemModule.eventsEnv[self.startEnvCounter]
                     event = eventArgs[0]
                     eventParams = eventArgs[1]
                     t = threading.Thread(target=event, args=eventParams)
@@ -269,9 +257,9 @@ class rae():
     def add_tasks(self, tasks):
         current_counter = self.newTasksCounter
         if current_counter + 1 not in self.problemModule.tasks:
-            problemModule.tasks[current_counter + 1] = tasks
+            self.problemModule.tasks[current_counter + 1] = tasks
         else:
-            problemModule.tasks[current_counter + 1] += tasks
+            self.problemModule.tasks[current_counter + 1] += tasks
 
     def raeMult(self):
         lastActiveStack = 0 #keeps track of the last stack that was Progressed
@@ -349,10 +337,6 @@ class rae():
         # the current active stack do_task
         currentStackId = self.ipcArgs.nextStack
         self.rae1Instances[currentStackId].do_command(cmd, *cmdArgs)
-
-    # RAE updates which stack a new command belongs to 
-    def AddToCommandStackTable(self, cmdid, stackid):
-        self.cmdStackTable[cmdid] = stackid
 
     # RAE reads the cmdStatusQueue and updates the cmdStatusStack  
     def UpdateCommandStatus(self):

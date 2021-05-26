@@ -95,6 +95,35 @@ def InitializeAIRSDomain(v, state):
         problemInstance.actor.cmdStatusQueue, \
         problemInstance.domain
 
+# Specifically set parameters for the Mobipick domain
+def InitializeMobipickDomain(v, state):
+    SetMode('Counter')
+    GLOBALS.SetDataGenerationMode(None) # for learning
+    GLOBALS.SetTimeLimit(300) # in secs
+    GLOBALS.SetHeuristicName(None)
+    GLOBALS.SetDoIterativeDeepening(False)
+    problemInstance = Setup(
+        domain="Mobipick",
+        problem=None,
+        actor="RAE",
+        useLearningStrategy=None,
+        planner="UPOM",
+        plannerParams=[50],
+        v=v,
+        startState=state)
+
+    GLOBALS.SetUtility('efficiency') # maximizing the efficiency (1/sum(cost))
+    GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
+    # because some code is shared by both RAE and RAEplan
+    try:
+        rM = threading.Thread(target=problemInstance.actor.raeMult)
+        rM.start()
+    except Exception as e:
+        print('Failed to start RAE and UPOM {}'.format(e))
+    return problemInstance.actor.taskQueue, \
+           problemInstance.actor.cmdExecQueue, \
+           problemInstance.actor.cmdStatusQueue, \
+           problemInstance.domain
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
