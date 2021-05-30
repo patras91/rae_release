@@ -13,7 +13,7 @@ import numpy
 
 class UPOMChoice(OpPlanner):
     
-    def __init__(self, l, methods, m, commands, domain, RestoreState, GetDomainState):
+    def __init__(self, l, methods, m, domain, RestoreState, GetDomainState):
         self.n_ro = l[0]
         if len(l) > 1:
             assert(GLOBALS.GetHeuristicName() not in [None, 'None'])
@@ -25,7 +25,6 @@ class UPOMChoice(OpPlanner):
         self.name = "UPOM"
         self.methods = methods
         self.GetMethodInstances = m
-        self.commands = commands
         self.domain = domain
         self.RestoreState = RestoreState
         self.GetDomainState = GetDomainState
@@ -219,8 +218,7 @@ class UPOMChoice(OpPlanner):
             self.planLocals.SetSearchTreeNode(nextStateNode)
 
     def beginCommand(self, cmd, cmdRet, cmdArgs):
-        cmdPtr = self.GetCommand(cmd)
-        cmdRet['state'] = cmdPtr(*cmdArgs)
+        cmdRet['state'] = cmd(*cmdArgs)
 
     def GetBestTillNow(self):
         taskToRefine = self.planLocals.GetTaskToRefine()

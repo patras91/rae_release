@@ -17,29 +17,6 @@ class AIRSDomain():
         self.env = env
         self.rv = rv
 
-        # Declare commands in actor's engine
-        actor.declare_commands([
-            self.restart_vm,
-            self.add_vcpu,
-            self.increase_mem,
-            self.kill_top_proc,
-            self.apply_update,
-            self.add_switch,
-            self.move_critical_hosts,
-            self.clear_ctrl_state_besteffort,
-            self.clear_ctrl_state_fallback,
-            self.reinstall_ctrl_besteffort,
-            self.reinstall_ctrl_fallback,
-            self.reconnect_switch_to_ctrl,
-            self.clear_switch_state_besteffort,
-            self.clear_switch_state_fallback,
-            self.disconnect_reconnect_switch_port,
-            self.disconnect_switch_port,
-            self.succeed,
-            self.unsure,
-            self.fail
-        ])
-
         #
         # Task-to-method mappings
         #
@@ -161,6 +138,8 @@ class AIRSDomain():
         self.actor.add_new_method(task, getattr(self, method.__name__))
         
 
+    def GetCommand(self, cmd_name):# save the commands by name
+        return getattr(self, cmd_name)
     #
     # Helper functions
     #

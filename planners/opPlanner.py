@@ -9,12 +9,6 @@ from shared.utility import Utility # the utility function the planner optimizes
 from learning.learningData import WriteTrainingData
 import copy
 
-class MethodInstance():
-    def __init__(self, m):
-        self.method = m
-        self.params = None
-        self.cost = 0
-
 class OpPlanner(): # Operational Planner; Planner that uses Operational Models
     def __init__(self):
         self.HandleTerminationQueue = None 
@@ -127,13 +121,6 @@ class OpPlanner(): # Operational Planner; Planner that uses Operational Models
         cmdRet = {'state':'running'}
         self.beginCommand(cmd, cmdRet, cmdArgs)
         return cmdRet['state']
-
-    def GetCommand(self, cmd):
-        """
-            Get the actual operational model of the command 
-        """
-        name = cmd.__name__
-        return self.commands[name]
 
     def DoMethod(self, m, task, taskArgs):
         savedNode = self.planLocals.GetCurrentNode()

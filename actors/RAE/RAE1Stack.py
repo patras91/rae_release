@@ -45,7 +45,7 @@ class MethodInstance():
             return self.method == other.method and self.params == other.params
 
 class RAE1():
-    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, cmdStackTable, cmdExecQueue, v, state, methods, commands, useLearningStrategy, planner, plannerParams, RestoreState, GetDomainState):
+    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, cmdStackTable, cmdExecQueue, v, state, methods, useLearningStrategy, planner, plannerParams, RestoreState, GetDomainState):
         self.raeLocals = rL_APE() # variables that are local to every stack
         """ Initialize the local variables of a stack used during acting """
         self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
@@ -78,7 +78,6 @@ class RAE1():
         self.RestoreState = RestoreState
         self.GetDomainState = GetDomainState
         self.methods = methods
-        self.commands = commands
 
         self.useLearningStrategy = useLearningStrategy
         self.InitializePlanner(planner, plannerParams)
@@ -89,7 +88,7 @@ class RAE1():
         elif p == "RAEPlan":
             self.planner = RAEPlanChoice(params)
         elif p == "UPOM":
-            self.planner = UPOMChoice(params, self.methods, self.GetMethodInstances, self.commands, self.domain, self.RestoreState, self.GetDomainState)
+            self.planner = UPOMChoice(params, self.methods, self.GetMethodInstances, self.domain, self.RestoreState, self.GetDomainState)
         elif p == "None" or p == None:
             self.planner = None 
         else:
@@ -535,36 +534,36 @@ class RAE1():
             res = heuristic[mtask](args)
         return res
         
-    def DoMethod(self, m, task, taskArgs):
-        savedNode = planLocals.GetCurrentNode()
-        
-        newNode = rTree.PlanningTree(m, taskArgs, 'method')
-        savedNode.AddChild(newNode)
-        planLocals.SetCurrentNode(newNode)
-
-        retcode = self.CallMethod_OperationalModel(planLocals.GetStackId(), m, taskArgs)
-
-
-        if retcode == 'Failure':
-            print("Error: retcode should not be Failure inside DoMethod.\n")
-            raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
-        elif retcode == 'Success':
-            if m.cost > 0:
-                util = GetUtilityforMethod(m.cost)
-            else:
-                util = Utility('Success')
-            for child in savedNode.children:
-                util = util + child.GetUtility()
-            savedNode.SetUtility(util)
-            planLocals.SetCurrentNode(savedNode)
-
-            return planLocals.GetPlanningTree()
-        else:
-            raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
+    # def DoMethod(self, m, task, taskArgs):
+    #     savedNode = planLocals.GetCurrentNode()
+    #
+    #     newNode = rTree.PlanningTree(m, taskArgs, 'method')
+    #     savedNode.AddChild(newNode)
+    #     planLocals.SetCurrentNode(newNode)
+    #
+    #     retcode = self.CallMethod_OperationalModel(planLocals.GetStackId(), m, taskArgs)
+    #
+    #
+    #     if retcode == 'Failure':
+    #         print("Error: retcode should not be Failure inside DoMethod.\n")
+    #         raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
+    #     elif retcode == 'Success':
+    #         if m.cost > 0:
+    #             util = GetUtilityforMethod(m.cost)
+    #         else:
+    #             util = Utility('Success')
+    #         for child in savedNode.children:
+    #             util = util + child.GetUtility()
+    #         savedNode.SetUtility(util)
+    #         planLocals.SetCurrentNode(savedNode)
+    #
+    #         return planLocals.GetPlanningTree()
+    #     else:
+    #         raise Incorrect_return_code('{} for {}{}'.format(retcode, m, taskArgs))
 
     def beginCommand(self, cmd, cmdRet, cmdArgs):
-        cmdPtr = self.GetCommand(cmd)
-        cmdRet['state'] = cmdPtr(*cmdArgs)
+        #cmdPtr = self.GetCommand(cmd)
+        cmdRet['state'] = cmd(*cmdArgs)
 
     def do_command(self, cmd, *cmdArgs):
         """
@@ -606,7 +605,7 @@ class RAE1():
             newCmdId = self.GetNewId()
             # Update which stack a new command belongs to
             self.cmdStackTable[newCmdId] = self.raeLocals.GetStackId()
-            #self.cmdExecQueue.put([newCmdId, cmd, cmdArgs])
+            print(cmd)
             self.cmdExecQueue.put([newCmdId, cmd.__name__, cmdArgs])
 
         if cmd.__name__ in self.raeLocals.GetCommandCount():
@@ -685,35 +684,35 @@ class RAE1():
         else:
             raise Incorrect_return_code('{} for {}{}'.format(retcode, cmd.__name__, cmdArgs))
 
-    def CallCommand_OperationalModel(cmd, cmdArgs):
-        self.v_begin_c(cmd, cmdArgs)
-        cmdRet = {'state':'running'}
-        #cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
-        #cmdThread.start()
-
-        self.beginCommand(cmd, cmdRet, cmdArgs)
-        #if GLOBALS.GetPlanningMode() == False:
-        #    self.ipcArgs.EndCriticalRegion()
-        #    self.ipcArgs.BeginCriticalRegion(planLocals.GetStackId())
-
-        #while (cmdRet['state'] == 'running'):
-        #    if self.verbosity > 0:
-        #        print_stack_size(planLocals.GetStackId(), path)
-        #        print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
-        #    if GLOBALS.GetPlanningMode() == False:
-        #        self.ipcArgs.EndCriticalRegion()
-        #        self.ipcArgs.BeginCriticalRegion(planLocals.GetStackId())
-
-        if self.verbosity > 0:
-            print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
-
-        retcode = cmdRet['state']
-        if self.verbosity > 1:
-            print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
-            print('Current state is')
-            PrintState()
-
-        return retcode
+    # def CallCommand_OperationalModel(self, cmd, cmdArgs):
+    #     self.v_begin_c(cmd, cmdArgs)
+    #     cmdRet = {'state':'running'}
+    #     #cmdThread = threading.Thread(target=beginCommand, args = [cmd, cmdRet, cmdArgs])
+    #     #cmdThread.start()
+    #
+    #     self.beginCommand(cmd, cmdRet, cmdArgs)
+    #     #if GLOBALS.GetPlanningMode() == False:
+    #     #    self.ipcArgs.EndCriticalRegion()
+    #     #    self.ipcArgs.BeginCriticalRegion(planLocals.GetStackId())
+    #
+    #     #while (cmdRet['state'] == 'running'):
+    #     #    if self.verbosity > 0:
+    #     #        print_stack_size(planLocals.GetStackId(), path)
+    #     #        print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
+    #     #    if GLOBALS.GetPlanningMode() == False:
+    #     #        self.ipcArgs.EndCriticalRegion()
+    #     #        self.ipcArgs.BeginCriticalRegion(planLocals.GetStackId())
+    #
+    #     if self.verbosity > 0:
+    #         print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
+    #
+    #     retcode = cmdRet['state']
+    #     if self.verbosity > 1:
+    #         print('Command {}{} returned {}'.format( cmd.__name__, cmdArgs, retcode))
+    #         print('Current state is')
+    #         PrintState()
+    #
+    #     return retcode
 
     def IndexOf(self, s, l):
         """ Helper function of PlanCommand_RAEPlan """
@@ -723,13 +722,6 @@ class RAE1():
                 return i
             i += 1 
         return -1
-    
-    def GetCommand(self, cmd):
-        """
-            Get the actual operational model of the command 
-        """
-        name = cmd.__name__
-        return self.commands[name]
 
     def GetCost(self, cmd, cmdArgs):
         assert(cmd.__name__ != "fail")

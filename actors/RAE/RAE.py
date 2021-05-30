@@ -44,7 +44,6 @@ class rae():
         self.cmdStackTable = {} # keeps track of which command belongs to which stack/job
 
         self.TASKS = {} # dictionary of tasknames and the task parameters
-        self.commands = {} # dictionary of commands, initialized once for every run via the domain file
         self.methods = {} # dictionary of the list of methods for every task, initialized once for every run via the domain file
 
         self.heuristic = {}
@@ -100,7 +99,7 @@ class rae():
         return nextAlive
 
     def noNewTasks(self):
-        if self.domain == 'AIRS_dev':
+        if self.domain in ['AIRS_dev', 'Mobipick']:
             return False
         for c in self.problemModule.tasks:
             if c > self.newTasksCounter:
@@ -121,6 +120,7 @@ class rae():
             tasks = []
             while not self.taskQueue.empty():
                 tasks.append(self.taskQueue.get())
+                print(tasks)
             return tasks
 
     def BeginFreshIteration(self, lastActiveStack, numstacks, threadList):
@@ -145,8 +145,7 @@ class rae():
             self.cmdExecQueue,
             self.verbosity, 
             self.state, 
-            self.methods, 
-            self.commands, 
+            self.methods,
             self.useLearningStrategy,
             self.planner, 
             self.plannerParams, 
@@ -230,9 +229,9 @@ class rae():
 
             print(utilString)
 
-            with open("traces.txt", "a") as f:
-                f.write("\n\n")
-                f.write(traces)
+#            with open("traces.txt", "a") as f:
+#                f.write("\n\n")
+#                f.write(traces)
 
             #print(' '.join('-'.join([key, str(cmdNet[key])]) for key in cmdNet))
 
@@ -244,7 +243,7 @@ class rae():
                 return
 
             self.startEnvCounter += 1
-            if self.domain not in ["AIRS_dev", "Mobipick"] and self.domain != "AIRS":
+            if self.domain not in ["AIRS_dev", "Mobipick", "AIRS"]:
                 if self.startEnvCounter in self.problemModule.eventsEnv:
                     eventArgs = self.problemModule.eventsEnv[self.startEnvCounter]
                     event = eventArgs[0]
@@ -297,7 +296,7 @@ class rae():
                     self.envArgs.sem.release()
                     self.ipcArgs.sem[0].acquire()
 
-                    if self.domain == "AIRS":
+                    if self.domain in ["AIRS", "AIRS_dev"]:
                         self.UpdateCommandStatus()
                     globalTimer.IncrementTime()
 
@@ -344,13 +343,6 @@ class rae():
             (id, res, nextState) = self.cmdStatusQueue.get()
             stackid = self.cmdStackTable[id]
             self.cmdStatusStack[stackid] = (id, res, nextState)
-
-    def declare_commands(self, cmd_list):
-        """
-        Call this after defining the commands, to tell APE and APE-plan what they are.
-        cmd_list must be a list of functions, not strings.
-        """
-        self.commands.update({cmd.__name__:cmd for cmd in cmd_list})
 
     def declare_task(self, t, *args):
         self.TASKS[t] = args
