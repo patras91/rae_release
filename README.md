@@ -33,17 +33,17 @@ To test on any domain, use the following command in terminal
     optional arguments:
       -h, --help  	show this help message and exit
       --v V      	verbosity of RAE and UPOM's debugging output (0, 1 or 2)
-      --domain D    domain ID of the test domain ("fetch", "SD", "SR", "EE", OF", "test") (see below)
+      --domain D    domain ID of the test domain ("fetch", "nav", "rescue", "explore", deliver", "test") (see below)
       --problem P   problem id for the problem eg. 'problem1', 'problem2', etc. The problem id should correspond to a problem inside the folder 'problems/domain'.
       --n_RO numRollouts 	Number of rollouts of UPOM
 
 Domain ID are as follows:
 
 - fetch: 'fetch',
-- springDoor: 'SD',
-- exploreEnv: 'EE',
-- searchAndRescue: 'SR'
-- orderFulfillment: 'OF',
+- springDoor: 'nav',
+- exploreEnv: 'explore',
+- searchAndRescue: 'rescue'
+- orderFulfillment: 'deliver',
 - test: 'test'
 
 # How to add new problems? 
@@ -56,6 +56,5 @@ following syntax to name a problem file.
 For example, a problem of fetch domain with problemId `problem1` should be named `problem1_fetch.py`.
 
 
-testing commit 
 
 
