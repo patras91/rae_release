@@ -186,6 +186,10 @@ def GenerateTestScript_actor_with_planner(domain, actor, planner, part, utility,
         writeList("B", b_lim_depth[domain], file)
         writeList("K", k_lim_depth[domain], file)
         writeList("Depth", DEPTH[domain], file)
+        file.write("    for b in ${B[@]}\n")
+        file.write("    do\n")
+        file.write("        for k in ${K[@]}\n")
+        file.write("        do\n")
         file.write("            for d in ${Depth[@]}\n")
         file.write("            do\n")
         plannerParams= {
@@ -205,15 +209,17 @@ def GenerateTestScript_actor_with_planner(domain, actor, planner, part, utility,
             '_heuristic': None,
         }
     else:
-        writeList("UPOM", UCT_lim_depth[domain], file)
+        writeList("N_RO", UCT_lim_depth[domain], file)
         writeList("Depth", DEPTH[domain], file)
+        file.write("    for nro in ${N_RO[@]}\n")
+        file.write("    do\n")
         file.write("            for d in ${Depth[@]}\n")
         file.write("            do\n")
         plannerParams= {
             '_str': "[$nro, $d]",
             '_len': 2,
-            '_output_file': "/UPOM_${nro}_d_${d}_h_{}".format(heuristic),
-            '_heuristic': None,
+            '_output_file': "/UPOM_${nro}_d_${d}_h_" + heuristic,
+            '_heuristic': heuristic,
         }
         
     file.write("setup=\"\n") # opening the setup
@@ -274,7 +280,7 @@ if __name__=="__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--domain", help="domain in ['fetch', 'rescue', 'nav', 'explore', 'deliver', 'AIRS']",
                            type=str, required=True)
-    argparser.add_argument("--runs", help="Number of runs for test case",
+    argparser.add_argument("--runs", help="Number of runs per test case",
                            type=int, required=True)
     argparser.add_argument("--actor", help="Which actor? RAE or APE?",
                            type=str, required=True)

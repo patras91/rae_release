@@ -45,7 +45,7 @@ class MethodInstance():
             return self.method == other.method and self.params == other.params
 
 class RAE1():
-    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, cmdStackTable, cmdExecQueue, v, state, methods, useLearningStrategy, planner, plannerParams, RestoreState, GetDomainState):
+    def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, cmdStackTable, cmdExecQueue, v, state, methods, heuristic, useLearningStrategy, planner, plannerParams, RestoreState, GetDomainState):
         self.raeLocals = rL_APE() # variables that are local to every stack
         """ Initialize the local variables of a stack used during acting """
         self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
@@ -78,6 +78,7 @@ class RAE1():
         self.RestoreState = RestoreState
         self.GetDomainState = GetDomainState
         self.methods = methods
+        self.heuristic = heuristic
 
         self.useLearningStrategy = useLearningStrategy
         self.InitializePlanner(planner, plannerParams)
@@ -88,7 +89,7 @@ class RAE1():
         elif p == "RAEPlan":
             self.planner = RAEPlanChoice(params)
         elif p == "UPOM":
-            self.planner = UPOMChoice(params, self.methods, self.GetMethodInstances, self.domain, self.RestoreState, self.GetDomainState)
+            self.planner = UPOMChoice(params, self.methods, self.heuristic, self.GetMethodInstances, self.domain, self.RestoreState, self.GetDomainState)
         elif p == "None" or p == None:
             self.planner = None 
         else:
@@ -465,75 +466,6 @@ class RAE1():
         else:
             return self.DoTask_Acting(task, taskArgs)
 
-    def GetHeuristicEstimate(self, task=None, tArgs=None):
-        if GLOBALS.GetHeuristic() == "learnH":
-            assert(GLOBALS.GetUtility() == "efficiency" or GLOBALS.GetUtility() == "resilience")
-            domain = self.domain
-            features = {
-                "EE": 204, 
-                "SD": 144,
-                "SR": 401,
-                "OF": 627,
-                "CR": 100,
-            }
-
-            outClasses = {
-                "EE": 200,
-                "SD": 75,
-                "SR": 10,
-                "OF": 10,
-                "CR": 100,
-            }
-            if domain == "SR" or domain == "SD" or domain == "EE" or domain == "CR":
-                model = nn.Sequential(nn.Linear(features[domain], 1024), 
-                nn.ReLU(inplace=True),
-                nn.Linear(1024, outClasses[domain]))
-            elif domain == "OF":
-                model = nn.Sequential(nn.Linear(features[domain], 512), 
-                nn.ReLU(inplace=True),
-                nn.Linear(512, outClasses[domain]))
-
-
-            fname = GLOBALS.GetModelPath() + "model_for_eff_{}_planner_task_all".format(self.domain)
-            model.load_state_dict(torch.load(fname))
-            model.eval()
-
-            cand, prevState, flag = GetCandidates(task, tArgs)
-            effMax = 0
-            for m in cand:
-                if domain != "OF":
-                    taskAndArgs = task+" "+str(tArgs)
-                else:
-                    taskAndArgs = task + " " +  " ".join(str(item) for item in tArgs)
-                x = Encode_LearnH(
-                    domain, 
-                    prevState.GetFeatureString(),
-                    m.GetName(),
-                    taskAndArgs)
-
-                np_x = numpy.array(x)
-                x_tensor = torch.from_numpy(np_x).float()
-                y = model(x_tensor)
-                eff = Decode_LearnH(self.domain, y)
-                if eff > effMax:
-                    effMax = eff
-            if GLOBALS.GetUtility() == "efficiency":
-                return effMax
-            else:
-                if effMax == 0:
-                    return 0
-                else:
-                    return 1/20 + effMax # resilience
-
-        elif GLOBALS.GetUtility() == "successRatio":
-            mtask, args = planLocals.GetHeuristicArgs()
-            res = heuristic[mtask](args)
-            return 1 if res > 0 else 0
-        else:
-            mtask, args = planLocals.GetHeuristicArgs()
-            res = heuristic[mtask](args)
-        return res
-        
     # def DoMethod(self, m, task, taskArgs):
     #     savedNode = planLocals.GetCurrentNode()
     #

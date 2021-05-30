@@ -146,6 +146,7 @@ class rae():
             self.verbosity, 
             self.state, 
             self.methods,
+            self.heuristic,
             self.useLearningStrategy,
             self.planner, 
             self.plannerParams, 

@@ -23,7 +23,7 @@ class FetchDomain():
         self.actor = actor
         self.env = env
         self.rv = rv
-        actor.declare_commands([self.put, self.take, self.perceive, self.charge, self.move, self.moveToEmergency, self.addressEmergency, self.wait, self.fail])
+        #actor.declare_commands([self.put, self.take, self.perceive, self.charge, self.move, self.moveToEmergency, self.addressEmergency, self.wait, self.fail])
 
         actor.declare_task('search', 'r', 'o')
         actor.declare_task('fetch', 'r', 'o')
@@ -46,6 +46,8 @@ class FetchDomain():
             actor.declare_heuristic('search', self.Heuristic2)
             actor.declare_heuristic('fetch', self.Heuristic2)
 
+    def GetCommand(self, cmd_name):# save the commands by name
+        return getattr(self, cmd_name)
 
     # Using Dijsktra's self.actororithm
     def GETDISTANCE(self, l0, l1):

@@ -28,7 +28,7 @@ class MobipickDomain():
         self.actor = actor
         self.env = env
         self.rv = rv
-        actor.declare_commands([self.move, self.fail])
+        #actor.declare_commands([self.move, self.fail])
 
         actor.declare_task('nonEmergencyMove', 'r', 'l1', 'l2', 'dist')
 
@@ -38,6 +38,9 @@ class MobipickDomain():
             actor.declare_heuristic('nonEmergencyMove', self.Heuristic1)
         elif GLOBALS.GetHeuristicName() == 'domainSpecific':
             actor.declare_heuristic('nonEmergencyMove', self.Heuristic2)
+
+    def GetCommand(self, cmd_name):# save the commands by name
+        return getattr(self, cmd_name)
 
     def fail(self,):
         return FAILURE

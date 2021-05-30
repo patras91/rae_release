@@ -35,7 +35,6 @@ def exec_cmds(exec_queue, status_queue, domain):
 def initialize_state():
     """TODO: add documentation.
     """
-
     pass
 
 

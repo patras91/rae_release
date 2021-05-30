@@ -13,7 +13,7 @@ import numpy
 
 class UPOMChoice(OpPlanner):
     
-    def __init__(self, l, methods, m, domain, RestoreState, GetDomainState):
+    def __init__(self, l, methods, heuristic, m, domain, RestoreState, GetDomainState):
         self.n_ro = l[0]
         if len(l) > 1:
             assert(GLOBALS.GetHeuristicName() not in [None, 'None'])
@@ -24,6 +24,7 @@ class UPOMChoice(OpPlanner):
         self.planLocals = rL_PLAN()
         self.name = "UPOM"
         self.methods = methods
+        self.heuristic = heuristic
         self.GetMethodInstances = m
         self.domain = domain
         self.RestoreState = RestoreState
@@ -102,7 +103,7 @@ class UPOMChoice(OpPlanner):
                 newNode = rTree.SearchTreeNode('heuristic', 'heuristic', taskArgs, "UPOM")
 
                 util1 = self.planLocals.GetUtilRollout()
-                util2 = Utility(GetHeuristicEstimate(task, taskArgs))
+                util2 = Utility(self.GetHeuristicEstimate(task, taskArgs))
                 self.planLocals.SetUtilRollout(util1 + util2)
 
                 # Is this node needed?
@@ -125,7 +126,7 @@ class UPOMChoice(OpPlanner):
                 newNode = taskNode.children[0]
                 taskNode.updateIndex = 0
                 util1 = self.planLocals.GetUtilRollout()
-                util2 = Utility(GetHeuristicEstimate(task, taskArgs))
+                util2 = Utility(self.GetHeuristicEstimate(task, taskArgs))
                 self.planLocals.SetUtilRollout(util1 + util2)
 
                 raise DepthLimitReached()
@@ -256,3 +257,72 @@ class UPOMChoice(OpPlanner):
         else:
             print("ERROR: Invalid utility")
             exit()
+
+    def GetHeuristicEstimate(self, task=None, tArgs=None):
+        if GLOBALS.GetHeuristicName() == "learnH":
+            assert(GLOBALS.GetUtility() == "efficiency" or GLOBALS.GetUtility() == "resilience")
+            domain = self.domain
+            features = {
+                "explore": 204,
+                "nav": 144,
+                "rescue": 401,
+                "deliver": 627,
+                "fetch": 100,
+            }
+
+            outClasses = {
+                "explore": 200,
+                "nav": 75,
+                "rescue": 10,
+                "deliver": 10,
+                "fetch": 100,
+            }
+            if domain in ["rescue", "nav", "explore", "fetch"]:
+                model = nn.Sequential(nn.Linear(features[domain], 1024),
+                                      nn.ReLU(inplace=True),
+                                      nn.Linear(1024, outClasses[domain]))
+            elif domain == "deliver":
+                model = nn.Sequential(nn.Linear(features[domain], 512),
+                                      nn.ReLU(inplace=True),
+                                      nn.Linear(512, outClasses[domain]))
+
+
+            fname = GLOBALS.GetModelPath() + "model_for_eff_{}_planner_task_all".format(self.domain)
+            model.load_state_dict(torch.load(fname))
+            model.eval()
+
+            cand, prevState, flag = self.GetCandidates(task, tArgs)
+            effMax = 0
+            for m in cand:
+                if domain != "OF":
+                    taskAndArgs = task+" "+str(tArgs)
+                else:
+                    taskAndArgs = task + " " +  " ".join(str(item) for item in tArgs)
+                x = Encode_LearnH(
+                    domain,
+                    prevState.GetFeatureString(),
+                    m.GetName(),
+                    taskAndArgs)
+
+                np_x = numpy.array(x)
+                x_tensor = torch.from_numpy(np_x).float()
+                y = model(x_tensor)
+                eff = Decode_LearnH(self.domain, y)
+                if eff > effMax:
+                    effMax = eff
+            if GLOBALS.GetUtility() == "efficiency":
+                return effMax
+            else:
+                if effMax == 0:
+                    return 0
+                else:
+                    return 1/20 + effMax # resilience
+
+        elif GLOBALS.GetUtility() == "successRatio":
+            mtask, args = self.planLocals.GetHeuristicArgs()
+            res = self.heuristic[mtask](args)
+            return 1 if res > 0 else 0
+        else:
+            mtask, args = self.planLocals.GetHeuristicArgs()
+            res = self.heuristic[mtask](args)
+        return res
