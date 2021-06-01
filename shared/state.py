@@ -44,7 +44,8 @@ class State():
         oldKeys = list(self.__dict__.keys())
         for (key, val) in vars(s).items():
             self.__setattr__(key, copy.deepcopy(val.GetVal()))
-            oldKeys.remove(key)
+            if key in oldKeys:
+                oldKeys.remove(key)
         for k in oldKeys:
             del self.__dict__[k]
         return s
@@ -67,6 +68,19 @@ class State():
                     elif vars(s)[key1][sub_k1] != val1[sub_k1]:
                         return False
         return True
+
+    def GetDiff(self, s):
+        res = {}
+        for (key1, val1) in vars(self).items():
+            for sub_k1 in val1:
+                if key1 not in vars(s):
+                    res[key1] = val1
+                else:
+                    if sub_k1 not in vars(s)[key1]:
+                        res[key1] = val1.__str__()
+                    elif vars(s)[key1][sub_k1] != val1[sub_k1]:
+                        res[key1] = val1.__str__()
+        return res
 
 class StateDict():
     def __init__(self, d):
@@ -137,14 +151,14 @@ class StateDict():
     def DeleteLocks(self):
         self.lock = None
 
-state = State()  # the global state of RAE, this is shared by all stacks
+#state = State()  # the global state of RAE, this is shared by all stacks
 
-def ReinitializeState():   
+#def ReinitializeState():   
     """
     State is reinitialized before every run, useful in batch runs
     """
-    global state
-    state = State()
+    #global state
+    #state = State()
 
 def RemoveLocksFromState():
     """
@@ -154,9 +168,6 @@ def RemoveLocksFromState():
 
 def PrintState():
     print(state)
-
-def RestoreState(s):
-    state.restore(s)
 
 def GetState():
     return state
@@ -168,11 +179,6 @@ class RV():
 
 rv = RV()
 
-def EvaluateParameters(expr, mArgs, tArgs):
-    for i in range(0, len(tArgs)):
-        globals()[mArgs[i]] = tArgs[i]
-    return eval(expr, globals())
-    
 if __name__=="__main__":
     s = State()
     s.a = {1:3, 2:5}

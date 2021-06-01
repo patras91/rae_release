@@ -1,3 +1,5 @@
+import random
+
 def ChooseRandom(l):
     random.shuffle(l)
     return l[0]

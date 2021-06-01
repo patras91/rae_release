@@ -1,12 +1,12 @@
 __author__ = 'patras'
 
 import pipes
-from timer import DURATION
+from shared.timer import DURATION
 #from graphviz import Digraph
 import types
-from utility import Utility
-import GLOBALS
-from learningData import TrainingDataItem
+from shared.utility import Utility
+from shared import GLOBALS
+from learning.learningData import TrainingDataItem
 import pdb
 
 rollOuts = 0
@@ -238,7 +238,7 @@ class ActingNode():
         assert(len(self.children) == 1)
         return self.children[0]
 
-    def Print(self):
+    def Print_bfs(self):
         level = {}
         level[0] = [self]
         level[1] = []
@@ -252,6 +252,25 @@ class ActingNode():
             curr += 1
             next += 1
             level[next] = []
+
+    def Print_dfs(self, node):
+        if node.label == 'root':
+            res = str(node.prevState) + 'root'
+            self.last_printed_state = node.prevState
+        elif node.label != None:
+            if node.type == 'method':
+                res = str(node.prevState.GetDiff(self.last_printed_state)) + node.label.GetName()
+                self.last_printed_state = node.prevState
+            else:
+                res =  node.label.__name__ + ", " + str(node.nextState.GetDiff(self.last_printed_state))
+                self.last_printed_state = node.nextState
+
+        if node.children:
+            res += "<"
+            for elem in node.children:
+                res += "(" + self.Print_dfs(elem) + ")"
+            res += ">"
+        return res
 
     def PrintUsingGraphViz(self, name):
         g = Digraph('G', filename=name, format="png")
@@ -367,20 +386,20 @@ class ActingTree():
         l = GuideList(l2)
         return l
 
-    def GetSearchTree(self):
+    def GetSearchTree(self, planner):
         l1 = self.root.GetPreorderTraversal()
         root = None
         currNode = None
         for item in l1:
             t = item.GetType()
             if t == "method":
-                node = SearchTreeNode('task', 'task', None)
-                child = SearchTreeNode(item.GetLabel(), 'method', None)
+                node = SearchTreeNode('task', 'task', None, planner)
+                child = SearchTreeNode(item.GetLabel(), 'method', None, planner)
                 child.SetPrevState(item.GetPrevState())
                 node.AddChild(child)
             elif t == "command":
-                node = SearchTreeNode(item.GetLabel(), 'command', None)
-                child = SearchTreeNode(item.GetNextState(), 'state', None)
+                node = SearchTreeNode(item.GetLabel(), 'command', None, planner)
+                child = SearchTreeNode(item.GetNextState(), 'state', None, planner)
                 child.SetPrevState(item.GetPrevState())
                 node.AddChild(child)
             else:
@@ -396,15 +415,16 @@ class ActingTree():
         return self.root.GetPreorderTraversal()
 
     def Print(self):
-        print("\n------ACTING TREE-------")
-        self.root.Print()
-        print("\n------------------------")
+        #print("\n------ACTING TREE-------")
+        return self.root.Print_dfs(self.root)
+        #print("\n------------------------")
 
     def GetSize(self):
         return self.root.GetSize()
 
     def PrintUsingGraphviz(self, name='actingTree'):
         self.root.PrintUsingGraphViz(name)
+
 
     def GetMetaData(self):
         h, t, c =  self.root.GetMetaData()
@@ -519,7 +539,7 @@ class GuideList():
     #        return 1/cost
 
 class SearchTreeNode():
-    def __init__(self, l, t, args):
+    def __init__(self, l, t, args, planner):
         self.label = l
         self.args = args
         assert(t == "task" or t == "method" or t == "command" or t == "state" or t == "heuristic")
@@ -530,7 +550,8 @@ class SearchTreeNode():
         self.util = Utility("UNK")
         self.prevState = None
         self.parent = None
-        if GLOBALS.GetPlanner() == "UPOM" and self.type == 'task':
+        self.planner = planner
+        if planner == "UPOM" and self.type == 'task':
             self.N = 0
             self.n = []
             self.Q = []
@@ -569,7 +590,7 @@ class SearchTreeNode():
         node.parent = self
         self.children.append(node)
         self.childWeights.append(1)
-        if GLOBALS.GetPlanner() == "UPOM" and self.type == 'task':
+        if self.planner == "UPOM" and self.type == 'task':
             self.n.append(0)
             self.Q.append(Utility('Success'))
 

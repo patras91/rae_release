@@ -1,8 +1,8 @@
 __author__ = 'patras'
 
 import threading
-import GLOBALS
-from utility import *
+from shared import GLOBALS
+from shared.utility import *
 
 class rL():
     def __init__(self):
@@ -217,8 +217,8 @@ class PlanArgs():
     def GetStackId(self):
         return self.stackid
 
-    def SetStackId(self, id):
-        self.stackid = id
+    def SetStackId(self, i):
+        self.stackid = i
 
     def SetState(self, s):
         self.state = s
@@ -229,8 +229,8 @@ class PlanArgs():
     def SetActingTree(self, t):
         self.actingTree = t
 
-    def GetSearchTree(self):
-        return self.actingTree.GetSearchTree()
+    def GetSearchTree(self, planner):
+        return self.actingTree.GetSearchTree(planner)
 
     def SetCurUtil(self, u):
         self.util = u
