@@ -1,5 +1,5 @@
 import ast
-from convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
+from learning.convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
 import pdb
 
 def ConvertToInt(a):

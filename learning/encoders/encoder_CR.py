@@ -1,5 +1,5 @@
 import ast
-from convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
+from learning.convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
 
 def ConvertToInt(a):
 	x = a.split(" ")
@@ -161,21 +161,21 @@ def EncodeState_CR(state):
 	a = state.split("\n")
 
 	a1 = a[0][4:]
-	a1H = ConvertToOneHot(ConvertToInt(GetNums(a1)), 'loc', 'CR')
+	a1H = ConvertToOneHot(ConvertToInt(GetNums(a1)), 'loc', 'fetch')
 	
 	a2 = a[1][6:]
-	a2H = ConvertToOneHot(ConvertToInt(GetNums(a2)), 'charge', 'CR')
+	a2H = ConvertToOneHot(ConvertToInt(GetNums(a2)), 'charge', 'fetch')
 
 	a3 = a[2][5:]
-	a3H = ConvertToOneHot(ConvertToInt(GetLoadString(a3)), 'load', 'CR')
+	a3H = ConvertToOneHot(ConvertToInt(GetLoadString(a3)), 'load', 'fetch')
 
 	a4 = a[3][4:]
-	a4H = ConvertToOneHot(ConvertToInt(GetPosString(a4)), 'pos', 'CR')
+	a4H = ConvertToOneHot(ConvertToInt(GetPosString(a4)), 'pos', 'fetch')
 
 	a5 = a[5][18:]
-	a5H = ConvertToOneHot(ConvertToInt(GetEmS(a5)), 'emergencyHandling', 'CR')
+	a5H = ConvertToOneHot(ConvertToInt(GetEmS(a5)), 'emergencyHandling', 'fetch')
 
 	a6 = a[6][5:]
-	a6H = ConvertToOneHot(ConvertToInt(GetViewString(a6)), 'view', 'CR')
+	a6H = ConvertToOneHot(ConvertToInt(GetViewString(a6)), 'view', 'fetch')
 
 	return a1H + a2H + a3H + a4H + a5H + a6H 

@@ -35,9 +35,9 @@ class GUI():
             self.root.after(1, self.simulate)
 
 def Simulate(*t):
-    if (GLOBALS.GetPlanningMode() == True or gParams.showOutputs == "off"):
+    if (GLOBALS.GetPlanningMode() == True): #or gParams.showOutputs == "off"):
         return
-    elif gParams.domain == "AIRS" and gParams.showOutputs == "on":
+    elif gParams.domain in ["AIRS_dev", "AIRS", "Mobipick"] and gParams.showOutputs == "on":
         print(t)
     globalQueue.put(t)
 

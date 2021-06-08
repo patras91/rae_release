@@ -239,7 +239,6 @@ class UPOMChoice(OpPlanner):
             # kluge because I forgot to add this cost in the auto-gen problems
             cost = 7
         else:
-            print(DURATION.COUNTER)
             cost = DURATION.COUNTER[cmd.__name__]
         if GLOBALS.GetUtility() == "successRatio":
             return Utility("Success")

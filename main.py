@@ -8,7 +8,7 @@ from shared.timer import SetMode
 import multiprocessing
 from shared.setup import Setup
 
-def testActorandPlanner(domain, problem, actor, useLearningStrategy, planner, plannerParams, showGui, v):
+def testActorandPlanner(domain, problem, actor, useLearningStrategy, planner, plannerParams, showGui, v, outputQueue=None):
     '''
     :param domain: the code of the domain ('fetch', 'nav', 'explore', 'rescue', AIRS', 'deliver', 'UnitTests')
     :param problem: the problem id
@@ -18,7 +18,7 @@ def testActorandPlanner(domain, problem, actor, useLearningStrategy, planner, pl
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared between RAE, RAEplan and UPOM
     try:
-        rM = threading.Thread(target=problemInstance.actor.raeMult)
+        rM = threading.Thread(target=problemInstance.actor.raeMult, args=[outputQueue])
         rM.start()
         gui.start(domain, showGui) # graphical user interface to show action executions
         rM.join()
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 
     GLOBALS.SetDoIterativeDeepening(args.doIterativeDeepening)
 
-    GLOBALS.SetBackupUCT(args.useBackupUCT) # for SDN
+    GLOBALS.SetBackupUCT(args.useBackupUCT) # for AIRS
 
     assert(args.utility == "efficiency" or args.utility == "successRatio" or args.utility == "resilience")
     GLOBALS.SetUtility(args.utility)
