@@ -1,7 +1,7 @@
 __author__ = 'patras'
 
 '''A robot is searching for an object in the environment consisting of a few locations. 
-The robot knows the map. It is a rigig state variable.
+The robot knows the map. It is a rigid state variable.
 The robot moves from one location to another using Djikstra's shortest path.
 It has a battery that needs to be recharged after some moves.
 A move consumes 1/4 of the battery capacity.'''
@@ -265,7 +265,7 @@ class FetchDomain():
             start = globalTimer.GetTime()
             while(globalTimer.IsCommandExecutionOver('wait', start) == False):
                 pass
-            gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
+            #gui.Simulate("Robot %s is waiting for emergency to be over\n" %r)
             self.env.Sense('wait')
         return SUCCESS
 

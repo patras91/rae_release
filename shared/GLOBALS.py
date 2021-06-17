@@ -29,7 +29,7 @@ def GetUtility():
     return g.opt 
 
 def SetUtility(opt):
-    assert(opt == 'efficiency' or opt == 'successRatio' or opt == "resilience")
+    assert(opt == 'efficiency' or opt == 'successRatio' or opt == "costEffectiveness")
     g.opt = opt
 
 def SetTimeLimit(t):

@@ -45,13 +45,18 @@ class MainInterface():
 
         learningStrategy = Label(text="Learning Strategy")
         learningStrategy.place(x=5,y=190)
-        self.learning_cb = Combobox(self.window, values=("None", "LearnM", "LearnH", "LearnMI"))
+        self.learning_cb = Combobox(self.window, values=("None", "learnM", "learnH", "learnMI"))
         self.learning_cb.place(x=130, y=190)
 
         self.run_button = Button(self.window,
                         text="Run",
                         command=self.Run)
         self.run_button.place(x=200,y=220)
+
+        self.clear_button = Button(self.window,
+                                 text="Clear",
+                                 command=self.Clear)
+        self.clear_button.place(x=240,y=220)
 
         self.output = Text(self.window, height=45, width=77, background='#EEEEEE')
         self.output.place(x=350, y=5)
@@ -83,8 +88,6 @@ class MainInterface():
 
         self.window.title('Refinement Acting, Planning and Learning Engine')
         self.window.geometry("900x600")
-
-
         self.window.mainloop()
 
 
@@ -92,33 +95,40 @@ class MainInterface():
     def Run(self):
         self.window.after(1, self.simulate)
         GLOBALS.SetDataGenerationMode(None)
-        #GLOBALS.SetUtility(self.utility_cb.get())
-        GLOBALS.SetUtility('efficiency')
+        GLOBALS.SetUtility(self.utility_cb.get())
         GLOBALS.SetHeuristicName(None)
         GLOBALS.SetDoIterativeDeepening(False)
         GLOBALS.SetTimeLimit(500)
         GLOBALS.SetModelPath("./learning/models/AIJ2020/")
-        # testActorandPlanner(
-        #         #     domain=self.domain_cb.get(),
-        #         #     problem=self.problem_text.get("1.0","end-1c"),
-        #         #     actor=self.actor_cb.get(),
-        #         #     useLearningStrategy=None,
-        #         #     planner=self.planner_cb.get(),
-        #         #     plannerParams=[50],
-        #         #     showGui='off',
-        #         #     v=0)
+        planner = None if self.planner_cb.get() == "None" else self.planner_cb.get()
+        learningStrategy = None if self.learning_cb.get() == "None" else self.learning_cb.get()
         testActorandPlanner(
-            domain='fetch',
-            problem='problem1',
-            actor='RAE',
-            useLearningStrategy='learnM',
-            planner=None,
-            plannerParams=[50],
-            showGui='off',
-            v=0,
-            outputQueue=self.resultQueue,
+                    domain=self.domain_cb.get(),
+                    problem=self.problem_text.get("1.0","end-1c"),
+                    actor=self.actor_cb.get(),
+                    useLearningStrategy=learningStrategy,
+                    planner=planner,
+                    plannerParams=[50],
+                    showGui='off',
+                    v=0,
+                    outputQueue=self.resultQueue
         )
+        # testActorandPlanner(
+        #     domain='fetch',
+        #     problem='problem1',
+        #     actor='RAE',
+        #     useLearningStrategy='learnM',
+        #     planner=None,
+        #     plannerParams=[50],
+        #     showGui='off',
+        #     v=0,
+        #     outputQueue=self.resultQueue,
+        # )
 
+
+    def Clear(self):
+        self.output.delete("1.0","end")
+        self.result.delete("1.0","end")
 
     def simulate(self):
         if not globalQueue.empty():
