@@ -273,7 +273,6 @@ class ActingNode():
         return res
 
     def PrintUsingGraphViz(self, name):
-        print('rTree: ')
         g = Digraph('G', filename=name, format="png")
 
         level = {}

@@ -673,7 +673,7 @@ class RAE1():
     def GetFailureUtility(self, cmd, cmdArgs):
         if GLOBALS.GetUtility() == "efficiency":
             return Utility(1/20)
-        elif GLOBALS.GetUtility() == "resilience":
+        elif GLOBALS.GetUtility() == "costEffectiveness":
             return Utility(1/20 + 1/20)
         else:
             return Utility("Failure")
@@ -684,7 +684,7 @@ class RAE1():
             return Utility("Success")
         elif GLOBALS.GetUtility() == "efficiency":
             return Utility(1/cost)
-        elif GLOBALS.GetUtility() == "resilience":
+        elif GLOBALS.GetUtility() == "costEffectiveness":
             return Utility(1/20 + 1/cost)
         
     def GetFailureEfficiency(self, cmd, cmdArgs):
@@ -726,7 +726,7 @@ class RAE1():
 
         if GLOBALS.GetUtility() == "efficiency":
             return Utility(1/res)
-        elif GLOBALS.GetUtility() == "resilience":
+        elif GLOBALS.GetUtility() == "costEffectiveness":
             return Utility(1/20 + 1/res)
         else:
             print("ERROR: Invalid utility")

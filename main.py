@@ -82,7 +82,7 @@ def InitializeAIRSDomain(v, state):
         v=v,
         startState=state)
     
-    GLOBALS.SetUtility('resilience') # maximizing the resilience (0 or 1+1/sum(cost))
+    GLOBALS.SetUtility('costEffectiveness') # maximizing the costEffectiveness (0 or 1+1/sum(cost))
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
