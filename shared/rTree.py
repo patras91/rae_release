@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 import pipes
 from shared.timer import DURATION
-#from graphviz import Digraph
+from graphviz import Digraph
 import types
 from shared.utility import Utility
 from shared import GLOBALS
@@ -123,7 +123,7 @@ class PlanningTree():
             curr += 1
             next += 1
             level[next] = []
-        g.view()
+        #g.view()
 
     def PrintInTerminal(self):
         level = {}
@@ -291,7 +291,8 @@ class ActingNode():
             curr += 1
             next += 1
             level[next] = []
-        g.view()
+
+        #g.view()
 
     def GetSuccessor(self):
         if self.children != []:

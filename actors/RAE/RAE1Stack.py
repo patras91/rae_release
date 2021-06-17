@@ -13,6 +13,9 @@ from planners.RAEPlan.RAEPlan import RAEPlanChoice
 from planners.APEPlan.APEPlan import APEPlanChoice
 import multiprocessing
 from shared.exceptions import *
+import torch.nn as nn
+import torch
+from learning.convertDataFormat import Encode_LearnM, Decode_LearnM
 
 class MethodInstance():
     def __init__(self, m):
@@ -178,7 +181,7 @@ class RAE1():
             if self.domain != "OF":
                 assert(numpy.isclose(self.raeLocals.GetEfficiency(), self.raeLocals.GetUtility().GetValue()))
 
-        #self.raeLocals.GetActingTree().PrintUsingGraphviz()
+        self.raeLocals.GetActingTree().PrintUsingGraphviz()
         h, t, c = self.raeLocals.GetActingTree().GetMetaData()
         traces = self.raeLocals.GetActingTree().Print()
         return (retcode,
@@ -278,21 +281,21 @@ class RAE1():
         # }
 
         features = {
-        "EE": 182, #22,
-        "SD": 126, #24,
-        "SR": 330, #23,
-        "OF": 0,
-        "CR": 97, #22, #91
+        "explore": 182, #22,
+        "nav": 126, #24,
+        "rescue": 330, #23,
+        "deliver": 0,
+        "fetch": 97, #22, #91
         }
         outClasses = {
-            "EE": 17,
-            "SD": 9,
-            "SR": 16,
-            "OF": 0,
-            "CR": 10,
+            "explore": 17,
+            "nav": 9,
+            "rescue": 16,
+            "deliver": 0,
+            "fetch": 10,
         }
 
-        if domain != "OF":
+        if domain != "deliver":
             #model = nn.Sequential(nn.Linear(features[self.domain], 1)).to(device) 
             model = nn.Sequential(nn.Linear(features[domain], 512), 
                 nn.ReLU(inplace=True), 
@@ -349,10 +352,10 @@ class RAE1():
         if len(candidates) == 1 or (self.planner == None and self.useLearningStrategy == None):
             #random.shuffle(candidates)
             return(candidates[0], candidates[1:])
-        elif self.planner == None and self.useTrainedModel == "learnM1":
+        elif self.planner == None and self.useLearningStrategy == "learnM":
             fname = GLOBALS.GetModelPath() + "model_to_choose_{}_actor".format(self.domain)
             return self.GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
-        elif self.planner == None and self.useTrainedModel in ["learnM2", "learnMI"]:
+        elif self.planner == None and self.useLearningStrategy in ["learnM2", "learnMI"]:
             fname = GLOBALS.GetModelPath() + "model_to_choose_{}_planner".format(self.domain)
             return self.GetCandidateFromLearnedModel(fname, task, candidates, taskArgs)
         else:
@@ -537,7 +540,7 @@ class RAE1():
             newCmdId = self.GetNewId()
             # Update which stack a new command belongs to
             self.cmdStackTable[newCmdId] = self.raeLocals.GetStackId()
-            print(cmd)
+            print("RAE1Stack: ", cmd)
             self.cmdExecQueue.put([newCmdId, cmd.__name__, cmdArgs])
 
         if cmd.__name__ in self.raeLocals.GetCommandCount():
@@ -670,7 +673,7 @@ class RAE1():
     def GetFailureUtility(self, cmd, cmdArgs):
         if GLOBALS.GetUtility() == "efficiency":
             return Utility(1/20)
-        elif GLOBALS.GetUtility() == "resilience":
+        elif GLOBALS.GetUtility() == "costEffectiveness":
             return Utility(1/20 + 1/20)
         else:
             return Utility("Failure")
@@ -681,7 +684,7 @@ class RAE1():
             return Utility("Success")
         elif GLOBALS.GetUtility() == "efficiency":
             return Utility(1/cost)
-        elif GLOBALS.GetUtility() == "resilience":
+        elif GLOBALS.GetUtility() == "costEffectiveness":
             return Utility(1/20 + 1/cost)
         
     def GetFailureEfficiency(self, cmd, cmdArgs):
@@ -723,7 +726,7 @@ class RAE1():
 
         if GLOBALS.GetUtility() == "efficiency":
             return Utility(1/res)
-        elif GLOBALS.GetUtility() == "resilience":
+        elif GLOBALS.GetUtility() == "costEffectiveness":
             return Utility(1/20 + 1/res)
         else:
             print("ERROR: Invalid utility")

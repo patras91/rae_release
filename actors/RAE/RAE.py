@@ -158,36 +158,15 @@ class rae():
         taskInfo[stackid] = ([raeArgs.task] + raeArgs.taskArgs, retcode, retryCount, eff, height, taskCount, commandCount, traces, utilVal, utilitiesList)
 
     def PrintResult(self, taskInfo):
-        print('ID ','\t','Task',
-                '\t\t\t', 'Result',
-                '\t\t\t', 'Retry Count', 
-                '\t\t\t', 'Efficiency', 
-                '\t\t\t', 'height',
-                '\t\t\t', '#tasks',
-                '\t\t\t', '#commands',
-                '\t\t\t'
-                '\n')
+        output = "\nRESULTS:"
         for stackid in taskInfo:
             args, res, retryCount, eff, height, taskCount, commandCount, traces, utilVal, utilitiesList = taskInfo[stackid]
-            
-            print(stackid,'\t','Task {}{}'.format(args[0], args[1:]),
-                '\t\t\t', res,
-                '\t\t\t', retryCount, 
-                '\t\t\t', eff, 
-                '\t\t\t', height,
-                '\t\t\t', taskCount,
-                '\t\t\t', commandCount,
-                '\t\t\t', utilVal,
-                '\n')
-            print(stackid, '\t', 'Task {}{}'.format(args[0], args[1:]),
-                '\t')
-
-            utilString = ""
-            for u in utilitiesList:
-                utilString += str(u)  
-                utilString += ","
-
-            print(utilString)
+            output += '\n Task : ' +  '\t{}{}'.format(args[0], args[1:]) + \
+                '\n Result : \t' + str(res) + \
+                '\n Retry Count: \t' + str(retryCount) + \
+                '\n Utility: \t' + str(eff) + \
+                "\n -----------------\n"
+        return output
 
     def PrintResultSummaryVersion1(self, taskInfo):
         succ = 0
@@ -261,7 +240,7 @@ class rae():
         else:
             self.problemModule.tasks[current_counter + 1] += tasks
 
-    def raeMult(self):
+    def raeMult(self, outputQueue=None):
         lastActiveStack = 0 #keeps track of the last stack that was Progressed
         numstacks = 0 #keeps track of the total number of stacks
         self.newTasksCounter = 0
@@ -319,10 +298,12 @@ class rae():
             WriteTrainingData()
         if self.verbosity > 0:
             print("----Done with RAE----\n")
-            self.PrintResult(taskInfo)
         else:
             self.PrintResultSummaryVersion2(taskInfo)
             #globalTimer.Callibrate(startTime)
+
+        if outputQueue:
+            outputQueue.put(self.PrintResult(taskInfo))
 
         return taskInfo # for unit tests
 

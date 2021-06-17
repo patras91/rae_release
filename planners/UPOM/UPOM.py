@@ -239,7 +239,6 @@ class UPOMChoice(OpPlanner):
             # kluge because I forgot to add this cost in the auto-gen problems
             cost = 7
         else:
-            print(DURATION.COUNTER)
             cost = DURATION.COUNTER[cmd.__name__]
         if GLOBALS.GetUtility() == "successRatio":
             return Utility("Success")
@@ -252,7 +251,7 @@ class UPOMChoice(OpPlanner):
 
         if GLOBALS.GetUtility() == "efficiency":
             return Utility(1/res)
-        elif GLOBALS.GetUtility() == "resilience":
+        elif GLOBALS.GetUtility() == "costEffectiveness":
             return Utility(1/20 + 1/res)
         else:
             print("ERROR: Invalid utility")
@@ -260,7 +259,7 @@ class UPOMChoice(OpPlanner):
 
     def GetHeuristicEstimate(self, task=None, tArgs=None):
         if GLOBALS.GetHeuristicName() == "learnH":
-            assert(GLOBALS.GetUtility() == "efficiency" or GLOBALS.GetUtility() == "resilience")
+            assert(GLOBALS.GetUtility() == "efficiency" or GLOBALS.GetUtility() == "costEffectiveness")
             domain = self.domain
             features = {
                 "explore": 204,
@@ -316,7 +315,7 @@ class UPOMChoice(OpPlanner):
                 if effMax == 0:
                     return 0
                 else:
-                    return 1/20 + effMax # resilience
+                    return 1/20 + effMax # costEffectiveness
 
         elif GLOBALS.GetUtility() == "successRatio":
             mtask, args = self.planLocals.GetHeuristicArgs()

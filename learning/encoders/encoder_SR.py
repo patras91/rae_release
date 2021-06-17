@@ -1,5 +1,5 @@
 import ast
-from convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
+from learning.convertDataFormat import ConvertToOneHot, ConvertToOneHotHelper
 
 def ConvertToInt(a):
 	x = a.split(" ")
