@@ -4,7 +4,10 @@ from actors.RAE.RAE import rae
 
 class Setup():
     def __init__(self, domain, problem, actor, useLearningStrategy, planner, plannerParams, v, startState=None):
-        self.state = State()
+        if startState:
+            self.state = startState
+        else:
+            self.state = State()
         self.rv = RV()
         assert(domain in [
                 'fetch',
@@ -42,8 +45,6 @@ class Setup():
             from domains.UnitTest.domain_UnitTest import UnitTestDomain, UnitTestEnv
             self.env = UnitTestEnv(self.state, self.rv)
             self.domain = UnitTestDomain(self.state, self.rv, self.actor, self.env)
-        if startState:
-            self.actor.RestoreState(startState)
         self.declare_goals()
 
     def declare_goals(self):

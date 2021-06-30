@@ -145,9 +145,9 @@ class RAE1():
         self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
 
         if self.verbosity > 1:
-            print_stack_size(self.raeLocals.GetStackId())
+            #print_stack_size(self.raeLocals.GetStackId())
             print('Initial state is:')
-            PrintState()
+            print(self.state)
 
         try:
             taskArgs = raeArgs.taskArgs 
@@ -166,7 +166,7 @@ class RAE1():
             pass
         if self.verbosity > 1:
             print('Final state is:')
-            PrintState()
+            print(self.state)
 
         if self.verbosity > 0:
             print("\n---- RAE: Done with stack %d\n" %self.raeLocals.GetStackId())
@@ -447,7 +447,7 @@ class RAE1():
                 print("Executing method {}{}".format(m.GetName(), taskArgs))
             if self.verbosity > 1:
                 print('Current state is:'.format(stackid))
-                PrintState()
+                print(self.state)
 
             m.Call()  # This is the main job of this function, CallMethod
             retcode = 'Success'
