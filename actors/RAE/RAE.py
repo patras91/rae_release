@@ -120,14 +120,13 @@ class rae():
             tasks = []
             while not self.taskQueue.empty():
                 tasks.append(self.taskQueue.get())
-                print(tasks)
             return tasks
 
     def BeginFreshIteration(self, lastActiveStack, numstacks, threadList):
         begin = True
         i = lastActiveStack % numstacks + 1
         while i != 1:
-            if threadList[i - 1].isAlive() == True:
+            if threadList[i - 1].isAlive():
                 begin = False
                 break
             i = i % numstacks + 1
@@ -256,7 +255,8 @@ class rae():
             #if ipcArgs.nextStack == 0 or ipcArgs.threadList[ipcArgs.nextStack-1].isAlive() == False:
             if True:
                 self.ipcArgs.sem[0].acquire()
-                if numstacks == 0 or self.BeginFreshIteration(lastActiveStack, numstacks, self.ipcArgs.threadList) == True: # Check for incoming tasks after progressing all stacks
+                if numstacks == 0 or self.BeginFreshIteration(lastActiveStack, numstacks, self.ipcArgs.threadList):
+                    # Check for incoming tasks after progressing all stacks
 
                     taskParams = self.GetNewTasks()
                     if taskParams != []:
