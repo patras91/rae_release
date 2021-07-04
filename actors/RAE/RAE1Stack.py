@@ -162,8 +162,7 @@ class RAE1():
             if self.verbosity > 0:
                 print('Failed task {}'.format(e))
             retcode = 'Failure'
-        else:
-            pass
+
         if self.verbosity > 1:
             print('Final state is:')
             print(self.state)
@@ -560,6 +559,9 @@ class RAE1():
                 self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
         else:
             while not self.cmdStatusStack[self.raeLocals.GetStackId()]:
+                if self.verbosity > 0:
+                    print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
+
                 self.ipcArgs.EndCriticalRegion()
                 self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
 

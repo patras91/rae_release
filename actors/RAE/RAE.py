@@ -257,7 +257,6 @@ class rae():
                 self.ipcArgs.sem[0].acquire()
                 if numstacks == 0 or self.BeginFreshIteration(lastActiveStack, numstacks, self.ipcArgs.threadList):
                     # Check for incoming tasks after progressing all stacks
-
                     taskParams = self.GetNewTasks()
                     if taskParams != []:
 
@@ -292,6 +291,8 @@ class rae():
                             self.envArgs.exit = True
                             self.envArgs.sem.release()
                             break
+                        else:
+                            self.ipcArgs.sem[0].release()
                 else:
                     self.ipcArgs.sem[0].release()
 
