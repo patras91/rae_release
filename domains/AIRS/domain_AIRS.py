@@ -5,10 +5,13 @@ This file defines the tasks, methods, and commands for the AIRS SDN domain.
 """
 __author__ = 'alex, sunandita'
 # From Sunandita on March 27, 2021: I modified the domain file to fit with the new object-oriented of the code base
+# From Sunandita on July 22, 2021: I added support for diagnosis, diagnoser.py
+# From Sunandita on July 30, 2021: I added refinement methods for diagnosis
 
 from domains.constants import *
 from shared.timer import DURATION
 import numpy as np
+from domains.AIRS.diagnoser import AIRSDiagnoser
 
 class AIRSDomain():
     def __init__(self, state, rv, actor, env):
@@ -40,7 +43,7 @@ class AIRSDomain():
         self.actor.declare_task('shrink_switch_flowtable', 'component_id', 'config', 'context')
         self.actor.declare_task('alleviate_switch_cpu', 'component_id', 'config', 'context')
         self.actor.declare_task('restore_switch_health', 'component_id', 'config', 'context')
-        
+
         self.actor.declare_methods(
             'fix_sdn',
             self.m_fix_sdn
@@ -129,6 +132,8 @@ class AIRSDomain():
             self.m_switch_clearstate_fallback,
             self.m_switch_disconnect_txport
         )
+
+        self.diagnoser = AIRSDiagnoser(state, rv, actor, env, self)
 
     def add_refinement_method(self, task, method):
         print(method.__name__)
@@ -647,6 +652,22 @@ class AIRSDomain():
         # No need to self.env.Sense()
 
         return FAILURE
+
+    # probing commands
+
+    def getSwitchRespFromController(self):
+        # TODO
+        return SUCCESS
+
+    def getNonRespSwitches(self):
+        # TODO
+        return SUCCESS
+
+    def probeSwitchHeartBeats(self):
+        # TODO
+        return SUCCESS
+
+
     #
     # Methods
     #
@@ -1163,7 +1184,11 @@ class AIRSDomain():
             explain = context + ", so disconnect the port with the most transmitted traffic"
             self.actor.do_command(self.disconnect_switch_port, component_id, explain)
 
+    def m1_diagnose(self, config):
+        pass
 
+    def m2_diagnose(self, config):
+        pass
 
 DURATION.TIME = {
     'restart_vm': 60,
@@ -1184,7 +1209,12 @@ DURATION.TIME = {
     'disconnect_switch_port': 10,
     'succeed': 1,
     'unsure': 5,
-    'fail': 1
+    'fail': 1,
+
+    'getSwitchRespFromController': 5,
+    'getNonRespSwitches': 5,
+    'probeSwitchHeartBeats': 5,
+    'getCPUFromSwitch': 5,
 }
 
 DURATION.COUNTER = {
@@ -1206,7 +1236,12 @@ DURATION.COUNTER = {
     'disconnect_switch_port': 10,
     'succeed': 1,
     'unsure': 5,
-    'fail': 1
+    'fail': 1,
+
+    'getSwitchRespFromController': 5,
+    'getNonRespSwitches': 5,
+    'probeSwitchHeartBeats': 5,
+    'getCPUFromSwitch': 5,
 }
 
 

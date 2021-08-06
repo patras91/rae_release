@@ -1,23 +1,30 @@
 __author__ = 'patras'
 from shared import GLOBALS
+from enum import Enum
+
+class UTIL(Enum):
+    EFFICIENCY = 'efficiency'
+    SUCCESS_RATIO = 'successRatio'
+    COST_EFFECTIVENESS = 'costEffectiveness'
+    COST = 'cost'
 
 class Utility():
     def __init__(self, val):
-        if GLOBALS.GetUtility() == 'min':
+        if GLOBALS.GetUtility() == UTIL.COST:
             if val == 'Success':
                 self.value = 0
             elif val == 'Failure':
                 self.value = float("inf")
             else:
                 self.value = val    
-        elif GLOBALS.GetUtility() == 'efficiency' or GLOBALS.GetUtility() == 'costEffectiveness':
+        elif GLOBALS.GetUtility() in [UTIL.EFFICIENCY, UTIL.COST_EFFECTIVENESS]:
             if val == 'Failure':
                 self.value = 0
             elif val == 'Success':
                 self.value = float("inf")
             else:
                 self.value = val
-        elif GLOBALS.GetUtility() == "successRatio":
+        elif GLOBALS.GetUtility() == UTIL.SUCCESS_RATIO:
             if val == "Failure":
                 self.value = 0
             elif val == "Success":
@@ -63,7 +70,7 @@ class Utility():
         return str(self.value)
 
     def __add__(self, other):
-        if GLOBALS.GetUtility() == "efficiency":
+        if GLOBALS.GetUtility() == UTIL.EFFICIENCY:
             e1 = self.value
             e2 = other.value
             if e1 == float("inf"):
@@ -75,11 +82,11 @@ class Utility():
             else:
                 res = e1 * e2 / (e1 + e2)
             return Utility(res)
-        elif GLOBALS.GetUtility() == "successRatio":
+        elif GLOBALS.GetUtility() == UTIL.SUCCESS_RATIO:
             sr1 = self.value
             sr2 = other.value
             return Utility(sr1 * sr2)
-        elif GLOBALS.GetUtility() == "costEffectiveness":
+        elif GLOBALS.GetUtility() == UTIL.COST_EFFECTIVENESS:
             r1 = self.value
             r2 = other.value
             if r1 == 0 or r2 == 0:

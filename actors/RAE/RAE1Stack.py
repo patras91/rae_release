@@ -1,7 +1,7 @@
 __author__="patras"
 from shared.dataStructures import rL_APE
 from shared import rTree
-from shared.utility import Utility
+from shared.utility import Utility, UTIL
 from shared import GLOBALS
 import random
 import numpy
@@ -47,11 +47,14 @@ class MethodInstance():
         else:
             return self.method == other.method and self.params == other.params
 
+def UsesSharedQueues(domain):
+    return domain in ["Mobipick", "AIRS_dev"]
+
 class RAE1():
     def __init__(self, task, raeArgs, domain, ipcArgs, cmdStatusStack, cmdStackTable, cmdExecQueue, v, state, methods, heuristic, useLearningStrategy, planner, plannerParams, RestoreState, GetDomainState):
         self.raeLocals = rL_APE() # variables that are local to every stack
-        """ Initialize the local variables of a stack used during acting """
-        self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.
+        """ Initialize the local variables of a task/event stack used during acting """
+        self.raeLocals.SetStackId(raeArgs.stack)  # to keep track of the id of the current stack.\
         self.raeLocals.SetRetryCount(0)           # to keep track of the number of retries in the current stack. This is used to calculate retry ratio
         self.raeLocals.SetCommandCount({})        # to keep track of the number of instances of every commands executed. Used to calculate the speed to success
                                              # This is a dictionary to accomodate for commands with different costs.
@@ -72,7 +75,7 @@ class RAE1():
         self.cmdExecQueue = cmdExecQueue
         self.ipcArgs = ipcArgs
 
-        if domain in ["AIRS_dev", 'Mobipick']:
+        if UsesSharedQueues(domain):
             cmdStatusStack[raeArgs.stack] = None
 
         self.GetNewIdNum = 0
@@ -150,7 +153,7 @@ class RAE1():
             print(self.state)
 
         try:
-            taskArgs = raeArgs.taskArgs 
+            taskArgs = raeArgs.taskArgs
             retcode = self.do_task(task, *taskArgs)  # do acting
 
         except Failed_command as e:
@@ -176,8 +179,8 @@ class RAE1():
             self.raeLocals.SetUtility(Utility('Failure'))
             self.raeLocals.SetEfficiency(0)
 
-        if GLOBALS.GetUtility() == "efficiency":
-            if self.domain != "OF":
+        if GLOBALS.GetUtility() == UTIL.EFFICIENCY:
+            if not self.domain == "deliver":
                 assert(numpy.isclose(self.raeLocals.GetEfficiency(), self.raeLocals.GetUtility().GetValue()))
 
         self.raeLocals.GetActingTree().PrintUsingGraphviz()
@@ -348,7 +351,7 @@ class RAE1():
         return (candidates[0], candidates[1:])
 
     def choose_candidate(self, candidates, task, taskArgs):
-        if len(candidates) == 1 or (self.planner == None and self.useLearningStrategy == None):
+        if len(candidates) == 1 or task == "__diagnose" or (not self.planner and not self.useLearningStrategy):
             #random.shuffle(candidates)
             return(candidates[0], candidates[1:])
         elif self.planner == None and self.useLearningStrategy == "learnM":
@@ -381,7 +384,7 @@ class RAE1():
         while (retcode != 'Success'):
             node.Clear() # Clear it on every iteration for a fresh start
             node.SetPrevState(self.state.copy())
-            if GLOBALS.GetUtility() == "successRatio": # there may be a better way to do this
+            if GLOBALS.GetUtility() == UTIL.SUCCESS_RATIO: # there may be a better way to do this
                 self.raeLocals.SetUtility(Utility("Success"))
 
             (m,candidates) = self.choose_candidate(candidates, task, args)
@@ -462,10 +465,15 @@ class RAE1():
 
         return retcode
 
+    def do_diagnosis(self):
+        self.DoTask_Acting('__diagnose', [])
+
     def do_task(self, task, *taskArgs):
-        if GLOBALS.GetPlanningMode() == True:
+        if GLOBALS.GetPlanningMode():
             self.planner.do_task(task, *taskArgs)
         else:
+            if self.domain in ["AIRS", "AIRS_dev"]:
+                self.do_diagnosis()
             return self.DoTask_Acting(task, taskArgs)
 
     # def DoMethod(self, m, task, taskArgs):
@@ -532,7 +540,7 @@ class RAE1():
         cmdRet = {'state':'running'}
 
         domain = self.domain
-        if domain not in ['AIRS_dev', 'Mobipick']:
+        if not UsesSharedQueues(domain):
             cmdThread = threading.Thread(target=self.beginCommand, args = [cmd, cmdRet, cmdArgs])
             cmdThread.start()
         else:
@@ -550,7 +558,7 @@ class RAE1():
         self.ipcArgs.EndCriticalRegion()
         self.ipcArgs.BeginCriticalRegion(self.raeLocals.GetStackId())
 
-        if domain not in ['AIRS_dev', 'Mobipick']:
+        if not UsesSharedQueues(domain):
             while (cmdRet['state'] == 'running'):
                 if self.verbosity > 0:
                     print('Command {}{} is running'.format( cmd.__name__, cmdArgs))
@@ -568,7 +576,7 @@ class RAE1():
         if self.verbosity > 0:
             print('Command {}{} is done'.format( cmd.__name__, cmdArgs))
 
-        if domain not in ['Mobipick', 'AIRS_dev']:
+        if not UsesSharedQueues(domain):
             retcode = cmdRet['state']
         else:
             [id, retcode, nextState] = self.cmdStatusStack[self.raeLocals.GetStackId()]
@@ -595,7 +603,7 @@ class RAE1():
             eff1 = self.GetEfficiency(cmd, cmdArgs)
             wait = False
 
-            if self.domain == "OF": # to avoid overflow in output files
+            if self.domain == "deliver": # to avoid overflow in output files
                 if cmd.__name__ == "wait":
                     wait = True
                     if len(self.raeLocals.GetPlanningUtilitiesList()) > 1:
@@ -673,20 +681,20 @@ class RAE1():
             return cost
 
     def GetFailureUtility(self, cmd, cmdArgs):
-        if GLOBALS.GetUtility() == "efficiency":
+        if GLOBALS.GetUtility() == UTIL.EFFICIENCY:
             return Utility(1/20)
-        elif GLOBALS.GetUtility() == "costEffectiveness":
+        elif GLOBALS.GetUtility() == UTIL.COST_EFFECTIVENESS:
             return Utility(1/20 + 1/20)
         else:
             return Utility("Failure")
 
 
     def GetUtilityforMethod(self, cost):
-        if GLOBALS.GetUtility() == "successRatio":
+        if GLOBALS.GetUtility() == UTIL.SUCCESS_RATIO:
             return Utility("Success")
-        elif GLOBALS.GetUtility() == "efficiency":
+        elif GLOBALS.GetUtility() == UTIL.EFFICIENCY:
             return Utility(1/cost)
-        elif GLOBALS.GetUtility() == "costEffectiveness":
+        elif GLOBALS.GetUtility() == UTIL.COST_EFFECTIVENESS:
             return Utility(1/20 + 1/cost)
         
     def GetFailureEfficiency(self, cmd, cmdArgs):
@@ -694,7 +702,7 @@ class RAE1():
 
     def GetEfficiency(self, cmd, cmdArgs):
         assert(cmd.__name__ != "fail")
-        if self.domain == "SD" and cmd.__name__ == "helpRobot": # kluge because I forgot to add this cost in the auto-gen problems
+        if self.domain == "nav" and cmd.__name__ == "helpRobot": # kluge because I forgot to add this cost in the auto-gen problems
             cost = 7
         else:
             cost = DURATION.COUNTER[cmd.__name__]
@@ -712,12 +720,12 @@ class RAE1():
     
     def GetUtility(self, cmd, cmdArgs):
         assert(cmd.__name__ != "fail")
-        if self.domain == "SD" and cmd.__name__ == "helpRobot": 
+        if self.domain == "nav" and cmd.__name__ == "helpRobot":
             # kluge because I forgot to add this cost in the auto-gen problems
             cost = 7
         else:
             cost = DURATION.COUNTER[cmd.__name__]
-        if GLOBALS.GetUtility() == "successRatio":
+        if GLOBALS.GetUtility() == UTIL.SUCCESS_RATIO:
             return Utility("Success")
         
         if type(cost) == types.FunctionType:
@@ -726,9 +734,9 @@ class RAE1():
         else:
             res = cost
 
-        if GLOBALS.GetUtility() == "efficiency":
+        if GLOBALS.GetUtility() == UTIL.EFFICIENCY:
             return Utility(1/res)
-        elif GLOBALS.GetUtility() == "costEffectiveness":
+        elif GLOBALS.GetUtility() == UTIL.COST_EFFECTIVENESS:
             return Utility(1/20 + 1/res)
         else:
             print("ERROR: Invalid utility")

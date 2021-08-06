@@ -10,6 +10,7 @@ import types
 from shared import GLOBALS
 import math
 import numpy
+from shared.utility import UTIL
 
 class UPOMChoice(OpPlanner):
     
@@ -234,13 +235,15 @@ class UPOMChoice(OpPlanner):
         self.DoCommandUPOM(cmd, cmdArgs)
 
     def GetUtility(self, cmd, cmdArgs):
+
+        print(GLOBALS.GetUtility())
         assert(cmd.__name__ != "fail")
         if self.domain == "SD" and cmd.__name__ == "helpRobot": 
             # kluge because I forgot to add this cost in the auto-gen problems
             cost = 7
         else:
             cost = DURATION.COUNTER[cmd.__name__]
-        if GLOBALS.GetUtility() == "successRatio":
+        if GLOBALS.GetUtility() == UTIL.SUCCESS_RATIO:
             return Utility("Success")
         
         if type(cost) == types.FunctionType:
@@ -249,17 +252,17 @@ class UPOMChoice(OpPlanner):
         else:
             res = cost
 
-        if GLOBALS.GetUtility() == "efficiency":
+        if GLOBALS.GetUtility() == UTIL.EFFICIENCY:
             return Utility(1/res)
-        elif GLOBALS.GetUtility() == "costEffectiveness":
+        elif GLOBALS.GetUtility() == UTIL.COST_EFFECTIVENESS:
             return Utility(1/20 + 1/res)
         else:
-            print("ERROR: Invalid utility")
+            print("UPOM.py line 260: ERROR: Invalid utility")
             exit()
 
     def GetHeuristicEstimate(self, task=None, tArgs=None):
         if GLOBALS.GetHeuristicName() == "learnH":
-            assert(GLOBALS.GetUtility() == "efficiency" or GLOBALS.GetUtility() == "costEffectiveness")
+            assert(GLOBALS.GetUtility() in [UTIL.EFFICIENCY, UTIL.COST_EFFECTIVENESS])
             domain = self.domain
             features = {
                 "explore": 204,
@@ -309,7 +312,7 @@ class UPOMChoice(OpPlanner):
                 eff = Decode_LearnH(self.domain, y)
                 if eff > effMax:
                     effMax = eff
-            if GLOBALS.GetUtility() == "efficiency":
+            if GLOBALS.GetUtility() == UTIL.EFFICIENCY:
                 return effMax
             else:
                 if effMax == 0:
@@ -317,7 +320,7 @@ class UPOMChoice(OpPlanner):
                 else:
                     return 1/20 + effMax # costEffectiveness
 
-        elif GLOBALS.GetUtility() == "successRatio":
+        elif GLOBALS.GetUtility() == UTIL.SUCCESS_RATIO:
             mtask, args = self.planLocals.GetHeuristicArgs()
             res = self.heuristic[mtask](args)
             return 1 if res > 0 else 0
