@@ -4,8 +4,9 @@ from tkinter.ttk import Combobox
 from main import testActorandPlanner
 from shared import GLOBALS
 from shared.gui import globalQueue
+from shared.utility import UTIL
 from multiprocessing import Queue
-from PIL import ImageTk, Image
+#from PIL import ImageTk, Image
 
 class MainInterface():
     def __init__(self):
@@ -95,7 +96,7 @@ class MainInterface():
     def Run(self):
         self.window.after(1, self.simulate)
         GLOBALS.SetDataGenerationMode(None)
-        GLOBALS.SetUtility(self.utility_cb.get())
+        GLOBALS.SetUtility(UTIL(self.utility_cb.get()))
         GLOBALS.SetHeuristicName(None)
         GLOBALS.SetDoIterativeDeepening(False)
         GLOBALS.SetTimeLimit(500)
@@ -106,11 +107,11 @@ class MainInterface():
                     domain=self.domain_cb.get(),
                     problem=self.problem_text.get("1.0","end-1c"),
                     actor=self.actor_cb.get(),
-                    useLearningStrategy=learningStrategy,
+                    learningStrategy=learningStrategy,
                     planner=planner,
                     plannerParams=[50],
                     showGui='off',
-                    v=0,
+                    v=1,
                     outputQueue=self.resultQueue
         )
         # testActorandPlanner(

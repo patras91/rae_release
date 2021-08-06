@@ -7,14 +7,15 @@ from shared import GLOBALS
 from shared.timer import SetMode
 import multiprocessing
 from shared.setup import Setup
+from shared.utility import UTIL
 
-def testActorandPlanner(domain, problem, actor, useLearningStrategy, planner, plannerParams, showGui, v, outputQueue=None):
+def testActorandPlanner(domain, problem, actor, learningStrategy, planner, plannerParams, showGui, v, outputQueue=None):
     '''
-    :param domain: the code of the domain ('fetch', 'nav', 'explore', 'rescue', AIRS', 'deliver', 'UnitTests')
+    :param domain: the code of the domain ('fetch', 'nav', 'explore', 'rescue', AIRS_dev', 'deliver', 'UnitTests', 'Mobipick')
     :param problem: the problem id
     :param planner: None, APEPlan, RAEPlan, UPOM, StateSpaceUCT
     '''
-    problemInstance = Setup(domain, problem, actor, useLearningStrategy, planner, plannerParams, v)
+    problemInstance = Setup(domain, problem, actor, learningStrategy, planner, plannerParams, v)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared between RAE, RAEplan and UPOM
     try:
@@ -31,7 +32,7 @@ def testBatch(domain, problem, actor, useLearningStrategy, planner, plannerParam
     p = multiprocessing.Process(target=testActorandPlanner, args=(domain, problem, actor, useLearningStrategy, planner, plannerParams, 'off', 0))
     p.start()
     p.join(GLOBALS.GetTimeLimit())
-    if p.is_alive() == True:
+    if p.is_alive():
         p.terminate()
         print("0 1 0 0 0 0 0 0 0")
     
@@ -51,7 +52,7 @@ def initialize_unitTest_for_online_method_addition(v, state):
         v=v,
         startState=state)
     
-    GLOBALS.SetUtility('efficiency') 
+    GLOBALS.SetUtility(UTIL.EFFICIENCY)
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
@@ -82,7 +83,7 @@ def InitializeAIRSDomain(v, state):
         v=v,
         startState=state)
     
-    GLOBALS.SetUtility('costEffectiveness') # maximizing the costEffectiveness (0 or 1+1/sum(cost))
+    GLOBALS.SetUtility(UTIL.COST_EFFECTIVENESS) # maximizing the costEffectiveness (0 or 1+1/sum(cost))
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
                                    # because some code is shared by both RAE and RAEplan
     try:
@@ -112,7 +113,7 @@ def InitializeMobipickDomain(v, state):
         v=v,
         startState=state)
 
-    GLOBALS.SetUtility('efficiency') # maximizing the efficiency (1/sum(cost))
+    GLOBALS.SetUtility(UTIL.EFFICIENCY) # maximizing the efficiency (1/sum(cost))
     GLOBALS.SetPlanningMode(False) # planning mode is required to switch between acting and planning
     # because some code is shared by both RAE and RAEplan
     try:
@@ -203,8 +204,8 @@ if __name__ == "__main__":
 
     GLOBALS.SetBackupUCT(args.useBackupUCT) # for AIRS
 
-    assert(args.utility == "efficiency" or args.utility == "successRatio" or args.utility == "resilience")
-    GLOBALS.SetUtility(args.utility)
+    assert(args.utility == "efficiency" or args.utility == "successratio" or args.utility == "costeffectiveness")
+    GLOBALS.SetUtility(UTIL(args.utility))
 
     testActorandPlanner(args.domain, args.problem, args.actor, args.useLearningStrategy, args.planner, plannerParams, args.showOutputs, args.v)
     
