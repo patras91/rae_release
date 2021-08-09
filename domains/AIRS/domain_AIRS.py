@@ -8,6 +8,8 @@ __author__ = 'alex, sunandita'
 # From Sunandita on July 22, 2021: I added support for diagnosis, diagnoser.py
 # From Sunandita on July 30, 2021: I added refinement methods for diagnosis
 # From Alex on August 8, 2021: Some cleanup and formatting changes
+# From Alex on August 9, 2021: Added actions, tasks, and refinement methods to extend the op. model
+# TODO: ALEX: finish adding/implementing new actions/tasks/methods
 
 from domains.constants import SUCCESS, FAILURE
 from shared.timer import DURATION
@@ -26,7 +28,25 @@ class AIRSDomain():
         # Task-to-method mappings
         #
 
-        self.actor.declare_task('fix_sdn', 'config', 'context')
+        self.actor.declare_task('restore_sdn', 'config', 'context')
+
+        self.actor.declare_task('mitigate_pktin_bandwidth', 'config', 'context')
+        self.actor.declare_task('mitigate_pktin_ctrl', 'config', 'context')
+        self.actor.declare_task('mitigate_flowtable_overflow', 'config', 'context')
+        self.actor.declare_task('mitigate_dataplane_dos', 'config', 'context')
+
+        self.actor.declare_task('stop_pktin', 'component_id', 'config', 'context')
+        self.actor.declare_task('increase_vm_resources', 'component_id', 'config', 'context')
+        self.actor.declare_task('reboot_vm', 'component_id', 'config', 'context')
+        self.actor.declare_task('clear_ctrl_state', 'component_id', 'config', 'context')
+        self.actor.declare_task('restart_ctrl', 'component_id', 'config', 'context')
+        self.actor.declare_task('reset_ctrl_apps', 'component_id', 'config', 'context')
+        self.actor.declare_task('restart_switch', 'component_id', 'config', 'context')
+        self.actor.declare_task('replace_switch_vm', 'component_id', 'config', 'context')
+        self.actor.declare_task('new_switch_vm_for_critical', 'component_id', 'config', 'context')
+        self.actor.declare_task('block_noncritical_hosts', 'component_id', 'config', 'context')
+        self.actor.declare_task('reset_switch_flows', 'component_id', 'config', 'context')
+
         self.actor.declare_task('handle_event', 'event', 'config', 'context')
 
         self.actor.declare_task('fix_component', 'component_id', 'config', 'context')
@@ -47,8 +67,106 @@ class AIRSDomain():
         self.actor.declare_task('restore_switch_health', 'component_id', 'config', 'context')
 
         self.actor.declare_methods(
-            'fix_sdn',
-            self.m_fix_sdn
+            'restore_sdn',
+            self.m_restore_sdn
+        )
+
+        self.actor.declare_methods(
+            'mitigate_pktin_bandwidth',
+            self.m_mitigate_pktin_bandwidth_stoppktin
+        )
+
+        self.actor.declare_methods(
+            'mitigate_pktin_ctrl',
+            self.m_mitigate_pktin_ctrl_increasevmresources,
+            self.m_mitigate_pktin_ctrl_clearctrlstate,
+            self.m_mitigate_pktin_ctrl_stoppktin,
+            self.m_mitigate_pktin_ctrl_restartctrl,
+            self.m_mitigate_pktin_ctrl_rebootctrlvm
+        )
+
+        self.actor.declare_methods(
+            'mitigate_flowtable_overflow',
+            self.m_mitigate_flowtable_overflow_increasevmresources,
+            self.m_mitigate_flowtable_overflow_clearctrlstate,
+            self.m_mitigate_flowtable_overflow_restartswitch,
+            self.m_mitigate_flowtable_overflow_rebootswitchvm,
+            self.m_mitigate_flowtable_overflow_replacewithnewswitch,
+            self.m_mitigate_flowtable_overflow_criticalhostsnewswitch,
+            self.m_mitigate_flowtable_overflow_resetctrlapps
+        )
+
+        self.actor.declare_methods(
+            'mitigate_dataplane_dos',
+            self.m_mitigate_dataplane_dos_blocknoncriticalhosts
+        )
+
+        self.actor.declare_methods(
+            'stop_pktin',
+            self.m_stop_pktin_via_ctrl,
+            self.m_stop_pktin_via_switch
+        )
+
+        self.actor.declare_methods(
+            'increase_vm_resources',
+            self.m_increase_vm_mem,
+            self.m_increase_vm_cpu
+        )
+
+        self.actor.declare_methods(
+            'reboot_vm',
+            self.m_reboot_vm_via_agent,
+            self.m_reboot_vm_via_vmm
+        )
+
+        self.actor.declare_methods(
+            'clear_ctrl_state',
+            self.m_clear_ctrl_state_targeted,
+            self.m_clear_ctrl_state_wipeout,
+            self.m_clear_ctrl_state_reinstall,
+            self.m_clear_ctrl_state_reboot
+        )
+
+        self.actor.declare_methods(
+            'restart_ctrl',
+            self.m_restart_ctrl_onosservice,
+            self.m_restart_ctrl_reinstallonos,
+            self.m_restart_ctrl_rebootctrlvm
+        )
+
+        self.actor.declare_methods(
+            'reset_ctrl_apps',
+            self.m_reset_ctrl_apps_fromlist,
+            self.m_reset_ctrl_apps_fromlistuninstall,
+            self.m_reset_ctrl_apps_reinstall
+        )
+
+        self.actor.declare_methods(
+            'restart_switch',
+            self.m_restart_switch_ovsservice,
+            self.m_restart_switch_reinstallovs,
+            self.m_restart_switch_rebootswitchvm
+        )
+
+        self.actor.declare_methods(
+            'replace_switch_vm',
+            self.m_replace_switch_vm
+        )
+
+        self.actor.declare_methods(
+            'new_switch_vm_for_critical',
+            self.m_new_switch_vm_for_critical
+        )
+
+        self.actor.declare_methods(
+            'block_noncritical_hosts',
+            self.m_block_noncritical_hosts_deactivatefwd,
+            self.m_block_noncritical_hosts_stoppktin
+        )
+
+        self.actor.declare_methods(
+            'reset_switch_flows',
+            self.m_reset_switch_flows
         )
 
         self.actor.declare_methods(
@@ -227,6 +345,328 @@ class AIRSDomain():
     #
     # Commands
     #
+
+    def onos_stop_pktin(self, component_id, explain):
+        """Stop PACKET_IN from switches via controller."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('onos_stop_pktin')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "onos_stop_pktin"')
+            return FAILURE
+
+        # Simulate effect(s)
+        return SUCCESS
+
+    def vmm_set_vm_memorygb(self, component_id, memorygb, explain):
+        """Set VM memory."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vmm_set_vm_memorygb')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vmm_set_vm_memorygb"')
+            return FAILURE
+
+        # Simulate effect(s)
+        self.state.components[component_id]['memorygb'] = memorygb
+        return SUCCESS
+
+    def vmm_set_vm_ncpu(self, component_id, ncpu, explain):
+        """Set VM vCPU count."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vmm_set_vm_ncpu')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vmm_set_vm_ncpu"')
+            return FAILURE
+
+        # Simulate effect(s)
+        self.state.components[component_id]['ncpu'] = ncpu
+        return SUCCESS
+
+    def vm_reboot(self, component_id, explain):
+        """Reboot VM via agent."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vm_reboot')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vm_reboot"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: any effects or side-effects when rebooting? clear state?
+        return SUCCESS
+
+    def vmm_reboot(self, component_id, explain):
+        """Reboot VM via hypervisor."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vmm_reboot')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vmm_reboot"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: any effects or side-effects when rebooting? clear state?
+        return SUCCESS
+
+    def onos_clear_flowtable(self, component_id, explain):
+        """Clear switch flow tables via ONOS."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('onos_clear_flowtable')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "onos_clear_flowtable"')
+            return FAILURE
+
+        # Simulate effect(s)
+        self.state.components[component_id]['flowtable_size'] = 0
+        return SUCCESS
+
+    def onos_clear_hosttable(self, component_id, explain):
+        """Clear ONOS host table."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('onos_clear_hosttable')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "onos_clear_hosttable"')
+            return FAILURE
+
+        # Simulate effect(s)
+        self.state.components[component_id]['hosttable_size'] = 0
+        return SUCCESS
+
+    def onos_wipeout(self, component_id, explain):
+        """Clear all ONOS state."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('onos_wipeout')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "onos_wipeout"')
+            return FAILURE
+
+        # Simulate effect(s)
+        self.state.components[component_id]['flowtable_size'] = 0
+        self.state.components[component_id]['hosttable_size'] = 0
+        return SUCCESS
+
+    def vm_reinstall_onos(self, component_id, explain):
+        """Reinstall ONOS SDN controller application."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vm_reinstall_onos')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vm_reinstall_onos"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: any effects or side-effects when reinstalling? clear state?
+        return SUCCESS
+
+    def vm_restart_onos_service(self, component_id, explain):
+        """Restart ONOS SDN controller service."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vm_restart_onos_service')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vm_restart_onos_service"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: any effects or side-effects when restarting? clear state?
+        return SUCCESS
+
+    def onos_deactivate_app(self, component_id, app_id, explain):
+        """Deactive ONOS SDN app (northbound API)."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('onos_deactivate_app')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "onos_deactivate_app"')
+            return FAILURE
+
+        # Simulate effect(s)
+        apps = self.state.components[component_id]['active_apps']
+        self.state.components[component_id]['active_apps'] = [a for a in apps if a != app_id]
+        return SUCCESS
+
+    def onos_uninstall_app(self, component_id, app_id, explain):
+        """Uninstall ONOS SDN app (northbound API)."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('onos_uninstall_app')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "onos_uninstall_app"')
+            return FAILURE
+
+        # Simulate effect(s)
+        apps = self.state.components[component_id]['active_apps']
+        self.state.components[component_id]['active_apps'] = [a for a in apps if a != app_id]
+        return SUCCESS
+
+    def vm_restart_ovs_service(self, component_id, explain):
+        """Restart Open vSwitch SDN switch service."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vm_restart_ovs_service')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vm_restart_ovs_service"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: any effects or side-effects when restarting? clear state?
+        return SUCCESS
+
+    def vm_reinstall_ovs(self, component_id, explain):
+        """Reinstall Open vSwitch SDN switch."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vm_reinstall_ovs')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vm_reinstall_ovs"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: any effects or side-effects when reinstalling? clear state?
+        return SUCCESS
+
+    def vmm_rename_vm(self, component_id, new_name, explain):
+        """Rename VM name via hypervisor."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vmm_rename_vm')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vmm_rename_vm"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: ALEX: implement
+        return FAILURE
+
+    def vmm_clone_vm_template(self, component_id, template_name, explain):
+        """Create new VM by cloning from template."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vmm_clone_vm_template')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vmm_clone_vm_template"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: ALEX: implement
+        return FAILURE
+
+    def vmm_change_vm_portgroup(self, component_id, new_port_group, explain):
+        """Move VM to new network port group."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vmm_change_vm_portgroup')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vmm_change_vm_portgroup"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: ALEX: implement
+        return FAILURE
+
+    def vmm_stop_vm(self, component_id, explain):
+        """Stop VM from running via hypervisor."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vmm_stop_vm')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vmm_stop_vm"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: any effects or side-effects when stopping a VM? remove from state?
+        return SUCCESS
+
+    def vmm_remove_vm(self, component_id, explain):
+        """Remove VM via hypervisor."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('vmm_remove_vm')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "vmm_remove_vm"')
+            return FAILURE
+
+        # Simulate effect(s)
+        self.state.components.pop(component_id, None)
+        return SUCCESS
+
+    def ovs_clear_flows(self, component_id, explain):
+        """Clear switch flow table via Open vSwitch."""
+
+        # Print human-friendly explanation
+        self.log_info(explain)
+
+        # Sense success vs. failure
+        res = self.env.Sense('ovs_clear_flows')
+        if res == FAILURE:
+            self.log_err('self.env.Sense() returned FAILURE for "ovs_clear_flows"')
+            return FAILURE
+
+        # Simulate effect(s)
+        # TODO: ALEX: implement
+        return FAILURE
 
     def restart_vm(self, component_id, explain):
         """Restart a component virtual machine."""
@@ -606,24 +1046,6 @@ class AIRSDomain():
             cpu_stat['value'] = new_cpu
         return SUCCESS
 
-    def succeed(self):
-        """Simply return success (always succeeds)."""
-
-        # No need to self.env.Sense()
-
-        return SUCCESS
-
-    def unsure(self):
-        """Add some cost within refinement method."""
-
-        # self.env.Sense success vs. failure
-        res = self.env.Sense('unsure')
-        if res == FAILURE:
-            self.log_err('self.env.Sense() returned FAILURE for "unsure"')
-            return FAILURE
-
-        return SUCCESS
-
     def fail(self):
         """Simply return failure (always fails)."""
 
@@ -651,12 +1073,14 @@ class AIRSDomain():
     # Methods
     #
 
-    def m_fix_sdn(self, config, context):
+    def m_restore_sdn(self, config, context):
         """Method to fix all symptoms in the SDN by checking each component.
 
         Checks the health of each component. For any component with health below the critical
         threshold, delegates to ``fix_component``.
         """
+
+        # TODO: ALEX: any changes here (to fit with new actions/tasks/methods) ???
 
         if not isinstance(config, dict) or 'health_critical_thresh' not in config:
             self.log_err('could not find "health_critical_thresh" in config')
@@ -686,6 +1110,441 @@ class AIRSDomain():
                             if not self.is_component_healthy(comp_id):
                                 self.log_err('failed to restore component health: ' + comp_id)
                                 self.actor.do_command(self.fail)
+
+    def m_mitigate_pktin_bandwidth_stoppktin(self, config, context):
+        """Method to mitigate PACKET_IN flooding attack that saturates bandwidth."""
+
+        ctrl_id = None
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_CTRL'):
+                ctrl_id = component_id
+                break
+        if ctrl_id is None:
+            self.log_err('no SDN controller found in state')
+            self.actor.do_command(self.fail)
+        else:
+            self.log_info(f'stop PACKET_IN to SDN controller {ctrl_id}')
+            self.actor.do_task('stop_pktin', ctrl_id, config, context)
+
+    def m_mitigate_pktin_ctrl_increasevmresources(self, config, context):
+        """Method to mitigate PACKET_IN flooding attack that affects SDN controller."""
+
+        ctrl_id = None
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_CTRL'):
+                ctrl_id = component_id
+                break
+        if ctrl_id is None:
+            self.log_err('no SDN controller found in state')
+            self.actor.do_command(self.fail)
+        else:
+            self.log_info(f'increase resources of SDN controller {ctrl_id}')
+            self.actor.do_task('increase_vm_resources', ctrl_id, config, context)
+
+    def m_mitigate_pktin_ctrl_clearctrlstate(self, config, context):
+        """Method to mitigate PACKET_IN flooding attack that affects SDN controller."""
+
+        ctrl_id = None
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_CTRL'):
+                ctrl_id = component_id
+                break
+        if ctrl_id is None:
+            self.log_err('no SDN controller found in state')
+            self.actor.do_command(self.fail)
+        else:
+            self.log_info(f'clear state of SDN controller {ctrl_id}')
+            self.actor.do_task('clear_ctrl_state', ctrl_id, config, context)
+
+    def m_mitigate_pktin_ctrl_stoppktin(self, config, context):
+        """Method to mitigate PACKET_IN flooding attack that affects SDN controller."""
+
+        ctrl_id = None
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_CTRL'):
+                ctrl_id = component_id
+                break
+        if ctrl_id is None:
+            self.log_err('no SDN controller found in state')
+            self.actor.do_command(self.fail)
+        else:
+            self.log_info(f'stop PACKET_IN to SDN controller {ctrl_id}')
+            self.actor.do_task('stop_pktin', ctrl_id, config, context)
+
+    def m_mitigate_pktin_ctrl_restartctrl(self, config, context):
+        """Method to mitigate PACKET_IN flooding attack that affects SDN controller."""
+
+        ctrl_id = None
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_CTRL'):
+                ctrl_id = component_id
+                break
+        if ctrl_id is None:
+            self.log_err('no SDN controller found in state')
+            self.actor.do_command(self.fail)
+        else:
+            self.log_info(f'restart SDN controller {ctrl_id}')
+            self.actor.do_task('restart_ctrl', ctrl_id, config, context)
+
+    def m_mitigate_pktin_ctrl_rebootctrlvm(self, config, context):
+        """Method to mitigate PACKET_IN flooding attack that affects SDN controller."""
+
+        ctrl_id = None
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_CTRL'):
+                ctrl_id = component_id
+                break
+        if ctrl_id is None:
+            self.log_err('no SDN controller found in state')
+            self.actor.do_command(self.fail)
+        else:
+            self.log_info(f'reboot VM of SDN controller {ctrl_id}')
+            self.actor.do_task('restart_ctrl', ctrl_id, config, context)
+
+    def m_mitigate_flowtable_overflow_increasevmresources(self, config, context):
+        """Method to mitigate switch flow table overflow attack."""
+
+        switch_found = False
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_SWITCH'):
+                cur_switch = self.state.components[component_id]
+                flowtable_size = 0
+                if 'flowtable_size' in cur_switch:
+                    flowtable_size = cur_switch['flowtable_size']
+                if flowtable_size > cur_switch['max_flows']:
+                    switch_found = True
+                    self.log_info(f'flow table size threshold exceeded in switch {component_id}')
+                    self.log_info(f'increase resources of switch {component_id}')
+                    self.actor.do_task('increase_vm_resources', component_id, config, context)
+        if not switch_found:
+            self.log_err('no switches exceeded flow table size threshold')
+
+    def m_mitigate_flowtable_overflow_clearctrlstate(self, config, context):
+        """Method to mitigate switch flow table overflow attack."""
+
+        switch_found = False
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_SWITCH'):
+                cur_switch = self.state.components[component_id]
+                flowtable_size = 0
+                if 'flowtable_size' in cur_switch:
+                    flowtable_size = cur_switch['flowtable_size']
+                if flowtable_size > cur_switch['max_flows']:
+                    switch_found = True
+                    self.log_info(f'flow table size threshold exceeded in switch {component_id}')
+                    ctrl_id = None
+                    for other_id in self.state.components:
+                        if self.is_component_type(other_id, 'SDN_CP_CTRL'):
+                            if cur_switch['ctrl_ip'] == self.state.components[other_id]['ip']:
+                                ctrl_id = other_id
+                                break
+                    if ctrl_id is None:
+                        self.log_err(f'no SDN controller for switch {component_id} found in state')
+                        self.actor.do_command(self.fail)
+                    else:
+                        self.log_info(f'clear SDN controller state for switch {component_id}')
+                        new_ctx = context + ', so clear SDN controller state'
+                        self.actor.do_task('clear_ctrl_state', ctrl_id, config, new_ctx)
+        if not switch_found:
+            self.log_err('no switches exceeded flow table size threshold')
+
+    def m_mitigate_flowtable_overflow_restartswitch(self, config, context):
+        """Method to mitigate switch flow table overflow attack."""
+
+        switch_found = False
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_SWITCH'):
+                cur_switch = self.state.components[component_id]
+                flowtable_size = 0
+                if 'flowtable_size' in cur_switch:
+                    flowtable_size = cur_switch['flowtable_size']
+                if flowtable_size > cur_switch['max_flows']:
+                    switch_found = True
+                    self.log_info(f'flow table size threshold exceeded in switch {component_id}')
+                    self.log_info(f'restart switch {component_id}')
+                    self.actor.do_task('restart_switch', component_id, config, context)
+        if not switch_found:
+            self.log_err('no switches exceeded flow table size threshold')
+
+    def m_mitigate_flowtable_overflow_rebootswitchvm(self, config, context):
+        """Method to mitigate switch flow table overflow attack."""
+
+        switch_found = False
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_SWITCH'):
+                cur_switch = self.state.components[component_id]
+                flowtable_size = 0
+                if 'flowtable_size' in cur_switch:
+                    flowtable_size = cur_switch['flowtable_size']
+                if flowtable_size > cur_switch['max_flows']:
+                    switch_found = True
+                    self.log_info(f'flow table size threshold exceeded in switch {component_id}')
+                    self.log_info(f'reboot VM of switch {component_id}')
+                    self.actor.do_task('reboot_vm', component_id, config, context)
+        if not switch_found:
+            self.log_err('no switches exceeded flow table size threshold')
+
+    def m_mitigate_flowtable_overflow_replacewithnewswitch(self, config, context):
+        """Method to mitigate switch flow table overflow attack."""
+
+        # TODO: ALEX: implement
+        self.log_err('not yet implemented')
+        self.actor.do_command(self.fail)
+
+    def m_mitigate_flowtable_overflow_criticalhostsnewswitch(self, config, context):
+        """Method to mitigate switch flow table overflow attack."""
+
+        # TODO: ALEX: implement
+        self.log_err('not yet implemented')
+        self.actor.do_command(self.fail)
+
+    def m_mitigate_flowtable_overflow_resetctrlapps(self, config, context):
+        """Method to mitigate switch flow table overflow attack."""
+
+        switch_found = False
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_SWITCH'):
+                cur_switch = self.state.components[component_id]
+                flowtable_size = 0
+                if 'flowtable_size' in cur_switch:
+                    flowtable_size = cur_switch['flowtable_size']
+                if flowtable_size > cur_switch['max_flows']:
+                    switch_found = True
+                    self.log_info(f'flow table size threshold exceeded in switch {component_id}')
+                    ctrl_id = None
+                    for other_id in self.state.components:
+                        if self.is_component_type(other_id, 'SDN_CP_CTRL'):
+                            if cur_switch['ctrl_ip'] == self.state.components[other_id]['ip']:
+                                ctrl_id = other_id
+                                break
+                    if ctrl_id is None:
+                        self.log_err(f'no SDN controller for switch {component_id} found in state')
+                        self.actor.do_command(self.fail)
+                    else:
+                        self.log_info(f'reset SDN controller apps for switch {component_id}')
+                        new_ctx = context + ', so reset SDN controller apps'
+                        self.actor.do_task('reset_ctrl_apps', ctrl_id, config, new_ctx)
+        if not switch_found:
+            self.log_err('no switches exceeded flow table size threshold')
+
+    def m_mitigate_dataplane_dos_blocknoncriticalhosts(self, config, context):
+        """Method to mitigate data plane denial of service attack."""
+
+        ctrl_id = None
+        for component_id in self.state.components:
+            if self.is_component_type(component_id, 'SDN_CP_CTRL'):
+                ctrl_id = component_id
+                break
+        if ctrl_id is None:
+            self.log_err('no SDN controller found in state')
+            self.actor.do_command(self.fail)
+        else:
+            self.log_info(f'block non-critical hosts via SDN controller {ctrl_id}')
+            self.actor.do_task('block_noncritical_hosts', ctrl_id, config, context)
+
+    def m_stop_pktin_via_ctrl(self, component_id, config, context):
+        """Method to stop PACKET_IN to SDN controller."""
+
+        explain = f'{context}, so stop PACKET_IN to SDN controller'
+        self.actor.do_command(self.onos_stop_pktin, component_id, explain)
+
+    def m_stop_pktin_via_switch(self, component_id, config, context):
+        """Method to stop PACKET_IN to SDN controller via switches."""
+
+        # TODO: ALEX: implement
+        pass
+
+    def m_increase_vm_mem(self, component_id, config, context):
+        """Method to increase VM memory."""
+
+        memorygb = None
+        component = self.state.components[component_id]
+        if 'memorygb' in component:
+            memorygb = component['memorygb']
+        if memorygb is None:
+            self.log_err(f'could not determine current memorygb for component {component_id}')
+            self.actor.do_command(self.fail)
+        else:
+            maxmem = component['max_memorygb']
+            newmem = memorygb + 1
+            if newmem > maxmem:
+                self.log_err(f'cannot increase memory for component {component_id} any more')
+                self.actor.do_command(self.fail)
+            else:
+                explain = f'{context}, so increase VM memory'
+                self.actor.do_command(self.vmm_set_vm_memorygb, component_id, newmem, explain)
+
+    def m_increase_vm_cpu(self, component_id, config, context):
+        """Method to increase VM CPU count."""
+
+        ncpu = None
+        component = self.state.components[component_id]
+        if 'ncpu' in component:
+            ncpu = component['ncpu']
+        if ncpu is None:
+            self.log_err(f'could not determine current ncpu for component {component_id}')
+            self.actor.do_command(self.fail)
+        else:
+            maxncpu = component['max_ncpu']
+            newncpu = ncpu + 1
+            if newncpu > maxncpu:
+                self.log_err(f'cannot increase ncpu for component {component_id} any more')
+                self.actor.do_command(self.fail)
+            else:
+                explain = f'{context}, so increase VM ncpu'
+                self.actor.do_command(self.vmm_set_vm_ncpu, component_id, newncpu, explain)
+
+    def m_reboot_vm_via_agent(self, component_id, config, context):
+        """Method to reboot component VM via agent."""
+
+        explain = f'{context}, so reboot component VM'
+        self.actor.do_command(self.vm_reboot, component_id, explain)
+
+    def m_reboot_vm_via_vmm(self, component_id, config, context):
+        """Method to reboot component VM via hypervisor."""
+
+        explain = f'{context}, so reboot component VM'
+        self.actor.do_command(self.vmm_reboot, component_id, explain)
+
+    def m_clear_ctrl_state_targeted(self, component_id, config, context):
+        """Method to clear SDN controller state (minimal/targeted)."""
+
+        hosttable_size = None
+        component = self.state.components[component_id]
+        if 'hosttable_size' in component:
+            hosttable_size = component['hosttable_size']
+        maxhosts = 0
+        if 'max_hosts' in component:
+            maxhosts = component['max_hosts']
+        if hosttable_size is None:
+            self.log_err(f'could not determine current host table size for {component_id}')
+            self.actor.do_command(self.fail)
+        if hosttable_size is not None and hosttable_size > maxhosts:
+            explain = f'{context}, so clear SDN controller flow table and host table'
+            self.actor.do_command(self.onos_clear_flowtable, component_id, explain)
+            self.actor.do_command(self.onos_clear_hosttable, component_id, explain)
+
+    def m_clear_ctrl_state_wipeout(self, component_id, config, context):
+        """Method to wipe out SDN controller state."""
+
+        explain = f'{context}, so wipe out SDN controller state'
+        self.actor.do_command(self.onos_wipeout, component_id, explain)
+
+    def m_clear_ctrl_state_reinstall(self, component_id, config, context):
+        """Method to clear SDN controller state by reinstalling."""
+
+        explain = f'{context}, so reinstall SDN controller to clear its state'
+        self.actor.do_command(self.vm_reinstall_onos, component_id, explain)
+
+    def m_clear_ctrl_state_reboot(self, component_id, config, context):
+        """Method to clear SDN controller state by rebooting the VM."""
+
+        new_ctx = f'{context} and need to clear SDN controller state'
+        self.actor.do_task('reboot_vm', config, new_ctx)
+
+    def m_restart_ctrl_onosservice(self, component_id, config, context):
+        """Method to restart SDN controller by restarting its service."""
+
+        explain = f'{context}, so restart SDN controller via its service'
+        self.actor.do_command(self.vm_restart_onos_service, component_id, explain)
+
+    def m_restart_ctrl_reinstallonos(self, component_id, config, context):
+        """Method to restart SDN controller by reinstalling ONOS."""
+
+        explain = f'{context}, so restart SDN controller by reinstalling it'
+        self.actor.do_command(self.vm_reinstall_onos, component_id, explain)
+
+    def m_restart_ctrl_rebootctrlvm(self, component_id, config, context):
+        """Method to restart SDN controller by rebooting the VM."""
+
+        new_ctx = f'{context} and need to restart SDN controller VM'
+        self.actor.do_task('reboot_vm', config, new_ctx)
+
+    def m_reset_ctrl_apps_fromlist(self, component_id, config, context):
+        """Method to reset apps in SDN controller to those allowed by list."""
+
+        component = self.state.components[component_id]
+        if 'active_apps' not in component:
+            self.log_err(f'could not determine active_apps for component {component_id}')
+            self.actor.do_command(self.fail)
+        elif 'authorized_apps' not in component:
+            self.log_err(f'could not determine authorized_apps for component {component_id}')
+            self.actor.do_command(self.fail)
+        else:
+            for app in component['active_apps']:
+                if app not in component['authorized_apps']:
+                    explain = f'{context}, so deactivate app {app}'
+                    self.actor.do_command(self.onos_deactivate_app, component_id, app, explain)
+
+    def m_reset_ctrl_apps_fromlistuninstall(self, component_id, config, context):
+        """Method to reset apps in SDN controller to those allowed by list by uninstalling them."""
+
+        component = self.state.components[component_id]
+        if 'active_apps' not in component:
+            self.log_err(f'could not determine active_apps for component {component_id}')
+            self.actor.do_command(self.fail)
+        elif 'authorized_apps' not in component:
+            self.log_err(f'could not determine authorized_apps for component {component_id}')
+            self.actor.do_command(self.fail)
+        else:
+            for app in component['active_apps']:
+                if app not in component['authorized_apps']:
+                    explain = f'{context}, so deactivate app {app}'
+                    self.actor.do_command(self.onos_uninstall_app, component_id, app, explain)
+
+    def m_reset_ctrl_apps_reinstall(self, component_id, config, context):
+        """Method to reset apps in SDN controller by reinstalling the controller."""
+
+        explain = f'{context}, so reset SDN controller apps by reinstalling it'
+        self.actor.do_command(self.vm_reinstall_onos, component_id, explain)
+
+    def m_restart_switch_ovsservice(self, component_id, config, context):
+        """Method to restart switch by restarting Open vSwitch service."""
+
+        explain = f'{context}, so restart Open vSwitch via its service'
+        self.actor.do_command(self.vm_restart_ovs_service, component_id, explain)
+
+    def m_restart_switch_reinstallovs(self, component_id, config, context):
+        """Method to restart switch by reinstalling Open vSwitch."""
+
+        explain = f'{context}, so restart Open vSwitch by reinstalling it'
+        self.actor.do_command(self.vm_restart_ovs_service, component_id, explain)
+
+    def m_restart_switch_rebootswitchvm(self, component_id, config, context):
+        """Method to restart switch by rebooting the VM."""
+
+        new_ctx = f'{context} and need to restart switch VM'
+        self.actor.do_task('reboot_vm', config, new_ctx)
+
+    def m_replace_switch_vm(self, component_id, config, context):
+        """Method to replace switch with a new VM."""
+
+        # TODO: ALEX: implement
+        pass
+
+    def m_new_switch_vm_for_critical(self, component_id, config, context):
+        """Method to ..."""
+
+        # TODO: ALEX: implement
+        pass
+
+    def m_block_noncritical_hosts_deactivatefwd(self, component_id, config, context):
+        """Method to block non-critical hosts by deactivating `fwd` app."""
+
+        explain = f'{context}, so deactivate app fwd'
+        self.actor.do_command(self.onos_deactivate_app, component_id, 'fwd', explain)
+
+    def m_block_noncritical_hosts_stoppktin(self, component_id, config, context):
+        """Method to block non-critical hosts by stopping PACKET_IN to SDN controller."""
+
+        new_ctx = f'{context} and need to block non-critical hosts'
+        self.actor.do_task('stop_pktin', component_id, config, new_ctx)
+
+    def m_reset_switch_flows(self, component_id, config, context):
+        """Method to reset switch flow table."""
+
+        explain = f'{context}, so reset switch flow table'
+        self.actor.do_command(self.ovs_clear_flows, component_id, explain)
 
     def m_handle_event(self, event, config, context):
         """Method to handle a specific anomaly/event."""
@@ -905,13 +1764,6 @@ class AIRSDomain():
             else:
                 # No problem could be identified from stats
                 self.log_info('no task to add for "' + component_id + '"')
-                # TODO: probe further ???
-                # For now, fail
-                # TODO: OR... succeed, because nothing was found to be wrong ???
-                # log_err('could not figure out how to fix controller "' + component_id + '"')
-                # self.actor.do_command(self.fail)
-
-            # TODO: loop and continue checking stats until symptoms are gone ???
 
     def m_fix_switch(self, component_id, config, context):
         """Method to fix symptoms for a switch."""
@@ -1131,6 +1983,28 @@ class AIRSDomain():
 
 
 DURATION.TIME = {
+    'onos_stop_pktin': 10,
+    'ovs_stop_pktin': 10,
+    'vmm_set_vm_memorygb': 10,
+    'vmm_set_vm_ncpu': 10,
+    'vm_reboot': 10,
+    'vmm_reboot': 10,
+    'onos_clear_flowtable': 10,
+    'onos_clear_hosttable': 10,
+    'onos_wipeout': 10,
+    'vm_reinstall_onos': 10,
+    'vm_restart_onos_service': 10,
+    'onos_deactivate_app': 10,
+    'onos_uninstall_app': 10,
+    'vm_restart_ovs_service': 10,
+    'vm_reinstall_ovs': 10,
+    'vmm_rename_vm': 10,
+    'vmm_clone_vm_template': 10,
+    'vmm_change_vm_portgroup': 10,
+    'vmm_stop_vm': 10,
+    'vmm_remove_vm': 10,
+    'ovs_clear_flows': 10,
+
     'restart_vm': 60,
     'add_vcpu': 5,
     'increase_mem': 5,
@@ -1147,8 +2021,7 @@ DURATION.TIME = {
     'clear_switch_state_fallback': 20,
     'disconnect_reconnect_switch_port': 5,
     'disconnect_switch_port': 10,
-    'succeed': 1,
-    'unsure': 5,
+
     'fail': 1,
 
     'getSwitchRespFromController': 5,
@@ -1158,6 +2031,28 @@ DURATION.TIME = {
 }
 
 DURATION.COUNTER = {
+    'onos_stop_pktin': 10,
+    'ovs_stop_pktin': 10,
+    'vmm_set_vm_memorygb': 10,
+    'vmm_set_vm_ncpu': 10,
+    'vm_reboot': 10,
+    'vmm_reboot': 10,
+    'onos_clear_flowtable': 10,
+    'onos_clear_hosttable': 10,
+    'onos_wipeout': 10,
+    'vm_reinstall_onos': 10,
+    'vm_restart_onos_service': 10,
+    'onos_deactivate_app': 10,
+    'onos_uninstall_app': 10,
+    'vm_restart_ovs_service': 10,
+    'vm_reinstall_ovs': 10,
+    'vmm_rename_vm': 10,
+    'vmm_clone_vm_template': 10,
+    'vmm_change_vm_portgroup': 10,
+    'vmm_stop_vm': 10,
+    'vmm_remove_vm': 10,
+    'ovs_clear_flows': 10,
+
     'restart_vm': 60,
     'add_vcpu': 5,
     'increase_mem': 5,
@@ -1174,8 +2069,7 @@ DURATION.COUNTER = {
     'clear_switch_state_fallback': 20,
     'disconnect_reconnect_switch_port': 5,
     'disconnect_switch_port': 10,
-    'succeed': 1,
-    'unsure': 5,
+
     'fail': 1,
 
     'getSwitchRespFromController': 5,
@@ -1189,6 +2083,28 @@ class AIRSEnv():
     def __init__(self, state, rv):
         # Each command is associated with a tuple indicating probability of success vs. failure
         self.commandProb = {
+            'onos_stop_pktin': (0.95, 0.05),
+            'ovs_stop_pktin': (0.95, 0.05),
+            'vmm_set_vm_memorygb': (0.95, 0.05),
+            'vmm_set_vm_ncpu': (0.95, 0.05),
+            'vm_reboot': (0.95, 0.05),
+            'vmm_reboot': (0.95, 0.05),
+            'onos_clear_flowtable': (0.95, 0.05),
+            'onos_clear_hosttable': (0.95, 0.05),
+            'onos_wipeout': (0.95, 0.05),
+            'vm_reinstall_onos': (0.95, 0.05),
+            'vm_restart_onos_service': (0.95, 0.05),
+            'onos_deactivate_app': (0.95, 0.05),
+            'onos_uninstall_app': (0.95, 0.05),
+            'vm_restart_ovs_service': (0.95, 0.05),
+            'vm_reinstall_ovs': (0.95, 0.05),
+            'vmm_rename_vm': (0.95, 0.05),
+            'vmm_clone_vm_template': (0.95, 0.05),
+            'vmm_change_vm_portgroup': (0.95, 0.05),
+            'vmm_stop_vm': (0.95, 0.05),
+            'vmm_remove_vm': (0.95, 0.05),
+            'ovs_clear_flows': (0.95, 0.05),
+
             'restart_vm': (0.95, 0.05),
             'add_vcpu': (0.95, 0.05),
             'increase_mem': (0.95, 0.05),
@@ -1205,8 +2121,7 @@ class AIRSEnv():
             'clear_switch_state_fallback': (0.9, 0.1),
             'disconnect_reconnect_switch_port': (0.75, 0.25),
             'disconnect_switch_port': (0.9, 0.1),
-            'succeed': (1, 0),
-            'unsure': (0.5, 0.5),
+
             'fail': (0, 1)
         }
         self.state = state
