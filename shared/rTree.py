@@ -2,7 +2,7 @@ __author__ = 'patras'
 
 import pipes
 from shared.timer import DURATION
-from graphviz import Digraph
+#from graphviz import Digraph
 import types
 from shared.utility import Utility
 from shared import GLOBALS

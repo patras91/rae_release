@@ -13,9 +13,9 @@ from planners.RAEPlan.RAEPlan import RAEPlanChoice
 from planners.APEPlan.APEPlan import APEPlanChoice
 import multiprocessing
 from shared.exceptions import *
-import torch.nn as nn
-import torch
-from learning.convertDataFormat import Encode_LearnM, Decode_LearnM
+#import torch.nn as nn
+#import torch
+#from learning.convertDataFormat import Encode_LearnM, Decode_LearnM
 
 class MethodInstance():
     def __init__(self, m):
@@ -183,7 +183,7 @@ class RAE1():
             if not self.domain == "deliver":
                 assert(numpy.isclose(self.raeLocals.GetEfficiency(), self.raeLocals.GetUtility().GetValue()))
 
-        self.raeLocals.GetActingTree().PrintUsingGraphviz()
+        #self.raeLocals.GetActingTree().PrintUsingGraphviz()
         h, t, c = self.raeLocals.GetActingTree().GetMetaData()
         traces = self.raeLocals.GetActingTree().Print()
         return (retcode,

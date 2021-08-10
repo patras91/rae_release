@@ -96,35 +96,38 @@ class MainInterface():
     def Run(self):
         self.window.after(1, self.simulate)
         GLOBALS.SetDataGenerationMode(None)
-        GLOBALS.SetUtility(UTIL(self.utility_cb.get()))
         GLOBALS.SetHeuristicName(None)
         GLOBALS.SetDoIterativeDeepening(False)
         GLOBALS.SetTimeLimit(500)
         GLOBALS.SetModelPath("./learning/models/AIJ2020/")
         planner = None if self.planner_cb.get() == "None" else self.planner_cb.get()
+
+        #GLOBALS.SetUtility(UTIL(self.utility_cb.get()))
         learningStrategy = None if self.learning_cb.get() == "None" else self.learning_cb.get()
-        testActorandPlanner(
-                    domain=self.domain_cb.get(),
-                    problem=self.problem_text.get("1.0","end-1c"),
-                    actor=self.actor_cb.get(),
-                    learningStrategy=learningStrategy,
-                    planner=planner,
-                    plannerParams=[50],
-                    showGui='off',
-                    v=1,
-                    outputQueue=self.resultQueue
-        )
         # testActorandPlanner(
-        #     domain='fetch',
-        #     problem='problem1',
-        #     actor='RAE',
-        #     useLearningStrategy='learnM',
-        #     planner=None,
-        #     plannerParams=[50],
-        #     showGui='off',
-        #     v=0,
-        #     outputQueue=self.resultQueue,
+        #             domain=self.domain_cb.get(),
+        #             problem=self.problem_text.get("1.0","end-1c"),
+        #             actor=self.actor_cb.get(),
+        #             learningStrategy=learningStrategy,
+        #             planner=planner,
+        #             plannerParams=[50],
+        #             showGui='off',
+        #             v=1,
+        #             outputQueue=self.resultQueue
         # )
+
+        GLOBALS.SetUtility(UTIL.EFFICIENCY)
+        testActorandPlanner(
+            domain='fetch',
+            problem='problem1',
+            actor='RAE',
+            learningStrategy=None,
+            planner='UPOM',
+            plannerParams=[50],
+            showGui='off',
+            v=0,
+            outputQueue=self.resultQueue,
+        )
 
 
     def Clear(self):

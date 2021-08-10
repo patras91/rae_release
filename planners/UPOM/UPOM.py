@@ -236,7 +236,6 @@ class UPOMChoice(OpPlanner):
 
     def GetUtility(self, cmd, cmdArgs):
 
-        print(GLOBALS.GetUtility())
         assert(cmd.__name__ != "fail")
         if self.domain == "SD" and cmd.__name__ == "helpRobot": 
             # kluge because I forgot to add this cost in the auto-gen problems
