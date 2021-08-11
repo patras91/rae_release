@@ -34,6 +34,7 @@ class GUI():
                     action = minigridQueue.get(False)
                     print(action)
                     self.envSimulator.step(self.envSimulator.env.actions.addEmergency)
+                    self.envSimulator.step(self.envSimulator.env.actions.forward)
                     i += 1
 
     def simulate(self):
@@ -100,7 +101,7 @@ class MinigridSimulator():
 
         self.tD = TaskDes(envD=self.envD, seed=np.random.randint(0,100))
 
-        self.env = gym.make("MiniGrid-fetchRAE-v0", taskD=self.tD)
+        self.env = gym.make("MiniGrid-fetchRAE-v0", taskD=self.tD, objLoc=1, eventLoc=1)
 
         self.window = Window('gym_minigrid - MiniGrid-fetchRAE-v0')
 

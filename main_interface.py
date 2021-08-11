@@ -109,33 +109,34 @@ class MainInterface():
         GLOBALS.SetModelPath("./learning/models/AIJ2020/")
         planner = None if self.planner_cb.get() == "None" else self.planner_cb.get()
 
-        #GLOBALS.SetUtility(UTIL(self.utility_cb.get()))
+        GLOBALS.SetUtility(UTIL(self.utility_cb.get()))
         learningStrategy = None if self.learning_cb.get() == "None" else self.learning_cb.get()
-        # testActorandPlanner(
-        #             domain=self.domain_cb.get(),
-        #             problem=self.problem_text.get("1.0","end-1c"),
-        #             actor=self.actor_cb.get(),
-        #             learningStrategy=learningStrategy,
-        #             planner=planner,
-        #             plannerParams=[50],
-        #             showGui='off',
-        #             v=1,
-        #             outputQueue=self.resultQueue
-        # )
-
-        GLOBALS.SetUtility(UTIL.EFFICIENCY)
         testActorandPlanner(
-            domain='fetch',
-            problem='problem114',
-            actor='RAE',
-            learningStrategy=None,
-            planner='UPOM',
-            plannerParams=[50],
-            showGui='off',
-            v=0,
-            outputQueue=self.resultQueue,
-            showAnimation=True if self.showAnimation.get() else False,
+                    domain=self.domain_cb.get(),
+                    problem=self.problem_text.get("1.0","end-1c"),
+                    actor=self.actor_cb.get(),
+                    learningStrategy=learningStrategy,
+                    planner=planner,
+                    plannerParams=[50],
+                    showGui='off',
+                    v=1,
+                    outputQueue=self.resultQueue,
+                    showAnimation=True if self.showAnimation.get() else False,
         )
+
+        # GLOBALS.SetUtility(UTIL.EFFICIENCY)
+        # testActorandPlanner(
+        #     domain='fetch',
+        #     problem='problem114',
+        #     actor='RAE',
+        #     learningStrategy=None,
+        #     planner='UPOM',
+        #     plannerParams=[50],
+        #     showGui='off',
+        #     v=0,
+        #     outputQueue=self.resultQueue,
+        #     showAnimation=True if self.showAnimation.get() else False,
+        # )
 
 
     def Clear(self):

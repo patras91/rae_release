@@ -264,7 +264,9 @@ class fetchRAE(RoomGrid):
 
     def __init__(
             self,
-            taskD
+            taskD,
+            objLoc=None,
+            eventLoc=None,
     ):
         """
         This is the initialization function for the RoomDescriptor object.
@@ -283,7 +285,8 @@ class fetchRAE(RoomGrid):
             num_cols=self.roomGridMap.shape[1],
             max_steps=30*taskD.envDescriptor.roomSize, # may need to be updated
         )
-
+        self.objLoc = objLoc
+        self.eventLoc = eventLoc
         del(taskD)
         #print("initialized GBLA Key Corridor Domain with shape ", self.roomGridMap.shape[0], self.roomGridMap.shape[1])
 
@@ -457,7 +460,9 @@ class fetchRAE(RoomGrid):
                     pass
 
         else:
-            obj, _ = self.add_object(self._rand_int(1, self.num_cols), 0, kind=self.obj_type, color='green')
+            x = self._rand_int(1, self.num_cols)
+            print("objLoc ", x)
+            obj, _ = self.add_object(x, 0, kind=self.obj_type, color='green')
             self.obj.append(obj)
 
         self.gap_pos = np.array((
