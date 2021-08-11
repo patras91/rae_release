@@ -9,7 +9,7 @@ import multiprocessing
 from shared.setup import Setup
 from shared.utility import UTIL
 
-def testActorandPlanner(domain, problem, actor, learningStrategy, planner, plannerParams, showGui, v, outputQueue=None):
+def testActorandPlanner(domain, problem, actor, learningStrategy, planner, plannerParams, showGui, v, outputQueue=None, showAnimation=False):
     '''
     :param domain: the code of the domain ('fetch', 'nav', 'explore', 'rescue', AIRS_dev', 'deliver', 'UnitTests', 'Mobipick')
     :param problem: the problem id
@@ -21,7 +21,7 @@ def testActorandPlanner(domain, problem, actor, learningStrategy, planner, plann
     try:
         rM = threading.Thread(target=problemInstance.actor.raeMult, args=[outputQueue])
         rM.start()
-        gui.start(domain, showGui) # graphical user interface to show action executions
+        gui.start(domain, showGui, showAnimation) # graphical user interface to show action executions
         rM.join()
     except Exception as e:
         print('Failed {} and {}, for domain {}, {}'.format(actor, planner, domain, e))

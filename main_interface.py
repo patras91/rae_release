@@ -26,7 +26,7 @@ class MainInterface():
 
         problemLabel = Label(text="Problem")
         problemLabel.place(x=5,y=70)
-        self.problem_text = Text(self.window, height=1, width=27, background='#EEEEEE')
+        self.problem_text = Text(self.window, height=1, width=27) # background='#EEEEEE')
         self.problem_text.place(x=130, y=70)
 
         planner = Label(text="Planner")
@@ -36,7 +36,7 @@ class MainInterface():
 
         timelimLabel = Label(text="Time Limit for Planner")
         timelimLabel.place(x=5,y=130)
-        self.timelim_text = Text(self.window, height=1, width=25, background='#EEEEEE')
+        self.timelim_text = Text(self.window, height=1, width=25) # background='#EEEEEE')
         self.timelim_text.place(x=150, y=130)
 
         utility = Label(text="Utility")
@@ -49,6 +49,12 @@ class MainInterface():
         self.learning_cb = Combobox(self.window, values=("None", "learnM", "learnH", "learnMI"))
         self.learning_cb.place(x=130, y=190)
 
+        self.showAnimation = BooleanVar()
+        self.minigrid_checkbox = Checkbutton(self.window,
+                                             text="Show Animation",
+                                             variable=self.showAnimation,
+                                             )
+        self.minigrid_checkbox.place(x=5, y=225)
         self.run_button = Button(self.window,
                         text="Run",
                         command=self.Run)
@@ -57,7 +63,8 @@ class MainInterface():
         self.clear_button = Button(self.window,
                                  text="Clear",
                                  command=self.Clear)
-        self.clear_button.place(x=240,y=220)
+
+        self.clear_button.place(x=260,y=220)
 
         self.output = Text(self.window, height=45, width=77, background='#EEEEEE')
         self.output.place(x=350, y=5)
@@ -127,6 +134,7 @@ class MainInterface():
             showGui='off',
             v=0,
             outputQueue=self.resultQueue,
+            showAnimation=True if self.showAnimation.get() else False,
         )
 
 

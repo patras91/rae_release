@@ -642,6 +642,9 @@ class MiniGridEnv(gym.Env):
         # Done completing task
         done = 6
 
+        addEmergency = 7
+        newBall = 8
+
     def __init__(
         self,
         grid_size=None,
@@ -1151,7 +1154,12 @@ class MiniGridEnv(gym.Env):
         # Done action (not used by default)
         elif action == self.actions.done:
             pass
-
+        elif action == self.actions.addEmergency:
+            obj, _ = self.add_object(self._rand_int(1, self.num_cols), 0, kind='box', color='yellow')
+            self.obj.append(obj)
+            self.emergency = obj
+        elif action == self.actions.newBall:
+            obj, _ = self.add_object(self._rand_int(1, self.num_cols), 2, kind='ball', color='green')
         else:
             assert False, "unknown action"
 

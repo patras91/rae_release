@@ -4,7 +4,6 @@ import numpy as np
 # Only ask users to install matplotlib if they actually need it
 try:
     import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 except:
     print('To display the environment in a window, please install matplotlib, eg:')
     print('pip3 install --user matplotlib')
