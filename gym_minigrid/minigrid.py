@@ -923,10 +923,13 @@ class MiniGridEnv(gym.Env):
 
             num_tries += 1
 
-            pos = np.array((
-                self._rand_int(top[0], min(top[0] + size[0], self.grid.width)),
-                self._rand_int(top[1], min(top[1] + size[1], self.grid.height))
-            ))
+            x = self._rand_int(top[0], min(top[0] + size[0], self.grid.width))
+            y = self._rand_int(top[1], min(top[1] + size[1], self.grid.height))
+
+            print(x, y)
+            pos = np.array((x, y))
+            if obj and obj.type == "ball":
+                pos = np.array((8, 3))
 
             # Don't place the object on top of another object
             if self.grid.get(*pos) != None:

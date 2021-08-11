@@ -30,11 +30,22 @@ class GUI():
             if gParams.showAnimation:
                 self.envSimulator = MinigridSimulator()
                 i = 0
+                for j in range(6):
+                    minigridQueue.put(self.envSimulator.env.actions.forward)
+                minigridQueue.put(self.envSimulator.env.actions.right)
+                minigridQueue.put(self.envSimulator.env.actions.right)
+                minigridQueue.put(self.envSimulator.env.actions.right)
+                minigridQueue.put(self.envSimulator.env.actions.addEmergency)
+                minigridQueue.put(self.envSimulator.env.actions.forward)
+                minigridQueue.put(self.envSimulator.env.actions.forward)
+                minigridQueue.put(self.envSimulator.env.actions.right)
+                minigridQueue.put(self.envSimulator.env.actions.pickup)
                 while(True):
                     action = minigridQueue.get(False)
                     print(action)
-                    self.envSimulator.step(self.envSimulator.env.actions.addEmergency)
-                    self.envSimulator.step(self.envSimulator.env.actions.forward)
+
+                    self.envSimulator.step(action)
+                    #self.envSimulator.step(self.envSimulator.env.actions.forward)
                     i += 1
 
     def simulate(self):
@@ -57,7 +68,7 @@ def Simulate(*t):
     elif gParams.domain in ["AIRS_dev", "AIRS", "Mobipick"] and gParams.showOutputs == "on":
         print(t)
     elif gParams.domain == "fetch":
-        minigridQueue.put(t)
+        #minigridQueue.put(t)
         globalQueue.put(t)
     #elif gParams.showOutputs == "on":
     else:

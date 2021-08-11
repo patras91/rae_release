@@ -14,7 +14,7 @@ class OrderedEnum(Enum):
             return self.value >= other.value
         return NotImplemented
     def __gt__(self, other):
-        if self.__class__ is other.__class__:
+        if self.__class__ is other.ffetch__class__:
             return self.value > other.value
         return NotImplemented
     def __le__(self, other):
@@ -451,8 +451,11 @@ class fetchRAE(RoomGrid):
                 locs = [(r,c) for r in range(self.num_rows) for c in range(self.num_cols)
                         if not self.room_grid[r][c].type == RoomDes.NOT_A_ROOM]
                 loc = choice(locs)
+
+                print("loc = ", loc)
                 try:
-                    obj, _ = self.add_object(loc[1], loc[0], kind=self.obj_type)
+                    obj, pos = self.add_object(loc[1], loc[0], kind=self.obj_type)
+                    self.obj_pos = pos
                     self.obj.append(obj)
                     # until we integrate with a planner, we need this info for the sub-goals in the goal descriptors
                     self.object_room = self.get_room(loc[1], loc[0])
@@ -461,7 +464,6 @@ class fetchRAE(RoomGrid):
 
         else:
             x = self._rand_int(1, self.num_cols)
-            print("objLoc ", x)
             obj, _ = self.add_object(x, 0, kind=self.obj_type, color='green')
             self.obj.append(obj)
 
