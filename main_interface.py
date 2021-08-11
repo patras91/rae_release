@@ -126,7 +126,7 @@ class MainInterface():
         GLOBALS.SetUtility(UTIL.EFFICIENCY)
         testActorandPlanner(
             domain='fetch',
-            problem='problem1',
+            problem='problem114',
             actor='RAE',
             learningStrategy=None,
             planner='UPOM',
